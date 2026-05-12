@@ -1,0 +1,40 @@
+{
+  "name": "nl2query-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@sparticuz/chromium": "^147.0.2",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@tailwindcss/typography": "^0.5.19",
+    "alasql": "^4.17.2",
+    "autoprefixer": "^10.5.0",
+    "dotenv": "^17.4.2",
+    "framer-motion": "^12.38.0",
+    "groq-sdk": "^1.1.2",
+    "lucide-react": "^1.8.0",
+    "next": "^16.2.4",
+    "next-auth": "^4.24.14",
+    "papaparse": "^5.5.3",
+    "postcss": "^8.5.10",
+    "puppeteer-core": "^24.42.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.8.1",
+    "tailwindcss": "^4.2.4",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.30"
+  }
+}

@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  overflow: hidden;
+}
+
+@media print {
+  @page {
+    margin: 0 !important;
+  }
+  * {
+    box-sizing: border-box !important;
+  }
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    display: block !important;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
