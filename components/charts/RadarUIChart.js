@@ -45,18 +45,18 @@ export default function RadarUIChart({ data, nameKey }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-        <PolarGrid stroke="#ffffff" opacity={0.05} />
-        <PolarAngleAxis dataKey={nameKey} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} />
-        <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} />
+        <PolarGrid stroke="#ffffff" opacity={0.1} />
+        <PolarAngleAxis dataKey={nameKey} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} />
+        <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} axisLine={false} />
         <Tooltip content={<CustomTooltip />} />
         <Legend 
           verticalAlign="top" 
           align="right"
-          wrapperStyle={{ paddingBottom: '20px', paddingRight: '10px' }}
+          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
           iconType="circle" 
           iconSize={8}
           formatter={(value) => (
-            <span className="text-white/40 font-black uppercase tracking-[0.2em] text-[9px] ml-2">
+            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
               {String(value).replace(/_/g, ' ')}
             </span>
           )}
@@ -68,7 +68,9 @@ export default function RadarUIChart({ data, nameKey }) {
             dataKey={key}
             stroke={CHART_COLORS[index % CHART_COLORS.length]}
             fill={CHART_COLORS[index % CHART_COLORS.length]}
-            fillOpacity={0.2}
+            fillOpacity={0.3}
+            strokeWidth={3}
+            animationDuration={2000}
           />
         ))}
       </RadarChart>

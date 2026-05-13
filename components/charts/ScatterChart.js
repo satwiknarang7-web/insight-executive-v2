@@ -94,17 +94,18 @@ export default function ScatterChart({ data, xKey, yKey }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <RechartsScatterChart margin={{ top: 20, right: 10, bottom: 40, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.03} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 
           type={xIsNumber ? "number" : "category"} 
           dataKey={xKeyToUse} 
           name={xKeyToUse} 
           axisLine={false} 
           tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 10, angle: xIsNumber ? 0 : -45, textAnchor: xIsNumber ? 'middle' : 'end', fontWeight: 500 }}
+          tick={{ fill: '#94a3b8', fontSize: 12, textAnchor: 'middle', fontWeight: 700 }}
           tickFormatter={xIsNumber ? yAxisFormatter : truncateTick}
           domain={xIsNumber ? ['auto', 'auto'] : undefined}
-          height={80}
+          interval="preserveStartEnd"
+          height={50}
         />
         <YAxis 
           type={yIsNumber ? "number" : "category"} 
@@ -112,21 +113,21 @@ export default function ScatterChart({ data, xKey, yKey }) {
           name={yKeyToUse} 
           axisLine={false} 
           tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }}
           tickFormatter={yAxisFormatter}
           domain={yIsNumber ? ['auto', 'auto'] : undefined}
-          width={45}
+          width={55}
         />
         <ZAxis type="number" range={[60, 400]} />
         <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.1)' }} />
         <Legend 
           verticalAlign="top" 
           align="right"
-          wrapperStyle={{ paddingBottom: '30px', paddingRight: '10px' }}
+          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
           iconType="circle" 
           iconSize={8}
           formatter={(value) => (
-            <span className="text-white/50 font-bold text-[11px] ml-2 capitalize">
+            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
               {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
             </span>
           )}

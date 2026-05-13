@@ -6,3 +6,4 @@ export { default as ScatterChart } from './ScatterChart';
 export { default as ComposedDualChart } from './ComposedDualChart';
 export { default as RadarUIChart } from './RadarUIChart';
 export { default as TreemapChart } from './TreemapChart';
+export { default as RadialBarChart } from './RadialBarChart';

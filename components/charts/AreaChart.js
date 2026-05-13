@@ -57,41 +57,41 @@ export default function AreaChart({ data, xKey, yKey }) {
       <RechartsAreaChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
         <defs>
           <linearGradient id={primaryGradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
-            <stop offset="95%" stopColor={CHART_COLORS[1]} stopOpacity={0.05}/>
+            <stop offset="0%" stopColor={CHART_COLORS[1]} stopOpacity={0.8}/>
+            <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0}/>
           </linearGradient>
           <linearGradient id={projGradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#FBBF24" stopOpacity={0.4}/>
-            <stop offset="95%" stopColor="#FBBF24" stopOpacity={0.05}/>
+            <stop offset="0%" stopColor={CHART_COLORS[5]} stopOpacity={0.6}/>
+            <stop offset="100%" stopColor={CHART_COLORS[5]} stopOpacity={0}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.03} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 
           dataKey={xKey} 
           axisLine={false} 
           tickLine={false} 
-          tick={{ angle: -45, textAnchor: 'end', fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} 
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={truncateTick}
-          interval={0}
-          height={80}
+          interval="preserveStartEnd"
+          height={40}
         />
         <YAxis 
           domain={['auto', 'auto']}
           axisLine={false} 
           tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} 
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={yAxisFormatter} 
-          width={45}
+          width={55}
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend 
           verticalAlign="top" 
           align="right"
-          wrapperStyle={{ paddingBottom: '30px', paddingRight: '10px' }}
+          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
           iconType="circle" 
           iconSize={8}
           formatter={(value) => (
-            <span className="text-white/50 font-bold text-[11px] ml-2 capitalize">
+            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
               {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
             </span>
           )}
@@ -102,12 +102,12 @@ export default function AreaChart({ data, xKey, yKey }) {
           type="monotone" 
           dataKey={yKey} 
           stroke={CHART_COLORS[1]} 
-          strokeWidth={3} 
+          strokeWidth={4} 
           fill={`url(#${primaryGradient})`} 
-          dot={data.length > 500 ? false : { r: 3, fill: CHART_COLORS[1], strokeWidth: 2, stroke: '#020617' }} 
+          dot={data.length > 100 ? false : { r: 4, fill: CHART_COLORS[1], strokeWidth: 2, stroke: '#020617' }} 
           activeDot={{ r: 6, fill: '#fff', stroke: CHART_COLORS[1], strokeWidth: 2 }} 
           name="Actual Baseline"
-          animationDuration={1500}
+          animationDuration={2000}
         />
 
         {/* Projected Area */}
@@ -115,13 +115,13 @@ export default function AreaChart({ data, xKey, yKey }) {
           <Area 
             type="monotone" 
             dataKey={projectionKey} 
-            stroke="#FBBF24" 
+            stroke={CHART_COLORS[5]} 
             strokeWidth={2} 
             strokeDasharray="5 5"
             fill={`url(#${projGradient})`} 
             dot={false}
             name="Projected Scenario"
-            animationDuration={2000}
+            animationDuration={2500}
           />
         )}
       </RechartsAreaChart>

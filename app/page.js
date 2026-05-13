@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from "react";
 import { 
-  Search, Loader2, Database, BarChart3, Code2, Terminal, 
+  Search, Loader2, Database, BarChart3, BarChart2, Code2, Terminal, 
   Upload, FileText, X, CheckCircle2, TrendingUp, Hash, 
   Rows, ChevronDown, ChevronUp, Table as TableIcon, LayoutDashboard,
   Zap, Sparkles, ShieldCheck, Shield, Globe, Activity, ChevronLeft, ChevronRight,
@@ -152,9 +152,18 @@ const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversCo
   }, [result, simulationLevers, simulationLeversConfig, highlightKey]);
 
   const simulationActive = simulationLeversConfig.some(l => (simulationLevers[l.dataKey] || 0) !== 0);
+  const [manualChartType, setManualChartType] = useState('auto');
+  
+  const chartTypes = ['auto', 'bar', 'line', 'area', 'donut', 'radial', 'scatter', 'treemap', 'radar', 'composed'];
+  
+  const cycleChartType = () => {
+    const currentIndex = chartTypes.indexOf(manualChartType);
+    const nextIndex = (currentIndex + 1) % chartTypes.length;
+    setManualChartType(chartTypes[nextIndex]);
+  };
 
   return (
-    <div className="w-full h-full flex flex-col px-4 pb-4">
+    <div className="w-full h-full flex flex-col px-2 pb-2">
       <div className="flex items-center gap-3 mb-2 z-10 relative shrink-0 flex-wrap">
         <div className="px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-semibold text-cyan-400 flex items-center gap-2 max-w-[280px] truncate">
           <Sparkles size={12} />
@@ -165,6 +174,14 @@ const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversCo
           {delta > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
           {Math.abs(delta)}% vs Avg
         </div>
+
+        <button 
+          onClick={cycleChartType}
+          className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/40 transition-all text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-cyan-400"
+        >
+          <BarChart2 size={12} className={manualChartType !== 'auto' ? 'text-cyan-400' : ''} />
+          {manualChartType === 'auto' ? 'Auto Select' : manualChartType}
+        </button>
         {simulationActive && (
           <div className="px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 flex items-center gap-2 uppercase tracking-widest">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -172,15 +189,15 @@ const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversCo
           </div>
         )}
       </div>
-      <div className="flex-1 w-full mt-6 bg-white/[0.01] rounded-2xl border border-white/5 p-4 relative" style={{ minHeight: '400px' }}>
+      <div className="flex-1 w-full mt-4 bg-white/[0.01] rounded-2xl border border-white/5 p-2 relative" style={{ minHeight: '500px' }}>
         <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity pointer-events-none">
           <Activity size={16} className="text-cyan-500" />
         </div>
-        <div className="w-full h-full absolute inset-0 p-4 pt-10">
+        <div className="w-full h-full absolute inset-0 p-2 pt-6">
           <ChartErrorBoundary>
             <DynamicChart 
               data={dataWithProjections} 
-              type={chart.chart_type}
+              type={manualChartType === 'auto' ? chart.chart_type : manualChartType}
               xKey={x} 
               yKey={y} 
               secondaryYKey={chart.secondaryYAxisKey}
@@ -813,7 +830,7 @@ export default function Home() {
 
       {/* COMMAND CONSOLE (Left Sidebar) */}
       {appState === "storyboard" && (
-        <aside className="w-72 flex-shrink-0 h-full bg-[#050505] border-r border-white/5 flex flex-col justify-between p-6 z-20 relative">
+        <aside className="w-64 flex-shrink-0 h-full bg-[#050505] border-r border-white/5 flex flex-col justify-between p-6 z-20 relative">
           
           {/* Top: Branding + Search + Health */}
           <div className="flex flex-col gap-6">
@@ -1391,7 +1408,7 @@ export default function Home() {
 
 
               {/* Left Column: The Narrative */}
-              <div className="w-full md:w-[40%] p-6 md:p-8 flex flex-col relative overflow-hidden break-words whitespace-normal pr-6 md:pr-8 bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent">
+              <div className="w-full md:w-[30%] p-6 md:p-8 flex flex-col relative overflow-hidden break-words whitespace-normal pr-6 md:pr-8 bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent">
                 <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-500/10 blur-[80px] -ml-16 -mt-16" />
                 
                 <div className="flex items-center gap-4 mb-4">
@@ -1404,15 +1421,15 @@ export default function Home() {
                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-[0.1em] leading-tight mb-4 text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/40 text-balance">
                   {currentSlide.pageTitle}
                 </h2>
-
+                
                 <div className="flex-grow overflow-hidden mb-4">
-                  <DynamicTextFit min={10} max={18}>
-                    <div className="space-y-4">
-                      <p className="flex items-start gap-3">
-                        <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
+                  <DynamicTextFit min={12} max={26}>
+                    <div className="space-y-10">
+                      <p className="flex items-start gap-4">
+                        <span className="mt-2 flex-shrink-0 w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.8)]" />
                         <span>
-                          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-cyan-500/60 block mb-1">Key Finding</span>
-                          <span className="text-slate-200 leading-relaxed">
+                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-500/80 block mb-2">Key Finding</span>
+                          <span className="text-white leading-[1.8] font-medium">
                             {currentSlide.insight_anchor ? (
                               cleanFloatingPoints(currentSlide.insight_anchor)
                             ) : isQuerying ? (
@@ -1423,11 +1440,11 @@ export default function Home() {
                           </span>
                         </span>
                       </p>
-                      <p className="flex items-start gap-3">
-                        <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-white/20" />
+                      <p className="flex items-start gap-4">
+                        <span className="mt-2 flex-shrink-0 w-2 h-2 rounded-full bg-white/20" />
                         <span>
-                          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 block mb-1">Implication</span>
-                          <span className="text-slate-300/80 leading-relaxed">
+                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 block mb-2">Implication</span>
+                          <span className="text-slate-200/90 leading-[1.8] font-medium">
                             {currentSlide.insight_implication ? (
                               cleanFloatingPoints(currentSlide.insight_implication)
                             ) : isQuerying ? (
@@ -1438,11 +1455,11 @@ export default function Home() {
                           </span>
                         </span>
                       </p>
-                      <p className="flex items-start gap-3 mt-2 pt-3 border-t border-white/5">
-                        <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-sm bg-amber-500/60" />
+                      <p className="flex items-start gap-4 mt-4 pt-6 border-t border-white/10">
+                        <span className="mt-2 flex-shrink-0 w-2 h-2 rounded-sm bg-amber-500/80" />
                         <span>
-                          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500/40 block mb-1">Strategic Question</span>
-                          <span className="text-slate-400 italic tracking-tight leading-relaxed">
+                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 block mb-2">Strategic Question</span>
+                          <span className="text-slate-300 italic tracking-tight leading-[1.8] font-medium">
                             {currentSlide.insight_question ? (
                               cleanFloatingPoints(currentSlide.insight_question)
                             ) : isQuerying ? (
@@ -1453,15 +1470,13 @@ export default function Home() {
                           </span>
                         </span>
                       </p>
-
-
                     </div>
                   </DynamicTextFit>
                 </div>
               </div>
 
               {/* Right Column: The Visual */}
-              <div className="w-full md:w-[60%] p-8 md:p-12 flex flex-col relative bg-white/[0.01]">
+              <div className="w-full md:w-[70%] p-4 md:p-6 flex flex-col relative bg-white/[0.01]">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.6)]" />

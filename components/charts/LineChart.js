@@ -75,23 +75,23 @@ export default function LineChart({ data, xKey, yKey }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <RechartsLineChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.03} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 
           dataKey={xKey} 
           axisLine={false} 
           tickLine={false} 
-          tick={{ angle: -45, textAnchor: 'end', fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} 
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={truncateTick}
-          interval={0}
-          height={100}
+          interval="preserveStartEnd"
+          height={50}
         />
         <YAxis 
           axisLine={false} 
           tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} 
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={yAxisFormatter}
           domain={yDomain}
-          width={45}
+          width={55}
           allowDecimals={!allIntegers}
           tickCount={yTickCount}
         />
@@ -99,11 +99,11 @@ export default function LineChart({ data, xKey, yKey }) {
         <Legend 
           verticalAlign="top" 
           align="right"
-          wrapperStyle={{ paddingBottom: '30px', paddingRight: '10px' }}
+          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
           iconType="circle" 
           iconSize={8}
           formatter={(value) => (
-            <span className="text-white/50 font-bold text-[11px] ml-2 capitalize">
+            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
               {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
             </span>
           )}
@@ -113,9 +113,9 @@ export default function LineChart({ data, xKey, yKey }) {
           type="monotone" 
           dataKey={yKey} 
           stroke={CHART_COLORS[0]} 
-          strokeWidth={3} 
-          dot={data.length > 500 ? false : { r: dotSize, fill: CHART_COLORS[0], strokeWidth: 2, stroke: '#020617' }} 
-          activeDot={{ r: dotSize + 2, strokeWidth: 0 }} 
+          strokeWidth={4} 
+          dot={data.length > 200 ? false : { r: dotSize, fill: CHART_COLORS[0], strokeWidth: 2, stroke: '#020617' }} 
+          activeDot={{ r: dotSize + 2, strokeWidth: 0, fill: '#fff', stroke: CHART_COLORS[0] }} 
           name="Actual Baseline"
           animationDuration={1500}
         />
@@ -125,8 +125,8 @@ export default function LineChart({ data, xKey, yKey }) {
             type="monotone" 
             dataKey={projectionKey} 
             stroke={CHART_COLORS[3]} 
-            strokeWidth={2} 
-            strokeDasharray="4 4"
+            strokeWidth={3} 
+            strokeDasharray="6 6"
             dot={false}
             name="Simulated Projection"
             animationDuration={2000}

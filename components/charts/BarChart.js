@@ -69,42 +69,56 @@ export default function BarChart({ data, xKey, yKey }) {
     <ResponsiveContainer width="100%" height="100%">
       <RechartsBarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
         <defs>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+            <feOffset dx="0" dy="4" result="offsetblur" />
+            <feFlood floodColor="rgba(0,0,0,0.5)" />
+            <feComposite in2="offsetblur" operator="in" />
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
           <linearGradient id={barGradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.8}/>
-            <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0.2}/>
+            <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
+            <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
           </linearGradient>
           <linearGradient id={projGradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CHART_COLORS[3]} stopOpacity={0.6}/>
-            <stop offset="95%" stopColor={CHART_COLORS[3]} stopOpacity={0.1}/>
+            <stop offset="0%" stopColor={CHART_COLORS[3]} stopOpacity={0.8}/>
+            <stop offset="100%" stopColor={CHART_COLORS[3]} stopOpacity={0.2}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.03} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 
           dataKey={xKey} 
           axisLine={false} 
           tickLine={false} 
-          tick={{ angle: -45, textAnchor: 'end', fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} 
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={truncateTick}
-          interval={0}
-          height={100}
+          interval="preserveStartEnd"
+          height={50}
         />
         <YAxis 
           axisLine={false} 
           tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }} 
+          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={yAxisFormatter}
           domain={['auto', 'auto']}
-          width={45}
+          width={55}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+        <Tooltip 
+          content={<CustomTooltip />} 
+          cursor={{ fill: 'rgba(255,255,255,0.05)', radius: [8, 8, 0, 0] }} 
+          animationDuration={200}
+        />
         <Legend 
           verticalAlign="top" 
           align="right"
-          wrapperStyle={{ paddingBottom: '30px', paddingRight: '10px' }}
+          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
           iconType="circle" 
           iconSize={8}
           formatter={(value) => (
-            <span className="text-white/50 font-bold text-[11px] ml-2 capitalize">
+            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
               {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
             </span>
           )}
@@ -113,16 +127,21 @@ export default function BarChart({ data, xKey, yKey }) {
         <Bar 
           dataKey={yKey} 
           fill={`url(#${barGradient})`} 
-          radius={[4, 4, 0, 0]} 
-          maxBarSize={32}
+          radius={[6, 6, 0, 0]} 
+          maxBarSize={40}
           name="Actual Baseline"
+          filter="url(#shadow)"
+          animationBegin={0}
+          animationDuration={1500}
+          animationEasing="ease-out"
         >
-          {data.length <= 1000 && data.map((entry, index) => (
+          {data.length <= 100 && data.map((entry, index) => (
             <Cell 
               key={`cell-${index}`} 
               fill={entry.isAnomaly ? '#f43f5e' : `url(#${barGradient})`} 
               stroke={entry.isAnomaly ? '#f43f5e' : 'none'}
               strokeWidth={entry.isAnomaly ? 2 : 0}
+              className="transition-all duration-300 hover:opacity-80 cursor-pointer"
             />
           ))}
         </Bar>
@@ -131,12 +150,13 @@ export default function BarChart({ data, xKey, yKey }) {
           <Bar 
             dataKey={projectionKey} 
             fill={`url(#${projGradient})`} 
-            radius={[4, 4, 0, 0]} 
-            maxBarSize={32}
+            radius={[6, 6, 0, 0]} 
+            maxBarSize={40}
             name="Simulated Projection"
             stroke={CHART_COLORS[3]}
             strokeDasharray="4 4"
             animationDuration={2000}
+            animationEasing="ease-in-out"
           />
         )}
       </RechartsBarChart>

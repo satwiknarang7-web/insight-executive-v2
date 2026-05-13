@@ -97,15 +97,17 @@ Here is a sample of the actual dataset for context: ${JSON.stringify(dataSample)
 # VISUALIZATION ENGINE PROTOCOL
 - bar / column: Best for categorical ranking (Top 10/15).
 - line / area: Best for trends over time or buckets. If the line is jagged, you failed to aggregate/bucket correctly.
-- donut: Part-to-whole (max 5 slices).
+- donut / radial: Part-to-whole or categorical magnitude comparisons.
 - composed: Comparing two metrics on different scales.
 - scatter: ONLY use for correlations where the result is aggregated into bins (e.g., Average Revenue vs Average Tenure). NEVER return raw customer-level rows.
+- radar: Best for multi-variable comparisons across categories (e.g. comparing regions across Revenue, Tenure, and Risk).
+- treemap: Best for high-cardinality categorical data where ranking is important.
 
 # CRITICAL DIRECTIVE: CHART DIVERSITY (MANDATORY)
 You MUST generate a diverse mix of chart types. NEVER generate more than 2 of the same type.
-- If you generate 3+ charts, at least ONE must be "area" and at least ONE must be "scatter".
-- If you generate 4+ charts, you need at LEAST 4 DIFFERENT types (e.g., 1 bar, 1 area, 1 scatter, 1 donut).
-- If you generate 5+ charts, include: 1 bar, 1 area, 1 scatter, 1 donut, 1 line.
+- If you generate 3+ charts, use at least THREE DIFFERENT types.
+- If you generate 4+ charts, use at least FOUR DIFFERENT types including one "radar" or "treemap" if data allows.
+- If you generate 5+ charts, you MUST include: 1 bar, 1 area, 1 scatter, 1 donut/radial, and 1 advanced (radar/treemap/composed).
 FAILURE TO DIVERSIFY IS A CRITICAL VIOLATION.
 
 # FEW-SHOT EXAMPLES (MIMIC THESE EXACTLY)
@@ -124,7 +126,7 @@ You must return your plan as a strictly valid, minified JSON object.
     {
       "id": "slide_1",
       "title": "Visualization Title",
-      "chart_type": "bar|line|area|scatter|composed|radar|treemap|donut",
+      "chart_type": "bar|line|area|scatter|composed|radar|treemap|donut|radial",
       "sql_query": "valid SQL query targeting the provided table",
       "xAxisKey": "column_name_for_x",
       "yAxisKey": "column_name_for_y",
@@ -299,18 +301,40 @@ export async function POST(request) {
             yAxisKey: "Total"
           });
           
-          // SLIDE 2: Area — trend/volume view
-          charts.push({
-            id: `slide_${slideNum++}`,
-            title: `${valDimension} Volume by ${catDimension}`,
-            chart_type: "area",
-            sql: `SELECT [${catDimension}], AVG([${valDimension}]) as [Average] FROM SalesData GROUP BY [${catDimension}] ORDER BY [Average] DESC LIMIT 12`,
-            xAxisKey: catDimension,
-            yAxisKey: "Average"
-          });
+          // SLIDE 2: Radar — Multi-metric comparison (if 3+ numeric cols)
+          if (numCols.length >= 3) {
+             charts.push({
+               id: `slide_${slideNum++}`,
+               title: `Segment Profiles by ${catDimension}`,
+               chart_type: "radar",
+               sql: `SELECT [${catDimension}], AVG([${numCols[0]}]) as [MetricA], AVG([${numCols[1]}]) as [MetricB], AVG([${numCols[2]}]) as [MetricC] FROM SalesData GROUP BY [${catDimension}] LIMIT 6`,
+               xAxisKey: catDimension,
+               yAxisKey: "MetricA"
+             });
+          } else {
+            // SLIDE 2 Fallback: Area — trend/volume view
+            charts.push({
+              id: `slide_${slideNum++}`,
+              title: `${valDimension} Volume by ${catDimension}`,
+              chart_type: "area",
+              sql: `SELECT [${catDimension}], AVG([${valDimension}]) as [Average] FROM SalesData GROUP BY [${catDimension}] ORDER BY [Average] DESC LIMIT 12`,
+              xAxisKey: catDimension,
+              yAxisKey: "Average"
+            });
+          }
           
-          // SLIDE 3: Scatter — correlation (if 2+ numeric cols available)
-          if (secondaryMetric) {
+          // SLIDE 3: Treemap — high density categories (if data length permits)
+          if (data.length > 20) {
+             charts.push({
+               id: `slide_${slideNum++}`,
+               title: `Market Share distribution of ${catDimension}`,
+               chart_type: "treemap",
+               sql: `SELECT [${catDimension}], COUNT(*) as [Count] FROM SalesData GROUP BY [${catDimension}] ORDER BY [Count] DESC LIMIT 20`,
+               xAxisKey: catDimension,
+               yAxisKey: "Count"
+             });
+          } else if (secondaryMetric) {
+            // SLIDE 3 Fallback: Scatter — correlation
             charts.push({
               id: `slide_${slideNum++}`,
               title: `${valDimension} vs ${secondaryMetric} Correlation`,
@@ -321,28 +345,41 @@ export async function POST(request) {
             });
           }
 
-          // SLIDE 4: Donut — distribution by secondary category
+          // SLIDE 4: Radial Bar — Part-to-whole (Small categories)
           const secondaryCat = validCategories[1] || stringCols[1];
           if (secondaryCat) {
             charts.push({
               id: `slide_${slideNum++}`,
               title: `Distribution across ${secondaryCat}`,
-              chart_type: "donut",
+              chart_type: "radial",
               sql: `SELECT [${secondaryCat}], COUNT(*) as [Count] FROM SalesData GROUP BY [${secondaryCat}] ORDER BY [Count] DESC LIMIT 5`,
               xAxisKey: secondaryCat,
               yAxisKey: "Count"
             });
           }
           
-          // SLIDE 5: Line — intensity trend
-          charts.push({
-            id: `slide_${slideNum++}`,
-            title: `${valDimension} Intensity Trend by ${catDimension}`,
-            chart_type: "line",
-            sql: `SELECT [${catDimension}], AVG([${valDimension}]) as [Average] FROM SalesData GROUP BY [${catDimension}] ORDER BY [Average] ASC LIMIT 10`,
-            xAxisKey: catDimension,
-            yAxisKey: "Average"
-          });
+          // SLIDE 5: Composed Dual Axis — Multiple perspectives
+          if (secondaryMetric) {
+             charts.push({
+               id: `slide_${slideNum++}`,
+               title: `Comparative Analysis: ${valDimension} & ${secondaryMetric}`,
+               chart_type: "composed",
+               sql: `SELECT [${catDimension}], SUM([${valDimension}]) as [Metric1], AVG([${secondaryMetric}]) as [Metric2] FROM SalesData GROUP BY [${catDimension}] LIMIT 8`,
+               xAxisKey: catDimension,
+               yAxisKey: "Metric1",
+               secondaryYAxisKey: "Metric2"
+             });
+          } else {
+            // SLIDE 5 Fallback: Line
+            charts.push({
+              id: `slide_${slideNum++}`,
+              title: `${valDimension} Intensity Trend by ${catDimension}`,
+              chart_type: "line",
+              sql: `SELECT [${catDimension}], AVG([${valDimension}]) as [Average] FROM SalesData GROUP BY [${catDimension}] ORDER BY [Average] ASC LIMIT 10`,
+              xAxisKey: catDimension,
+              yAxisKey: "Average"
+            });
+          }
         }
       }
     }
@@ -351,7 +388,6 @@ export async function POST(request) {
     charts = charts.map((c, i) => ({ ...c, id: c.id || `slide_${i + 1}` }));
 
     // --- POST-LLM CHART DIVERSITY ENFORCEMENT ---
-    // The LLM often ignores diversity directives. This programmatically fixes it.
     if (charts.length >= 3) {
       const typeCounts = {};
       charts.forEach(c => {
@@ -359,11 +395,8 @@ export async function POST(request) {
         typeCounts[t] = (typeCounts[t] || 0) + 1;
       });
 
-      const hasArea = typeCounts['area'] > 0;
-      const hasScatter = typeCounts['scatter'] > 0;
-      const needed = [];
-      if (!hasArea) needed.push('area');
-      if (!hasScatter && charts.length >= 4) needed.push('scatter');
+      const advancedTypes = ['area', 'scatter', 'radar', 'treemap', 'radial', 'composed'];
+      const needed = advancedTypes.filter(t => (typeCounts[t] || 0) === 0);
 
       // Find duplicate types to reassign
       if (needed.length > 0) {
@@ -374,6 +407,8 @@ export async function POST(request) {
           const ct = (charts[i].chart_type || 'bar').toLowerCase();
           if (duplicateTypes.includes(ct) && typeCounts[ct] >= 2) {
             const newType = needed[reassignCount];
+            // Only reassign if it's not a complete mismatch (e.g. don't turn a bar into a scatter if 1 metric)
+            // But for now, we'll trust the component fallbacks to handle it.
             console.log(`[DIVERSITY_ENFORCE] Reassigning chart ${i} from '${ct}' to '${newType}'`);
             charts[i].chart_type = newType;
             typeCounts[ct]--;

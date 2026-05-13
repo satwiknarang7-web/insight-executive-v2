@@ -66,10 +66,10 @@ export default function DonutChart({ data, nameKey, valueKey }) {
               <text 
                 x={xPos} 
                 y={yPos} 
-                fill="#94a3b8" 
+                fill="#ffffff" 
                 textAnchor={xPos > cx ? 'start' : 'end'} 
                 dominantBaseline="central" 
-                className="text-[10px] font-medium tracking-widest"
+                className="text-[11px] font-black tracking-widest drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]"
               >
                 {displayValue}
               </text>
@@ -77,9 +77,27 @@ export default function DonutChart({ data, nameKey, valueKey }) {
           }}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} className="hover:brightness-110 transition-all cursor-pointer" />
           ))}
         </Pie>
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-white font-black text-2xl drop-shadow-[0_4px_12px_rgba(34,211,238,0.4)]"
+        >
+          {yAxisFormatter(data.reduce((acc, curr) => acc + (Number(curr[valueKey]) || 0), 0))}
+        </text>
+        <text
+          x="50%"
+          y="58%"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-white/40 font-black text-[9px] uppercase tracking-[0.3em]"
+        >
+          Total Aggregation
+        </text>
         <Tooltip content={<CustomTooltip />} />
         <Legend 
           layout="vertical" 
