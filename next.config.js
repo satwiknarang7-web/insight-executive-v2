@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  serverExternalPackages: ['alasql'],
+  serverExternalPackages: ['alasql', 'puppeteer-core', '@sparticuz/chromium'],
   
   // 1. Turbopack Configuration
   turbopack: {
