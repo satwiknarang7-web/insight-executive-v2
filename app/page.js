@@ -243,6 +243,17 @@ export default function Home() {
   const [apiError, setApiError] = useState(null);
   const [isSimulationOpen, setIsSimulationOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const [particles] = useState(() => Array.from({ length: 20 }).map(() => ({
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -788,19 +799,21 @@ export default function Home() {
   return (
     <main 
       onMouseMove={handleMouseMove}
-      className="h-screen w-full bg-[#030303] text-white font-['Outfit'] overflow-hidden flex flex-row p-0 m-0 relative selection:bg-cyan-500/30"
+      className="min-h-screen w-full bg-[#030303] text-white font-['Outfit'] overflow-x-hidden flex flex-col md:flex-row p-0 m-0 relative selection:bg-cyan-500/30"
     >
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-        <motion.div 
-          animate={{ 
-            x: mousePosition.x - 400, 
-            y: mousePosition.y - 400 
-          }}
-          transition={{ type: "spring", damping: 30, stiffness: 50, mass: 0.5 }}
-          className="absolute w-[800px] h-[800px] bg-slate-500/5 rounded-full blur-[120px] mix-blend-screen opacity-50"
-        />
+        {!isMobile && (
+          <motion.div 
+            animate={{ 
+              x: mousePosition.x - 400, 
+              y: mousePosition.y - 400 
+            }}
+            transition={{ type: "spring", damping: 30, stiffness: 50, mass: 0.5 }}
+            className="absolute w-[800px] h-[800px] bg-slate-500/5 rounded-full blur-[120px] mix-blend-screen opacity-50"
+          />
+        )}
         
         {particles.map((p, i) => (
           <motion.div
@@ -830,7 +843,7 @@ export default function Home() {
 
       {/* COMMAND CONSOLE (Left Sidebar) */}
       {appState === "storyboard" && (
-        <aside className="w-64 flex-shrink-0 h-full bg-[#050505] border-r border-white/5 flex flex-col justify-between p-6 z-20 relative">
+        <aside className="w-full md:w-64 flex-shrink-0 md:h-full bg-[#050505] border-b md:border-b-0 md:border-r border-white/5 flex flex-col justify-between p-6 z-20 relative">
           
           {/* Top: Branding + Search + Health */}
           <div className="flex flex-col gap-6">
@@ -1003,7 +1016,7 @@ export default function Home() {
       )}
 
       {/* PROJECTION CANVAS (Main Right Column) */}
-      <div className={`flex-1 h-full relative flex flex-col z-10 overflow-hidden transition-all duration-500 ease-in-out ${isSimulationOpen ? 'mr-[350px]' : ''}`}>
+      <div className={`flex-1 min-h-screen relative flex flex-col z-10 transition-all duration-500 ease-in-out ${isSimulationOpen && !isMobile ? 'mr-[350px]' : ''}`}>
         
         {/* GLOBAL HEADER (Multiplayer & Simulation) */}
         {appState === "storyboard" && (
@@ -1130,8 +1143,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="relative group/title">
-                  <h1 className="text-6xl md:text-[92px] font-black tracking-[-0.05em] text-white leading-[0.9] mb-8 relative z-10">
+                <div className="relative group/title w-full">
+                  <h1 className="text-5xl md:text-[92px] font-black tracking-[-0.05em] text-white leading-[0.9] mb-6 md:mb-8 relative z-10">
                     Instant <br />
                     Data <br />
                     <span className="relative inline-block">
@@ -1152,8 +1165,8 @@ export default function Home() {
                   `}</style>
                 </div>
 
-                <p className="text-lg md:text-xl text-white/50 font-medium tracking-tight leading-relaxed max-w-lg relative pl-8 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-cyan-500 before:to-transparent">
-                  Turn your spreadsheets into professional executive reports. Upload any CSV to get <span className="font-semibold">clear charts</span> and expert insights in seconds.
+                <p className="text-base md:text-xl text-white/50 font-medium tracking-tight leading-relaxed max-w-lg relative pl-6 md:pl-8 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-cyan-500 before:to-transparent">
+                  Turn your spreadsheets into professional executive reports. Upload any CSV to get <span className="font-semibold text-white/80">clear charts</span> and expert insights in seconds.
                 </p>
 
                 {apiError && (
@@ -1195,14 +1208,14 @@ export default function Home() {
                       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                       onDragLeave={() => setIsDragging(false)}
                       onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileUpload(e.dataTransfer.files[0]); }}
-                      className={`p-10 rounded-[2.8rem] border border-white/10 flex flex-col items-center justify-center text-center gap-8 transition-all backdrop-blur-[40px] backdrop-saturate-[2.5] min-h-[360px] relative ${isDragging ? "border-cyan-400 bg-cyan-500/20 scale-[1.01]" : fileName ? "border-cyan-500/50 bg-cyan-500/5" : "bg-black/60 hover:bg-black/80 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]"}`}
+                      className={`p-6 md:p-10 rounded-[2rem] md:rounded-[2.8rem] border border-white/10 flex flex-col items-center justify-center text-center gap-6 md:gap-8 transition-all backdrop-blur-[40px] backdrop-saturate-[2.5] min-h-[300px] md:min-h-[360px] relative ${isDragging ? "border-cyan-400 bg-cyan-500/20 scale-[1.01]" : fileName ? "border-cyan-500/50 bg-cyan-500/5" : "bg-black/60 hover:bg-black/80 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]"}`}
                     >
                       <div className={`w-24 h-24 shrink-0 rounded-[2rem] flex items-center justify-center transition-all relative ${fileName ? "bg-cyan-500 text-black shadow-[0_0_50px_rgba(6,182,212,0.6)] scale-110" : "bg-white/5 text-white/40 group-hover/drop:text-cyan-400 group-hover/drop:bg-cyan-500/10 group-hover/drop:shadow-[0_0_30px_rgba(6,182,212,0.3)]"}`}>
                         <div className="absolute inset-0 rounded-[2rem] border border-white/10 animate-ping opacity-20" />
                         {fileName ? <CheckCircle2 size={48} /> : <Upload size={48} />}
                       </div>
-                      <div className="space-y-4">
-                        <p className="text-4xl font-black tracking-tighter text-white uppercase italic">{fileName || "Initiate Link"}</p>
+                      <div className="space-y-3 md:space-y-4">
+                        <p className="text-2xl md:text-4xl font-black tracking-tighter text-white uppercase italic">{fileName || "Initiate Link"}</p>
                         <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em]">{fileName ? "Encryption Sequence Verified" : "System awaiting data ingestion"}</p>
                       </div>
                       <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e.target.files[0])} className="hidden" accept=".csv" />
@@ -1408,7 +1421,7 @@ export default function Home() {
 
 
               {/* Left Column: The Narrative */}
-              <div className="w-full md:w-[30%] p-6 md:p-8 flex flex-col relative overflow-hidden break-words whitespace-normal pr-6 md:pr-8 bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent">
+              <div className="w-full md:w-[30%] p-6 md:p-8 flex flex-col relative break-words whitespace-normal bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent border-b md:border-b-0 md:border-r border-white/5">
                 <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-500/10 blur-[80px] -ml-16 -mt-16" />
                 
                 <div className="flex items-center gap-4 mb-4">
@@ -1489,7 +1502,7 @@ export default function Home() {
                     {/* Maximize and Share icons removed */}
                   </div>
                 </div>
-                <div className="flex-1 w-full" style={{ minHeight: '300px' }}>
+                <div className="flex-1 w-full min-h-[350px] md:min-h-[500px]">
                   <StrategicChart 
                     chart={currentSlide.chart} 
                     simulationLevers={simulationLevers}
@@ -1567,7 +1580,7 @@ export default function Home() {
       <AgentTerminal logs={agentLogs} isProcessing={isQuerying} />
 
       {/* MULTIPLAYER PRESENCE */}
-      <LiveCursors users={remoteUsers} />
+      {!isMobile && <LiveCursors users={remoteUsers} />}
     </main>
   );
 }

@@ -4,10 +4,8 @@ html,
 body {
   padding: 0;
   margin: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  overflow: hidden;
+  min-height: 100vh;
+  background-color: #030303;
 }
 
 @media print {
