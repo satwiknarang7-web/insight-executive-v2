@@ -12,14 +12,7 @@ import {
   Cell
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-
-const yAxisFormatter = (val) => {
-  if (typeof val !== 'number') return val;
-  const formattedNum = Math.abs(val) >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : 
-                       Math.abs(val) >= 1000 ? (val / 1000).toFixed(1) + 'K' : 
-                       Number(val.toFixed(2));
-  return formattedNum;
-};
+import { formatNumber as yAxisFormatter } from '../../lib/format';
 
 const CustomXAxisTick = ({ x, y, payload }) => {
   const value = payload.value;
@@ -59,7 +52,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
                 <span className="text-[11px] font-bold text-white/60 capitalize">
-                  {entry.name.replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+                  {entry.name.replace(/_/g, ' ')}
                 </span>
               </div>
               <span className="text-[11px] font-black font-mono text-white">
@@ -80,16 +73,9 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
   if (!data || data.length === 0) return null;
 
   const keys = Object.keys(data[0] || {});
-  const actualLineKey = lineKey || keys.find(k => k !== xKey && k !== yKey && typeof data[0][k] === 'number' && !k.startsWith('Projected'));
-  const projectionKey = keys.find(k => k.startsWith('Projected'));
+  const actualLineKey = lineKey || keys.find(k => k !== xKey && k !== yKey && typeof data[0][k] === 'number');
 
-  const processedData = data.map(item => {
-    const newItem = { ...item };
-    if (projectionKey && (newItem[projectionKey] === undefined || newItem[projectionKey] === null)) {
-      newItem[projectionKey] = newItem[yKey];
-    }
-    return newItem;
-  });
+  const processedData = data;
 
   const dynamicXAxisHeight = useMemo(() => {
     if (!processedData || processedData.length === 0) return 30;
@@ -169,7 +155,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
           iconSize={8}
           formatter={(value) => (
             <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+              {String(value).replace(/_/g, ' ')}
             </span>
           )}
         />
@@ -193,20 +179,6 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
             dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 2, stroke: '#020617' }}
             activeDot={{ r: 6, fill: '#fff', stroke: CHART_COLORS[2], strokeWidth: 2 }}
             animationDuration={2000}
-          />
-        )}
-
-        {projectionKey && (
-          <Line 
-            yAxisId="left" 
-            type="monotone" 
-            dataKey={projectionKey} 
-            stroke={CHART_COLORS[3]} 
-            strokeWidth={2} 
-            strokeDasharray="6 6"
-            dot={false}
-            animationDuration={2500}
-            name="Simulated Projection"
           />
         )}
       </ComposedChart>

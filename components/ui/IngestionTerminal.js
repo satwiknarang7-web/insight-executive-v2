@@ -16,7 +16,7 @@ export default function IngestionTerminal({ logs, stage, progress, isComplete })
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-2xl bg-slate-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[500px]"
+        className="w-full max-w-2xl bg-slate-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[80vh] md:h-[500px]"
       >
         {/* Header */}
         <div className="px-4 py-3 bg-white/5 border-b border-white/10 flex items-center justify-between">
@@ -49,7 +49,7 @@ export default function IngestionTerminal({ logs, stage, progress, isComplete })
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               className={`
-                ${log.startsWith('>') ? 'text-cyan-400' : 'text-white/60'}
+                ${log.startsWith('>') ? 'text-accent-400' : 'text-white/60'}
                 ${log.includes('Redacted') ? 'text-amber-400' : ''}
                 ${log.includes('complete') ? 'text-emerald-400 font-bold' : ''}
               `}
@@ -58,8 +58,8 @@ export default function IngestionTerminal({ logs, stage, progress, isComplete })
             </motion.div>
           ))}
           {!isComplete && (
-            <div className="flex items-center gap-2 text-cyan-400/50 animate-pulse">
-              <span className="w-1.5 h-4 bg-cyan-400" />
+            <div className="flex items-center gap-2 text-accent-400/50 animate-pulse">
+              <span className="w-1.5 h-4 bg-accent-400" />
               Processing...
             </div>
           )}
@@ -95,13 +95,13 @@ export default function IngestionTerminal({ logs, stage, progress, isComplete })
               <div className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Current Stage</div>
               <div className="text-[11px] text-white/80 font-mono uppercase tracking-widest">{stage || 'Initializing...'}</div>
             </div>
-            <div className="text-[11px] text-cyan-400 font-mono font-bold">{progress}%</div>
+            <div className="text-[11px] text-accent-400 font-mono font-bold">{progress}%</div>
           </div>
           <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+              className="h-full bg-gradient-to-r from-accent-500 to-blue-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]"
             />
           </div>
         </div>

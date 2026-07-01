@@ -1,14 +1,7 @@
 import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-
-const yAxisFormatter = (val) => {
-  if (typeof val !== 'number') return val;
-  const formattedNum = Math.abs(val) >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : 
-                       Math.abs(val) >= 1000 ? (val / 1000).toFixed(1) + 'K' : 
-                       Number(val.toFixed(2));
-  return formattedNum;
-};
+import { formatNumber as yAxisFormatter, formatValue } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -56,11 +49,7 @@ export default function DonutChart({ data, nameKey, valueKey }) {
             const xPos = cx + radius * Math.cos(-midAngle * RADIAN);
             const yPos = cy + radius * Math.sin(-midAngle * RADIAN);
 
-            const isCurrency = name && String(name).toLowerCase().match(/(charge|price|revenue|cost|amount)/);
-            const formattedNum = Math.abs(value) >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : 
-                                 Math.abs(value) >= 1000 ? (value / 1000).toFixed(1) + 'K' : 
-                                 Number(value.toFixed(2));
-            const displayValue = isCurrency ? `$${formattedNum}` : formattedNum;
+            const displayValue = formatValue(value, name);
 
             return (
               <text 
@@ -79,25 +68,25 @@ export default function DonutChart({ data, nameKey, valueKey }) {
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} className="hover:brightness-110 transition-all cursor-pointer" />
           ))}
+          <Label
+            position="center"
+            content={({ viewBox }) => {
+              const { cx, cy } = viewBox || {};
+              if (cx == null || cy == null) return null;
+              const total = data.reduce((acc, curr) => acc + (Number(curr[valueKey]) || 0), 0);
+              return (
+                <g>
+                  <text x={cx} y={cy - 6} textAnchor="middle" dominantBaseline="middle" className="fill-white font-black text-2xl drop-shadow-[0_4px_12px_rgba(45,212,191,0.4)]">
+                    {yAxisFormatter(total)}
+                  </text>
+                  <text x={cx} y={cy + 16} textAnchor="middle" dominantBaseline="middle" className="fill-white/40 font-black text-[9px] uppercase tracking-[0.3em]">
+                    Total
+                  </text>
+                </g>
+              );
+            }}
+          />
         </Pie>
-        <text
-          x="50%"
-          y="50%"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-white font-black text-2xl drop-shadow-[0_4px_12px_rgba(34,211,238,0.4)]"
-        >
-          {yAxisFormatter(data.reduce((acc, curr) => acc + (Number(curr[valueKey]) || 0), 0))}
-        </text>
-        <text
-          x="50%"
-          y="58%"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-white/40 font-black text-[9px] uppercase tracking-[0.3em]"
-        >
-          Total Aggregation
-        </text>
         <Tooltip content={<CustomTooltip />} />
         <Legend 
           layout="vertical" 

@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Brand accent — single source of truth. Swap these to re-theme the whole app. */
+@theme {
+  --color-accent-50: #f0fdfa;
+  --color-accent-100: #ccfbf1;
+  --color-accent-200: #99f6e4;
+  --color-accent-300: #5eead4;
+  --color-accent-400: #2dd4bf;
+  --color-accent-500: #14b8a6;
+  --color-accent-600: #0d9488;
+  --color-accent-700: #0f766e;
+  --accent-glow: 20, 184, 166;
+}
+
 html,
 body {
   padding: 0;

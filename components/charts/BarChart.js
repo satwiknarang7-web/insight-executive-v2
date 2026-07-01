@@ -11,22 +11,7 @@ import {
   Legend
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-
-const yAxisFormatter = (val) => {
-  if (typeof val !== 'number') return val;
-  if (Number.isInteger(val) && Math.abs(val) < 100) return val;
-  const formattedNum = Math.abs(val) >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : 
-                       Math.abs(val) >= 1000 ? (val / 1000).toFixed(1) + 'K' : 
-                       Number(val.toFixed(2));
-  return formattedNum;
-};
-
-const truncateTick = (tick) => {
-  if (tick && typeof tick === 'string' && tick.length > 15) {
-     return `${tick.substring(0, 12)}...`;
-  }
-  return tick;
-};
+import { formatNumber as yAxisFormatter, truncateLabel as truncateTick } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -41,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
                 <span className="text-[11px] font-bold text-white/60 capitalize">
-                  {entry.name.replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+                  {entry.name.replace(/_/g, ' ')}
                 </span>
               </div>
               <span className="text-[11px] font-black font-mono text-white">
@@ -59,11 +44,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function BarChart({ data, xKey, yKey }) {
   const gradientId = React.useId();
   const barGradient = `bar-gradient-${gradientId}`;
-  const projGradient = `bar-proj-gradient-${gradientId}`;
   if (!data || data.length === 0) return null;
-
-  const keys = Object.keys(data[0] || {});
-  const projectionKey = keys.find(k => k.startsWith('Projected'));
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -83,10 +64,6 @@ export default function BarChart({ data, xKey, yKey }) {
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
             <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
           </linearGradient>
-          <linearGradient id={projGradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={CHART_COLORS[3]} stopOpacity={0.8}/>
-            <stop offset="100%" stopColor={CHART_COLORS[3]} stopOpacity={0.2}/>
-          </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 
@@ -103,7 +80,7 @@ export default function BarChart({ data, xKey, yKey }) {
           tickLine={false} 
           tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
           tickFormatter={yAxisFormatter}
-          domain={['auto', 'auto']}
+          domain={[0, 'auto']}
           width={55}
         />
         <Tooltip 
@@ -119,7 +96,7 @@ export default function BarChart({ data, xKey, yKey }) {
           iconSize={8}
           formatter={(value) => (
             <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+              {String(value).replace(/_/g, ' ')}
             </span>
           )}
         />
@@ -129,7 +106,7 @@ export default function BarChart({ data, xKey, yKey }) {
           fill={`url(#${barGradient})`} 
           radius={[6, 6, 0, 0]} 
           maxBarSize={40}
-          name="Actual Baseline"
+          name={yKey}
           filter="url(#shadow)"
           animationBegin={0}
           animationDuration={1500}
@@ -145,20 +122,6 @@ export default function BarChart({ data, xKey, yKey }) {
             />
           ))}
         </Bar>
-
-        {projectionKey && (
-          <Bar 
-            dataKey={projectionKey} 
-            fill={`url(#${projGradient})`} 
-            radius={[6, 6, 0, 0]} 
-            maxBarSize={40}
-            name="Simulated Projection"
-            stroke={CHART_COLORS[3]}
-            strokeDasharray="4 4"
-            animationDuration={2000}
-            animationEasing="ease-in-out"
-          />
-        )}
       </RechartsBarChart>
     </ResponsiveContainer>
   );

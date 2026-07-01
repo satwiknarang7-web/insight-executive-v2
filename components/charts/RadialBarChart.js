@@ -8,6 +8,7 @@ import {
   PolarAngleAxis
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { formatNumber } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -20,7 +21,7 @@ const CustomTooltip = ({ active, payload }) => {
         <div className="flex items-center justify-between gap-4">
           <span className="text-[11px] font-bold text-white/60">Value</span>
           <span className="text-[11px] font-black font-mono text-white">
-            {typeof data.value === 'number' ? data.value.toLocaleString() : data.value}
+            {formatNumber(data.value)}
           </span>
         </div>
       </div>
@@ -59,13 +60,6 @@ export default function RadialBarChart({ data, nameKey, valueKey }) {
         />
         <RadialBar
           minAngle={15}
-          label={{ 
-            position: 'insideStart', 
-            fill: '#020617', 
-            fontSize: 12, 
-            fontWeight: 900,
-            className: "drop-shadow-[0_1px_1px_rgba(255,255,255,0.3)] uppercase tracking-tighter"
-          }}
           background={{ fill: 'rgba(255,255,255,0.05)' }}
           clockWise
           dataKey="value"

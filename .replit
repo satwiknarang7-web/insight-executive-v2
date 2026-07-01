@@ -1,0 +1,17 @@
+modules = ["nodejs-20"]
+entrypoint = "app/page.js"
+hidden = [".next", "node_modules"]
+
+run = "npm run dev -- -H 0.0.0.0 -p 3000"
+
+[env]
+NODE_ENV = "development"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]

@@ -6,7 +6,7 @@ import {
   Upload, FileText, X, CheckCircle2, TrendingUp, Hash, 
   Rows, ChevronDown, ChevronUp, Table as TableIcon, LayoutDashboard,
   Zap, Sparkles, ShieldCheck, Shield, Globe, Activity, ChevronLeft, ChevronRight,
-  Download, Play, Pause, Users, DollarSign, Target, TrendingDown, AlertTriangle, Wand2
+  Download, Play, Pause, Users, DollarSign, Target, TrendingDown, AlertTriangle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Papa from "papaparse";
@@ -17,7 +17,6 @@ import {
 import ReactMarkdown from "react-markdown";
 import DynamicChart from "../components/charts/DynamicChart";
 import IngestionTerminal from "../components/ui/IngestionTerminal";
-import SimulationDrawer from "../components/ui/SimulationDrawer";
 import AgentTerminal from "../components/ui/AgentTerminal";
 import LiveCursors from "../components/ui/LiveCursors";
 import { sanitizeDataset, cleanFloatingPoints } from "./utils/dataCleaner";
@@ -69,7 +68,7 @@ const SafeBoldText = ({ text, className = '' }) => {
     <span className={className}>
       {parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={i} className="font-black text-cyan-400 tracking-wider">{part.slice(2, -2)}</strong>;
+          return <strong key={i} className="font-black text-accent-400 tracking-wider">{part.slice(2, -2)}</strong>;
         }
         return <span key={i}>{part}</span>;
       })}
@@ -78,7 +77,7 @@ const SafeBoldText = ({ text, className = '' }) => {
 };
 
 // Memoized Chart Component (extracted from render to avoid stale closure)
-const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversConfig }) => {
+const StrategicChart = React.memo(({ chart }) => {
   const result = chart.resultData;
   const type = chart.chart_type?.toLowerCase() || 'bar';
   
@@ -127,31 +126,6 @@ const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversCo
     return { maxVal: maxV, delta: d, maxItemName: mName };
   }, [result, highlightKey, x]);
 
-  const dataWithProjections = React.useMemo(() => {
-    const simulationActive = simulationLeversConfig.some(l => (simulationLevers[l.dataKey] || 0) !== 0);
-    if (!simulationActive) return result;
-
-    return result.map(item => {
-      const newItem = { ...item };
-      simulationLeversConfig.forEach(lever => {
-        const sliderValue = simulationLevers[lever.dataKey] || 0;
-        const targetKPI = lever.target_kpi || highlightKey;
-        const multiplier = lever.impact_multiplier || (lever.impact === 'negative' ? -1 : 1);
-        const originalKPIVal = Number(item[targetKPI]);
-        if (!isNaN(originalKPIVal)) {
-          const rippleDelta = (sliderValue / 100) * multiplier;
-          newItem[`Projected ${targetKPI}`] = originalKPIVal * (1 + rippleDelta);
-        }
-      });
-      const primaryProjectedKey = `Projected ${highlightKey}`;
-      if (newItem[primaryProjectedKey] === undefined) {
-        newItem[primaryProjectedKey] = Number(item[highlightKey]);
-      }
-      return newItem;
-    });
-  }, [result, simulationLevers, simulationLeversConfig, highlightKey]);
-
-  const simulationActive = simulationLeversConfig.some(l => (simulationLevers[l.dataKey] || 0) !== 0);
   const [manualChartType, setManualChartType] = useState('auto');
   
   const chartTypes = ['auto', 'bar', 'line', 'area', 'donut', 'radial', 'scatter', 'treemap', 'radar', 'composed'];
@@ -165,10 +139,10 @@ const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversCo
   return (
     <div className="w-full h-full flex flex-col px-2 pb-2">
       <div className="flex items-center gap-3 mb-2 z-10 relative shrink-0 flex-wrap">
-        <div className="px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-semibold text-cyan-400 flex items-center gap-2 max-w-[280px] truncate">
+        <div className="px-3 py-1.5 rounded-full bg-accent-500/10 border border-accent-500/20 text-[11px] font-semibold text-accent-400 flex items-center gap-2 max-w-[280px] truncate">
           <Sparkles size={12} />
           <span className="truncate">Target: {maxItemName}</span>
-          <span className="text-cyan-500/40 hidden lg:inline">| High Impact</span>
+          <span className="text-accent-500/40 hidden lg:inline">| High Impact</span>
         </div>
         <div className={`px-3 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1 ${delta > 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
           {delta > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
@@ -177,26 +151,20 @@ const StrategicChart = React.memo(({ chart, simulationLevers, simulationLeversCo
 
         <button 
           onClick={cycleChartType}
-          className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/40 transition-all text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-cyan-400"
+          className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent-500/40 transition-all text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-accent-400"
         >
-          <BarChart2 size={12} className={manualChartType !== 'auto' ? 'text-cyan-400' : ''} />
+          <BarChart2 size={12} className={manualChartType !== 'auto' ? 'text-accent-400' : ''} />
           {manualChartType === 'auto' ? 'Auto Select' : manualChartType}
         </button>
-        {simulationActive && (
-          <div className="px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 flex items-center gap-2 uppercase tracking-widest">
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Simulation Active
-          </div>
-        )}
       </div>
       <div className="flex-1 w-full mt-4 bg-white/[0.01] rounded-2xl border border-white/5 p-2 relative" style={{ minHeight: '500px' }}>
         <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <Activity size={16} className="text-cyan-500" />
+          <Activity size={16} className="text-accent-500" />
         </div>
         <div className="w-full h-full absolute inset-0 p-2 pt-6">
           <ChartErrorBoundary>
-            <DynamicChart 
-              data={dataWithProjections} 
+            <DynamicChart
+              data={result}
               type={manualChartType === 'auto' ? chart.chart_type : manualChartType}
               xKey={x} 
               yKey={y} 
@@ -241,7 +209,6 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [apiError, setApiError] = useState(null);
-  const [isSimulationOpen, setIsSimulationOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
 
@@ -283,38 +250,7 @@ export default function Home() {
   const setAgentLogsTimestamped = (logs) => setAgentLogs(logs.map(l => ({ ...l, timestamp: l.timestamp || Date.now() })));
   
   // Multiplayer State
-  const { 
-    syncedState: multiplayerLevers, 
-    updateSimulationState, 
-    resetSimulationState, 
-    remoteUsers, 
-    updateCursorPosition 
-  } = useMultiplayer();
-  
-  // Scenario Simulation State
-  const [simulationLevers, setSimulationLevers] = useState({});
-  const [simulationLeversConfig, setSimulationLeversConfig] = useState([]);
-
-  // Sync Multiplayer -> Local Simulation Levers
-  useEffect(() => {
-    if (multiplayerLevers && Object.keys(multiplayerLevers).length > 0) {
-      setSimulationLevers(prev => ({ ...prev, ...multiplayerLevers }));
-    }
-  }, [multiplayerLevers]);
-
-  const handleLeverChange = (id, val) => {
-    setSimulationLevers(prev => ({ ...prev, [id]: val }));
-    updateSimulationState(id, val);
-  };
-
-  const resetSimulation = () => {
-    const reset = {};
-    simulationLeversConfig.forEach(l => {
-      reset[l.dataKey] = 0;
-    });
-    setSimulationLevers(reset);
-    resetSimulationState();
-  };
+  const { remoteUsers, updateCursorPosition } = useMultiplayer();
 
   const handleMouseMove = (e) => {
     // Only update multiplayer cursor frequently, throttle local state if needed
@@ -352,8 +288,6 @@ export default function Home() {
     setAgentLogs([]);
     setCurrentPage(0);
     setIngestionMetrics({ totalRows: 0, anomalies: 0, redactedPII: 0, outliersCount: 0 });
-    setSimulationLevers({});
-    setSimulationLeversConfig([]);
     setApiError(null);
     setError("");
 
@@ -366,98 +300,9 @@ export default function Home() {
     setMounted(true);
   }, []);
   
-  // Lazy Load Insights on Navigation
-  useEffect(() => {
-    if (appState !== "storyboard" || currentPage === 0 || !data || !data.storyboard) return;
-    
-    const slide = data.storyboard[currentPage - 1];
-    if (slide && !slide.insight_anchor && !slide.isSynthesizing) {
-      handleLazySynthesis(currentPage - 1);
-    }
-  }, [currentPage, appState, data]);
-
-  const handleLazySynthesis = async (index) => {
-    const slide = data.storyboard[index];
-    if (!slide || isQuerying) return;
-
-    setIsQuerying(true);
-    
-    // Optimistically mark as synthesizing to prevent loops
-    setData(prev => {
-      if (!prev || !prev.storyboard) return prev;
-      const newStoryboard = [...prev.storyboard];
-      newStoryboard[index] = { ...newStoryboard[index], isSynthesizing: true };
-      return { ...prev, storyboard: newStoryboard };
-    });
-
-    setAgentLogs(prev => [
-      ...prev,
-      { agent: 'analyst', message: `Synthesizing deep-dive insights for slide: ${slide.pageTitle || slide.chart?.title}...` }
-    ]);
-
-    try {
-      const compressedContext = generateDatasetSummary(cleanedDataset);
-      // Ensure we send the EXACT keys being used in the chart to the Analyst
-      const { x, y } = slide.chart; 
-      
-      const chartSample = {
-        ...slide.chart,
-        xAxisKey: x,
-        yAxisKey: y,
-        resultData: slide.chart.resultData?.slice(0, 50) || []
-      };
-
-      const response = await fetch("/api/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          userQuestion: "SYNTHESIZE_SLIDE",
-          jsonData: cleanedDataset,
-          customSchema: customSchema,
-          perspective: 'Chart Insight',
-          chartData: [chartSample],
-          fullDataset: compressedContext
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const newNarrative = result.storyboard?.[0];
-        
-        setData(prev => {
-          if (!prev || !prev.storyboard) return prev;
-          const newStoryboard = [...prev.storyboard];
-          newStoryboard[index] = {
-            ...newStoryboard[index],
-            insight_anchor: newNarrative?.insight_anchor || "Synthesis complete (No specific anchor identified).",
-            insight_implication: newNarrative?.insight_implication || "Mathematical implication within expected variance.",
-            insight_question: newNarrative?.insight_question || "Monitor current trend for drift.",
-            markdownAnalysis: newNarrative?.markdownAnalysis || "Engine completed analysis but returned no narrative segments.",
-            isSynthesizing: false
-          };
-          return { ...prev, storyboard: newStoryboard };
-        });
-      } else {
-        throw new Error(`API returned ${response.status}`);
-      }
-    } catch (err) {
-      console.error("Lazy Synthesis Failed:", err);
-      // Ensure we clear the flag so it doesn't loop, but maybe allow one retry? 
-      // For now, mark as failed to stop the crash.
-      setData(prev => {
-        if (!prev || !prev.storyboard) return prev;
-        const newStoryboard = [...prev.storyboard];
-        newStoryboard[index] = { 
-          ...newStoryboard[index], 
-          insight_anchor: "Error during synthesis.",
-          isSynthesizing: false 
-        };
-        return { ...prev, storyboard: newStoryboard };
-      });
-    } finally {
-      setIsQuerying(false);
-    }
-  };
+  // NOTE: Per-slide insights are now generated up front in the initial /api/query
+  // call (the whole storyboard is compiled during the loading phase), so there is
+  // no lazy per-slide synthesis on navigation.
 
   // Autoplay Engine
   useEffect(() => {
@@ -550,8 +395,8 @@ export default function Home() {
     setApiError(null);
     setData(null);
     setAgentLogs([
-      { agent: 'system', message: 'Initializing industrial-grade analysis pipeline...' },
-      { agent: 'engineer', message: 'Constructing high-cardinality data projections...' }
+      { agent: 'system', message: 'Starting analysis…' },
+      { agent: 'engineer', message: 'Building charts from your data…' }
     ]);
     
     try {
@@ -577,22 +422,12 @@ export default function Home() {
       }
       
       const json = await response.json();
-      
-      // Initialize dynamic simulation levers if provided
-      if (json.slideZero?.simulation_levers) {
-        setSimulationLeversConfig(json.slideZero.simulation_levers);
-        const initialLevers = {};
-        json.slideZero.simulation_levers.forEach(l => {
-          initialLevers[l.dataKey] = 0;
-        });
-        setSimulationLevers(initialLevers);
-      }
-      
+
       // Detailed transparency logs
       setAgentLogs(prev => [
         ...prev, 
-        { agent: 'bridge', message: 'AlaSQL transformation successful. Mathematical rigor verified.' },
-        { agent: 'analyst', message: 'Synthesizing strategic markdown narrative based on validated metrics.' }
+        { agent: 'bridge', message: 'Calculations verified against your data.' },
+        { agent: 'analyst', message: 'Writing the insights…' }
       ]);
 
       if (json.storyboard?.[0]?.sql) {
@@ -618,7 +453,7 @@ export default function Home() {
     setAgentLogs(prev => [
       ...prev,
       { agent: 'system', message: `Incoming query: "${query}"` },
-      { agent: 'engineer', message: 'Analyzing intent and constructing schema-aware SQL...' }
+      { agent: 'engineer', message: 'Working out the right query…' }
     ]);
 
     try {
@@ -645,20 +480,10 @@ export default function Home() {
 
       const json = await response.json();
 
-      // Update dynamic simulation levers if new perspective provides them
-      if (json.slideZero?.simulation_levers) {
-        setSimulationLeversConfig(json.slideZero.simulation_levers);
-        const initialLevers = {};
-        json.slideZero.simulation_levers.forEach(l => {
-          initialLevers[l.dataKey] = 0;
-        });
-        setSimulationLevers(initialLevers);
-      }
-
       setAgentLogs(prev => [
         ...prev, 
-        { agent: 'bridge', message: 'SQL results validated against population distribution.' },
-        { agent: 'analyst', message: 'Generating executive synthesis for the new perspective.' }
+        { agent: 'bridge', message: 'Results verified against your data.' },
+        { agent: 'analyst', message: 'Writing the summary…' }
       ]);
 
       if (json.storyboard?.[0]?.sql) {
@@ -691,8 +516,6 @@ export default function Home() {
     setCustomSchema("");
     setCleanedDataset([]);
     setRawDataset([]);
-    setSimulationLevers({});
-    setSimulationLeversConfig([]);
     setIngestionMetrics({ totalRows: 0, anomalies: 0, redactedPII: 0, outliersCount: 0 });
     setIsIngestionComplete(false);
     setIsIngesting(false);
@@ -716,8 +539,6 @@ export default function Home() {
     setAgentLogs([]);
     setData(null);
     setCurrentPage(0);
-    setSimulationLevers({});
-    setSimulationLeversConfig([]);
     setIngestionMetrics({ totalRows: 0, anomalies: 0, redactedPII: 0, outliersCount: 0 });
 
     const worker = new Worker(new URL('./workers/dataSanitizer.worker.js', import.meta.url));
@@ -737,12 +558,19 @@ export default function Home() {
           setIsIngestionComplete(true);
           setIngestionMetrics(metrics);
           const headers = Object.keys(data[0] || {});
-          // Build a rich, typed schema with sample values so the AI knows exactly what each column contains
+          // Build a rich, typed schema with type, cardinality and sample values so
+          // the AI can pick suitable chart types up front (fewer downstream repairs).
+          const idLike = /(^id$|_id$|key|code|guid|uuid|index|^row$|sr|sno|serial)/i;
           const schemaLines = headers.map(h => {
-            const sampleVals = data.slice(0, 3).map(row => row[h]).filter(v => v !== null && v !== undefined);
-            const isNumeric = sampleVals.length > 0 && sampleVals.every(v => !isNaN(Number(v)));
+            const colVals = data.map(row => row[h]).filter(v => v !== null && v !== undefined && v !== '');
+            const sampleVals = colVals.slice(0, 3);
+            const isNumeric = colVals.length > 0 && colVals.every(v => !isNaN(Number(v)));
+            const distinct = new Set(colVals).size;
             const type = isNumeric ? 'DECIMAL' : 'VARCHAR';
-            return `- ${h} (${type}) — e.g. ${sampleVals.slice(0, 3).join(', ')}`;
+            const role = isNumeric
+              ? (idLike.test(h) ? 'identifier' : 'measure')
+              : (distinct <= 20 ? 'category' : 'high-cardinality category');
+            return `- ${h} (${type}, ${role}, ${distinct} distinct) — e.g. ${sampleVals.join(', ')}`;
           });
           const schema = `Table: SalesData\nColumns:\n${schemaLines.join("\n")}`;
           setCustomSchema(schema);
@@ -766,23 +594,6 @@ export default function Home() {
     worker.postMessage({ file });
   };
 
-  // --- CHART RENDERER ---
-  const formatValue = (val) => {
-    if (typeof val !== 'number') return val;
-    if (Math.abs(val) >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
-    if (Math.abs(val) >= 1000) return `$${(val / 1000).toFixed(1)}K`;
-    return Number(val.toFixed(2));
-  };
-
-  const formatTooltipValue = (value, name) => {
-    if (typeof value !== 'number') return [value, name];
-    const isCurrency = String(name).toLowerCase().match(/(charge|price|revenue|cost|amount)/);
-    const formattedNum = Math.abs(value) >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : 
-                         Math.abs(value) >= 1000 ? (value / 1000).toFixed(1) + 'K' : 
-                         Number(value.toFixed(2));
-    return isCurrency ? [`$${formattedNum}`, name] : [formattedNum, name];
-  };
-
 
 
   // Chart slides are offset by 1 because currentPage=0 is Slide Zero
@@ -799,7 +610,7 @@ export default function Home() {
   return (
     <main 
       onMouseMove={handleMouseMove}
-      className="min-h-screen w-full bg-[#030303] text-white font-['Outfit'] overflow-x-hidden flex flex-col md:flex-row p-0 m-0 relative selection:bg-cyan-500/30"
+      className="h-full w-full bg-[#030303] text-white font-['Outfit'] overflow-y-auto overflow-x-hidden md:overflow-hidden flex flex-col md:flex-row p-0 m-0 relative selection:bg-accent-500/30"
     >
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -815,30 +626,9 @@ export default function Home() {
           />
         )}
         
-        {particles.map((p, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: `${p.x}%`, y: "110%" }}
-            animate={{ 
-              y: ["110%", "-10%"],
-              opacity: [0, 0.2, 0]
-            }}
-            transition={{ 
-              duration: p.duration, 
-              repeat: Infinity, 
-              delay: p.delay,
-              ease: "linear" 
-            }}
-            className="absolute w-[1px] h-[30px] blur-[1px]"
-            style={{ left: `${p.x}%`, backgroundColor: p.color }}
-          />
-        ))}
+        {/* ambient particles removed for a calmer, more professional canvas */}
 
-        {/* Global Scanline Effect */}
-        <div className="absolute inset-0 z-[100] pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%]" />
-        
-        {/* Premium Noise Grain */}
-        <div className="absolute inset-0 z-[101] pointer-events-none opacity-[0.15] bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] contrast-150 brightness-100" />
+        {/* Subtle vignette (replaces scanline + grain) */}
       </div>
 
       {/* COMMAND CONSOLE (Left Sidebar) */}
@@ -854,19 +644,19 @@ export default function Home() {
               className="flex items-center gap-4 cursor-pointer"
               onClick={handleHardReset}
             >
-              <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+              <div className="w-10 h-10 bg-accent-500 rounded-xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(20,184,166,0.4)]">
                 <Zap size={20} fill="currentColor" />
               </div>
               <div className="flex flex-col">
                 <span className="font-black text-lg tracking-tighter leading-none">Insight</span>
-                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-cyan-500">Executive v2</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-accent-500">Analytics</span>
               </div>
             </motion.div>
 
             {rawDataset.length - cleanedDataset.length > 0 && (
               <div 
                 onClick={downloadCleanedData}
-                className="group flex items-center justify-between gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold tracking-widest uppercase [clip-path:polygon(0_0,_calc(100%-10px)_0,_100%_10px,_100%_100%,_10px_100%,_0_calc(100%-10px))] hover:bg-emerald-500/20 transition-all cursor-pointer relative overflow-hidden"
+                className="group flex items-center justify-between gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold tracking-widest uppercase rounded-lg hover:bg-emerald-500/20 transition-all cursor-pointer relative overflow-hidden"
               >
                 <div className="flex items-center gap-2">
                   <Shield className="w-3 h-3" /> 
@@ -881,7 +671,7 @@ export default function Home() {
               <div className="flex flex-col gap-2">
                 <button 
                   onClick={downloadFullPDFReport}
-                  className="flex items-center justify-between gap-3 px-3 py-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all text-[10px] font-black uppercase tracking-[0.3em] [clip-path:polygon(0_0,_calc(100%-8px)_0,_100%_8px,_100%_100%,_8px_100%,_0_calc(100%-8px))]"
+                  className="flex items-center justify-between gap-3 px-3 py-2 bg-accent-500/10 border border-accent-500/20 text-accent-400 hover:bg-accent-500/20 transition-all text-[10px] font-black uppercase tracking-[0.3em] rounded-lg"
                 >
                   <div className="flex items-center gap-2">
                     <FileText size={14} />
@@ -893,7 +683,7 @@ export default function Home() {
                 {cleanedDataset.length > 0 && (
                   <button 
                     onClick={() => downloadCleanedCSV(cleanedDataset)}
-                    className="flex items-center justify-between gap-3 px-3 py-2 bg-transparent border border-cyan-500/30 text-cyan-400/80 hover:bg-cyan-500/10 transition-all text-[10px] font-black uppercase tracking-[0.3em] [clip-path:polygon(0_0,_calc(100%-8px)_0,_100%_8px,_100%_100%,_8px_100%,_0_calc(100%-8px))]"
+                    className="flex items-center justify-between gap-3 px-3 py-2 bg-transparent border border-accent-500/30 text-accent-400/80 hover:bg-accent-500/10 transition-all text-[10px] font-black uppercase tracking-[0.3em] rounded-lg"
                   >
                     <div className="flex items-center gap-2">
                       <Database size={14} />
@@ -906,11 +696,11 @@ export default function Home() {
             )}
 
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-cyan-500 transition-colors" size={14} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-accent-500 transition-colors" size={14} />
               <input 
                 type="text"
-                className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 outline-none text-xs font-medium placeholder:text-white/20 focus:border-cyan-500/50 transition-all [clip-path:polygon(0_0,_calc(100%-8px)_0,_100%_8px,_100%_100%,_8px_100%,_0_calc(100%-8px))]"
-                placeholder="Probe dataset..."
+                className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 outline-none text-xs font-medium placeholder:text-white/20 focus:border-accent-500/50 transition-all rounded-lg"
+                placeholder="Ask about your data…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
@@ -950,7 +740,7 @@ export default function Home() {
 
             <button 
               onClick={() => setShowAuditTrail(true)}
-              className="flex items-center gap-3 px-3 py-2 bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-[0.3em] [clip-path:polygon(0_0,_calc(100%-8px)_0,_100%_8px,_100%_100%,_8px_100%,_0_calc(100%-8px))]"
+              className="flex items-center gap-3 px-3 py-2 bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-[0.3em] rounded-lg"
             >
               <Code2 size={14} /> Audit Trail
             </button>
@@ -960,7 +750,7 @@ export default function Home() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20">{isAutoplay ? "Presenting" : "Perspective"}</span>
-              <span className="text-sm font-bold text-white/60">{currentPage === 0 ? "Executive Synthesis" : "Global Strategy Dashboard"}</span>
+              <span className="text-sm font-bold text-white/70">{currentPage === 0 ? "Executive Summary" : "Dashboard"}</span>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -968,7 +758,7 @@ export default function Home() {
                 {Array.from({ length: totalSlides }).map((_, i) => (
                   <div 
                     key={i} 
-                    className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${i === currentPage ? "w-8 bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]" : i === 0 ? "w-5 bg-yellow-500/30" : "w-4 bg-white/10"}`}
+                    className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${i === currentPage ? "w-8 bg-accent-500 shadow-[0_0_15px_rgba(20,184,166,0.5)]" : i === 0 ? "w-5 bg-yellow-500/30" : "w-4 bg-white/10"}`}
                     onClick={() => { setIsAutoplay(false); setCurrentPage(i); }}
                   />
                 ))}
@@ -983,15 +773,15 @@ export default function Home() {
               <button 
                 onClick={() => { setIsAutoplay(false); setCurrentPage(p => Math.max(0, p - 1)); }}
                 disabled={currentPage === 0}
-                className={`p-3 border border-white/10 transition-all flex-1 flex items-center justify-center [clip-path:polygon(0_0,_calc(100%-6px)_0,_100%_6px,_100%_100%,_6px_100%,_0_calc(100%-6px))] ${currentPage === 0 ? "opacity-20 cursor-not-allowed" : "bg-white/5 hover:bg-white/10 active:scale-95"}`}
+                className={`p-3 border border-white/10 transition-all flex-1 flex items-center justify-center rounded-lg ${currentPage === 0 ? "opacity-20 cursor-not-allowed" : "bg-white/5 hover:bg-white/10 active:scale-95"}`}
               >
                 <ChevronLeft size={18} />
               </button>
               <button 
                 onClick={() => { setIsAutoplay(a => !a); setAutoplayKey(k => k + 1); }}
-                className={`p-3 border transition-all flex-1 flex items-center justify-center [clip-path:polygon(0_0,_calc(100%-6px)_0,_100%_6px,_100%_100%,_6px_100%,_0_calc(100%-6px))] ${
+                className={`p-3 border transition-all flex-1 flex items-center justify-center rounded-lg ${
                   isAutoplay 
-                    ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]" 
+                    ? "bg-accent-500/20 border-accent-500/40 text-accent-400 shadow-[0_0_20px_rgba(20,184,166,0.2)]" 
                     : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -999,14 +789,14 @@ export default function Home() {
               </button>
               <button 
                 onClick={() => { setPlaySpeed(prev => prev === 8000 ? 5000 : prev === 5000 ? 4000 : prev === 4000 ? 16000 : 8000); setAutoplayKey(k => k + 1); }}
-                className="p-3 bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex-1 text-center [clip-path:polygon(0_0,_calc(100%-6px)_0,_100%_6px,_100%_100%,_6px_100%,_0_calc(100%-6px))]"
+                className="p-3 bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex-1 text-center rounded-lg"
               >
                 {playSpeed === 16000 ? "0.5x" : playSpeed === 8000 ? "1x" : playSpeed === 5000 ? "1.5x" : "2x"}
               </button>
               <button 
                 onClick={() => { setIsAutoplay(false); setCurrentPage(p => Math.min(totalSlides - 1, p + 1)); }}
                 disabled={currentPage === totalSlides - 1}
-                className={`p-3 border border-white/10 transition-all flex-1 flex items-center justify-center [clip-path:polygon(0_0,_calc(100%-6px)_0,_100%_6px,_100%_100%,_6px_100%,_0_calc(100%-6px))] ${currentPage === totalSlides - 1 ? "opacity-20 cursor-not-allowed" : "bg-white/5 hover:bg-white/10 active:scale-95"}`}
+                className={`p-3 border border-white/10 transition-all flex-1 flex items-center justify-center rounded-lg ${currentPage === totalSlides - 1 ? "opacity-20 cursor-not-allowed" : "bg-white/5 hover:bg-white/10 active:scale-95"}`}
               >
                 <ChevronRight size={18} />
               </button>
@@ -1016,23 +806,11 @@ export default function Home() {
       )}
 
       {/* PROJECTION CANVAS (Main Right Column) */}
-      <div className={`flex-1 min-h-screen relative flex flex-col z-10 transition-all duration-500 ease-in-out ${isSimulationOpen && !isMobile ? 'mr-[350px]' : ''}`}>
-        
-        {/* GLOBAL HEADER (Multiplayer & Simulation) */}
+      <div className="flex-1 min-h-full md:h-full relative flex flex-col z-10 transition-all duration-500 ease-in-out">
+
+        {/* GLOBAL HEADER (Live presence) */}
         {appState === "storyboard" && (
           <header className="absolute top-8 right-8 z-[60] flex items-center gap-4">
-            <button 
-              onClick={() => setIsSimulationOpen(!isSimulationOpen)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
-                isSimulationOpen 
-                  ? 'bg-cyan-500 border-cyan-400 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]' 
-                  : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Wand2 size={16} className={isSimulationOpen ? 'animate-pulse' : ''} />
-              <span className="text-[11px] font-black uppercase tracking-widest">Simulation Mode</span>
-            </button>
-            
             <div className="flex items-center gap-2 px-4 py-1.5 bg-slate-900/50 border border-slate-700 rounded-full text-[10px] font-black text-white/40 uppercase tracking-widest">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Live Sync
@@ -1040,16 +818,6 @@ export default function Home() {
           </header>
         )}
 
-        {/* The Drawer itself */}
-        <SimulationDrawer 
-          isOpen={isSimulationOpen}
-          onClose={() => setIsSimulationOpen(false)}
-          levers={simulationLeversConfig}
-          scenarios={simulationLevers} 
-          onChange={handleLeverChange} 
-          onReset={resetSimulation} 
-        />
-        
         {/* HUD Progress Bar (top edge) */}
         <AnimatePresence>
           {isAutoplay && appState === "storyboard" && (
@@ -1058,7 +826,7 @@ export default function Home() {
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: playSpeed / 1000, ease: "linear" }}
-              className="h-1 bg-gradient-to-r from-cyan-500 to-cyan-400 absolute top-0 left-0 z-50 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+              className="h-1 bg-gradient-to-r from-accent-500 to-accent-400 absolute top-0 left-0 z-50 shadow-[0_0_15px_rgba(20,184,166,0.5)]"
             />
           )}
         </AnimatePresence>
@@ -1070,12 +838,12 @@ export default function Home() {
             className="absolute top-8 left-8 flex items-center gap-4 cursor-pointer z-20"
             onClick={() => setAppState("setup")}
           >
-            <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+            <div className="w-10 h-10 bg-accent-500 rounded-xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(20,184,166,0.4)]">
               <Zap size={20} fill="currentColor" />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-lg tracking-tighter leading-none">Insight</span>
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-cyan-500">Executive v2</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-accent-500">Executive v2</span>
             </div>
           </motion.div>
         )}
@@ -1091,55 +859,40 @@ export default function Home() {
             >
               {/* Left Column: Branding & Text with 3D Tilt */}
               <motion.div 
-                animate={{ 
-                  rotateY: (mousePosition.x - (typeof window !== 'undefined' ? window.innerWidth : 1400) / 2) / 80,
-                  rotateX: -(mousePosition.y - (typeof window !== 'undefined' ? window.innerHeight : 900) / 2) / 80,
-                }}
-                transition={{ type: "spring", damping: 30, stiffness: 50 }}
                 className="flex flex-col items-start text-left max-w-xl relative z-10 w-full md:w-1/2"
               >
-                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-accent-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
                 
                 {/* Ultimate Reactor Core Icon */}
                 <div className="flex items-center gap-8 mb-10 group/core">
                   <div className="relative w-24 h-24 flex items-center justify-center">
                     {/* Pulsing Aura */}
-                    <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-2xl animate-pulse group-hover/core:bg-cyan-500/40 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-accent-500/20 rounded-full blur-2xl animate-pulse group-hover/core:bg-accent-500/40 transition-all duration-700" />
                     
                     {/* Rotating Rings */}
                     <motion.div 
                       animate={{ rotate: 360 }} 
                       transition={{ duration: 15, repeat: Infinity, ease: "linear" }} 
-                      className="absolute inset-[-12px] rounded-full border-[1.5px] border-cyan-500/20 border-t-cyan-500/60" 
+                      className="absolute inset-[-12px] rounded-full border-[1.5px] border-accent-500/20 border-t-accent-500/60" 
                     />
-                    <motion.div 
-                      animate={{ rotate: -360 }} 
-                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }} 
-                      className="absolute inset-[-4px] rounded-full border border-blue-500/10 border-b-blue-500/40" 
-                    />
-                    
+
                     {/* The Core */}
-                    <div className="w-16 h-16 rounded-2xl bg-black border border-white/10 flex items-center justify-center relative z-10 overflow-hidden group-hover/core:border-cyan-500/50 transition-colors">
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20" />
-                      <Database size={32} className="text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                    <div className="w-16 h-16 rounded-2xl bg-black border border-white/10 flex items-center justify-center relative z-10 overflow-hidden group-hover/core:border-accent-500/50 transition-colors">
+                      <div className="absolute inset-0 bg-gradient-to-br from-accent-500/20 to-blue-500/20" />
+                      <Database size={32} className="text-accent-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                       
-                      {/* Internal Shimmer */}
-                      <motion.div 
-                        animate={{ x: ["-100%", "100%"] }} 
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12" 
-                      />
+
                     </div>
                   </div>
                   
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="h-px w-8 bg-cyan-500/30" />
-                      <div className="px-3 py-0.5 rounded-full bg-cyan-500 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                      <div className="h-px w-8 bg-accent-500/30" />
+                      <div className="px-3 py-0.5 rounded-full bg-accent-500 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_15px_rgba(20,184,166,0.5)]">
                         Active
                       </div>
                     </div>
-                    <div className="text-[11px] font-black text-white tracking-[0.4em] uppercase opacity-40 italic">Neural Gateway v4.0</div>
+                    <div className="text-[11px] font-black text-white/50 tracking-[0.3em] uppercase">Automated Analysis</div>
                   </div>
                 </div>
 
@@ -1148,12 +901,12 @@ export default function Home() {
                     Instant <br />
                     Data <br />
                     <span className="relative inline-block">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-[size:200%_auto] animate-[shimmer_4s_linear_infinite]">Storyboards</span>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-400 via-blue-400 to-accent-400 bg-[size:200%_auto] animate-[shimmer_4s_linear_infinite]">Storyboards</span>
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: "100%" }}
                         transition={{ duration: 1, delay: 0.5 }}
-                        className="absolute -bottom-2 left-0 h-[3px] bg-gradient-to-r from-cyan-500 to-transparent" 
+                        className="absolute -bottom-2 left-0 h-[3px] bg-gradient-to-r from-accent-500 to-transparent" 
                       />
                     </span>
                   </h1>
@@ -1165,7 +918,7 @@ export default function Home() {
                   `}</style>
                 </div>
 
-                <p className="text-base md:text-xl text-white/50 font-medium tracking-tight leading-relaxed max-w-lg relative pl-6 md:pl-8 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-cyan-500 before:to-transparent">
+                <p className="text-base md:text-xl text-white/50 font-medium tracking-tight leading-relaxed max-w-lg relative pl-6 md:pl-8 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-accent-500 before:to-transparent">
                   Turn your spreadsheets into professional executive reports. Upload any CSV to get <span className="font-semibold text-white/80">clear charts</span> and expert insights in seconds.
                 </p>
 
@@ -1179,51 +932,39 @@ export default function Home() {
 
                 {/* Interaction Panel with 3D Parallax */}
                 <motion.div 
-                  animate={{ 
-                    rotateY: (mousePosition.x - (typeof window !== 'undefined' ? window.innerWidth : 1400) / 2) / 100,
-                    rotateX: -(mousePosition.y - (typeof window !== 'undefined' ? window.innerHeight : 900) / 2) / 100,
-                  }}
-                  transition={{ type: "spring", damping: 30, stiffness: 50 }}
                   className="w-full md:w-1/2 max-w-xl flex flex-col gap-8 relative z-10"
                 >
                   
                   {/* Neural Dropzone */}
-                  <div className="w-full p-1 bg-gradient-to-br from-white/20 via-cyan-500/10 to-transparent rounded-[3rem] shadow-2xl relative group/drop overflow-hidden">
-                    <div className="absolute inset-0 bg-cyan-500/5 blur-3xl group-hover/drop:bg-cyan-500/20 transition-all duration-1000 -z-10" />
+                  <div className="w-full p-1 bg-gradient-to-br from-white/20 via-accent-500/10 to-transparent rounded-[3rem] shadow-2xl relative group/drop overflow-hidden">
+                    <div className="absolute inset-0 bg-accent-500/5 blur-3xl group-hover/drop:bg-accent-500/20 transition-all duration-1000 -z-10" />
                     
-                    {/* Cyber Deck HUD Readouts */}
-                    <div className="absolute top-6 left-10 text-[8px] font-mono text-cyan-500/40 uppercase tracking-[0.3em] flex gap-6 z-20">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-cyan-500/40 rounded-full animate-pulse" />
-                        UPLINK: ACTIVE
-                      </div>
-                      <div className="hidden lg:block">GATEWAY: {mounted ? (Date.now() % 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0') : '------'}</div>
-                      <div className="hidden lg:block">SEC_LAYER: V4.4</div>
+                    {/* Status readout */}
+                    <div className="absolute top-6 left-10 text-[10px] font-semibold text-accent-500/50 uppercase tracking-[0.2em] flex items-center gap-2 z-20">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                      Ready to analyze
                     </div>
-                    
-                    {/* Animated Edge Glow */}
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[edge_3s_linear_infinite]" />
-                    
+
                     <div 
                       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                       onDragLeave={() => setIsDragging(false)}
                       onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileUpload(e.dataTransfer.files[0]); }}
-                      className={`p-6 md:p-10 rounded-[2rem] md:rounded-[2.8rem] border border-white/10 flex flex-col items-center justify-center text-center gap-6 md:gap-8 transition-all backdrop-blur-[40px] backdrop-saturate-[2.5] min-h-[300px] md:min-h-[360px] relative ${isDragging ? "border-cyan-400 bg-cyan-500/20 scale-[1.01]" : fileName ? "border-cyan-500/50 bg-cyan-500/5" : "bg-black/60 hover:bg-black/80 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]"}`}
+                      className={`p-6 md:p-10 rounded-[2rem] md:rounded-[2.8rem] border border-white/10 flex flex-col items-center justify-center text-center gap-6 md:gap-8 transition-all backdrop-blur-[40px] backdrop-saturate-[2.5] min-h-[300px] md:min-h-[360px] relative ${isDragging ? "border-accent-400 bg-accent-500/20 scale-[1.01]" : fileName ? "border-accent-500/50 bg-accent-500/5" : "bg-black/60 hover:bg-black/80 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]"}`}
                     >
-                      <div className={`w-24 h-24 shrink-0 rounded-[2rem] flex items-center justify-center transition-all relative ${fileName ? "bg-cyan-500 text-black shadow-[0_0_50px_rgba(6,182,212,0.6)] scale-110" : "bg-white/5 text-white/40 group-hover/drop:text-cyan-400 group-hover/drop:bg-cyan-500/10 group-hover/drop:shadow-[0_0_30px_rgba(6,182,212,0.3)]"}`}>
+                      <div className={`w-24 h-24 shrink-0 rounded-[2rem] flex items-center justify-center transition-all relative ${fileName ? "bg-accent-500 text-black shadow-[0_0_50px_rgba(20,184,166,0.6)] scale-110" : "bg-white/5 text-white/40 group-hover/drop:text-accent-400 group-hover/drop:bg-accent-500/10 group-hover/drop:shadow-[0_0_30px_rgba(20,184,166,0.3)]"}`}>
                         <div className="absolute inset-0 rounded-[2rem] border border-white/10 animate-ping opacity-20" />
                         {fileName ? <CheckCircle2 size={48} /> : <Upload size={48} />}
                       </div>
                       <div className="space-y-3 md:space-y-4">
-                        <p className="text-2xl md:text-4xl font-black tracking-tighter text-white uppercase italic">{fileName || "Initiate Link"}</p>
-                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em]">{fileName ? "Encryption Sequence Verified" : "System awaiting data ingestion"}</p>
+                        <p className="text-2xl md:text-4xl font-black tracking-tighter text-white">{fileName || "Upload your data"}</p>
+                        <p className="text-[11px] text-white/50 font-bold uppercase tracking-[0.25em]">{fileName ? "File ready — click to analyze" : "Drag & drop a CSV, or browse"}</p>
                       </div>
                       <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e.target.files[0])} className="hidden" accept=".csv" />
-                      <button 
+                      <button
                         onClick={() => fileName ? handleAnalyze() : fileInputRef.current.click()}
-                        className="group/btn px-10 py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-full hover:bg-cyan-400 hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all active:scale-95 w-full max-w-[280px] relative overflow-hidden"
+                        className="group/btn px-10 py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-[11px] rounded-full hover:bg-accent-400 hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all active:scale-95 w-full max-w-[280px] relative overflow-hidden"
                       >
-                        <span className="relative z-10">{fileName ? "Launch Neural Synthesis" : "Establish Uplink"}</span>
+                        <span className="relative z-10">{fileName ? "Analyze data" : "Choose CSV file"}</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
                       </button>
                     </div>
@@ -1240,24 +981,24 @@ export default function Home() {
                 {/* Compact Template Gallery */}
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-4 px-2 mb-1">
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Or Load Demo Asset</p>
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Or try a sample dataset</p>
                     <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <button onClick={() => loadTemplate('churn')} className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.04] hover:border-cyan-500/40 transition-all group relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/0 to-cyan-500/0 group-hover:via-cyan-500/[0.05] transition-all duration-500" />
+                    <button onClick={() => loadTemplate('churn')} className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.04] hover:border-accent-500/40 transition-all group relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/0 to-accent-500/0 group-hover:via-accent-500/[0.05] transition-all duration-500" />
                       <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-black transition-all shadow-inner"><Users size={20} /></div>
+                        <div className="p-3 rounded-xl bg-accent-500/10 text-accent-400 group-hover:bg-accent-500 group-hover:text-black transition-all shadow-inner"><Users size={20} /></div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-white group-hover:text-cyan-400 transition-colors tracking-tight">Customer Churn Analysis</p>
-                          <p className="text-[10px] text-white/30 uppercase font-black tracking-widest mt-1">Predictive Modeling</p>
+                          <p className="text-sm font-black text-white group-hover:text-accent-400 transition-colors tracking-tight">Customer Churn Analysis</p>
+                          <p className="text-[10px] text-white/40 uppercase font-black tracking-widest mt-1">Churn &amp; retention</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 relative z-10">
                         <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden group-hover:bg-white/10 transition-colors">
-                          <motion.div animate={{ x: [-48, 48] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="w-full h-full bg-cyan-500" />
+                          <motion.div animate={{ x: [-48, 48] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="w-full h-full bg-accent-500" />
                         </div>
-                        <ChevronRight size={16} className="text-white/20 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                        <ChevronRight size={16} className="text-white/20 group-hover:text-accent-400 group-hover:translate-x-1 transition-all" />
                       </div>
                     </button>
 
@@ -1267,7 +1008,7 @@ export default function Home() {
                         <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black transition-all shadow-inner"><DollarSign size={20} /></div>
                         <div className="text-left">
                           <p className="text-sm font-black text-white group-hover:text-emerald-400 transition-colors tracking-tight">Revenue Leakage Audit</p>
-                          <p className="text-[10px] text-white/30 uppercase font-black tracking-widest mt-1">Financial Forensics</p>
+                          <p className="text-[10px] text-white/40 uppercase font-black tracking-widest mt-1">Revenue &amp; leakage</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 relative z-10">
@@ -1292,12 +1033,12 @@ export default function Home() {
               className="flex flex-col items-center gap-8 flex-1 justify-center"
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-cyan-500/20 blur-[60px] animate-pulse" />
-                <Loader2 size={80} strokeWidth={1} className="animate-spin text-cyan-500 relative" />
+                <div className="absolute inset-0 bg-accent-500/20 blur-[60px] animate-pulse" />
+                <Loader2 size={80} strokeWidth={1} className="animate-spin text-accent-500 relative" />
               </div>
               <div className="text-center">
-                <h2 className="text-2xl font-black tracking-tighter text-white">Synthesizing Narrative</h2>
-                <p className="text-white/40 font-medium">Extracting intelligence and generating visualizations...</p>
+                <h2 className="text-2xl font-black tracking-tighter text-white">Analyzing your data</h2>
+                <p className="text-white/50 font-medium">Crunching the numbers and building your charts…</p>
               </div>
             </motion.div>
           )}
@@ -1317,11 +1058,30 @@ export default function Home() {
                   transition={{ delay: 0.2, duration: 0.6 }}
                   className="mb-12"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-cyan-500/60 mb-4 block">Macro Intelligence</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-accent-500/70 mb-4 block">Executive Summary</span>
                   <h2 className="text-5xl md:text-6xl font-extrabold uppercase tracking-tight leading-tight text-center px-4 text-transparent bg-clip-text bg-gradient-to-br from-white via-gray-200 to-gray-600 text-balance">
-                    {data.slideZero.title || "Executive Synthesis"}
+                    {data.slideZero.title || "Executive Summary"}
                   </h2>
                 </motion.div>
+
+                {data.kpis?.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-4xl mb-10"
+                  >
+                    {data.kpis.map((kpi, i) => (
+                      <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-left">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40 truncate">{kpi.label}</span>
+                          {kpi.trend === 'down'
+                            ? <TrendingDown size={13} className="text-rose-400 shrink-0" />
+                            : <TrendingUp size={13} className="text-emerald-400 shrink-0" />}
+                        </div>
+                        <p className="text-2xl font-black text-white tracking-tight">{kpi.value}</p>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
 
                 {apiError && (
                   <div className="bg-red-900/20 border border-red-500/50 p-6 rounded-md w-full max-w-4xl backdrop-blur-md mb-8">
@@ -1334,11 +1094,11 @@ export default function Home() {
                   {(!data.slideZero.macroInsights || data.slideZero.macroInsights.length === 0) && (!data.slideZero.synthesis_points || data.slideZero.synthesis_points.length === 0) ? (
                     <motion.div 
                       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                      className="bg-white/[0.03] border border-white/10 p-6 mb-4 w-full max-w-4xl backdrop-blur-md [clip-path:polygon(0_0,_calc(100%-20px)_0,_100%_20px,_100%_100%,_20px_100%,_0_calc(100%-20px))]"
+                      className="bg-white/[0.03] border border-white/10 p-6 mb-4 w-full max-w-4xl backdrop-blur-md rounded-lg"
                     >
                       <p className="text-gray-300">
-                        <span className="text-cyan-500 font-bold tracking-wider mr-2 uppercase text-sm">✦</span>
-                        Synthesizing macro intelligence... (If this persists, check terminal for LLM timeouts).
+                        <span className="text-accent-500 font-bold tracking-wider mr-2 uppercase text-sm">✦</span>
+                        Building your summary…
                       </p>
                     </motion.div>
                   ) : (
@@ -1355,11 +1115,11 @@ export default function Home() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.3 + 0.5 }}
-                          className="bg-white/[0.03] border border-white/10 p-6 mb-4 w-full max-w-4xl backdrop-blur-md [clip-path:polygon(0_0,_calc(100%-20px)_0,_100%_20px,_100%_100%,_20px_100%,_0_calc(100%-20px))]"
+                          className="bg-white/[0.03] border border-white/10 p-6 mb-4 w-full max-w-4xl backdrop-blur-md rounded-lg"
                         >
                           <p className="text-gray-300 text-lg leading-relaxed">
                             {prefix && (
-                              <span className="text-cyan-500 font-bold tracking-wider mr-2 uppercase text-sm">
+                              <span className="text-accent-500 font-bold tracking-wider mr-2 uppercase text-sm">
                                 {prefix}:
                               </span>
                             )}
@@ -1378,9 +1138,9 @@ export default function Home() {
                       transition={{ delay: 1.5 }}
                       className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mt-8"
                     >
-                      <div className="p-6 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex flex-col items-center text-center group hover:bg-cyan-500/20 transition-all">
-                        <Zap className="text-cyan-400 mb-3" size={24} />
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-400/60 mb-2">Primary Focus</span>
+                      <div className="p-6 bg-accent-500/10 border border-accent-500/20 rounded-2xl flex flex-col items-center text-center group hover:bg-accent-500/20 transition-all">
+                        <Zap className="text-accent-400 mb-3" size={24} />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-accent-400/60 mb-2">Primary Focus</span>
                         <p className="text-sm font-bold text-white leading-tight">
                           {data.slideZero.primary_focus || (data.slideZero.strategicScorecard && data.slideZero.strategicScorecard.focus)}
                         </p>
@@ -1402,7 +1162,46 @@ export default function Home() {
                     </motion.div>
                   )}
 
-
+                  {/* Dashboard overview — jump straight to any insight */}
+                  {data.storyboard?.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
+                      className="w-full max-w-4xl mt-14"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <LayoutDashboard size={14} className="text-accent-400" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Dashboard · {data.storyboard.length} insights</span>
+                        <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-left">
+                        {data.storyboard.map((slide, i) => {
+                          const t = (slide.chart?.chart_type || 'bar').toLowerCase();
+                          const Icon = (t.includes('line') || t.includes('area')) ? TrendingUp
+                            : t.includes('scatter') ? Sparkles
+                            : (t.includes('donut') || t.includes('treemap') || t.includes('radial')) ? Target
+                            : (t.includes('radar') || t.includes('composed')) ? Activity
+                            : BarChart3;
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => { setIsAutoplay(false); setCurrentPage(i + 1); }}
+                              className="group p-4 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-accent-500/40 hover:bg-white/[0.04] transition-all flex flex-col gap-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-accent-500/10 text-accent-400 flex items-center justify-center shrink-0 group-hover:bg-accent-500 group-hover:text-black transition-all"><Icon size={14} /></div>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Slide {i + 1}</span>
+                                <ChevronRight size={14} className="ml-auto text-white/20 group-hover:text-accent-400 group-hover:translate-x-0.5 transition-all" />
+                              </div>
+                              <p className="text-sm font-bold text-white leading-tight line-clamp-2 group-hover:text-accent-400 transition-colors">{slide.pageTitle}</p>
+                              {slide.insight_anchor && (
+                                <p className="text-[11px] text-white/40 leading-snug line-clamp-2">{cleanFloatingPoints(slide.insight_anchor)}</p>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
 
                 </div>
               </div>
@@ -1422,13 +1221,18 @@ export default function Home() {
 
               {/* Left Column: The Narrative */}
               <div className="w-full md:w-[30%] p-6 md:p-8 flex flex-col relative break-words whitespace-normal bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent border-b md:border-b-0 md:border-r border-white/5">
-                <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-500/10 blur-[80px] -ml-16 -mt-16" />
+                <div className="absolute top-0 left-0 w-32 h-32 bg-accent-500/10 blur-[80px] -ml-16 -mt-16" />
                 
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 bg-white/5 flex items-center justify-center text-cyan-500 [clip-path:polygon(0_0,_calc(100%-8px)_0,_100%_8px,_100%_100%,_20px_100%,_0_calc(100%-20px))]">
-                    <FileText size={18} />
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-accent-400">
+                      <FileText size={16} />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30">Executive Insight</span>
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/20">Executive Insight</span>
+                  <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] text-accent-400/80 whitespace-nowrap">
+                    {(currentSlide.chart?.chart_type || 'chart')} · {currentPage}/{totalSlides - 1}
+                  </span>
                 </div>
 
                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-[0.1em] leading-tight mb-4 text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/40 text-balance">
@@ -1436,56 +1240,64 @@ export default function Home() {
                 </h2>
                 
                 <div className="flex-grow overflow-hidden mb-4">
-                  <DynamicTextFit min={12} max={26}>
-                    <div className="space-y-10">
-                      <p className="flex items-start gap-4">
-                        <span className="mt-2 flex-shrink-0 w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.8)]" />
-                        <span>
-                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-500/80 block mb-2">Key Finding</span>
-                          <span className="text-white leading-[1.8] font-medium">
-                            {currentSlide.insight_anchor ? (
-                              cleanFloatingPoints(currentSlide.insight_anchor)
-                            ) : isQuerying ? (
-                              <span className="inline-block w-48 h-4 bg-white/5 animate-pulse rounded" />
-                            ) : (
-                              <span className="text-red-400/60 italic text-[0.8em]">Synthesis engine offline. Check Audit Trail.</span>
-                            )}
-                          </span>
+                  <DynamicTextFit min={11} max={18}>
+                    <div className="space-y-3">
+                      <div className="rounded-xl bg-accent-500/[0.06] border border-accent-500/20 border-l-2 border-l-accent-500 p-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-accent-400/90 flex items-center gap-2 mb-2"><Sparkles size={12} /> Key Finding</span>
+                        <span className="text-white leading-[1.65] font-medium block">
+                          {currentSlide.insight_anchor ? (
+                            cleanFloatingPoints(currentSlide.insight_anchor)
+                          ) : isQuerying ? (
+                            <span className="inline-block w-48 h-4 bg-white/5 animate-pulse rounded" />
+                          ) : (
+                            <span className="text-rose-400/60 italic text-[0.8em]">Insight unavailable. Check Audit Trail.</span>
+                          )}
                         </span>
-                      </p>
-                      <p className="flex items-start gap-4">
-                        <span className="mt-2 flex-shrink-0 w-2 h-2 rounded-full bg-white/20" />
-                        <span>
-                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 block mb-2">Implication</span>
-                          <span className="text-slate-200/90 leading-[1.8] font-medium">
-                            {currentSlide.insight_implication ? (
-                              cleanFloatingPoints(currentSlide.insight_implication)
-                            ) : isQuerying ? (
-                              <span className="inline-block w-64 h-4 bg-white/5 animate-pulse rounded" />
-                            ) : (
-                              <span className="text-red-400/60 italic text-[0.8em]">Mathematical implication unavailable.</span>
-                            )}
-                          </span>
+                      </div>
+                      <div className="rounded-xl bg-white/[0.03] border border-white/10 p-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 flex items-center gap-2 mb-2"><Activity size={12} /> What it means</span>
+                        <span className="text-slate-200/90 leading-[1.65] font-medium block">
+                          {currentSlide.insight_implication ? (
+                            cleanFloatingPoints(currentSlide.insight_implication)
+                          ) : isQuerying ? (
+                            <span className="inline-block w-64 h-4 bg-white/5 animate-pulse rounded" />
+                          ) : (
+                            <span className="text-rose-400/60 italic text-[0.8em]">Not available.</span>
+                          )}
                         </span>
-                      </p>
-                      <p className="flex items-start gap-4 mt-4 pt-6 border-t border-white/10">
-                        <span className="mt-2 flex-shrink-0 w-2 h-2 rounded-sm bg-amber-500/80" />
-                        <span>
-                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 block mb-2">Strategic Question</span>
-                          <span className="text-slate-300 italic tracking-tight leading-[1.8] font-medium">
-                            {currentSlide.insight_question ? (
-                              cleanFloatingPoints(currentSlide.insight_question)
-                            ) : isQuerying ? (
-                              <span className="inline-block w-56 h-4 bg-white/5 animate-pulse rounded" />
-                            ) : (
-                              <span className="text-red-400/60 italic text-[0.8em]">Awaiting strategic directive...</span>
-                            )}
-                          </span>
+                      </div>
+                      <div className="rounded-xl bg-amber-500/[0.06] border border-amber-500/20 border-l-2 border-l-amber-500 p-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400/90 flex items-center gap-2 mb-2"><Target size={12} /> Ask next</span>
+                        <span className="text-slate-200 italic leading-[1.65] font-medium block">
+                          {currentSlide.insight_question ? (
+                            cleanFloatingPoints(currentSlide.insight_question)
+                          ) : isQuerying ? (
+                            <span className="inline-block w-56 h-4 bg-white/5 animate-pulse rounded" />
+                          ) : (
+                            <span className="text-rose-400/60 italic text-[0.8em]">Not available.</span>
+                          )}
                         </span>
-                      </p>
+                      </div>
                     </div>
                   </DynamicTextFit>
                 </div>
+
+                {/* Verified metrics — computed deterministically from the real query results */}
+                {currentSlide.findings?.verifiedFacts?.length > 0 && (
+                  <div className="mt-auto pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ShieldCheck size={13} className="text-emerald-400" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400/80">Verified metrics</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {currentSlide.findings.verifiedFacts.slice(0, 5).map((fact, fi) => (
+                        <span key={fi} className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-[11px] text-white/70 font-medium">
+                          {fact}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Column: The Visual */}
@@ -1494,7 +1306,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">
-                      {isQuerying ? "Synthesizing Strategic Narrative..." : "Live Sync"}
+                      {isQuerying ? "Analyzing…" : "Live"}
                     </span>
 
                   </div>
@@ -1503,11 +1315,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex-1 w-full min-h-[350px] md:min-h-[500px]">
-                  <StrategicChart 
-                    chart={currentSlide.chart} 
-                    simulationLevers={simulationLevers}
-                    simulationLeversConfig={simulationLeversConfig}
-                  />
+                  <StrategicChart chart={currentSlide.chart} />
                 </div>
               </div>
             </motion.div>
@@ -1526,16 +1334,16 @@ export default function Home() {
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
-              className="relative w-full max-w-5xl h-[80vh] bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-hidden flex flex-col shadow-2xl [clip-path:polygon(15px_0,100%_0,100%_calc(100%-15px),calc(100%-15px)_100%,0_100%,0_15px)]"
+              className="relative w-full max-w-5xl h-[80vh] bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-hidden flex flex-col shadow-2xl rounded-lg"
             >
               <div className="p-12 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 border border-cyan-500/20">
+                  <div className="w-16 h-16 rounded-2xl bg-accent-500/10 flex items-center justify-center text-accent-500 border border-accent-500/20">
                     <ShieldCheck size={32} />
                   </div>
                   <div>
                     <h2 className="text-3xl font-black tracking-tight">Audit Trail</h2>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-500/60 mt-1">Mathematical Verification engine</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent-500/70 mt-1">Verified SQL &amp; metrics</p>
                   </div>
                 </div>
                 <button onClick={() => setShowAuditTrail(false)} className="p-4 rounded-full hover:bg-white/5 text-white/20 hover:text-white transition-all"><X size={24} /></button>
@@ -1552,9 +1360,16 @@ export default function Home() {
                 ) : (
                   data.storyboard.map((slide, i) => (
                     <div key={i} className="flex flex-col gap-6">
-                      <h3 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">{slide.chart.title}</h3>
-                      <div className="p-8 rounded-3xl bg-black border border-white/5 font-mono text-xs leading-relaxed text-cyan-400/80">
-                        {slide.chart.sql_query}
+                      <h3 className="text-xs font-black uppercase tracking-[0.4em] text-white/40">{slide.chart.title}</h3>
+                      {slide.findings?.verifiedFacts?.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {slide.findings.verifiedFacts.map((fact, fi) => (
+                            <span key={fi} className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300/90 font-medium">{fact}</span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="p-8 rounded-3xl bg-black border border-white/5 font-mono text-xs leading-relaxed text-accent-400/80 overflow-x-auto">
+                        {slide.chart.sql || slide.chart.sql_query || 'No SQL recorded for this view.'}
                       </div>
                     </div>
                   ))

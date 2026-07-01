@@ -10,23 +10,7 @@ import {
   Legend
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-
-const yAxisFormatter = (val) => {
-  if (typeof val !== 'number') return val;
-  // Show integers for count-like data (no decimals for small integers)
-  if (Number.isInteger(val) && Math.abs(val) < 100) return val;
-  const formattedNum = Math.abs(val) >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : 
-                       Math.abs(val) >= 1000 ? (val / 1000).toFixed(1) + 'K' : 
-                       Number(val.toFixed(2));
-  return formattedNum;
-};
-
-const truncateTick = (tick) => {
-  if (tick && typeof tick === 'string' && tick.length > 15) {
-     return `${tick.substring(0, 12)}...`;
-  }
-  return tick;
-};
+import { formatNumber as yAxisFormatter, truncateLabel as truncateTick } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -41,7 +25,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color || entry.stroke }} />
                 <span className="text-[11px] font-bold text-white/60 capitalize">
-                  {entry.name.replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+                  {entry.name.replace(/_/g, ' ')}
                 </span>
               </div>
               <span className="text-[11px] font-black font-mono text-white">
@@ -58,9 +42,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function LineChart({ data, xKey, yKey }) {
   if (!data || data.length === 0) return null;
-
-  const keys = Object.keys(data[0] || {});
-  const projectionKey = keys.find(k => k.startsWith('Projected'));
 
   // Smart Y-axis domain: use integer ticks for count data
   const yValues = data.map(d => Number(d[yKey])).filter(v => !isNaN(v));
@@ -104,7 +85,7 @@ export default function LineChart({ data, xKey, yKey }) {
           iconSize={8}
           formatter={(value) => (
             <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+              {String(value).replace(/_/g, ' ')}
             </span>
           )}
         />
@@ -119,19 +100,6 @@ export default function LineChart({ data, xKey, yKey }) {
           name="Actual Baseline"
           animationDuration={1500}
         />
-
-        {projectionKey && (
-          <Line 
-            type="monotone" 
-            dataKey={projectionKey} 
-            stroke={CHART_COLORS[3]} 
-            strokeWidth={3} 
-            strokeDasharray="6 6"
-            dot={false}
-            name="Simulated Projection"
-            animationDuration={2000}
-          />
-        )}
       </RechartsLineChart>
     </ResponsiveContainer>
   );

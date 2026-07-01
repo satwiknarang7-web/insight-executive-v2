@@ -12,21 +12,7 @@ import {
   Legend
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-
-const yAxisFormatter = (val) => {
-  if (typeof val !== 'number') return val;
-  const formattedNum = Math.abs(val) >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : 
-                       Math.abs(val) >= 1000 ? (val / 1000).toFixed(1) + 'K' : 
-                       Number(val.toFixed(2));
-  return formattedNum;
-};
-
-const truncateTick = (tick) => {
-  if (tick && typeof tick === 'string' && tick.length > 15) {
-     return `${tick.substring(0, 12)}...`;
-  }
-  return tick;
-};
+import { formatNumber as yAxisFormatter, truncateLabel as truncateTick } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -72,24 +58,18 @@ export default function ScatterChart({ data, xKey, yKey }) {
   const xIsNumber = typeof data[0][xKeyToUse] === 'number';
   const yIsNumber = typeof data[0][yKeyToUse] === 'number';
   
-  // Optimization: Memoize filtered data and projection mapping
-  const { normalData, anomalyData, projectedData, isTooLargeForCategories } = React.useMemo(() => {
+  // Optimization: Memoize filtered data
+  const { normalData, anomalyData, isTooLargeForCategories } = React.useMemo(() => {
     // If we have categories with huge datasets, we must truncate to prevent browser crash
     const limit = (!xIsNumber || !yIsNumber) ? 500 : Infinity;
     const truncatedData = data.length > limit ? data.slice(0, limit) : data;
-    
-    const projectionKey = Object.keys(data[0] || {}).find(k => k.startsWith('Projected'));
-    
+
     return {
       normalData: truncatedData.filter(d => !d.isAnomaly),
       anomalyData: truncatedData.filter(d => d.isAnomaly),
-      projectedData: projectionKey ? truncatedData.map(d => ({ ...d, [yKeyToUse]: d[projectionKey] })) : null,
-      projectionKey,
       isTooLargeForCategories: data.length > limit
     };
   }, [data, xKeyToUse, yKeyToUse, xIsNumber, yIsNumber]);
-
-  const projectionKey = Object.keys(data[0] || {}).find(k => k.startsWith('Projected'));
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -128,7 +108,7 @@ export default function ScatterChart({ data, xKey, yKey }) {
           iconSize={8}
           formatter={(value) => (
             <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace('Projected ', 'Simulated ').replace(/_/g, ' ')}
+              {String(value).replace(/_/g, ' ')}
             </span>
           )}
         />
@@ -169,22 +149,6 @@ export default function ScatterChart({ data, xKey, yKey }) {
           </Scatter>
         )}
 
-        {/* Projected Series (Ghost Points) */}
-        {projectedData && (
-          <Scatter 
-            name="Simulated Projection" 
-            data={projectedData} 
-            fill="transparent"
-            stroke={CHART_COLORS[3]}
-            strokeWidth={1.5}
-            strokeDasharray="4 4"
-          >
-            {projectedData.length <= 1000 && projectedData.map((entry, index) => (
-              <Cell key={`projected-cell-${index}`} opacity={0.4} />
-            ))}
-          </Scatter>
-        )}
-        
         {isTooLargeForCategories && (
           <text x="50%" y="50%" textAnchor="middle" fill="#94a3b8" fontSize="12" dy="-20">
             Dataset too large for categorical correlation. Showing top 500 points.

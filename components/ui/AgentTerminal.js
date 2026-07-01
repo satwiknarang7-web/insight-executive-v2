@@ -15,7 +15,7 @@ export default function AgentTerminal({ logs = [], isProcessing = false }) {
 
   const variants = {
     expanded: { 
-      width: 420, 
+      width: "min(420px, calc(100vw - 2rem))", 
       height: 380, 
       opacity: 1, 
       borderRadius: "16px",
@@ -32,7 +32,7 @@ export default function AgentTerminal({ logs = [], isProcessing = false }) {
 
   const getAgentColor = (agent) => {
     switch (agent?.toLowerCase()) {
-      case 'engineer': return 'text-cyan-400';
+      case 'engineer': return 'text-accent-400';
       case 'analyst': return 'text-pink-400';
       case 'bridge': return 'text-emerald-400';
       case 'system': return 'text-white/40';
@@ -117,8 +117,8 @@ export default function AgentTerminal({ logs = [], isProcessing = false }) {
                         {log.message}
                       </div>
                       {log.sql && (
-                        <div className="mt-2 p-2 bg-black/50 border border-cyan-500/20 text-cyan-400 rounded-md overflow-x-auto">
-                          <span className="text-[8px] font-black text-cyan-500/40 block mb-1 uppercase tracking-widest">Generated SQL Query</span>
+                        <div className="mt-2 p-2 bg-black/50 border border-accent-500/20 text-accent-400 rounded-md overflow-x-auto">
+                          <span className="text-[8px] font-black text-accent-500/40 block mb-1 uppercase tracking-widest">Generated SQL Query</span>
                           {log.sql}
                         </div>
                       )}
@@ -131,10 +131,10 @@ export default function AgentTerminal({ logs = [], isProcessing = false }) {
             {/* Terminal Footer */}
             <div className="px-4 py-2 bg-black flex items-center justify-between border-t border-white/5 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40" />
+                <div className="w-1.5 h-1.5 rounded-full bg-accent-500/40" />
                 <span className="text-[8px] text-white/20 uppercase font-bold tracking-widest">Status: Monitoring</span>
               </div>
-              <div className="text-[8px] text-white/10 font-mono text-cyan-500/40 animate-pulse">
+              <div className="text-[8px] text-white/10 font-mono text-accent-500/40 animate-pulse">
                 TRX_COLLAB_SYNC
               </div>
             </div>

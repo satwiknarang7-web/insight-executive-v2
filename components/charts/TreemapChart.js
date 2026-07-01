@@ -1,13 +1,6 @@
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-
-const yAxisFormatter = (val) => {
-  if (typeof val !== 'number') return val;
-  const formattedNum = Math.abs(val) >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : 
-                       Math.abs(val) >= 1000 ? (val / 1000).toFixed(1) + 'K' : 
-                       Number(val.toFixed(2));
-  return formattedNum;
-};
+import { formatNumber as yAxisFormatter } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
