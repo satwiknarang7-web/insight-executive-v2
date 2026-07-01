@@ -1,3 +1,22 @@
 node_modules/
 .next/
 .env
+.env.local
+.env*.local
+
+# build / cache
+out/
+.vercel/
+*.tsbuildinfo
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+Thumbs.db
+
+# replit runtime
+.upm/
+.cache/
