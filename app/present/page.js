@@ -1,0 +1,293 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  X,
+  Sparkles,
+  Target,
+  AlertTriangle,
+  TrendingUp,
+  Maximize2,
+} from 'lucide-react';
+import { useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
+import LazyChart from '../../components/charts/LazyChart';
+import ChartBoundary from '../../components/charts/ChartBoundary';
+import { cleanFloatingPoints } from '../../lib/dataCleaner';
+
+const SPEEDS = [
+  { label: '1x', ms: 9000 },
+  { label: '1.5x', ms: 6000 },
+  { label: '2x', ms: 4500 },
+  { label: '0.5x', ms: 18000 },
+];
+
+export default function PresentPage() {
+  const router = useRouter();
+  const { dataset, status } = useDataset();
+  const { analysis } = useAnalysis();
+
+  const [page, setPage] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [speedIdx, setSpeedIdx] = useState(0);
+  const rootRef = useRef(null);
+
+  const total = (analysis?.storyboard?.length || 0) + 1;
+
+  const go = useCallback(
+    (delta) => {
+      setPage((p) => Math.min(total - 1, Math.max(0, p + delta)));
+    },
+    [total]
+  );
+
+  useEffect(() => {
+    if (status !== 'booting' && !dataset) router.replace('/');
+  }, [status, dataset, router]);
+
+  // Keyboard control: arrows, space to play/pause, escape to leave.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') go(1);
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(-1);
+      else if (e.key === 'Escape') router.push('/dashboard');
+      else if (e.key === ' ') {
+        e.preventDefault();
+        setPlaying((p) => !p);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go, router]);
+
+  useEffect(() => {
+    if (!playing) return;
+    if (page >= total - 1) {
+      setPlaying(false);
+      return;
+    }
+    const t = setTimeout(() => setPage((p) => p + 1), SPEEDS[speedIdx].ms);
+    return () => clearTimeout(t);
+  }, [playing, page, total, speedIdx]);
+
+  const goFullscreen = () => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else el.requestFullscreen?.();
+  };
+
+  if (!analysis?.storyboard?.length) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#030303] text-center">
+        <p className="text-sm text-white/40">There is nothing to present yet.</p>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-black hover:bg-accent-400"
+        >
+          Go to the dashboard
+        </button>
+      </div>
+    );
+  }
+
+  const slide = page === 0 ? null : analysis.storyboard[page - 1];
+
+  return (
+    <div ref={rootRef} className="relative flex h-screen flex-col overflow-hidden bg-[#030303]">
+      <div className="ambient-wash" />
+
+      {/* Autoplay progress rail */}
+      {playing && (
+        <div
+          key={`${page}-${speedIdx}`}
+          className="absolute left-0 top-0 z-30 h-0.5 bg-accent-500"
+          style={{ animation: `present-progress ${SPEEDS[speedIdx].ms}ms linear forwards` }}
+        />
+      )}
+
+      {/* Top bar */}
+      <header className="relative z-20 flex items-center justify-between gap-4 px-6 py-4">
+        <div className="min-w-0">
+          <div className="label">{page === 0 ? 'Executive summary' : `Finding ${page} of ${total - 1}`}</div>
+          <div className="mt-0.5 truncate text-sm font-bold text-white/60">{dataset?.fileName}</div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button onClick={goFullscreen} aria-label="Toggle fullscreen" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
+            <Maximize2 size={15} />
+          </button>
+          <button onClick={() => router.push('/dashboard')} aria-label="Exit presentation" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
+            <X size={15} />
+          </button>
+        </div>
+      </header>
+
+      {/* Slide */}
+      <div key={page} className="slide-in relative z-10 flex min-h-0 flex-1 flex-col px-6 pb-2 md:px-12">
+        {page === 0 ? <SummarySlide slideZero={analysis.slideZero} kpis={analysis.kpis} /> : <ChartSlide slide={slide} />}
+      </div>
+
+      {/* Controls */}
+      <footer className="relative z-20 flex items-center justify-center gap-3 px-6 py-4">
+        <button
+          onClick={() => go(-1)}
+          disabled={page === 0}
+          aria-label="Previous slide"
+          className="rounded-xl border border-white/10 p-3 text-white/55 transition-colors enabled:hover:bg-white/6 enabled:hover:text-white disabled:opacity-20"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        <button
+          onClick={() => setPlaying((p) => !p)}
+          aria-label={playing ? 'Pause' : 'Play'}
+          className={`rounded-xl border p-3 transition-colors ${
+            playing ? 'border-accent-500/40 bg-accent-500/15 text-accent-300' : 'border-white/10 text-white/55 hover:bg-white/6 hover:text-white'
+          }`}
+        >
+          {playing ? <Pause size={18} /> : <Play size={18} />}
+        </button>
+
+        <button
+          onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)}
+          className="rounded-xl border border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/6 hover:text-white"
+        >
+          {SPEEDS[speedIdx].label}
+        </button>
+
+        <button
+          onClick={() => go(1)}
+          disabled={page === total - 1}
+          aria-label="Next slide"
+          className="rounded-xl border border-white/10 p-3 text-white/55 transition-colors enabled:hover:bg-white/6 enabled:hover:text-white disabled:opacity-20"
+        >
+          <ChevronRight size={18} />
+        </button>
+
+        <div className="ml-4 hidden items-center gap-1.5 sm:flex">
+          {Array.from({ length: total }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setPlaying(false);
+                setPage(i);
+              }}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-1 rounded-full transition-all ${
+                i === page ? 'w-7 bg-accent-500' : i === 0 ? 'w-3 bg-white/25' : 'w-3 bg-white/10 hover:bg-white/25'
+              }`}
+            />
+          ))}
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function SummarySlide({ slideZero, kpis }) {
+  return (
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center overflow-y-auto py-4">
+      <div className="mb-6 flex items-center gap-3">
+        <Sparkles size={18} className="text-accent-400" />
+        <h1 className="text-3xl font-black tracking-tight md:text-5xl">{slideZero.title}</h1>
+      </div>
+
+      {kpis?.length > 0 && (
+        <div className="mb-7 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {kpis.map((k) => (
+            <div key={k.label} className="card p-4">
+              <div className="text-2xl font-black text-white">{k.value}</div>
+              <div className="label mt-1 truncate">{k.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <ul className="mb-7 flex flex-col gap-4">
+        {slideZero.macroInsights.map((line, i) => (
+          <li key={i} className="flex gap-4">
+            <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-accent-500" />
+            <p className="text-lg leading-relaxed text-white/80 md:text-xl">{cleanFloatingPoints(line)}</p>
+          </li>
+        ))}
+      </ul>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <Pill icon={Target} tone="accent" label="Focus" text={slideZero.strategicScorecard.focus} />
+        <Pill icon={AlertTriangle} tone="rose" label="Risk" text={slideZero.strategicScorecard.risk} />
+        <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={slideZero.strategicScorecard.opportunity} />
+      </div>
+    </div>
+  );
+}
+
+function ChartSlide({ slide }) {
+  const chart = slide.chart || {};
+  return (
+    <div className="grid h-full min-h-0 gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="flex min-h-0 flex-col overflow-y-auto">
+        <h2 className="text-2xl font-black leading-tight tracking-tight md:text-3xl">{slide.pageTitle}</h2>
+
+        {slide.insight_anchor && (
+          <div className="mt-5 rounded-2xl border border-accent-500/20 bg-accent-500/[0.06] p-4">
+            <div className="label !text-accent-400/80 mb-2 flex items-center gap-2">
+              <Sparkles size={11} /> Key finding
+            </div>
+            <p className="text-[15px] leading-relaxed text-white/85">{cleanFloatingPoints(slide.insight_anchor)}</p>
+          </div>
+        )}
+
+        {slide.insight_implication && (
+          <div className="mt-3 rounded-2xl border border-white/8 bg-white/[0.02] p-4">
+            <div className="label mb-2">What it means</div>
+            <p className="text-[14px] leading-relaxed text-white/65">{cleanFloatingPoints(slide.insight_implication)}</p>
+          </div>
+        )}
+
+        {slide.findings?.verifiedFacts?.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {slide.findings.verifiedFacts.slice(0, 5).map((f, i) => (
+              <span key={i} className="rounded-lg bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] text-white/45">
+                {f}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="card min-h-0 p-4">
+        <ChartBoundary resetKey={slide.id}>
+          <LazyChart
+            data={chart.resultData}
+            type={chart.chart_type}
+            xKey={chart.xAxisKey}
+            yKey={chart.yAxisKey}
+            secondaryYKey={chart.secondaryYAxisKey}
+            eager
+          />
+        </ChartBoundary>
+      </div>
+    </div>
+  );
+}
+
+function Pill({ icon: Icon, tone, label, text }) {
+  const tones = {
+    accent: 'border-accent-500/20 bg-accent-500/6 text-accent-400',
+    rose: 'border-rose-500/20 bg-rose-500/6 text-rose-400',
+    emerald: 'border-emerald-500/20 bg-emerald-500/6 text-emerald-400',
+  };
+  return (
+    <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
+      <div className="flex items-center gap-2">
+        <Icon size={13} />
+        <span className="text-[9px] font-black uppercase tracking-[0.25em]">{label}</span>
+      </div>
+      <p className="mt-2 text-[13px] leading-relaxed text-white/80">{cleanFloatingPoints(text) || '—'}</p>
+    </div>
+  );
+}

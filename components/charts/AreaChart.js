@@ -34,7 +34,7 @@ export default function AreaChart({ data, xKey, yKey }) {
   if (!data || data.length === 0) return null;
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsAreaChart data={data} margin={{ top: 24, right: 18, left: 4, bottom: 26 }}>
         <defs>
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
@@ -86,7 +86,7 @@ export default function AreaChart({ data, xKey, yKey }) {
           dot={false}
           activeDot={{ r: 5, fill: '#fff', stroke: '#2dd4bf', strokeWidth: 3 }}
           name="Actual Baseline"
-          animationDuration={1400}
+          animationDuration={450}
           animationEasing="ease-out"
         />
       </RechartsAreaChart>

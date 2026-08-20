@@ -41,7 +41,7 @@ export default function RadialBarChart({ data, nameKey, valueKey }) {
   })).slice(0, 8); // Limit to 8 for visual clarity
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsRadialBarChart 
         cx="50%" 
         cy="50%" 
@@ -64,7 +64,7 @@ export default function RadialBarChart({ data, nameKey, valueKey }) {
           clockWise
           dataKey="value"
           cornerRadius={10}
-          animationDuration={1500}
+          animationDuration={450}
         />
         <Legend 
           iconSize={8} 

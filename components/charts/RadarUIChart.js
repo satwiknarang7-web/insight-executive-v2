@@ -36,7 +36,7 @@ export default function RadarUIChart({ data, nameKey }) {
   const keys = Object.keys(data[0] || {}).filter(k => k !== nameKey && typeof data[0][k] === 'number');
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
         <PolarGrid stroke="#ffffff" opacity={0.1} />
         <PolarAngleAxis dataKey={nameKey} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} />
@@ -63,7 +63,7 @@ export default function RadarUIChart({ data, nameKey }) {
             fill={CHART_COLORS[index % CHART_COLORS.length]}
             fillOpacity={0.3}
             strokeWidth={3}
-            animationDuration={2000}
+            animationDuration={450}
           />
         ))}
       </RadarChart>

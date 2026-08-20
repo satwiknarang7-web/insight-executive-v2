@@ -20,3 +20,6 @@ Thumbs.db
 # replit runtime
 .upm/
 .cache/
+
+# local scratch scripts
+scratch/

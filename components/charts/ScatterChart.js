@@ -72,7 +72,7 @@ export default function ScatterChart({ data, xKey, yKey }) {
   }, [data, xKeyToUse, yKeyToUse, xIsNumber, yIsNumber]);
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsScatterChart margin={{ top: 20, right: 10, bottom: 40, left: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 

@@ -91,14 +91,14 @@ const CustomizedContent = (props) => {
 
 export default function TreemapChart({ data, nameKey, dataKey }) {
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <Treemap
         data={data}
         dataKey={dataKey}
         nameKey={nameKey}
         stroke="#020617"
         content={<CustomizedContent />}
-        animationDuration={1500}
+        animationDuration={450}
       >
         <Tooltip content={<CustomTooltip />} />
       </Treemap>

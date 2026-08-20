@@ -10,23 +10,99 @@
   --color-accent-500: #14b8a6;
   --color-accent-600: #0d9488;
   --color-accent-700: #0f766e;
-  --accent-glow: 20, 184, 166;
+
+  --color-ink-900: #030303;
+  --color-ink-800: #070809;
+  --color-ink-700: #0d0f11;
+  --color-ink-600: #14171a;
+
+  --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html,
 body {
   padding: 0;
   margin: 0;
-  min-height: 100vh;
   background-color: #030303;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* A single, static ambient wash. The previous build animated an 800px element
+   with a 120px blur to follow the cursor, which forced the compositor to
+   re-rasterise a huge blurred layer on every mouse move. This is the same look
+   for zero per-frame cost. */
+.ambient-wash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(60rem 40rem at 15% -10%, rgba(20, 184, 166, 0.10), transparent 60%),
+    radial-gradient(50rem 35rem at 95% 5%, rgba(56, 89, 248, 0.07), transparent 55%);
+}
+
+.grid-veil {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, rgba(128, 128, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(128, 128, 128, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 60%, transparent 100%);
+}
+
+/* Scrollbars that don't fight the dark theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+  background-clip: content-box;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1rem;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media print {
   @page {
     margin: 0 !important;
-  }
-  * {
-    box-sizing: border-box !important;
   }
   html, body {
     height: auto !important;
@@ -37,8 +113,24 @@ body {
     print-color-adjust: exact;
     display: block !important;
   }
+  .ambient-wash,
+  .grid-veil {
+    display: none !important;
+  }
 }
 
-* {
-  box-sizing: border-box;
+/* Presentation mode animations (kept in CSS rather than styled-jsx so they can
+   live at the top level and be disabled by prefers-reduced-motion). */
+@keyframes present-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.slide-in {
+  animation: slide-in 260ms ease-out;
 }

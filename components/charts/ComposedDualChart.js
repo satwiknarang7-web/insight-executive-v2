@@ -92,19 +92,9 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
 
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <ComposedChart data={processedData} margin={{ top: 20, right: 10, left: 0, bottom: dynamicXAxisHeight - 20 }}>
         <defs>
-          <filter id="composedShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
-            <feOffset dx="0" dy="4" result="offsetblur" />
-            <feFlood floodColor="rgba(0,0,0,0.5)" />
-            <feComposite in2="offsetblur" operator="in" />
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
           <linearGradient id={composedGradient} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
             <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
@@ -165,8 +155,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
           fill={`url(#${composedGradient})`} 
           radius={[6, 6, 0, 0]} 
           maxBarSize={40}
-          filter="url(#composedShadow)"
-          animationDuration={1500}
+          animationDuration={450}
         />
         
         {actualLineKey && (
@@ -178,7 +167,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
             strokeWidth={4} 
             dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 2, stroke: '#020617' }}
             activeDot={{ r: 6, fill: '#fff', stroke: CHART_COLORS[2], strokeWidth: 2 }}
-            animationDuration={2000}
+            animationDuration={450}
           />
         )}
       </ComposedChart>

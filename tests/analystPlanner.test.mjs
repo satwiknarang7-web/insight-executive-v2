@@ -207,3 +207,26 @@ test('a wide dataset actually produces more than 7 slides', () => {
   assert.ok(charts.length > 7, `expected >7, got ${charts.length}`);
   assert.ok(charts.length <= 10);
 });
+
+test('a unit price is never summed (it matches "unit" but is per-item)', () => {
+  const rows = [];
+  for (let i = 0; i < 60; i++) {
+    rows.push({
+      store: ['A', 'B', 'C'][i % 3],
+      unit_price: 10.5 + (i % 37) * 1.7,
+      units_sold: 1 + (i % 9),
+    });
+  }
+  for (const c of planCharts(rows, { max: 8 })) {
+    assert.ok(!/SUM\(\[unit_price\]\)/i.test(c.sql), `summed a price: ${c.sql}`);
+  }
+});
+
+test('an explicitly total price IS summable', () => {
+  const rows = [];
+  for (let i = 0; i < 60; i++) {
+    rows.push({ store: ['A', 'B', 'C'][i % 3], total_price: 12.25 + (i % 41) * 3.3 });
+  }
+  const sql = planCharts(rows, { max: 8 }).map((c) => c.sql).join(' ');
+  assert.match(sql, /SUM\(\[total_price\]\)/i);
+});

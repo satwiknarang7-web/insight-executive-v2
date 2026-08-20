@@ -47,19 +47,9 @@ export default function BarChart({ data, xKey, yKey }) {
   if (!data || data.length === 0) return null;
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsBarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
         <defs>
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
-            <feOffset dx="0" dy="4" result="offsetblur" />
-            <feFlood floodColor="rgba(0,0,0,0.5)" />
-            <feComposite in2="offsetblur" operator="in" />
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
           <linearGradient id={barGradient} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
             <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
@@ -107,9 +97,8 @@ export default function BarChart({ data, xKey, yKey }) {
           radius={[6, 6, 0, 0]} 
           maxBarSize={40}
           name={yKey}
-          filter="url(#shadow)"
           animationBegin={0}
-          animationDuration={1500}
+          animationDuration={450}
           animationEasing="ease-out"
         >
           {data.length <= 100 && data.map((entry, index) => (

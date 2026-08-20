@@ -26,11 +26,16 @@ In the Repl, open the **Secrets** panel (lock icon) and add:
 
 | Key | Required | Purpose |
 |-----|----------|---------|
-| `GEMINI_API_KEY` | yes | Google Gemini (chart curation + analyst fallback) |
-| `GROQ_API_KEY` | yes | Groq (primary LLM for analysis narrative) |
-| `ANTHROPIC_API_KEY` | optional | Claude fallback if Groq/Gemini are down |
+| `GROQ_API_KEY` | optional | Groq — first choice for narrative wording (fastest) |
+| `ANTHROPIC_API_KEY` | optional | Claude — second choice |
+| `GEMINI_API_KEY` | optional | Gemini — third choice |
 
-Do **not** commit these — `.env` is gitignored. The deterministic insight engine still produces correct, verified metrics even if every LLM key is missing; the keys only add the polished narrative wording.
+**All three are optional.** Analysis, charts and every number are computed in the
+browser and are correct with no keys at all; a key only buys nicer wording on the
+narrative and natural-language questions on `/ask` (which otherwise falls back to
+matching the question against the planner's own charts).
+
+Do **not** commit these — `.env` is gitignored.
 
 ## 3. Run + get a URL
 
@@ -39,7 +44,14 @@ Do **not** commit these — `.env` is gitignored. The deterministic insight engi
 
 ## Notes / caveats
 
-- **PDF export** (`/api/export/pdf`) uses `puppeteer-core` + `@sparticuz/chromium`, which is built for AWS Lambda and may not run on Replit. The rest of the app is unaffected; if PDF export errors, it can be swapped for a Replit-friendly Chromium later.
+- **PDF export.** `/report` has two buttons. **Print / Save PDF** uses the browser's
+  own print dialogue and works everywhere — this is the recommended path. **Server
+  PDF** (`/api/export/pdf`) uses `puppeteer-core` + `@sparticuz/chromium`, which is
+  built for AWS Lambda and may not run on Replit; if it fails, the page says so and
+  points at the print button.
+- **Data never reaches the server.** Rows are parsed and queried in a web worker in
+  the browser, so no upload size limit or serverless payload limit applies. Only a
+  few KB of already-computed statistics are POSTed, and only when an LLM key is set.
 - First build on Replit installs dependencies and can take a few minutes.
 
 ## Alternative: Vercel (most robust for Next.js)
@@ -47,5 +59,5 @@ Do **not** commit these — `.env` is gitignored. The deterministic insight engi
 Next.js is made by Vercel, so this is the smoothest host:
 
 1. Go to https://vercel.com → **Add New… → Project** → import the same GitHub repo.
-2. Add the same environment variables (`GEMINI_API_KEY`, `GROQ_API_KEY`, optional `ANTHROPIC_API_KEY`).
+2. Optionally add `GROQ_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`.
 3. Deploy → you get a `*.vercel.app` URL. Serverless functions handle the API routes natively.

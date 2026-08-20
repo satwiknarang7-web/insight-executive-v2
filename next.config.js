@@ -7,12 +7,12 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  serverExternalPackages: ['alasql', 'puppeteer-core', '@sparticuz/chromium'],
+  // alasql now runs only in the browser worker; these two are server-only native deps.
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
   
-  // 1. Turbopack Configuration
+  // Pin the workspace root so Turbopack doesn't infer it from a parent folder.
   turbopack: {
-    // Explicitly set the root to this folder to fix the "workspace inference" warning
-    root: '.',
+    root: __dirname,
   },
 
   // 2. Performance Optimizations

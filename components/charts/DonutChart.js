@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function DonutChart({ data, nameKey, valueKey }) {
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <PieChart margin={{ top: 20, bottom: 20, left: 20, right: 20 }}>
         <Pie 
           data={data} 

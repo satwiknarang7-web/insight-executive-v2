@@ -54,7 +54,7 @@ export default function LineChart({ data, xKey, yKey }) {
   const dotSize = data.length <= 5 ? 5 : data.length <= 15 ? 4 : 3;
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsLineChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
         <XAxis 
@@ -98,7 +98,7 @@ export default function LineChart({ data, xKey, yKey }) {
           dot={data.length > 200 ? false : { r: dotSize, fill: CHART_COLORS[0], strokeWidth: 2, stroke: '#020617' }} 
           activeDot={{ r: dotSize + 2, strokeWidth: 0, fill: '#fff', stroke: CHART_COLORS[0] }} 
           name="Actual Baseline"
-          animationDuration={1500}
+          animationDuration={450}
         />
       </RechartsLineChart>
     </ResponsiveContainer>
