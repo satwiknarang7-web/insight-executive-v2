@@ -17,6 +17,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
+import ThemeToggle from './ThemeToggle';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
@@ -73,7 +74,7 @@ export default function AppShell({ children }) {
   const sidebar = (
     <div className="flex h-full flex-col gap-6 overflow-y-auto p-5">
       <Link href="/" className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-black">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
           <Zap size={18} fill="currentColor" />
         </div>
         <div className="flex flex-col leading-none">
@@ -111,6 +112,7 @@ export default function AppShell({ children }) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-2 pt-4">
+        <ThemeToggle />
         {analysis?.storyboard?.length > 0 && (
           <Link
             href="/report"
@@ -144,9 +146,9 @@ export default function AppShell({ children }) {
       <div className="grid-veil" />
 
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-white/7 bg-[#050607]/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-white/7 bg-canvas-raised/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-500 text-black">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-500 text-on-accent">
             <Zap size={14} fill="currentColor" />
           </div>
           <span className="text-sm font-black tracking-tight">Insight</span>
@@ -161,7 +163,7 @@ export default function AppShell({ children }) {
       </div>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-[#050607] md:hidden">
+        <div className="fixed inset-0 z-50 bg-canvas-raised md:hidden">
           <div className="flex justify-end p-3">
             <button onClick={() => setMenuOpen(false)} aria-label="Close menu" className="rounded-lg border border-white/10 p-2 text-white/60">
               <X size={16} />
@@ -172,7 +174,7 @@ export default function AppShell({ children }) {
       )}
 
       <div className="relative z-10 flex">
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-white/7 bg-[#050607]/80 md:block print:hidden">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-white/7 bg-canvas-raised/80 md:block print:hidden">
           {sidebar}
         </aside>
         <main className="min-w-0 flex-1">{children}</main>

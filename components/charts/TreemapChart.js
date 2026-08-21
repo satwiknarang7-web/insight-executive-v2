@@ -1,12 +1,13 @@
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const entry = payload[0];
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {entry.payload?.name || 'Segment'}
         </p>
@@ -35,7 +36,7 @@ const CustomizedContent = (props) => {
 
   // Do not render text if the box is too small
   if (width < 40 || height < 20) {
-    return <rect x={x} y={y} width={width} height={height} fill={fill} stroke="#020617" strokeWidth={1} />;
+    return <rect x={x} y={y} width={width} height={height} fill={fill} stroke="var(--chart-stroke)" strokeWidth={1} />;
   }
 
   // Adaptive sizing
@@ -61,7 +62,7 @@ const CustomizedContent = (props) => {
         width={width} 
         height={height} 
         fill={fill} 
-        stroke="#020617" 
+        stroke="var(--chart-stroke)" 
         strokeWidth={1} 
         className="hover:brightness-110 transition-all cursor-pointer"
       />
@@ -90,13 +91,15 @@ const CustomizedContent = (props) => {
 };
 
 export default function TreemapChart({ data, nameKey, dataKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <Treemap
         data={data}
         dataKey={dataKey}
         nameKey={nameKey}
-        stroke="#020617"
+        stroke="var(--chart-stroke)"
         content={<CustomizedContent />}
         animationDuration={450}
       >

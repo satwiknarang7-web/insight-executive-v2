@@ -1,5 +1,6 @@
 import './globals.css';
 import { DatasetProvider } from '../lib/store/DatasetProvider';
+import { ThemeScript } from '../components/shell/ThemeToggle';
 
 export const metadata = {
   title: 'Insight Analytics',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <ThemeScript />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -23,7 +25,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased bg-[#030303] text-white font-sans">
+      <body className="antialiased bg-canvas text-white font-sans">
         <DatasetProvider>{children}</DatasetProvider>
       </body>
     </html>

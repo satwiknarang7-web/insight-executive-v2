@@ -1,7 +1,7 @@
 {
   "name": "insight-analytics",
   "version": "1.0.0",
-  "description": "Automated, verifiable data analysis for CSV files \u2014 runs entirely in the browser.",
+  "description": "Automated, verifiable data analysis for CSV files — runs entirely in the browser.",
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",
@@ -32,6 +32,7 @@
     "react-dom": "^19.2.5",
     "react-markdown": "^10.1.0",
     "recharts": "^3.8.1",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }

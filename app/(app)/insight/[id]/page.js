@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,20 +12,20 @@ import {
   ShieldCheck,
   Code2,
   ArrowLeft,
+  StickyNote,
 } from 'lucide-react';
-import { useAnalysis } from '../../../../lib/store/DatasetProvider';
+import { useActions, useAnalysis } from '../../../../lib/store/DatasetProvider';
 import PageFrame from '../../../../components/shell/PageFrame';
 import LazyChart from '../../../../components/charts/LazyChart';
 import ChartBoundary from '../../../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../../../lib/dataCleaner';
-
-const TYPES = ['auto', 'bar', 'line', 'area', 'donut', 'radial', 'scatter', 'treemap', 'radar', 'composed'];
+import ChartStudio from '../../../../components/panels/ChartStudio';
 
 export default function InsightPage() {
   const { id } = useParams();
   const router = useRouter();
   const { analysis } = useAnalysis();
-  const [override, setOverride] = useState('auto');
+  const { editSlide, deleteSlide } = useActions();
 
   const { slide, index, prev, next } = useMemo(() => {
     const board = analysis?.storyboard || [];
@@ -89,30 +89,27 @@ export default function InsightPage() {
                 Fallback query
               </span>
             )}
-            <label className="ml-auto flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-              Chart type
-              <select
-                value={override}
-                onChange={(e) => setOverride(e.target.value)}
-                className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-bold capitalize text-white/80 outline-none focus:border-accent-500/50"
-              >
-                {TYPES.map((t) => (
-                  <option key={t} value={t} className="bg-[#0d0f11]">
-                    {t === 'auto' ? `auto (${chart.chart_type})` : t}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {slide.custom && (
+              <span className="rounded-full border border-accent-500/25 bg-accent-500/8 px-3 py-1.5 text-[11px] font-bold text-accent-300">
+                Built by you
+              </span>
+            )}
+            {slide.edits?.length > 0 && (
+              <span className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-bold text-white/40">
+                Edited
+              </span>
+            )}
           </div>
 
           <div className="h-[420px] w-full md:h-[520px]">
-            <ChartBoundary resetKey={`${slide.id}-${override}`}>
+            <ChartBoundary resetKey={`${slide.id}-${chart.chart_type}-${(chart.colors || []).join()}`}>
               <LazyChart
                 data={chart.resultData}
-                type={override === 'auto' ? chart.chart_type : override}
+                type={chart.chart_type}
                 xKey={chart.xAxisKey}
                 yKey={chart.yAxisKey}
                 secondaryYKey={chart.secondaryYAxisKey}
+                colors={chart.colors}
                 eager
               />
             </ChartBoundary>
@@ -121,6 +118,25 @@ export default function InsightPage() {
 
         {/* Narrative */}
         <div className="flex flex-col gap-4">
+          <ChartStudio
+            slide={slide}
+            onSave={(patch) => editSlide(slide.id, patch)}
+            onDelete={() => {
+              deleteSlide(slide.id);
+              router.push('/dashboard');
+            }}
+          />
+
+          {slide.analystNotes && (
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-5">
+              <div className="mb-2 flex items-center gap-2">
+                <StickyNote size={13} className="text-amber-400" />
+                <span className="label !text-amber-400/80">Analyst notes</span>
+              </div>
+              <p className="whitespace-pre-wrap text-[14px] leading-[1.7] text-white/80">{slide.analystNotes}</p>
+            </div>
+          )}
+
           <Block icon={Sparkles} tone="accent" label="Key finding" text={slide.insight_anchor} />
           <Block icon={Activity} tone="plain" label="What it means" text={slide.insight_implication} />
           <Block icon={HelpCircle} tone="plain" label="What to ask next" text={slide.insight_question} />
@@ -237,7 +253,7 @@ function EmptyState({ message, action, onAction }) {
       <p className="text-sm text-white/50">{message}</p>
       <button
         onClick={onAction}
-        className="rounded-xl bg-accent-500 px-4 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-black hover:bg-accent-400"
+        className="rounded-xl bg-accent-500 px-4 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent hover:bg-accent-400"
       >
         {action}
       </button>

@@ -1,13 +1,14 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter, formatValue } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const entry = payload[0];
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {entry.name}
         </p>
@@ -29,6 +30,8 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function DonutChart({ data, nameKey, valueKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <PieChart margin={{ top: 20, bottom: 20, left: 20, right: 20 }}>

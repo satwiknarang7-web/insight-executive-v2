@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Target,
   AlertTriangle,
@@ -12,6 +12,9 @@ import {
   BarChart3,
   Loader2,
   Presentation,
+  Plus,
+  Trash2,
+  StickyNote,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
@@ -19,12 +22,14 @@ import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
+import NewChartDialog from '../../../components/panels/NewChartDialog';
 
 export default function DashboardPage() {
   const { dataset, status } = useDataset();
   const { analysis, narrating } = useAnalysis();
-  const { analyze } = useActions();
+  const { analyze, addSlide, deleteSlide } = useActions();
   const router = useRouter();
+  const [building, setBuilding] = useState(false);
 
   const run = useCallback(() => analyze().catch(() => {}), [analyze]);
 
@@ -52,7 +57,7 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={run}
-            className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-accent-400"
+            className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
           >
             Analyse dataset
           </button>
@@ -74,6 +79,12 @@ export default function DashboardPage() {
               <Loader2 size={11} className="animate-spin" /> Writing narrative
             </span>
           )}
+          <button
+            onClick={() => setBuilding(true)}
+            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <Plus size={13} /> New chart
+          </button>
           <button
             onClick={() => router.push('/present')}
             className="flex items-center gap-2 rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-300 transition-colors hover:bg-accent-500/15"
@@ -144,28 +155,49 @@ export default function DashboardPage() {
             <Link
               key={slide.id || i}
               href={`/insight/${slide.id || `slide_${i + 1}`}`}
-              className="group card flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]"
+              className="group card relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="label">
-                    {String(slide.chart?.chart_type || 'chart')} · {i + 1} of {storyboard.length}
+                  <div className="label flex items-center gap-2">
+                    <span>
+                      {String(slide.chart?.chart_type || 'chart')} · {i + 1} of {storyboard.length}
+                    </span>
+                    {slide.custom && <span className="text-accent-400/70">· yours</span>}
+                    {slide.analystNotes && <StickyNote size={10} className="text-amber-400/70" />}
                   </div>
                   <h3 className="mt-1.5 text-base font-black leading-tight text-white group-hover:text-accent-300">
                     {slide.pageTitle}
                   </h3>
                 </div>
-                <ChevronRight size={16} className="mt-1 shrink-0 text-white/20 group-hover:text-accent-400" />
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label={`Delete ${slide.pageTitle}`}
+                    title="Delete this finding"
+                    onClick={(e) => {
+                      // The whole card is a link; deleting must not navigate.
+                      e.preventDefault();
+                      e.stopPropagation();
+                      deleteSlide(slide.id);
+                    }}
+                    className="rounded-lg p-1.5 text-white/15 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <ChevronRight size={16} className="text-white/20 group-hover:text-accent-400" />
+                </div>
               </div>
 
               <div className="mt-4 h-56">
-                <ChartBoundary resetKey={slide.id}>
+                <ChartBoundary resetKey={`${slide.id}-${slide.chart?.chart_type}`}>
                   <LazyChart
                     data={slide.chart?.resultData}
                     type={slide.chart?.chart_type}
                     xKey={slide.chart?.xAxisKey}
                     yKey={slide.chart?.yAxisKey}
                     secondaryYKey={slide.chart?.secondaryYAxisKey}
+                    colors={slide.chart?.colors}
                     eager={i < 2}
                   />
                 </ChartBoundary>
@@ -180,6 +212,14 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+
+      {building && (
+        <NewChartDialog
+          profile={dataset?.profile}
+          onCreate={(spec) => addSlide(spec)}
+          onClose={() => setBuilding(false)}
+        />
+      )}
     </PageFrame>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import ReactMarkdown from "react-markdown";
 import DynamicChart from "../../../components/charts/DynamicChart";
+import { ChartPalette } from "../../../components/charts/palette";
 import { Zap, Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
 
 export default function PrintReport() {
@@ -39,13 +40,15 @@ export default function PrintReport() {
     return (
       <div className="w-full flex justify-center scale-[0.85] origin-center">
         <div style={{ width: '600px', height: '400px' }}>
-          <DynamicChart 
-            data={result} 
-            type={type} 
-            xKey={x} 
-            yKey={y} 
-            secondaryYKey={chart.secondaryYAxisKey} 
-          />
+          <ChartPalette colors={chart.colors}>
+            <DynamicChart
+              data={result}
+              type={type}
+              xKey={x}
+              yKey={y}
+              secondaryYKey={chart.secondaryYAxisKey}
+            />
+          </ChartPalette>
         </div>
       </div>
     );
@@ -69,7 +72,7 @@ export default function PrintReport() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent-500/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-accent-500 rounded-xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(20,184,166,0.4)]">
+          <div className="w-12 h-12 bg-accent-500 rounded-xl flex items-center justify-center text-on-accent shadow-[0_0_20px_rgba(20,184,166,0.4)]">
             <Zap size={24} fill="currentColor" />
           </div>
           <div className="flex flex-col">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ChevronLeft,
@@ -13,11 +13,19 @@ import {
   AlertTriangle,
   TrendingUp,
   Maximize2,
+  Volume2,
+  VolumeX,
+  Users,
 } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import LazyChart from '../../components/charts/LazyChart';
 import ChartBoundary from '../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../lib/dataCleaner';
+import ThemeToggle from '../../components/shell/ThemeToggle';
+import AnalystAvatar from '../../components/panels/AnalystAvatar';
+import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
+import useSpeech from '../../lib/useSpeech';
+import { slideScript, summaryScript, pickVoice } from '../../lib/speech';
 
 const SPEEDS = [
   { label: '1x', ms: 9000 },
@@ -34,7 +42,12 @@ export default function PresentPage() {
   const [page, setPage] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(0);
+  const [narrating, setNarrating] = useState(true);
+  const [choosing, setChoosing] = useState(false);
   const rootRef = useRef(null);
+
+  const { avatar, avatarId, chooseAvatar } = useAvatar();
+  const { speak, stop, speaking, voices, supported } = useSpeech();
 
   const total = (analysis?.storyboard?.length || 0) + 1;
 
@@ -64,15 +77,58 @@ export default function PresentPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [go, router]);
 
+  // The script for whatever slide is on screen, in the chosen avatar's voice.
+  const script = useMemo(() => {
+    if (!analysis) return '';
+    if (page === 0) {
+      return summaryScript(analysis.slideZero, avatar, {
+        fileName: dataset?.fileName,
+        rowCount: dataset?.rowCount,
+      });
+    }
+    const current = analysis.storyboard[page - 1];
+    return slideScript(current, avatar, { index: page - 1, total: analysis.storyboard.length });
+  }, [analysis, avatar, page, dataset]);
+
+  const advance = useCallback(() => {
+    setPlaying((isPlaying) => {
+      if (!isPlaying) return false;
+      if (page >= total - 1) return false;
+      setPage((n) => n + 1);
+      return true;
+    });
+  }, [page, total]);
+
+  // Speak on arrival at a slide, and re-speak when the avatar changes so
+  // switching presenter mid-deck takes effect immediately.
   useEffect(() => {
-    if (!playing) return;
+    if (!narrating || !supported || !script) {
+      stop();
+      return undefined;
+    }
+    speak(script, {
+      voice: pickVoice(voices, avatar),
+      pitch: avatar.voice.pitch,
+      rate: avatar.voice.rate,
+      // Autoplay waits for the narration to finish rather than cutting the
+      // presenter off mid-sentence on a fixed timer.
+      onDone: advance,
+    });
+    return () => stop();
+  }, [script, narrating, supported, avatar, voices, speak, stop, advance]);
+
+  // The timer only drives autoplay when the presenter is silent; otherwise the
+  // voice paces the deck and a timer would fight it.
+  useEffect(() => {
+    if (!playing) return undefined;
+    if (narrating && supported && script) return undefined;
     if (page >= total - 1) {
       setPlaying(false);
-      return;
+      return undefined;
     }
     const t = setTimeout(() => setPage((p) => p + 1), SPEEDS[speedIdx].ms);
     return () => clearTimeout(t);
-  }, [playing, page, total, speedIdx]);
+  }, [playing, page, total, speedIdx, narrating, supported, script]);
 
   const goFullscreen = () => {
     const el = rootRef.current;
@@ -83,11 +139,11 @@ export default function PresentPage() {
 
   if (!analysis?.storyboard?.length) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#030303] text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas text-center">
         <p className="text-sm text-white/40">There is nothing to present yet.</p>
         <button
           onClick={() => router.push('/dashboard')}
-          className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-black hover:bg-accent-400"
+          className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent hover:bg-accent-400"
         >
           Go to the dashboard
         </button>
@@ -98,7 +154,7 @@ export default function PresentPage() {
   const slide = page === 0 ? null : analysis.storyboard[page - 1];
 
   return (
-    <div ref={rootRef} className="relative flex h-screen flex-col overflow-hidden bg-[#030303]">
+    <div ref={rootRef} className="relative flex h-screen flex-col overflow-hidden bg-canvas">
       <div className="ambient-wash" />
 
       {/* Autoplay progress rail */}
@@ -117,6 +173,40 @@ export default function PresentPage() {
           <div className="mt-0.5 truncate text-sm font-bold text-white/60">{dataset?.fileName}</div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={() => setChoosing(true)}
+            title={`Presented by ${avatar.name} - change presenter`}
+            className="flex items-center gap-2 rounded-lg border border-white/10 py-1.5 pl-1.5 pr-3 text-left transition-colors hover:bg-white/5"
+          >
+            <AnalystAvatar avatar={avatar} size={26} speaking={speaking} muted={!narrating} />
+            <span className="hidden sm:block">
+              <span className="block text-[11px] font-black leading-tight text-white/75">{avatar.name}</span>
+              <span
+                className="block text-[9px] font-black uppercase tracking-[0.15em]"
+                style={{ color: avatar.accent }}
+              >
+                {avatar.role}
+              </span>
+            </span>
+            <Users size={13} className="text-white/25" />
+          </button>
+
+          <button
+            onClick={() => setNarrating((n) => !n)}
+            aria-label={narrating ? 'Mute the presenter' : 'Unmute the presenter'}
+            title={supported ? undefined : 'This browser has no speech synthesis'}
+            disabled={!supported}
+            className={`rounded-lg border p-2 transition-colors disabled:opacity-25 ${
+              narrating && supported
+                ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {narrating && supported ? <Volume2 size={15} /> : <VolumeX size={15} />}
+          </button>
+
+          <ThemeToggle compact />
+
           <button onClick={goFullscreen} aria-label="Toggle fullscreen" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
             <Maximize2 size={15} />
           </button>
@@ -125,6 +215,43 @@ export default function PresentPage() {
           </button>
         </div>
       </header>
+
+      {choosing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          onClick={() => setChoosing(false)}
+          role="presentation"
+        >
+          <div
+            className="card w-full max-w-2xl bg-surface p-6"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Choose your presenter"
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <Users size={15} className="text-accent-400" />
+              <h2 className="text-base font-black text-white">Who presents this deck?</h2>
+            </div>
+            <p className="mb-5 text-[12px] leading-relaxed text-white/40">
+              Each analyst frames the same verified findings differently and reads them in their own voice. The
+              numbers never change.
+            </p>
+            <AvatarPicker selectedId={avatarId} onSelect={chooseAvatar} />
+            {!supported && (
+              <p className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-[12px] text-amber-300">
+                This browser has no speech synthesis, so the deck will be presented silently.
+              </p>
+            )}
+            <button
+              onClick={() => setChoosing(false)}
+              className="mt-5 rounded-lg bg-accent-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent hover:bg-accent-400"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Slide */}
       <div key={page} className="slide-in relative z-10 flex min-h-0 flex-1 flex-col px-6 pb-2 md:px-12">
@@ -260,13 +387,14 @@ function ChartSlide({ slide }) {
       </div>
 
       <div className="card min-h-0 p-4">
-        <ChartBoundary resetKey={slide.id}>
+        <ChartBoundary resetKey={`${slide.id}-${chart.chart_type}`}>
           <LazyChart
             data={chart.resultData}
             type={chart.chart_type}
             xKey={chart.xAxisKey}
             yKey={chart.yAxisKey}
             secondaryYKey={chart.secondaryYAxisKey}
+            colors={chart.colors}
             eager
           />
         </ChartBoundary>

@@ -1,11 +1,13 @@
 import React from 'react';
 import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatNumber as yAxisFormatter, formatAxisLabel } from '../../lib/format';
+import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
+import { usePalette } from './palette';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-950/80 backdrop-blur-2xl border border-accent-500/20 px-4 py-3 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] flex flex-col gap-2 min-w-[170px]">
+      <div className="chart-tooltip border border-accent-500/20 px-4 py-3 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] flex flex-col gap-2 min-w-[170px]">
         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-accent-400/80 mb-0.5">
           {formatAxisLabel(label)}
         </p>
@@ -27,24 +29,29 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function AreaChart({ data, xKey, yKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   const id = React.useId();
   const fillId = `area-fill-${id}`;
   const strokeId = `area-stroke-${id}`;
   const glowId = `area-glow-${id}`;
   if (!data || data.length === 0) return null;
 
+  const x = xAxisGeometry(data, xKey);
+  const y = yAxisGeometry(data, yKey);
+
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsAreaChart data={data} margin={{ top: 24, right: 18, left: 4, bottom: 26 }}>
+      <RechartsAreaChart data={data} margin={chartMargin({ bottom: x.bottom, right: 18 })}>
         <defs>
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2dd4bf" stopOpacity={0.35} />
-            <stop offset="55%" stopColor="#0ea5e9" stopOpacity={0.12} />
-            <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0} />
+            <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={0.35} />
+            <stop offset="55%" stopColor={CHART_COLORS[1]} stopOpacity={0.12} />
+            <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0} />
           </linearGradient>
           <linearGradient id={strokeId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#2dd4bf" />
-            <stop offset="100%" stopColor="#6366f1" />
+            <stop offset="0%" stopColor={CHART_COLORS[0]} />
+            <stop offset="100%" stopColor={CHART_COLORS[2]} />
           </linearGradient>
           <filter id={glowId} x="-20%" y="-60%" width="140%" height="220%">
             <feGaussianBlur stdDeviation="6" result="blur" />
@@ -54,28 +61,10 @@ export default function AreaChart({ data, xKey, yKey }) {
             </feMerge>
           </filter>
         </defs>
-        <CartesianGrid strokeDasharray="4 6" stroke="#ffffff" strokeOpacity={0.04} vertical={false} />
-        <XAxis
-          dataKey={xKey}
-          axisLine={false}
-          tickLine={false}
-          tickMargin={12}
-          tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }}
-          tickFormatter={formatAxisLabel}
-          interval="preserveStartEnd"
-          minTickGap={28}
-          height={34}
-        />
-        <YAxis
-          domain={['auto', 'auto']}
-          axisLine={false}
-          tickLine={false}
-          tickMargin={8}
-          width={48}
-          tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }}
-          tickFormatter={yAxisFormatter}
-        />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#2dd4bf', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.4 }} />
+        <CartesianGrid strokeDasharray="4 6" stroke="var(--chart-grid)" strokeOpacity={0.06} vertical={false} />
+        <XAxis {...x.props} tickMargin={10} />
+        <YAxis {...y.props} domain={['auto', 'auto']} tickMargin={8} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: CHART_COLORS[0], strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.4 }} />
         <Area
           type="monotone"
           dataKey={yKey}
@@ -84,7 +73,7 @@ export default function AreaChart({ data, xKey, yKey }) {
           fill={`url(#${fillId})`}
           filter={`url(#${glowId})`}
           dot={false}
-          activeDot={{ r: 5, fill: '#fff', stroke: '#2dd4bf', strokeWidth: 3 }}
+          activeDot={{ r: 5, fill: '#fff', stroke: CHART_COLORS[0], strokeWidth: 3 }}
           name="Actual Baseline"
           animationDuration={450}
           animationEasing="ease-out"

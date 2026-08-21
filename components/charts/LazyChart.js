@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { Activity } from 'lucide-react';
+import { ChartPalette } from './palette';
 
 // Recharts is ~120KB of the client bundle. Loading it on demand keeps the
 // upload page, the data table and the quality report free of it entirely.
@@ -26,7 +27,7 @@ function ChartSkeleton() {
  * eight charts otherwise builds eight full SVG trees on first paint, which is
  * the single most expensive thing on the page.
  */
-export default function LazyChart({ data, type, xKey, yKey, secondaryYKey, eager = false }) {
+export default function LazyChart({ data, type, xKey, yKey, secondaryYKey, colors = null, eager = false }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
 
@@ -62,7 +63,9 @@ export default function LazyChart({ data, type, xKey, yKey, secondaryYKey, eager
   return (
     <div ref={ref} className="h-full w-full">
       {visible ? (
-        <DynamicChart data={data} type={type} xKey={xKey} yKey={yKey} secondaryYKey={secondaryYKey} />
+        <ChartPalette colors={colors}>
+          <DynamicChart data={data} type={type} xKey={xKey} yKey={yKey} secondaryYKey={secondaryYKey} />
+        </ChartPalette>
       ) : (
         <ChartSkeleton />
       )}

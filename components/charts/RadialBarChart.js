@@ -8,13 +8,14 @@ import {
   PolarAngleAxis
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { usePalette } from './palette';
 import { formatNumber } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[150px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[150px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {data.name}
         </p>
@@ -31,6 +32,8 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function RadialBarChart({ data, nameKey, valueKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
 
   // Transform data for RadialBarChart if necessary

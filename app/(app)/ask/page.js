@@ -95,7 +95,7 @@ export default function AskPage() {
               <button
                 onClick={() => ask()}
                 disabled={busy || !question.trim()}
-                className="flex shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-colors enabled:hover:bg-accent-400 disabled:opacity-30"
+                className="flex shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors enabled:hover:bg-accent-400 disabled:opacity-30"
               >
                 {busy ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
                 Ask
@@ -276,7 +276,7 @@ function SqlConsole() {
           </div>
           <div className="max-h-64 overflow-auto rounded-lg border border-white/7">
             <table className="w-full text-left text-[10px]">
-              <thead className="sticky top-0 bg-[#0a0c0d]">
+              <thead className="sticky top-0 bg-canvas-raised">
                 <tr>
                   {Object.keys(result.rows[0] || {}).map((k) => (
                     <th key={k} className="whitespace-nowrap border-b border-white/7 px-2 py-1.5 font-black uppercase tracking-wider text-white/40">

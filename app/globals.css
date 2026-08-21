@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
 /* Brand accent — single source of truth. Swap these to re-theme the whole app. */
+/*
+ * Theming.
+ *
+ * The whole design expresses foreground and surfaces as `white` at low alpha
+ * over a near-black ground. Tailwind v4 compiles `text-white/45` to
+ * `color-mix(in oklab, var(--color-white) 45%, transparent)` — it references the
+ * token rather than inlining the value. So redefining `--color-white` per theme
+ * flips every one of those utilities at once, and light mode becomes a palette
+ * swap instead of several hundred edits.
+ *
+ * In light mode `--color-white` is navy: `text-white/45` becomes navy at 45%,
+ * `border-white/10` becomes a faint navy rule, and `bg-white/5` becomes a pale
+ * navy tint on a white page. The names read oddly at that point; the behaviour
+ * is exactly right.
+ */
 @theme {
   --color-accent-50: #f0fdfa;
   --color-accent-100: #ccfbf1;
@@ -19,11 +34,70 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* Dark is the default and needs no attribute. */
+:root {
+  --color-white: #ffffff;
+  --canvas: #030303;
+  --canvas-raised: #050607;
+  --surface: #0d0f11;
+  --card-bg: rgba(255, 255, 255, 0.02);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --chart-axis: #94a3b8;
+  --chart-grid: #ffffff;
+  --chart-grid-opacity: 0.05;
+  --chart-tooltip-bg: rgba(2, 6, 23, 0.9);
+  --chart-tooltip-fg: #ffffff;
+  --chart-stroke: #020617;
+  --scrollbar: rgba(255, 255, 255, 0.12);
+  --scrollbar-hover: rgba(255, 255, 255, 0.22);
+  --on-accent: #000000;
+  --wash-a: rgba(20, 184, 166, 0.10);
+  --wash-b: rgba(56, 89, 248, 0.07);
+  --veil: rgba(128, 128, 128, 0.05);
+  color-scheme: dark;
+}
+
+/* Light: white page, navy ink. */
+:root[data-theme='light'] {
+  --color-white: #0b2545;
+  --canvas: #ffffff;
+  --canvas-raised: #f6f8fb;
+  --surface: #ffffff;
+  --card-bg: rgba(11, 37, 69, 0.02);
+  --card-border: rgba(11, 37, 69, 0.12);
+  --chart-axis: #4a6484;
+  --chart-grid: #0b2545;
+  --chart-grid-opacity: 0.10;
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.96);
+  --chart-tooltip-fg: #0b2545;
+  --chart-stroke: #ffffff;
+  --scrollbar: rgba(11, 37, 69, 0.22);
+  --scrollbar-hover: rgba(11, 37, 69, 0.38);
+  --on-accent: #ffffff;
+  --wash-a: rgba(20, 184, 166, 0.10);
+  --wash-b: rgba(11, 37, 69, 0.05);
+  --veil: rgba(11, 37, 69, 0.06);
+  color-scheme: light;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
-  background-color: #030303;
+  background-color: var(--canvas);
+}
+
+/* Semantic surfaces, so no component hardcodes a hex. */
+.bg-canvas { background-color: var(--canvas); }
+.bg-canvas-raised { background-color: var(--canvas-raised); }
+.bg-surface { background-color: var(--surface); }
+.text-on-accent { color: var(--on-accent); }
+
+/* Chart tooltips follow the theme rather than assuming a dark page. */
+.chart-tooltip {
+  background: var(--chart-tooltip-bg);
+  color: var(--chart-tooltip-fg);
+  backdrop-filter: blur(16px);
 }
 
 * {
@@ -40,8 +114,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(60rem 40rem at 15% -10%, rgba(20, 184, 166, 0.10), transparent 60%),
-    radial-gradient(50rem 35rem at 95% 5%, rgba(56, 89, 248, 0.07), transparent 55%);
+    radial-gradient(60rem 40rem at 15% -10%, var(--wash-a), transparent 60%),
+    radial-gradient(50rem 35rem at 95% 5%, var(--wash-b), transparent 55%);
 }
 
 .grid-veil {
@@ -50,8 +124,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(to right, rgba(128, 128, 128, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(128, 128, 128, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, var(--veil) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--veil) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 60%, transparent 100%);
 }
@@ -59,26 +133,26 @@ body {
 /* Scrollbars that don't fight the dark theme. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  scrollbar-color: var(--scrollbar) transparent;
 }
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--scrollbar);
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--scrollbar-hover);
   background-clip: content-box;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
 }
 
@@ -87,7 +161,7 @@ body {
   font-weight: 800;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: color-mix(in oklab, var(--color-white) 35%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

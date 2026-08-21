@@ -14,6 +14,7 @@ import {
   Table2,
 } from 'lucide-react';
 import { useActions, useDataset } from '../lib/store/DatasetProvider';
+import ThemeToggle from '../components/shell/ThemeToggle';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
 
@@ -44,10 +45,12 @@ export default function LandingPage() {
 
   const busy = status === 'ingesting' || status === 'analyzing';
 
-  const handleFile = useCallback(
-    async (file) => {
+  // Several files are one session, not one upload each: the engine relates them
+  // to each other exactly as it relates the tabs of a single workbook.
+  const handleFiles = useCallback(
+    async (files) => {
       try {
-        await ingestFile(file);
+        await ingestFile(files);
       } catch {
         /* surfaced through context error */
       }
@@ -59,10 +62,10 @@ export default function LandingPage() {
     (e) => {
       e.preventDefault();
       setDragging(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) handleFile(file);
+      const files = Array.from(e.dataTransfer.files || []);
+      if (files.length) handleFiles(files);
     },
-    [handleFile]
+    [handleFiles]
   );
 
   const loadSample = useCallback(
@@ -92,12 +95,15 @@ export default function LandingPage() {
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 md:px-10">
         <header className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-500 text-black">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
             <Zap size={20} fill="currentColor" />
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-lg font-black tracking-tight">Insight</span>
             <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
           </div>
         </header>
 
@@ -154,7 +160,7 @@ export default function LandingPage() {
 
                 <button
                   onClick={runAnalysis}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-black transition-transform hover:bg-accent-400 active:scale-[0.99]"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]"
                 >
                   Analyse dataset <ArrowRight size={16} />
                 </button>
@@ -187,16 +193,19 @@ export default function LandingPage() {
                   }`}
                 >
                   <UploadCloud size={30} className={dragging ? 'text-accent-400' : 'text-white/30'} />
-                  <div className="text-sm font-bold text-white/80">Drop a CSV here</div>
-                  <div className="text-xs text-white/35">or click to choose a file — it never leaves your browser</div>
+                  <div className="text-sm font-bold text-white/80">Drop a CSV or Excel file here</div>
+                  <div className="text-xs text-white/35">
+                    several related files or sheets are welcome — nothing leaves your browser
+                  </div>
                   <input
                     ref={inputRef}
                     type="file"
-                    accept=".csv,text/csv"
+                    multiple
+                    accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv"
                     className="hidden"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFile(file);
+                      const files = Array.from(e.target.files || []);
+                      if (files.length) handleFiles(files);
                       e.target.value = '';
                     }}
                   />

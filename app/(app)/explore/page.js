@@ -183,7 +183,7 @@ export default function ExplorePage() {
 
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs">
-            <thead className="sticky top-0 bg-[#0a0c0d]">
+            <thead className="sticky top-0 bg-canvas-raised">
               <tr>
                 {columns.map((col) => (
                   <th key={col} className="whitespace-nowrap border-b border-white/7 px-3 py-2.5">

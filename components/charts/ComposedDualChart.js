@@ -12,28 +12,32 @@ import {
   Cell
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
+import { xAxisGeometry, yAxisGeometry, chartMargin, clip } from './axis';
 
-const CustomXAxisTick = ({ x, y, payload }) => {
+const CustomXAxisTick = ({ x, y, payload, rotated }) => {
   const value = payload.value;
-  // Truncate logic: Max label length at 150px height is roughly 150 / (6 * 0.707) = 35 chars
-  const isTruncated = value && String(value).length > 35;
-  const displayValue = isTruncated ? `${String(value).substring(0, 32)}...` : value;
+  const label = formatDateLabel(value);
+  // The reserved gutter was always computed as if the label were rotated, but
+  // the text was drawn flat and centred — so long labels ran into each other.
+  // Now it actually rotates when the gutter says it should.
+  const display = clip(label, 30);
 
   return (
     <g transform={`translate(${x},${y})`}>
       <text
         x={0}
         y={0}
-        dy={20}
-        textAnchor="middle"
-        fill="#94a3b8"
+        dy={rotated ? 4 : 16}
+        transform={rotated ? 'rotate(-35)' : undefined}
+        textAnchor={rotated ? 'end' : 'middle'}
+        fill="var(--chart-axis)"
         fontSize={12}
         fontWeight={700}
-        textAnchor="middle"
       >
         <title>{value}</title>
-        {displayValue}
+        {display}
       </text>
     </g>
   );
@@ -42,7 +46,7 @@ const CustomXAxisTick = ({ x, y, payload }) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {label}
         </p>
@@ -68,6 +72,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   const gradientId = React.useId();
   const composedGradient = `composed-primary-${gradientId}`;
   if (!data || data.length === 0) return null;
@@ -77,48 +83,39 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
 
   const processedData = data;
 
-  const dynamicXAxisHeight = useMemo(() => {
-    if (!processedData || processedData.length === 0) return 30;
-    
-    let maxLabelLength = 0;
-    for (let i = 0; i < processedData.length; i++) {
-      const len = String(processedData[i][xKey] || '').length;
-      if (len > maxLabelLength) maxLabelLength = len;
-    }
-    
-    const calculatedHeight = (maxLabelLength * 6 * 0.707) + 20; 
-    return Math.min(Math.max(calculatedHeight, 30), 150);
-  }, [processedData, xKey]);
+  const xGeo = useMemo(() => xAxisGeometry(processedData, xKey), [processedData, xKey]);
+  const yLeft = useMemo(() => yAxisGeometry(processedData, yKey), [processedData, yKey]);
+  const yRight = useMemo(() => yAxisGeometry(processedData, actualLineKey), [processedData, actualLineKey]);
 
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <ComposedChart data={processedData} margin={{ top: 20, right: 10, left: 0, bottom: dynamicXAxisHeight - 20 }}>
+      <ComposedChart data={processedData} margin={chartMargin({ bottom: xGeo.bottom })}>
         <defs>
           <linearGradient id={composedGradient} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
             <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
-        <XAxis 
-          dataKey={xKey} 
-          axisLine={false} 
-          tickLine={false} 
-          tick={<CustomXAxisTick />}
-          interval="preserveStartEnd" 
-          height={dynamicXAxisHeight} 
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" opacity={0.05} vertical={false} />
+        <XAxis
+          dataKey={xKey}
+          axisLine={false}
+          tickLine={false}
+          tick={<CustomXAxisTick rotated={xGeo.rotated} />}
+          interval={xGeo.props.interval}
+          height={xGeo.bottom}
         />
         <YAxis 
           yAxisId="left"
           axisLine={false} 
           tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
+          tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} 
           stroke="#ffffff" 
           opacity={0.3} 
           tickFormatter={yAxisFormatter} 
           domain={['auto', 'auto']}
-          width={55}
+          width={yLeft.width}
         />
         <YAxis 
           yAxisId="right" 
@@ -130,7 +127,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
           opacity={0.3} 
           tickFormatter={yAxisFormatter} 
           domain={['auto', 'auto']}
-          width={55}
+          width={yRight.width}
         />
         <Tooltip 
           content={<CustomTooltip />} 
@@ -165,7 +162,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
             dataKey={actualLineKey} 
             stroke={CHART_COLORS[2]} 
             strokeWidth={4} 
-            dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 2, stroke: '#020617' }}
+            dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 2, stroke: 'var(--chart-stroke)' }}
             activeDot={{ r: 6, fill: '#fff', stroke: CHART_COLORS[2], strokeWidth: 2 }}
             animationDuration={450}
           />

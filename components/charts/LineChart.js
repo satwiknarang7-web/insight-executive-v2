@@ -10,12 +10,14 @@ import {
   Legend
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { formatNumber as yAxisFormatter, truncateLabel as truncateTick } from '../../lib/format';
+import { usePalette } from './palette';
+import { formatNumber as yAxisFormatter } from '../../lib/format';
+import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {label}
         </p>
@@ -41,6 +43,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function LineChart({ data, xKey, yKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
 
   // Smart Y-axis domain: use integer ticks for count data
@@ -53,49 +57,28 @@ export default function LineChart({ data, xKey, yKey }) {
   // Adaptive dot size
   const dotSize = data.length <= 5 ? 5 : data.length <= 15 ? 4 : 3;
 
+  const x = xAxisGeometry(data, xKey);
+  const y = yAxisGeometry(data, yKey);
+
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsLineChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
-        <XAxis 
-          dataKey={xKey} 
-          axisLine={false} 
-          tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
-          tickFormatter={truncateTick}
-          interval="preserveStartEnd"
-          height={50}
-        />
-        <YAxis 
-          axisLine={false} 
-          tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} 
-          tickFormatter={yAxisFormatter}
+      <RechartsLineChart data={data} margin={chartMargin({ bottom: x.bottom })}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" opacity={0.05} vertical={false} />
+        <XAxis {...x.props} />
+        <YAxis
+          {...y.props}
           domain={yDomain}
-          width={55}
           allowDecimals={!allIntegers}
           tickCount={yTickCount}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Legend 
-          verticalAlign="top" 
-          align="right"
-          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
-          iconType="circle" 
-          iconSize={8}
-          formatter={(value) => (
-            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace(/_/g, ' ')}
-            </span>
-          )}
-        />
         
         <Line 
           type="monotone" 
           dataKey={yKey} 
           stroke={CHART_COLORS[0]} 
           strokeWidth={4} 
-          dot={data.length > 200 ? false : { r: dotSize, fill: CHART_COLORS[0], strokeWidth: 2, stroke: '#020617' }} 
+          dot={data.length > 200 ? false : { r: dotSize, fill: CHART_COLORS[0], strokeWidth: 2, stroke: 'var(--chart-stroke)' }} 
           activeDot={{ r: dotSize + 2, strokeWidth: 0, fill: '#fff', stroke: CHART_COLORS[0] }} 
           name="Actual Baseline"
           animationDuration={450}

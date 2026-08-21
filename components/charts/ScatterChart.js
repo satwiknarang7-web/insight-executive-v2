@@ -12,13 +12,15 @@ import {
   Legend
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { formatNumber as yAxisFormatter, truncateLabel as truncateTick } from '../../lib/format';
+import { usePalette } from './palette';
+import { formatNumber as yAxisFormatter } from '../../lib/format';
+import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {data.name || 'Data Point'}
         </p>
@@ -44,6 +46,8 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function ScatterChart({ data, xKey, yKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
 
   const xKeyToUse = xKey || (data[0] ? Object.keys(data[0])[0] : null);
@@ -71,39 +75,43 @@ export default function ScatterChart({ data, xKey, yKey }) {
     };
   }, [data, xKeyToUse, yKeyToUse, xIsNumber, yIsNumber]);
 
+  // A numeric x axis formats as numbers and needs no rotation; a categorical
+  // one gets the same measured treatment as every other chart.
+  const xGeo = xIsNumber
+    ? { props: {}, bottom: 44 }
+    : xAxisGeometry(data, xKeyToUse);
+  const yGeo = yAxisGeometry(data, yKeyToUse);
+
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsScatterChart margin={{ top: 20, right: 10, bottom: 40, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.05} vertical={false} />
-        <XAxis 
-          type={xIsNumber ? "number" : "category"} 
-          dataKey={xKeyToUse} 
-          name={xKeyToUse} 
-          axisLine={false} 
-          tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 12, textAnchor: 'middle', fontWeight: 700 }}
-          tickFormatter={xIsNumber ? yAxisFormatter : truncateTick}
+      <RechartsScatterChart margin={chartMargin({ bottom: xGeo.bottom })}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" opacity={0.05} vertical={false} />
+        <XAxis
+          {...xGeo.props}
+          type={xIsNumber ? 'number' : 'category'}
+          dataKey={xKeyToUse}
+          name={xKeyToUse}
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }}
+          tickFormatter={xIsNumber ? yAxisFormatter : xGeo.props.tickFormatter}
           domain={xIsNumber ? ['auto', 'auto'] : undefined}
-          interval="preserveStartEnd"
-          height={50}
+          height={xGeo.bottom}
         />
-        <YAxis 
-          type={yIsNumber ? "number" : "category"} 
-          dataKey={yKeyToUse} 
-          name={yKeyToUse} 
-          axisLine={false} 
-          tickLine={false} 
-          tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }}
-          tickFormatter={yAxisFormatter}
+        <YAxis
+          {...yGeo.props}
+          type={yIsNumber ? 'number' : 'category'}
+          dataKey={yKeyToUse}
+          name={yKeyToUse}
           domain={yIsNumber ? ['auto', 'auto'] : undefined}
-          width={55}
         />
         <ZAxis type="number" range={[60, 400]} />
         <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.1)' }} />
         <Legend 
           verticalAlign="top" 
           align="right"
-          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
+          height={26}
+          wrapperStyle={{ paddingBottom: '6px', paddingRight: '10px' }}
           iconType="circle" 
           iconSize={8}
           formatter={(value) => (
@@ -150,7 +158,7 @@ export default function ScatterChart({ data, xKey, yKey }) {
         )}
 
         {isTooLargeForCategories && (
-          <text x="50%" y="50%" textAnchor="middle" fill="#94a3b8" fontSize="12" dy="-20">
+          <text x="50%" y="50%" textAnchor="middle" fill="var(--chart-axis)" fontSize="12" dy="-20">
             Dataset too large for categorical correlation. Showing top 500 points.
           </text>
         )}

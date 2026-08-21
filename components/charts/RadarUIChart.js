@@ -1,11 +1,12 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
+      <div className="chart-tooltip border border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[180px]">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 border-b border-white/5 pb-2">
           {label}
         </p>
@@ -31,6 +32,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function RadarUIChart({ data, nameKey }) {
+  // Palette for this chart: a per-slide override, or the default.
+  const CHART_COLORS = usePalette();
   // Radar charts usually show multiple variables for a single subject or compare subjects across variables.
   // Here we assume data is formatted as [{ subject: 'Math', A: 120, B: 110, fullMark: 150 }, ...]
   const keys = Object.keys(data[0] || {}).filter(k => k !== nameKey && typeof data[0][k] === 'number');
@@ -39,8 +42,8 @@ export default function RadarUIChart({ data, nameKey }) {
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
         <PolarGrid stroke="#ffffff" opacity={0.1} />
-        <PolarAngleAxis dataKey={nameKey} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} />
-        <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} axisLine={false} />
+        <PolarAngleAxis dataKey={nameKey} tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} />
+        <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} axisLine={false} />
         <Tooltip content={<CustomTooltip />} />
         <Legend 
           verticalAlign="top" 

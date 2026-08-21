@@ -33,7 +33,7 @@ export default function ReportPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${dataset.fileName.replace(/\.csv$/i, '')}_report.pdf`;
+      a.download = `${dataset.fileName.replace(/\.(csv|tsv|txt|xlsx?|xlsm)$/i, '')}_report.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -64,7 +64,7 @@ export default function ReportPage() {
         <div className="flex items-center gap-2 print:hidden">
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-accent-400"
+            className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
           >
             <Printer size={13} /> Print / Save PDF
           </button>
@@ -130,6 +130,7 @@ export default function ReportPage() {
                   xKey={slide.chart?.xAxisKey}
                   yKey={slide.chart?.yAxisKey}
                   secondaryYKey={slide.chart?.secondaryYAxisKey}
+                  colors={slide.chart?.colors}
                   eager
                 />
               </ChartBoundary>
