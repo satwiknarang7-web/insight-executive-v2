@@ -15,9 +15,12 @@ import {
   Menu,
   X,
   FileText,
+  Database,
+  GitBranch,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import ThemeToggle from './ThemeToggle';
+import { vaultAvailable } from '../../lib/vault/supabase.client';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
@@ -102,6 +105,18 @@ export default function AppShell({ children }) {
             onNavigate={() => setMenuOpen(false)}
           />
         ))}
+        {dataset?.multiTable && (
+          <NavLink
+            item={{
+              href: '/model',
+              label: 'Data Model',
+              icon: GitBranch,
+              hint: 'Review how your tables were joined',
+            }}
+            active={pathname === '/model'}
+            onNavigate={() => setMenuOpen(false)}
+          />
+        )}
         {analysis?.storyboard?.length > 0 && (
           <NavLink
             item={{ href: '/present', label: 'Present', icon: Presentation, hint: 'Full-screen slide deck' }}
@@ -112,6 +127,16 @@ export default function AppShell({ children }) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-2 pt-4">
+        {/* Hidden entirely when there is no vault, rather than offered and broken. */}
+        {vaultAvailable() && (
+          <Link
+            href="/connections"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <Database size={14} /> Connections
+          </Link>
+        )}
         <ThemeToggle />
         {analysis?.storyboard?.length > 0 && (
           <Link

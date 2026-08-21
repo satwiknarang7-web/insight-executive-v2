@@ -398,6 +398,84 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
 }
 
 /**
+ * Ingest tables fetched from a connected database.
+ *
+ * The rows arrive already materialised over the network rather than streamed
+ * off disk, but from here on nothing is different: they go through the same
+ * sanitisation, the same relationship inference and the same joined view as a
+ * workbook's sheets. Pulling three related tables from Postgres therefore gets
+ * join detection for free, because that work was already done for spreadsheets.
+ */
+async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
+  if (!tables?.length) throw new Error('No tables were returned.');
+
+  progress(id, 'Cleaning rows', 20, `${tables.length} table(s) received`);
+
+  const taken = new Set();
+  const built = {};
+  const order = [];
+  const notices = [];
+
+  tables.forEach((t, i) => {
+    const tableName = normalizeTableName(t.label || t.name || `Table_${i + 1}`, taken);
+    taken.add(tableName);
+
+    progress(
+      id,
+      'Cleaning rows',
+      20 + Math.round(((i + 1) / tables.length) * 55),
+      `${tableName}: ${(t.rows?.length || 0).toLocaleString()} rows`
+    );
+
+    const table = buildTable({
+      name: tableName,
+      sheetName: null,
+      sourceFile: sourceLabel || 'Connected database',
+      columns: t.columns?.length ? t.columns : Object.keys(t.rows?.[0] || {}),
+      rows: t.rows || [],
+    });
+    built[tableName] = table;
+    order.push(tableName);
+
+    // A truncated result is the one thing that must never pass silently: every
+    // total computed downstream would be a fraction of the real one.
+    if (t.truncated) {
+      notices.push({
+        kind: 'truncated',
+        message: `${tableName} was capped at ${(t.rowCount || t.rows.length).toLocaleString()} rows. Every total below covers only that sample, not the whole table.`,
+      });
+    }
+  });
+
+  progress(id, 'Relating tables', 82, order.length > 1 ? `Looking for keys across ${order.length} tables` : 'Profiling keys');
+  const model = buildDataModel(order.map((n) => built[n]), { factTable });
+  for (const w of model.warnings) notices.push({ kind: 'many-to-many', message: w.message });
+
+  progress(id, 'Joining tables', 92, model.relationships.length ? `${model.relationships.length} relationship(s) found` : 'Single table');
+  const view = buildAnalysisView(built, model);
+  const metrics = rollUpMetrics(built, view);
+
+  state = {
+    tables: built,
+    order,
+    model,
+    view,
+    viewProfile: buildProfile(view.rows, view.columns, metrics),
+    viewSchema: describeSchema(view.rows, TABLE),
+    metrics,
+    fileName: sourceLabel || 'Connected database',
+    notices,
+    ingestedAt: Date.now(),
+  };
+
+  invalidateSearchIndex();
+
+  progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
+  reply(id, 'ingested', summary());
+  persist();
+}
+
+/**
  * Workbook-wide cleaning totals, plus per-column stats keyed by the *view's*
  * column names so the Explore and Quality pages can look them up directly.
  */
@@ -815,6 +893,8 @@ self.onmessage = async (e) => {
     switch (type) {
       case 'ingest':
         return await ingest(id, payload);
+      case 'ingestRemote':
+        return await ingestRemote(id, payload);
       case 'restore':
         return restore(id);
       case 'setModel':

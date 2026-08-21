@@ -15,6 +15,7 @@ import {
   Plus,
   Trash2,
   StickyNote,
+  GitBranch,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
@@ -23,6 +24,7 @@ import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
+import { modelConcerns } from '../../../lib/dataModel';
 
 export default function DashboardPage() {
   const { dataset, status } = useDataset();
@@ -32,6 +34,20 @@ export default function DashboardPage() {
   const [building, setBuilding] = useState(false);
 
   const run = useCallback(() => analyze().catch(() => {}), [analyze]);
+
+  // Relationship inference is a guess. Analysing on a wrong join produces
+  // precise, confident, false numbers, so the guess is never applied silently.
+  const joinNotice = dataset?.multiTable
+    ? {
+        tables: dataset.tables?.length || 0,
+        joins: dataset.model?.relationships?.length || 0,
+        concerns: modelConcerns({
+          model: dataset.model,
+          tables: dataset.tables,
+          joins: dataset.view?.joins,
+        }),
+      }
+    : null;
 
   if (status === 'analyzing') {
     return (
@@ -46,6 +62,7 @@ export default function DashboardPage() {
   if (!analysis) {
     return (
       <PageFrame title="Dashboard" subtitle={dataset?.fileName}>
+        {joinNotice && <JoinNotice notice={joinNotice} />}
         <div className="card flex max-w-xl flex-col items-start gap-4 p-8">
           <BarChart3 size={28} className="text-accent-400" />
           <div>
@@ -100,6 +117,8 @@ export default function DashboardPage() {
         </div>
       }
     >
+      {joinNotice && <JoinNotice notice={joinNotice} />}
+
       {/* KPI strip */}
       {kpis?.length > 0 && (
         <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -221,6 +240,52 @@ export default function DashboardPage() {
         />
       )}
     </PageFrame>
+  );
+}
+
+/**
+ * Says out loud that the numbers rest on inferred joins.
+ *
+ * Amber when something measurable looks wrong, neutral otherwise — a warning
+ * that is always loud is one people learn to ignore.
+ */
+function JoinNotice({ notice }) {
+  const worrying = notice.concerns.length > 0;
+  return (
+    <div
+      className={`mb-6 flex flex-wrap items-center gap-3 rounded-2xl border p-4 ${
+        worrying ? 'border-amber-500/25 bg-amber-500/[0.06]' : 'border-white/8 bg-white/[0.02]'
+      }`}
+    >
+      <GitBranch size={15} className={worrying ? 'text-amber-400' : 'text-accent-400'} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] leading-relaxed text-white/70">
+          {notice.joins > 0 ? (
+            <>
+              {notice.tables} tables were related automatically using {notice.joins} inferred{' '}
+              {notice.joins === 1 ? 'join' : 'joins'}. Every number below depends on those being right.
+            </>
+          ) : (
+            <>
+              {notice.tables} tables were loaded but no relationships were found, so only one of them is
+              being analysed.
+            </>
+          )}
+        </div>
+        {worrying && (
+          <div className="mt-1 text-[12px] leading-relaxed text-amber-300/80">
+            {notice.concerns[0]}
+            {notice.concerns.length > 1 && ` (+${notice.concerns.length - 1} more)`}
+          </div>
+        )}
+      </div>
+      <Link
+        href="/model"
+        className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/55 transition-colors hover:bg-white/5 hover:text-white"
+      >
+        Review joins
+      </Link>
+    </div>
   );
 }
 

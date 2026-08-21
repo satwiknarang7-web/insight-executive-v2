@@ -1,9 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Zap,
+  Database,
   UploadCloud,
   FileSpreadsheet,
   ShieldCheck,
@@ -15,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset } from '../lib/store/DatasetProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
+import { vaultAvailable } from '../lib/vault/supabase.client';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
 
@@ -102,7 +106,15 @@ export default function LandingPage() {
             <span className="text-lg font-black tracking-tight">Insight</span>
             <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            {vaultAvailable() && (
+              <Link
+                href="/connections"
+                className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <Database size={13} /> Connections
+              </Link>
+            )}
             <ThemeToggle />
           </div>
         </header>
