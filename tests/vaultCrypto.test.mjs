@@ -177,3 +177,37 @@ test('unknown secret-shaped fields are excluded by default', async () => {
     assert.deepEqual(safe, { host: 'h', region: 'eu' });
   });
 });
+
+test('a secret nested inside an array is not left in the public config', async () => {
+  await withEnv({ VAULT_MASTER_KEY: KEY_A }, ({ stripSecrets, extractSecrets }) => {
+    const config = { name: 'cluster', replicas: [{ host: 'a' }, { host: 'b', password: 'hunter2' }] };
+
+    const safe = stripSecrets(config);
+    assert.equal(JSON.stringify(safe).includes('hunter2'), false, 'the password reached public config');
+    assert.deepEqual(safe, { name: 'cluster', replicas: [{ host: 'a' }, { host: 'b' }] });
+
+    // The index is kept so the value can be put back where it came from.
+    assert.deepEqual(extractSecrets(config), { replicas: [null, { password: 'hunter2' }] });
+  });
+});
+
+test('splitting a config and rejoining it is lossless', async () => {
+  await withEnv({ VAULT_MASTER_KEY: KEY_A }, ({ stripSecrets, extractSecrets, mergeSecrets }) => {
+    const config = {
+      host: 'db.example.com',
+      port: 5432,
+      ssl: { ca: 'pem', key: 'private-key' },
+      replicas: [{ host: 'r1', password: 'p1' }],
+    };
+    const rejoined = mergeSecrets(stripSecrets(config), extractSecrets(config));
+    assert.deepEqual(rejoined, config);
+  });
+});
+
+test('a nested secret does not clobber its non-secret siblings on rejoin', async () => {
+  await withEnv({ VAULT_MASTER_KEY: KEY_A }, ({ mergeSecrets }) => {
+    // A shallow spread would replace the whole `ssl` object and lose `ca`.
+    const merged = mergeSecrets({ ssl: { ca: 'pem', verify: true } }, { ssl: { key: 'k' } });
+    assert.deepEqual(merged, { ssl: { ca: 'pem', verify: true, key: 'k' } });
+  });
+});

@@ -202,3 +202,42 @@ test('credentials are scrubbed out of driver errors', () => {
 test('an error with no message still produces something usable', () => {
   assert.match(safeErrorMessage(null), /could not be reached/);
 });
+
+test('ordinary column names that happen to be SQL keywords are allowed', () => {
+  // These were rejected when the write-verb list was matched anywhere in the
+  // query rather than only where a statement can begin.
+  for (const sql of [
+    'SELECT comment FROM posts',
+    'SELECT lock FROM inventory',
+    'SELECT set FROM settings',
+    'SELECT call, do FROM logs',
+    'SELECT MAX(comment) FROM posts',
+    'SELECT * FROM t WHERE update_count > 1 ORDER BY merge_key',
+  ]) {
+    assert.ok(assertReadOnlySql(sql), sql);
+  }
+});
+
+test('a writable CTE is still refused however it is spaced', () => {
+  for (const sql of [
+    'WITH x AS (INSERT INTO t VALUES (1) RETURNING id) SELECT * FROM x',
+    'WITH x AS(UPDATE t SET a = 1 RETURNING *) SELECT * FROM x',
+    'WITH x AS (\n  MERGE INTO t USING s ON t.id = s.id\n) SELECT * FROM x',
+  ]) {
+    assert.throws(() => assertReadOnlySql(sql), UnsafeQuery, sql);
+  }
+});
+
+test('DDL is refused by its two-word form, which cannot be a column name', () => {
+  for (const sql of ['SELECT 1 FROM t WHERE EXISTS (SELECT 1) UNION SELECT 1 FROM drop table x']) {
+    assert.throws(() => assertReadOnlySql(sql), UnsafeQuery, sql);
+  }
+  // ...but a column merely called "drop" is fine.
+  assert.ok(assertReadOnlySql('SELECT drop FROM measurements'));
+});
+
+test('row-locking clauses are refused without blocking a column called update', () => {
+  assert.throws(() => assertReadOnlySql('SELECT * FROM t FOR UPDATE'), UnsafeQuery);
+  assert.throws(() => assertReadOnlySql('SELECT * FROM t FOR NO KEY UPDATE'), UnsafeQuery);
+  assert.ok(assertReadOnlySql('SELECT update FROM t'));
+});
