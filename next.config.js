@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   reactStrictMode: false,
   // alasql now runs only in the browser worker; these two are server-only native deps.
-  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium', 'pg', 'mysql2', 'mssql', 'oracledb', 'snowflake-sdk', 'tedious'],
   
   // Pin the workspace root so Turbopack doesn't infer it from a parent folder.
   turbopack: {
