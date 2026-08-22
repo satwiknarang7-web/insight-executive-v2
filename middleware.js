@@ -14,7 +14,7 @@ import { createServerClient } from '@supabase/ssr';
 export async function middleware(request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return NextResponse.next();
+  if (!url || !key || !url.startsWith('http')) return NextResponse.next();
 
   let response = NextResponse.next({ request });
 
