@@ -14,6 +14,7 @@ import {
   currentUser,
   ensureOrganization,
   isSupabaseConfigured,
+  VaultConfigError,
 } from '../../lib/vault/supabase.server';
 import ConnectionsPanel from '../../components/panels/ConnectionsPanel';
 import ThemeToggle from '../../components/shell/ThemeToggle';
@@ -26,7 +27,16 @@ export default async function ConnectionsPage() {
   const user = await currentUser();
   if (!user) redirect('/sign-in');
 
-  const organization = await ensureOrganization();
+  // Credentials that are present but wrong only reveal themselves here, on the
+  // first call that actually reaches Supabase. That is a configuration problem,
+  // not a runtime one, so it gets the same screen as no configuration at all.
+  let organization;
+  try {
+    organization = await ensureOrganization();
+  } catch (error) {
+    if (error instanceof VaultConfigError) return <Unconfigured detail={error.message} />;
+    throw error;
+  }
   if (!organization) redirect('/sign-in');
 
   return (
@@ -36,7 +46,7 @@ export default async function ConnectionsPage() {
   );
 }
 
-function Unconfigured() {
+function Unconfigured({ detail = null }) {
   return (
     <Shell>
       <div className="card flex max-w-lg flex-col gap-3 p-8">
@@ -49,6 +59,11 @@ function Unconfigured() {
           Supabase values and <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">VAULT_MASTER_KEY</code>,
           then restart.
         </p>
+        {detail ? (
+          <p className="rounded-lg border border-white/10 bg-white/5 p-3 text-[12px] leading-relaxed text-white/40">
+            {detail}
+          </p>
+        ) : null}
         <p className="text-sm leading-relaxed text-white/50">
           Everything else works without it — uploading a spreadsheet and analysing it needs no account and
           sends nothing anywhere.
