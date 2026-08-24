@@ -51,7 +51,11 @@ test('a modal bucket is not offered as the dataset opportunity', () => {
   };
   const { synthesis } = analyzeStoryboard([histogram, ranking], new Array(720).fill({}));
   assert.doesNotMatch(synthesis.strategicScorecard.opportunity, /76-3719/);
-  assert.match(synthesis.strategicScorecard.opportunity, /Electronics/);
+  // Electronics carries 63% here, which makes it the risk — and the same share
+  // cannot be the upside as well. With only a histogram left, there is no
+  // opportunity to report, so the card is empty rather than restating the risk.
+  assert.match(synthesis.strategicScorecard.risk, /Electronics/);
+  assert.equal(synthesis.strategicScorecard.opportunity, '');
 });
 
 test('a share chart is never retyped into a time series', () => {

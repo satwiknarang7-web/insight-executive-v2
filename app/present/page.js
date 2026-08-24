@@ -332,8 +332,8 @@ function SummarySlide({ slideZero, kpis }) {
 
       {kpis?.length > 0 && (
         <div className="mb-7 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="card p-4">
+          {kpis.map((k, i) => (
+            <div key={`${k.label}-${i}`} className="card p-4">
               <div className="text-2xl font-black text-white">{k.value}</div>
               <div className="label mt-1 truncate">{k.label}</div>
             </div>
@@ -402,6 +402,8 @@ function ChartSlide({ slide }) {
             yKey={chart.yAxisKey}
             secondaryYKey={chart.secondaryYAxisKey}
             colors={chart.colors}
+            labels={chart.labels}
+            colorBy={chart.colorBy}
             eager
           />
         </ChartBoundary>
@@ -411,6 +413,10 @@ function ChartSlide({ slide }) {
 }
 
 function Pill({ icon: Icon, tone, label, text }) {
+  // A card the engine left empty had nothing to report; it is dropped rather
+  // than presented as a dash on a slide.
+  if (!String(text || '').trim()) return null;
+
   const tones = {
     accent: 'border-accent-500/20 bg-accent-500/6 text-accent-400',
     rose: 'border-rose-500/20 bg-rose-500/6 text-rose-400',

@@ -48,6 +48,11 @@
   --chart-tooltip-bg: rgba(2, 6, 23, 0.9);
   --chart-tooltip-fg: #ffffff;
   --chart-stroke: #020617;
+  /* Labels drawn onto the plot itself, and the halo that keeps them readable
+     where they cross a filled segment. Charts must never hardcode #ffffff for
+     these: on a white page it is invisible ink. */
+  --chart-label: #ffffff;
+  --chart-label-halo: 0 2px 3px rgba(0, 0, 0, 0.8);
   --scrollbar: rgba(255, 255, 255, 0.12);
   --scrollbar-hover: rgba(255, 255, 255, 0.22);
   --on-accent: #000000;
@@ -95,6 +100,8 @@
   --chart-tooltip-bg: rgba(255, 255, 255, 0.96);
   --chart-tooltip-fg: #0b2545;
   --chart-stroke: #ffffff;
+  --chart-label: #0b2545;
+  --chart-label-halo: 0 1px 3px rgba(255, 255, 255, 0.95);
   --scrollbar: rgba(11, 37, 69, 0.22);
   --scrollbar-hover: rgba(11, 37, 69, 0.38);
   --on-accent: #ffffff;

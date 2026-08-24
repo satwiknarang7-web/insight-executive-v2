@@ -79,7 +79,7 @@ export default function LineChart({ data, xKey, yKey }) {
           stroke={CHART_COLORS[0]} 
           strokeWidth={4} 
           dot={data.length > 200 ? false : { r: dotSize, fill: CHART_COLORS[0], strokeWidth: 2, stroke: 'var(--chart-stroke)' }} 
-          activeDot={{ r: dotSize + 2, strokeWidth: 0, fill: '#fff', stroke: CHART_COLORS[0] }} 
+          activeDot={{ r: dotSize + 2, strokeWidth: 0, fill: 'var(--chart-label)', stroke: CHART_COLORS[0] }} 
           name="Actual Baseline"
           animationDuration={450}
         />

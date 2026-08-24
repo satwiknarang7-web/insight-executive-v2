@@ -111,7 +111,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
           axisLine={false} 
           tickLine={false} 
           tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} 
-          stroke="#ffffff" 
+          stroke="var(--chart-grid)"
           opacity={0.3} 
           tickFormatter={yAxisFormatter} 
           domain={['auto', 'auto']}
@@ -123,7 +123,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
           axisLine={false} 
           tickLine={false} 
           tick={{ fill: CHART_COLORS[2], fontSize: 12, fontWeight: 700 }} 
-          stroke="#ffffff" 
+          stroke="var(--chart-grid)"
           opacity={0.3} 
           tickFormatter={yAxisFormatter} 
           domain={['auto', 'auto']}
@@ -131,7 +131,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
         />
         <Tooltip 
           content={<CustomTooltip />} 
-          cursor={{ fill: 'rgba(255,255,255,0.05)', radius: [8, 8, 0, 0] }} 
+          cursor={{ fill: 'var(--veil)', radius: [8, 8, 0, 0] }}
           animationDuration={200}
         />
         <Legend 
@@ -163,7 +163,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
             stroke={CHART_COLORS[2]} 
             strokeWidth={4} 
             dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 2, stroke: 'var(--chart-stroke)' }}
-            activeDot={{ r: 6, fill: '#fff', stroke: CHART_COLORS[2], strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: 'var(--chart-label)', stroke: CHART_COLORS[2], strokeWidth: 2 }}
             animationDuration={450}
           />
         )}

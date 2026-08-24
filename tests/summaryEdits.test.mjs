@@ -5,6 +5,7 @@ import {
   reapplySummaryEdits,
   updateKpi,
   removeKpi,
+  addKpi,
   reapplyKpiEdits,
 } from '../lib/storyboardEdits.js';
 
@@ -95,4 +96,38 @@ test('a different dataset keeps its own KPIs rather than being emptied', () => {
   const previous = removeKpi(kpis(), 1);
   const fresh = [{ label: 'Units shipped', value: '900' }];
   assert.deepEqual(reapplyKpiEdits(fresh, previous), fresh);
+});
+
+test('a card can be added to the strip, blank or filled', () => {
+  const next = addKpi(kpis());
+  assert.equal(next.length, 3);
+  assert.deepEqual(next.slice(0, 2), kpis());
+  assert.equal(next[2].label, '');
+  assert.equal(next[2].value, '');
+  assert.equal(next[2].custom, true);
+
+  const filled = addKpi([], { label: 'Churn', value: '4.2%' });
+  assert.deepEqual(filled, [{ label: 'Churn', value: '4.2%', custom: true }]);
+  assert.equal(addKpi(undefined).length, 1, 'an absent strip is still addable');
+});
+
+test('a re-run keeps cards the user added', () => {
+  const previous = updateKpi(addKpi(kpis()), 2, { label: 'Churn', value: '4.2%' });
+  const merged = reapplyKpiEdits(kpis(), previous);
+
+  assert.equal(merged.length, 3);
+  assert.deepEqual(merged.slice(0, 2), kpis(), 'generated cards are regenerated');
+  assert.equal(merged[2].label, 'Churn');
+  assert.equal(merged[2].custom, true);
+});
+
+test('an added card never claims a generated one, or resurrects a deleted one', () => {
+  // The user deletes "Orders", then adds their own card and calls it "Orders".
+  const previous = updateKpi(addKpi(removeKpi(kpis(), 1)), 1, { label: 'Orders', value: 'by hand' });
+  const merged = reapplyKpiEdits(kpis(), previous);
+
+  assert.equal(merged.length, 2, 'the deleted card stays deleted');
+  assert.equal(merged[0].label, 'Total Revenue');
+  assert.equal(merged[1].value, 'by hand');
+  assert.equal(merged[1].custom, true);
 });

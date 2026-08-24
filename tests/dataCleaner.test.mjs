@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeDataset } from '../lib/dataCleaner.js';
+import { sanitizeDataset, nullifyStrayValues } from '../lib/dataCleaner.js';
 
 const clean = (rows) => sanitizeDataset(rows).cleanedData;
 
@@ -68,4 +68,32 @@ test('a genuinely mixed column stays mixed', () => {
   ];
   const { metrics } = sanitizeDataset(rows);
   assert.equal(metrics.columnStats.v.type, 'mixed');
+});
+
+test('stray text in a measure is blanked so aggregates keep working', async () => {
+  const { profileColumns } = await import('../lib/chartResolver.js');
+  const alasql = (await import('alasql')).default;
+
+  const rows = [];
+  for (let i = 0; i < 300; i++) rows.push({ athlete: `a${i}`, height: 170 + (i % 20), weight: 60 + (i % 15) });
+  rows[3].height = 'unknown';
+  rows[77].height = '';
+  rows[120].weight = null;
+
+  const p = profileColumns(rows);
+  assert.ok(p.measures.includes('height'), 'the column is still a measure');
+
+  const cleared = nullifyStrayValues(rows, p.measures);
+  assert.equal(cleared, 2, 'only the non-numeric cells are touched');
+  assert.equal(rows[3].height, null);
+  assert.equal(rows[5].height, 175, 'good values are left exactly as they were');
+
+  // The point of the exercise: alasql returns no row at all for an AVG over a
+  // column holding a string, so this is what actually breaks in the product.
+  const table = `T${Date.now()}`;
+  alasql(`CREATE TABLE ${table}`);
+  alasql.tables[table].data = rows;
+  const [out] = alasql(`SELECT AVG([height]) AS [Value] FROM ${table}`);
+  assert.ok(typeof out.Value === 'number' && isFinite(out.Value), 'the average computes');
+  alasql(`DROP TABLE ${table}`);
 });

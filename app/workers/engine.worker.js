@@ -21,6 +21,7 @@ import {
   sanitizeChunk,
   finalizeMetrics,
   describeSchema,
+  nullifyStrayValues,
 } from '../../lib/dataCleaner.js';
 import {
   runAnalysis,
@@ -123,6 +124,11 @@ function summary() {
 /** Column profile with the extra display facts the Explore page needs. */
 function buildProfile(rows, columns, metrics) {
   const p = profileColumns(rows.slice(0, Math.min(rows.length, 20000)));
+  // Now that the measures are known, blank the odd non-numeric cell inside
+  // them. This is the one place that both knows which columns are numeric and
+  // holds the rows, and every ingest path comes through it, so nothing
+  // downstream has to defend itself against an "unknown" in a height column.
+  nullifyStrayValues(rows, p.measures);
   const byName = {};
   for (const col of columns) {
     const stat = metrics.columnStats[col] || {};

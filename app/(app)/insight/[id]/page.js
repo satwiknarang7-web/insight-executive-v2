@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -26,6 +26,10 @@ export default function InsightPage() {
   const router = useRouter();
   const { analysis } = useAnalysis();
   const { editSlide, deleteSlide } = useActions();
+  // The studio's unsaved draft, so the chart shows a choice while it is being
+  // made. Save is what commits it to the dashboard, the deck and the report.
+  const [preview, setPreview] = useState(null);
+  const onPreview = useCallback((next) => setPreview(next), []);
 
   const { slide, index, prev, next } = useMemo(() => {
     const board = analysis?.storyboard || [];
@@ -56,6 +60,13 @@ export default function InsightPage() {
 
   const chart = slide.chart || {};
   const facts = slide.findings?.verifiedFacts || [];
+  // The draft wins while the studio is open, but only the draft for this slide:
+  // a preview left over from the previous finding is ignored outright.
+  const draft = preview?.id === slide.id ? preview : null;
+  const shownType = draft?.chartType || chart.chart_type;
+  const shownColors = draft ? draft.colors : chart.colors;
+  const shownLabels = draft ? draft.labels : chart.labels;
+  const shownColorBy = (draft ? draft.colorBy : chart.colorBy) || 'series';
 
   return (
     <PageFrame
@@ -102,14 +113,16 @@ export default function InsightPage() {
           </div>
 
           <div className="h-[420px] w-full md:h-[520px]">
-            <ChartBoundary resetKey={`${slide.id}-${chart.chart_type}-${(chart.colors || []).join()}`}>
+            <ChartBoundary resetKey={`${slide.id}-${shownType}-${shownColorBy}-${(shownColors || []).join()}`}>
               <LazyChart
                 data={chart.resultData}
-                type={chart.chart_type}
+                type={shownType}
                 xKey={chart.xAxisKey}
                 yKey={chart.yAxisKey}
                 secondaryYKey={chart.secondaryYAxisKey}
-                colors={chart.colors}
+                colors={shownColors}
+                labels={shownLabels}
+                colorBy={shownColorBy}
                 eager
               />
             </ChartBoundary>
@@ -120,6 +133,7 @@ export default function InsightPage() {
         <div className="flex flex-col gap-4">
           <ChartStudio
             slide={slide}
+            onPreview={onPreview}
             onSave={(patch) => editSlide(slide.id, patch)}
             onDelete={() => {
               deleteSlide(slide.id);

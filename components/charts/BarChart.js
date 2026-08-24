@@ -11,7 +11,7 @@ import {
   Legend
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { usePalette } from './palette';
+import { usePalette, useColorBy } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
 
@@ -46,6 +46,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function BarChart({ data, xKey, yKey }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  // One colour per bar, rather than one gradient across all of them.
+  const perCategory = useColorBy() === 'category';
   const gradientId = React.useId();
   const barGradient = `bar-gradient-${gradientId}`;
   if (!data || data.length === 0) return null;
@@ -69,7 +71,7 @@ export default function BarChart({ data, xKey, yKey }) {
         <YAxis {...y.props} domain={[0, 'auto']} />
         <Tooltip 
           content={<CustomTooltip />} 
-          cursor={{ fill: 'rgba(255,255,255,0.05)', radius: [8, 8, 0, 0] }} 
+          cursor={{ fill: 'var(--veil)', radius: [8, 8, 0, 0] }}
           animationDuration={200}
         />
         
@@ -84,9 +86,15 @@ export default function BarChart({ data, xKey, yKey }) {
           animationEasing="ease-out"
         >
           {data.length <= 100 && data.map((entry, index) => (
-            <Cell 
-              key={`cell-${index}`} 
-              fill={entry.isAnomaly ? '#f43f5e' : `url(#${barGradient})`} 
+            <Cell
+              key={`cell-${index}`}
+              fill={
+                entry.isAnomaly
+                  ? '#f43f5e'
+                  : perCategory
+                  ? CHART_COLORS[index % CHART_COLORS.length]
+                  : `url(#${barGradient})`
+              }
               stroke={entry.isAnomaly ? '#f43f5e' : 'none'}
               strokeWidth={entry.isAnomaly ? 2 : 0}
               className="transition-all duration-300 hover:opacity-80 cursor-pointer"

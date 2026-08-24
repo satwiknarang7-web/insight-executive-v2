@@ -75,8 +75,8 @@ commentary before or after.
     ],
     "strategicScorecard": {
       "focus": "The one thing you would tell them to act on, stated as an action.",
-      "risk": "The exposure you would want on the record — concentration, decline, thin evidence. Name it plainly.",
-      "opportunity": "The clearest upside actually visible in the numbers. If there is none, say the data does not show one."
+      "risk": "The exposure you would want on the record — concentration, decline, thin evidence. Name it plainly. Return \"\" if the numbers show none; never write that no risk was detected, and never contradict the focus or the opportunity by calling the same fact both a concentration and a balanced spread.",
+      "opportunity": "The clearest upside actually visible in the numbers. Return \"\" if there is none."
     }
   },
   "storyboard": [

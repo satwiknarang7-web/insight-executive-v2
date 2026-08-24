@@ -8,6 +8,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import DynamicChart from "../../../components/charts/DynamicChart";
 import { ChartPalette } from "../../../components/charts/palette";
+import { renameCategories } from "../../../lib/chartLabels";
 import { Zap, Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
 
 export default function PrintReport() {
@@ -36,13 +37,16 @@ export default function PrintReport() {
     const keys = Object.keys(result[0]);
     const y = chart.yAxisKey || keys.find(k => typeof result[0][k] === 'number') || keys[keys.length - 1];
     const x = chart.xAxisKey || keys.find(k => k !== y) || keys[0];
+    // This page renders charts directly rather than through LazyChart, so the
+    // renames have to be applied here too or the PDF disagrees with the deck.
+    const rows = renameCategories(result, x, chart.labels);
 
     return (
       <div className="w-full flex justify-center scale-[0.85] origin-center">
         <div style={{ width: '600px', height: '400px' }}>
-          <ChartPalette colors={chart.colors}>
+          <ChartPalette colors={chart.colors} colorBy={chart.colorBy}>
             <DynamicChart
-              data={result}
+              data={rows}
               type={type}
               xKey={x}
               yKey={y}

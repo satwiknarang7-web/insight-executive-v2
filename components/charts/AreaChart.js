@@ -73,7 +73,7 @@ export default function AreaChart({ data, xKey, yKey }) {
           fill={`url(#${fillId})`}
           filter={`url(#${glowId})`}
           dot={false}
-          activeDot={{ r: 5, fill: '#fff', stroke: CHART_COLORS[0], strokeWidth: 3 }}
+          activeDot={{ r: 5, fill: 'var(--chart-label)', stroke: CHART_COLORS[0], strokeWidth: 3 }}
           name="Actual Baseline"
           animationDuration={450}
           animationEasing="ease-out"

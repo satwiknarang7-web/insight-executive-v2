@@ -26,13 +26,15 @@ import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import EditableText from '../../../components/panels/EditableText';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
+import { KPI_METRICS, metricNeedsColumn } from '../../../lib/kpiMetrics';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
 import { modelConcerns } from '../../../lib/dataModel';
 
 export default function DashboardPage() {
   const { dataset, status } = useDataset();
   const { analysis, narrating } = useAnalysis();
-  const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi } = useActions();
+  const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi } =
+    useActions();
   const router = useRouter();
   const [building, setBuilding] = useState(false);
   // One switch for the whole page. A pencil beside every field would put an
@@ -42,6 +44,9 @@ export default function DashboardPage() {
   const run = useCallback(() => analyze().catch(() => {}), [analyze]);
 
   const summary = analysis?.slideZero;
+  // Only numeric columns can be summed or averaged. Count needs none of them,
+  // which is why it stays available even when a dataset has no measures at all.
+  const measures = dataset?.profile?.measures || [];
 
   // Bullets are edited as a list: rewriting one, dropping one and adding one are
   // all the same commit of a new array.
@@ -171,42 +176,35 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* KPI strip */}
-      {kpis?.length > 0 && (
+      {/* KPI strip. Kept on screen while editing even when empty, so deleting
+          the last card does not also remove the way to add one back. */}
+      {(kpis?.length > 0 || editing) && (
         <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {kpis.map((k, i) => (
-            <div key={`${k.origLabel || k.label}-${i}`} className="card relative p-4">
-              {editing && (
-                <button
-                  type="button"
-                  aria-label={`Delete the ${k.label} card`}
-                  title="Delete this card"
-                  onClick={() => deleteKpi(i)}
-                  className="absolute right-2 top-2 rounded-lg p-1 text-white/20 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
-                >
-                  <Trash2 size={12} />
-                </button>
-              )}
-              <EditableText
-                as="div"
-                editing={editing}
-                value={k.label}
-                onCommit={(text) => editKpi(i, { label: text })}
-                ariaLabel="Card label"
-                placeholder="Label"
-                className={editing ? 'label' : 'label truncate'}
-              />
-              <EditableText
-                as="div"
-                editing={editing}
-                value={String(k.value ?? '')}
-                onCommit={(text) => editKpi(i, { value: text })}
-                ariaLabel="Card value"
-                placeholder="Value"
-                className="mt-2 text-2xl font-black tracking-tight text-white"
-              />
-            </div>
+          {(kpis || []).map((k, i) => (
+            <KpiCard
+              key={`${k.origLabel || k.label}-${i}`}
+              kpi={k}
+              index={i}
+              editing={editing}
+              measures={measures}
+              onEdit={(patch) => editKpi(i, patch)}
+              onCompute={(source) => computeKpi(i, source)}
+              onDelete={() => deleteKpi(i)}
+            />
           ))}
+
+          {editing && (
+            <button
+              type="button"
+              aria-label="Add a card"
+              title="Add a card"
+              onClick={() => createKpi()}
+              className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 p-4 text-white/35 transition-colors hover:border-accent-500/40 hover:bg-accent-500/[0.06] hover:text-accent-300"
+            >
+              <Plus size={16} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Add a card</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -350,6 +348,130 @@ export default function DashboardPage() {
 }
 
 /**
+ * One card on the KPI strip.
+ *
+ * In edit mode the card offers a metric and a column as well as the two text
+ * fields. Picking them runs a real aggregate over the loaded rows, so a card
+ * someone adds carries a computed number like the four the planner generated,
+ * rather than one typed in from a calculation done elsewhere. Typing over the
+ * value is still allowed — it just drops the provenance, because at that point
+ * the number is no longer the query's.
+ */
+function KpiCard({ kpi, index, editing, measures, onEdit, onCompute, onDelete }) {
+  const [metric, setMetric] = useState(kpi.source?.metric || '');
+  const [column, setColumn] = useState(kpi.source?.column || measures[0] || '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const compute = useCallback(
+    async (nextMetric, nextColumn) => {
+      if (!nextMetric) return;
+      if (metricNeedsColumn(nextMetric) && !nextColumn) return;
+      setBusy(true);
+      setError(null);
+      try {
+        await onCompute({ metric: nextMetric, column: nextColumn });
+      } catch (e) {
+        setError(e.message || 'That metric could not be computed.');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [onCompute]
+  );
+
+  const pickMetric = (value) => {
+    setMetric(value);
+    compute(value, column);
+  };
+  const pickColumn = (value) => {
+    setColumn(value);
+    compute(metric, value);
+  };
+
+  return (
+    <div className="card relative p-4">
+      {editing && (
+        <button
+          type="button"
+          aria-label={`Delete the ${kpi.label} card`}
+          title="Delete this card"
+          onClick={onDelete}
+          className="absolute right-2 top-2 rounded-lg p-1 text-white/20 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+        >
+          <Trash2 size={12} />
+        </button>
+      )}
+      <EditableText
+        as="div"
+        editing={editing}
+        value={kpi.label}
+        onCommit={(text) => onEdit({ label: text })}
+        ariaLabel="Card label"
+        placeholder="Label"
+        className={editing ? 'label' : 'label truncate'}
+      />
+      <EditableText
+        as="div"
+        editing={editing}
+        value={String(kpi.value ?? '')}
+        // Typing a value by hand is an assertion, not a measurement, so the
+        // metric behind it is cleared rather than left claiming credit.
+        onCommit={(text) => onEdit({ value: text, source: null })}
+        ariaLabel="Card value"
+        placeholder="Value"
+        className="mt-2 text-2xl font-black tracking-tight text-white"
+      />
+
+      {editing && (
+        <div className="mt-3 flex flex-col gap-1.5 border-t border-white/8 pt-3">
+          <div className="flex items-center gap-1.5">
+            <select
+              value={metric}
+              onChange={(e) => pickMetric(e.target.value)}
+              aria-label="Metric"
+              className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-[11px] font-bold text-white/75 outline-none focus:border-accent-500/50"
+            >
+              <option value="" className="bg-surface">
+                Typed by hand
+              </option>
+              {KPI_METRICS.map((m) => (
+                <option
+                  key={m.key}
+                  value={m.key}
+                  disabled={m.needsColumn && measures.length === 0}
+                  className="bg-surface"
+                >
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            {busy && <Loader2 size={12} className="shrink-0 animate-spin text-accent-400" />}
+          </div>
+
+          {metricNeedsColumn(metric) && (
+            <select
+              value={column}
+              onChange={(e) => pickColumn(e.target.value)}
+              aria-label="Column to measure"
+              className="min-w-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-[11px] font-bold text-white/75 outline-none focus:border-accent-500/50"
+            >
+              {measures.map((m) => (
+                <option key={m} value={m} className="bg-surface">
+                  {m.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {error && <p className="text-[10px] leading-snug text-rose-400">{error}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * One finding on the grid.
  *
  * The card is a link to the full write-up, which is exactly wrong while editing:
@@ -416,6 +538,8 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
             yKey={slide.chart?.yAxisKey}
             secondaryYKey={slide.chart?.secondaryYAxisKey}
             colors={slide.chart?.colors}
+            labels={slide.chart?.labels}
+            colorBy={slide.chart?.colorBy}
             eager={index < 2}
           />
         </ChartBoundary>
@@ -486,6 +610,11 @@ function JoinNotice({ notice }) {
 }
 
 function Scorecard({ icon: Icon, tone, label, text, editing, onCommit }) {
+  // The engine leaves a card empty when the data gives it nothing to say. An
+  // empty card is dropped rather than shown as a dash — except while editing,
+  // where it is the only way to write one yourself.
+  if (!editing && !String(text || '').trim()) return null;
+
   const tones = {
     accent: 'border-accent-500/20 bg-accent-500/6 text-accent-400',
     rose: 'border-rose-500/20 bg-rose-500/6 text-rose-400',

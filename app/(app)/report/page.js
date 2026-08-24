@@ -131,6 +131,8 @@ export default function ReportPage() {
                   yKey={slide.chart?.yAxisKey}
                   secondaryYKey={slide.chart?.secondaryYAxisKey}
                   colors={slide.chart?.colors}
+                  labels={slide.chart?.labels}
+                  colorBy={slide.chart?.colorBy}
                   eager
                 />
               </ChartBoundary>
@@ -191,6 +193,10 @@ function SectionTitle({ icon: Icon, children }) {
 }
 
 function Card({ icon: Icon, label, text }) {
+  // Empty means the engine found nothing to say under this heading. Printing a
+  // dash under "Risk" in a report reads as an unanswered question.
+  if (!String(text || '').trim()) return null;
+
   return (
     <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-4">
       <div className="flex items-center gap-2 text-accent-400">

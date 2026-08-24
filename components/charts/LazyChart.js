@@ -1,9 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { ChartPalette } from './palette';
+import { renameCategories } from '../../lib/chartLabels';
 
 // Recharts is ~120KB of the client bundle. Loading it on demand keeps the
 // upload page, the data table and the quality report free of it entirely.
@@ -27,9 +28,23 @@ function ChartSkeleton() {
  * eight charts otherwise builds eight full SVG trees on first paint, which is
  * the single most expensive thing on the page.
  */
-export default function LazyChart({ data, type, xKey, yKey, secondaryYKey, colors = null, eager = false }) {
+export default function LazyChart({
+  data,
+  type,
+  xKey,
+  yKey,
+  secondaryYKey,
+  colors = null,
+  labels = null,
+  colorBy = 'series',
+  eager = false,
+}) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
+
+  // Renaming happens here rather than at each call site so the axis, the legend
+  // and the tooltip all show the user's wording from one place.
+  const shown = useMemo(() => renameCategories(data, xKey, labels), [data, xKey, labels]);
 
   useEffect(() => {
     if (eager || visible) return;
@@ -63,8 +78,8 @@ export default function LazyChart({ data, type, xKey, yKey, secondaryYKey, color
   return (
     <div ref={ref} className="h-full w-full">
       {visible ? (
-        <ChartPalette colors={colors}>
-          <DynamicChart data={data} type={type} xKey={xKey} yKey={yKey} secondaryYKey={secondaryYKey} />
+        <ChartPalette colors={colors} colorBy={colorBy}>
+          <DynamicChart data={shown} type={type} xKey={xKey} yKey={yKey} secondaryYKey={secondaryYKey} />
         </ChartPalette>
       ) : (
         <ChartSkeleton />

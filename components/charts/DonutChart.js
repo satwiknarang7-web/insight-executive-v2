@@ -45,7 +45,7 @@ export default function DonutChart({ data, nameKey, valueKey }) {
           outerRadius="80%" 
           paddingAngle={5} 
           stroke="none"
-          labelLine={{ stroke: 'rgba(255, 255, 255, 0.2)', strokeWidth: 1 }}
+          labelLine={{ stroke: 'var(--chart-grid)', strokeOpacity: 0.25, strokeWidth: 1 }}
           label={({ cx, cy, midAngle, outerRadius, value, name }) => {
             const RADIAN = Math.PI / 180;
             const radius = outerRadius + 20; 
@@ -55,13 +55,14 @@ export default function DonutChart({ data, nameKey, valueKey }) {
             const displayValue = formatValue(value, name);
 
             return (
-              <text 
-                x={xPos} 
-                y={yPos} 
-                fill="#ffffff" 
-                textAnchor={xPos > cx ? 'start' : 'end'} 
-                dominantBaseline="central" 
-                className="text-[11px] font-black tracking-widest drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]"
+              <text
+                x={xPos}
+                y={yPos}
+                fill="var(--chart-label)"
+                textAnchor={xPos > cx ? 'start' : 'end'}
+                dominantBaseline="central"
+                style={{ filter: 'drop-shadow(var(--chart-label-halo))' }}
+                className="text-[11px] font-black tracking-widest"
               >
                 {displayValue}
               </text>

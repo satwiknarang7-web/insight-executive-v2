@@ -152,3 +152,29 @@ test('isTemporalValue recognizes common date formats', () => {
   assert.equal(isTemporalValue('North'), false);
   assert.equal(isTemporalValue(42), false);
 });
+
+test('a mostly-numeric column is still a measure', () => {
+  // Real exports carry the occasional "unknown". Requiring a perfectly clean
+  // column meant one such cell demoted the whole column to a category, so it
+  // disappeared from the measure lists and could not be averaged.
+  const rows = [];
+  for (let i = 0; i < 500; i++) rows.push({ athlete: `a${i}`, height: 170 + (i % 20), weight: 60 + (i % 30) });
+  rows[123].height = 'unknown';
+  rows[400].height = null;
+
+  const p = profileColumns(rows);
+  assert.ok(p.measures.includes('height'), 'one stray value does not unmake a measure');
+  assert.ok(p.measures.includes('weight'));
+  assert.ok(!p.dimensions.includes('height'), 'and it is not offered as a category either');
+});
+
+test('a genuinely mixed column stays a category', () => {
+  // Sizes of S/M/L with a few numeric codes are not a measure to average.
+  const rows = [];
+  for (let i = 0; i < 100; i++) rows.push({ size: ['S', 'M', 'L'][i % 3] });
+  for (let i = 0; i < 20; i++) rows.push({ size: 42 });
+
+  const p = profileColumns(rows);
+  assert.ok(!p.measures.includes('size'));
+  assert.ok(p.dimensions.includes('size'));
+});

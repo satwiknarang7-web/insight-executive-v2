@@ -249,3 +249,120 @@ test('no findings still produces an honest opening line', () => {
   assert.match(synthesis.headline, /Nothing/);
   assert.equal(synthesis.macroInsights.length, 1);
 });
+
+test('the risk card names the same concentration the opening line does', () => {
+  // A composition chart reports `dominantSharePct`, not `leaderSharePct`. Risk
+  // used to read only the latter, so it announced no concentration directly
+  // beside an opening line calling concentration the dominant story.
+  const charts = [
+    {
+      id: 's1', title: 'Plan Mix', chart_type: 'donut', xAxisKey: 'plan', yAxisKey: 'accounts',
+      resultData: [
+        { plan: 'Enterprise', accounts: 456 },
+        { plan: 'Basic', accounts: 261 },
+        { plan: 'Pro', accounts: 183 },
+        { plan: 'Free', accounts: 100 },
+      ],
+    },
+  ];
+  const { synthesis } = analyzeStoryboard(charts, new Array(1000).fill({}));
+  const { risk, opportunity } = synthesis.strategicScorecard;
+
+  assert.match(synthesis.headline, /concentration/i);
+  assert.match(risk, /Enterprise/, 'the risk names the concentrated category');
+  assert.doesNotMatch(risk, /no single dominant|not detected/i);
+  assert.notEqual(risk, opportunity);
+});
+
+test('a leader on half the total is never called a balanced mix', () => {
+  // A long tail holds HHI under 0.5 while one category still carries half the
+  // business. Focus read HHI and said "maintain the balanced mix"; risk read the
+  // top share and said "outsized" — the two cards contradicted each other.
+  const chart = {
+    title: 'Product Category by Revenue',
+    chart_type: 'radial',
+    xAxisKey: 'cat',
+    yAxisKey: 'rev',
+    resultData: [
+      { cat: 'Electronics', rev: 513 },
+      { cat: 'Apparel', rev: 130 },
+      { cat: 'Grocery', rev: 120 },
+      { cat: 'Home', rev: 110 },
+      { cat: 'Beauty', rev: 70 },
+      { cat: 'Sports', rev: 57 },
+    ],
+  };
+  const f = analyzeChart(chart);
+  assert.ok(f.metrics.hhi < 0.5, 'the tail keeps HHI below the old threshold');
+  assert.ok(f.metrics.dominantSharePct >= 40);
+  assert.doesNotMatch(f.recommendation, /balanced mix/i);
+  assert.match(f.recommendation, /Electronics/);
+
+  const { synthesis } = analyzeStoryboard([chart], new Array(720).fill({}));
+  const { focus, risk } = synthesis.strategicScorecard;
+  assert.doesNotMatch(focus, /balanced/i, 'focus does not call it balanced');
+  assert.match(risk, /outsized share/, 'while risk calls it concentrated');
+});
+
+test('risk and opportunity are never the same fact pointing two ways', () => {
+  const concentration = {
+    id: 's1', title: 'Plan Mix', chart_type: 'donut', xAxisKey: 'plan', yAxisKey: 'accounts',
+    resultData: [
+      { plan: 'Enterprise', accounts: 456 },
+      { plan: 'Basic', accounts: 261 },
+      { plan: 'Pro', accounts: 183 },
+      { plan: 'Free', accounts: 100 },
+    ],
+  };
+  const growth = {
+    id: 's2', title: 'Revenue by Month', chart_type: 'line', xAxisKey: 'month', yAxisKey: 'rev',
+    resultData: [
+      { month: '2025-01', rev: 100 },
+      { month: '2025-02', rev: 140 },
+      { month: '2025-03', rev: 190 },
+      { month: '2025-04', rev: 260 },
+    ],
+  };
+  const { synthesis } = analyzeStoryboard([concentration, growth], new Array(1000).fill({}));
+  const { risk, opportunity } = synthesis.strategicScorecard;
+
+  assert.match(risk, /Enterprise/, 'the concentration is the risk');
+  assert.doesNotMatch(opportunity, /45\.6%|Enterprise/, 'so it cannot also be the opportunity');
+  assert.ok(opportunity.length > 0, 'the genuine upside is reported instead');
+});
+
+test('with nothing positive left, the opportunity card is empty rather than the risk restated', () => {
+  const charts = [
+    {
+      id: 's1', title: 'Plan Mix', chart_type: 'donut', xAxisKey: 'plan', yAxisKey: 'accounts',
+      resultData: [
+        { plan: 'Enterprise', accounts: 456 },
+        { plan: 'Basic', accounts: 261 },
+        { plan: 'Pro', accounts: 183 },
+        { plan: 'Free', accounts: 100 },
+      ],
+    },
+  ];
+  const { synthesis } = analyzeStoryboard(charts, new Array(1000).fill({}));
+
+  assert.match(synthesis.strategicScorecard.risk, /Enterprise/);
+  assert.equal(synthesis.strategicScorecard.opportunity, '');
+});
+
+test('a scorecard card is left empty rather than filled with "nothing found"', () => {
+  // An even spread with no trend: there is genuinely no risk to report.
+  const charts = [
+    {
+      id: 's1', title: 'Orders by Region', chart_type: 'bar', xAxisKey: 'region', yAxisKey: 'orders',
+      resultData: [
+        { region: 'North', orders: 260 },
+        { region: 'South', orders: 255 },
+        { region: 'East', orders: 250 },
+        { region: 'West', orders: 245 },
+      ],
+    },
+  ];
+  const { synthesis } = analyzeStoryboard(charts, new Array(1010).fill({}));
+
+  assert.equal(synthesis.strategicScorecard.risk, '', 'no risk means no risk card');
+});

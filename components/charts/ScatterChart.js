@@ -106,7 +106,7 @@ export default function ScatterChart({ data, xKey, yKey }) {
           domain={yIsNumber ? ['auto', 'auto'] : undefined}
         />
         <ZAxis type="number" range={[60, 400]} />
-        <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.1)' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--chart-grid)', strokeOpacity: 0.25 }} />
         <Legend 
           verticalAlign="top" 
           align="right"

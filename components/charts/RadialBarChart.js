@@ -63,7 +63,7 @@ export default function RadialBarChart({ data, nameKey, valueKey }) {
         />
         <RadialBar
           minAngle={15}
-          background={{ fill: 'rgba(255,255,255,0.05)' }}
+          background={{ fill: 'var(--veil)' }}
           clockWise
           dataKey="value"
           cornerRadius={10}
