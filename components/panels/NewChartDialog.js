@@ -12,6 +12,7 @@
  */
 import { useMemo, useState } from 'react';
 import { BarChart3, Loader2, Plus, X } from 'lucide-react';
+import { measureByDimensionSql } from '../../lib/measures';
 
 const AGGREGATES = [
   { key: 'SUM', label: 'Total' },
@@ -45,7 +46,7 @@ export function buildSpec({ dimension, measure, aggregate, chartType, limit }) {
 const pretty = (s) => String(s || '').replace(/_/g, ' ').replace(/\./g, ' · ').trim();
 const titleOf = (agg) => AGGREGATES.find((a) => a.key === agg)?.label || agg;
 
-export default function NewChartDialog({ profile, onCreate, onClose }) {
+export default function NewChartDialog({ profile, columns = [], customMeasures = [], onCreate, onClose }) {
   const dimensions = useMemo(() => profile?.dimensions || [], [profile]);
   const measures = useMemo(() => profile?.measures || [], [profile]);
 
@@ -57,9 +58,35 @@ export default function NewChartDialog({ profile, onCreate, onClose }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
+  // A saved measure can stand in for an aggregate-and-column pair: it already
+  // is one, usually a more interesting one than any single column can express.
+  const chosenMeasure = aggregate.startsWith('measure:')
+    ? customMeasures.find((m) => m.id === aggregate.slice(8)) || null
+    : null;
   const isCount = aggregate === 'COUNT';
-  const ready = !!dimension && (isCount || !!measure);
-  const spec = ready ? buildSpec({ dimension, measure, aggregate, chartType, limit }) : null;
+  const ready = !!dimension && (!!chosenMeasure || isCount || !!measure);
+
+  let spec = null;
+  let specError = null;
+  if (ready && chosenMeasure) {
+    const built = measureByDimensionSql(
+      chosenMeasure,
+      { dimension, limit },
+      { columns, profile, measures: customMeasures }
+    );
+    specError = built.error;
+    if (!built.error) {
+      spec = {
+        sql: built.sql,
+        chart_type: chartType,
+        xAxisKey: built.xAxisKey,
+        yAxisKey: built.yAxisKey,
+        title: `${chosenMeasure.name} by ${pretty(dimension)}`,
+      };
+    }
+  } else if (ready) {
+    spec = buildSpec({ dimension, measure, aggregate, chartType, limit });
+  }
 
   const create = async () => {
     if (!spec) return;
@@ -98,10 +125,15 @@ export default function NewChartDialog({ profile, onCreate, onClose }) {
             onChange={setAggregate}
             options={measures.length ? AGGREGATES.map((a) => a.key) : ['COUNT']}
             format={titleOf}
+            groups={
+              customMeasures.length
+                ? [{ label: 'Measures', options: customMeasures.map((m) => ({ value: `measure:${m.id}`, label: m.name })) }]
+                : []
+            }
           />
         </Field>
 
-        {!isCount && (
+        {!isCount && !chosenMeasure && (
           <Field label="Of column">
             <Select value={measure} onChange={setMeasure} options={measures} format={pretty} />
           </Field>
@@ -125,9 +157,9 @@ export default function NewChartDialog({ profile, onCreate, onClose }) {
         </div>
       )}
 
-      {error && (
+      {(error || specError) && (
         <p className="mt-4 rounded-lg border border-rose-500/25 bg-rose-500/8 px-3 py-2 text-[13px] text-rose-300">
-          {error}
+          {error || specError}
         </p>
       )}
 
@@ -194,7 +226,7 @@ function Field({ label, children }) {
   );
 }
 
-function Select({ value, onChange, options, format = (v) => v }) {
+function Select({ value, onChange, options, format = (v) => v, groups = [] }) {
   return (
     <select
       value={value}
@@ -205,6 +237,15 @@ function Select({ value, onChange, options, format = (v) => v }) {
         <option key={o} value={o} className="bg-surface">
           {format(o)}
         </option>
+      ))}
+      {groups.map((group) => (
+        <optgroup key={group.label} label={group.label}>
+          {group.options.map((o) => (
+            <option key={o.value} value={o.value} className="bg-surface">
+              {o.label}
+            </option>
+          ))}
+        </optgroup>
       ))}
     </select>
   );

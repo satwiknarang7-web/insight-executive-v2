@@ -19,7 +19,7 @@ import {
   Pencil,
   Check,
 } from 'lucide-react';
-import { useActions, useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
+import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
@@ -33,6 +33,9 @@ import { modelConcerns } from '../../../lib/dataModel';
 export default function DashboardPage() {
   const { dataset, status } = useDataset();
   const { analysis, narrating } = useAnalysis();
+  // Measures the user defined. Distinct from `measures` below, which is this
+  // dataset's numeric columns — the profile has always called those measures.
+  const customMeasures = useMeasures();
   const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi } =
     useActions();
   const router = useRouter();
@@ -187,6 +190,7 @@ export default function DashboardPage() {
               index={i}
               editing={editing}
               measures={measures}
+              customMeasures={customMeasures}
               onEdit={(patch) => editKpi(i, patch)}
               onCompute={(source) => computeKpi(i, source)}
               onDelete={() => deleteKpi(i)}
@@ -339,6 +343,8 @@ export default function DashboardPage() {
       {building && (
         <NewChartDialog
           profile={dataset?.profile}
+          columns={dataset?.columns}
+          customMeasures={customMeasures}
           onCreate={(spec) => addSlide(spec)}
           onClose={() => setBuilding(false)}
         />
@@ -357,8 +363,10 @@ export default function DashboardPage() {
  * value is still allowed — it just drops the provenance, because at that point
  * the number is no longer the query's.
  */
-function KpiCard({ kpi, index, editing, measures, onEdit, onCompute, onDelete }) {
-  const [metric, setMetric] = useState(kpi.source?.metric || '');
+function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, onCompute, onDelete }) {
+  // One dropdown covers both kinds of source, so a measure is picked exactly
+  // where a plain aggregate is. Measures are prefixed to keep the two apart.
+  const [metric, setMetric] = useState(kpi.source?.measureId ? `measure:${kpi.source.measureId}` : kpi.source?.metric || '');
   const [column, setColumn] = useState(kpi.source?.column || measures[0] || '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -366,11 +374,12 @@ function KpiCard({ kpi, index, editing, measures, onEdit, onCompute, onDelete })
   const compute = useCallback(
     async (nextMetric, nextColumn) => {
       if (!nextMetric) return;
-      if (metricNeedsColumn(nextMetric) && !nextColumn) return;
+      const measureId = nextMetric.startsWith('measure:') ? nextMetric.slice(8) : null;
+      if (!measureId && metricNeedsColumn(nextMetric) && !nextColumn) return;
       setBusy(true);
       setError(null);
       try {
-        await onCompute({ metric: nextMetric, column: nextColumn });
+        await onCompute(measureId ? { measureId } : { metric: nextMetric, column: nextColumn });
       } catch (e) {
         setError(e.message || 'That metric could not be computed.');
       } finally {
@@ -445,11 +454,20 @@ function KpiCard({ kpi, index, editing, measures, onEdit, onCompute, onDelete })
                   {m.label}
                 </option>
               ))}
+              {customMeasures.length > 0 && (
+                <optgroup label="Measures">
+                  {customMeasures.map((m) => (
+                    <option key={m.id} value={`measure:${m.id}`} className="bg-surface">
+                      {m.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
             {busy && <Loader2 size={12} className="shrink-0 animate-spin text-accent-400" />}
           </div>
 
-          {metricNeedsColumn(metric) && (
+          {!metric.startsWith('measure:') && metricNeedsColumn(metric) && (
             <select
               value={column}
               onChange={(e) => pickColumn(e.target.value)}

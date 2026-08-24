@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Table2,
   MessageSquare,
+  Sigma,
   ShieldCheck,
   Presentation,
   Zap,
@@ -26,6 +27,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
   { href: '/explore', label: 'Explore', icon: Table2, hint: 'Browse and filter the cleaned rows' },
   { href: '/ask', label: 'Ask', icon: MessageSquare, hint: 'Question your data in plain English' },
+  { href: '/measures', label: 'Measures', icon: Sigma, hint: 'Name a calculation once, then reuse it' },
   { href: '/quality', label: 'Data Quality', icon: ShieldCheck, hint: 'Cleaning report and query audit' },
 ];
 

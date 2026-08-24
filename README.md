@@ -40,6 +40,7 @@ the app works completely** — it just uses the deterministic prose instead.
 | `/insight/[id]` | One finding in depth: chart, verified metrics, the SQL |
 | `/explore` | Column profile plus a paged, sortable, searchable table |
 | `/ask` | Ask a question in plain English; includes a SQL console |
+| `/measures` | Name a calculation once — described in plain English — and reuse it on cards and charts |
 | `/quality` | Cleaning report, per-column stats, full query audit |
 | `/present` | Full-screen slide deck (arrow keys, space to autoplay) |
 | `/report` | Print-ready long-form report |
