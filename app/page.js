@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Zap,
-  Database,
+  // CONNECTIONS DISABLED (temporary): Database,
   UploadCloud,
   FileSpreadsheet,
   ShieldCheck,
@@ -15,10 +15,12 @@ import {
   ArrowRight,
   AlertTriangle,
   Table2,
+  Trash2,
+  X,
 } from 'lucide-react';
 import { useActions, useDataset } from '../lib/store/DatasetProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
-import { vaultAvailable } from '../lib/vault/supabase.client';
+// CONNECTIONS DISABLED (temporary): import { vaultAvailable } from '../lib/vault/supabase.client';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
 
@@ -43,8 +45,11 @@ const FEATURES = [
 export default function LandingPage() {
   const router = useRouter();
   const { dataset, status, error } = useDataset();
-  const { ingestFile, ingestText, analyze, setError } = useActions();
+  const { ingestFile, ingestText, analyze, setError, reset } = useActions();
   const [dragging, setDragging] = useState(false);
+  // Two-step, because discarding a loaded dataset also discards any analysis of
+  // it and there is no undo — but a modal for one button is heavier than this.
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const inputRef = useRef(null);
 
   const busy = status === 'ingesting' || status === 'analyzing';
@@ -83,6 +88,11 @@ export default function LandingPage() {
     [ingestText]
   );
 
+  const removeDataset = useCallback(async () => {
+    setConfirmRemove(false);
+    await reset();
+  }, [reset]);
+
   const runAnalysis = useCallback(async () => {
     try {
       await analyze();
@@ -107,6 +117,7 @@ export default function LandingPage() {
             <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {/* CONNECTIONS DISABLED (temporary)
             {vaultAvailable() && (
               <Link
                 href="/connections"
@@ -115,6 +126,7 @@ export default function LandingPage() {
                 <Database size={13} /> Connections
               </Link>
             )}
+            */}
             <ThemeToggle />
           </div>
         </header>
@@ -155,14 +167,45 @@ export default function LandingPage() {
               <div className="card p-6">
                 <div className="flex items-start gap-3">
                   <FileSpreadsheet className="mt-0.5 shrink-0 text-accent-400" size={20} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-bold text-white/90">{dataset.fileName}</div>
                     <div className="mt-0.5 text-xs text-white/40">
                       {dataset.rowCount.toLocaleString()} rows · {dataset.columns.length} columns ·{' '}
                       {dataset.metrics.outliersCount.toLocaleString()} outliers flagged
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmRemove((v) => !v)}
+                    aria-label={confirmRemove ? 'Keep this file' : 'Remove this file'}
+                    title={confirmRemove ? 'Keep this file' : 'Remove this file'}
+                    className="shrink-0 rounded-lg p-1.5 text-white/25 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+                  >
+                    {confirmRemove ? <X size={15} /> : <Trash2 size={15} />}
+                  </button>
                 </div>
+
+                {confirmRemove && (
+                  <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.06] p-3">
+                    <div className="min-w-0 flex-1 text-[12px] leading-relaxed text-white/60">
+                      Remove {dataset.fileName}? The cleaned rows and any analysis of them are discarded.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeDataset}
+                      className="shrink-0 rounded-lg bg-rose-500/90 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-rose-500"
+                    >
+                      Remove
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmRemove(false)}
+                      className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50 transition-colors hover:bg-white/5 hover:text-white"
+                    >
+                      Keep
+                    </button>
+                  </div>
+                )}
 
                 <div className="mt-5 grid grid-cols-3 gap-2 text-center">
                   <Stat label="Redacted" value={dataset.metrics.redactedPII} tone="accent" />
@@ -182,6 +225,24 @@ export default function LandingPage() {
                 >
                   <Table2 size={14} /> Browse the rows first
                 </button>
+                <button
+                  onClick={() => inputRef.current?.click()}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <UploadCloud size={14} /> Replace with another file
+                </button>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  multiple
+                  accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length) handleFiles(files);
+                    e.target.value = '';
+                  }}
+                />
               </div>
             )}
 

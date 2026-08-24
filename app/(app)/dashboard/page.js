@@ -16,12 +16,15 @@ import {
   Trash2,
   StickyNote,
   GitBranch,
+  Pencil,
+  Check,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
+import EditableText from '../../../components/panels/EditableText';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
 import { modelConcerns } from '../../../lib/dataModel';
@@ -29,11 +32,38 @@ import { modelConcerns } from '../../../lib/dataModel';
 export default function DashboardPage() {
   const { dataset, status } = useDataset();
   const { analysis, narrating } = useAnalysis();
-  const { analyze, addSlide, deleteSlide } = useActions();
+  const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi } = useActions();
   const router = useRouter();
   const [building, setBuilding] = useState(false);
+  // One switch for the whole page. A pencil beside every field would put an
+  // affordance next to every sentence on a dashboard whose job is to be read.
+  const [editing, setEditing] = useState(false);
 
   const run = useCallback(() => analyze().catch(() => {}), [analyze]);
+
+  const summary = analysis?.slideZero;
+
+  // Bullets are edited as a list: rewriting one, dropping one and adding one are
+  // all the same commit of a new array.
+  const setInsight = useCallback(
+    (index, text) => {
+      const list = [...(summary?.macroInsights || [])];
+      list[index] = text;
+      editSummary({ macroInsights: list });
+    },
+    [editSummary, summary]
+  );
+
+  const removeInsight = useCallback(
+    (index) => {
+      editSummary({ macroInsights: (summary?.macroInsights || []).filter((_, i) => i !== index) });
+    },
+    [editSummary, summary]
+  );
+
+  const addInsight = useCallback(() => {
+    editSummary({ macroInsights: [...(summary?.macroInsights || []), ''] });
+  }, [editSummary, summary]);
 
   // Relationship inference is a guess. Analysing on a wrong join produces
   // precise, confident, false numbers, so the guess is never applied silently.
@@ -83,7 +113,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { slideZero, storyboard, kpis } = analysis;
+  const { storyboard, kpis } = analysis;
 
   return (
     <PageFrame
@@ -96,6 +126,17 @@ export default function DashboardPage() {
               <Loader2 size={11} className="animate-spin" /> Writing narrative
             </span>
           )}
+          <button
+            onClick={() => setEditing((v) => !v)}
+            aria-pressed={editing}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+              editing
+                ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {editing ? <Check size={13} /> : <Pencil size={13} />} {editing ? 'Done' : 'Edit'}
+          </button>
           <button
             onClick={() => setBuilding(true)}
             className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
@@ -119,15 +160,51 @@ export default function DashboardPage() {
     >
       {joinNotice && <JoinNotice notice={joinNotice} />}
 
+      {editing && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-accent-500/25 bg-accent-500/[0.06] p-4">
+          <Pencil size={14} className="text-accent-400" />
+          <div className="min-w-0 flex-1 text-[13px] leading-relaxed text-white/70">
+            Editing. Every title, sentence and card on this page is yours to rewrite — click a field, then
+            click away to keep it. Escape abandons an edit. Changes save as you make them, and they are what
+            Present, the report and the PDF will show.
+          </div>
+        </div>
+      )}
+
       {/* KPI strip */}
       {kpis?.length > 0 && (
         <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="card p-4">
-              <div className="label truncate" title={k.label}>
-                {k.label}
-              </div>
-              <div className="mt-2 text-2xl font-black tracking-tight text-white">{k.value}</div>
+          {kpis.map((k, i) => (
+            <div key={`${k.origLabel || k.label}-${i}`} className="card relative p-4">
+              {editing && (
+                <button
+                  type="button"
+                  aria-label={`Delete the ${k.label} card`}
+                  title="Delete this card"
+                  onClick={() => deleteKpi(i)}
+                  className="absolute right-2 top-2 rounded-lg p-1 text-white/20 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
+              <EditableText
+                as="div"
+                editing={editing}
+                value={k.label}
+                onCommit={(text) => editKpi(i, { label: text })}
+                ariaLabel="Card label"
+                placeholder="Label"
+                className={editing ? 'label' : 'label truncate'}
+              />
+              <EditableText
+                as="div"
+                editing={editing}
+                value={String(k.value ?? '')}
+                onCommit={(text) => editKpi(i, { value: text })}
+                ariaLabel="Card value"
+                placeholder="Value"
+                className="mt-2 text-2xl font-black tracking-tight text-white"
+              />
             </div>
           ))}
         </div>
@@ -137,26 +214,103 @@ export default function DashboardPage() {
       <section className="mb-8">
         <div className="mb-3 flex items-center gap-3">
           <Sparkles size={14} className="text-accent-400" />
-          <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">{slideZero.title}</h2>
+          <EditableText
+            as="h2"
+            editing={editing}
+            value={summary.title}
+            onCommit={(text) => editSummary({ title: text })}
+            ariaLabel="Summary title"
+            placeholder="Executive summary"
+            className="text-xs font-black uppercase tracking-[0.28em] text-white/45"
+          />
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
         </div>
+
+        {/* The opening line — what an analyst says before the bullets. */}
+        {(summary.headline || editing) && (
+          <EditableText
+            as="p"
+            editing={editing}
+            value={summary.headline}
+            display={cleanFloatingPoints(summary.headline)}
+            onCommit={(text) => editSummary({ headline: text })}
+            ariaLabel="Opening line"
+            placeholder="One sentence: the thing you would say first."
+            multiline
+            rows={2}
+            className="mb-4 max-w-4xl text-[17px] font-medium leading-relaxed text-white/85"
+          />
+        )}
 
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="card p-6 lg:col-span-2">
             <ul className="flex flex-col gap-4">
-              {slideZero.macroInsights.map((line, i) => (
+              {summary.macroInsights.map((line, i) => (
                 <li key={i} className="flex gap-3">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-500" />
-                  <p className="text-[15px] leading-relaxed text-white/75">{cleanFloatingPoints(line)}</p>
+                  <EditableText
+                    as="p"
+                    editing={editing}
+                    value={line}
+                    display={cleanFloatingPoints(line)}
+                    onCommit={(text) => setInsight(i, text)}
+                    ariaLabel={`Takeaway ${i + 1}`}
+                    placeholder="What is true, and what follows from it."
+                    multiline
+                    rows={2}
+                    className="text-[15px] leading-relaxed text-white/75"
+                  />
+                  {editing && (
+                    <button
+                      type="button"
+                      aria-label={`Delete takeaway ${i + 1}`}
+                      title="Delete this takeaway"
+                      onClick={() => removeInsight(i)}
+                      className="mt-0.5 shrink-0 rounded-lg p-1.5 text-white/20 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
+
+            {editing && (
+              <button
+                type="button"
+                onClick={addInsight}
+                className="mt-4 flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <Plus size={13} /> Add a takeaway
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
-            <Scorecard icon={Target} tone="accent" label="Focus" text={slideZero.strategicScorecard.focus} />
-            <Scorecard icon={AlertTriangle} tone="rose" label="Risk" text={slideZero.strategicScorecard.risk} />
-            <Scorecard icon={TrendingUp} tone="emerald" label="Opportunity" text={slideZero.strategicScorecard.opportunity} />
+            <Scorecard
+              icon={Target}
+              tone="accent"
+              label="Focus"
+              text={summary.strategicScorecard.focus}
+              editing={editing}
+              onCommit={(text) => editSummary({ strategicScorecard: { focus: text } })}
+            />
+            <Scorecard
+              icon={AlertTriangle}
+              tone="rose"
+              label="Risk"
+              text={summary.strategicScorecard.risk}
+              editing={editing}
+              onCommit={(text) => editSummary({ strategicScorecard: { risk: text } })}
+            />
+            <Scorecard
+              icon={TrendingUp}
+              tone="emerald"
+              label="Opportunity"
+              text={summary.strategicScorecard.opportunity}
+              editing={editing}
+              onCommit={(text) => editSummary({ strategicScorecard: { opportunity: text } })}
+            />
           </div>
         </div>
       </section>
@@ -171,63 +325,15 @@ export default function DashboardPage() {
 
         <div className="grid gap-4 xl:grid-cols-2">
           {storyboard.map((slide, i) => (
-            <Link
+            <FindingCard
               key={slide.id || i}
-              href={`/insight/${slide.id || `slide_${i + 1}`}`}
-              className="group card relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="label flex items-center gap-2">
-                    <span>
-                      {String(slide.chart?.chart_type || 'chart')} · {i + 1} of {storyboard.length}
-                    </span>
-                    {slide.custom && <span className="text-accent-400/70">· yours</span>}
-                    {slide.analystNotes && <StickyNote size={10} className="text-amber-400/70" />}
-                  </div>
-                  <h3 className="mt-1.5 text-base font-black leading-tight text-white group-hover:text-accent-300">
-                    {slide.pageTitle}
-                  </h3>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <button
-                    type="button"
-                    aria-label={`Delete ${slide.pageTitle}`}
-                    title="Delete this finding"
-                    onClick={(e) => {
-                      // The whole card is a link; deleting must not navigate.
-                      e.preventDefault();
-                      e.stopPropagation();
-                      deleteSlide(slide.id);
-                    }}
-                    className="rounded-lg p-1.5 text-white/15 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                  <ChevronRight size={16} className="text-white/20 group-hover:text-accent-400" />
-                </div>
-              </div>
-
-              <div className="mt-4 h-56">
-                <ChartBoundary resetKey={`${slide.id}-${slide.chart?.chart_type}`}>
-                  <LazyChart
-                    data={slide.chart?.resultData}
-                    type={slide.chart?.chart_type}
-                    xKey={slide.chart?.xAxisKey}
-                    yKey={slide.chart?.yAxisKey}
-                    secondaryYKey={slide.chart?.secondaryYAxisKey}
-                    colors={slide.chart?.colors}
-                    eager={i < 2}
-                  />
-                </ChartBoundary>
-              </div>
-
-              {slide.insight_anchor && (
-                <p className="mt-4 line-clamp-2 text-[13px] leading-relaxed text-white/45">
-                  {cleanFloatingPoints(slide.insight_anchor)}
-                </p>
-              )}
-            </Link>
+              slide={slide}
+              index={i}
+              total={storyboard.length}
+              editing={editing}
+              onDelete={() => deleteSlide(slide.id)}
+              onEdit={(patch) => editSlide(slide.id, patch)}
+            />
           ))}
         </div>
       </section>
@@ -240,6 +346,96 @@ export default function DashboardPage() {
         />
       )}
     </PageFrame>
+  );
+}
+
+/**
+ * One finding on the grid.
+ *
+ * The card is a link to the full write-up, which is exactly wrong while editing:
+ * the first click into a text field would navigate away from the page. In edit
+ * mode the same markup is wrapped in a plain div instead.
+ */
+function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
+  const Wrapper = editing ? 'div' : Link;
+  const wrapperProps = editing
+    ? { className: 'card relative flex flex-col overflow-hidden p-5' }
+    : {
+        href: `/insight/${slide.id || `slide_${index + 1}`}`,
+        className:
+          'group card relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
+      };
+
+  return (
+    <Wrapper {...wrapperProps}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="label flex items-center gap-2">
+            <span>
+              {String(slide.chart?.chart_type || 'chart')} · {index + 1} of {total}
+            </span>
+            {slide.custom && <span className="text-accent-400/70">· yours</span>}
+            {!slide.custom && slide.edits?.length > 0 && <span className="text-accent-400/70">· edited</span>}
+            {slide.analystNotes && <StickyNote size={10} className="text-amber-400/70" />}
+          </div>
+          <EditableText
+            as="h3"
+            editing={editing}
+            value={slide.pageTitle}
+            onCommit={(text) => onEdit({ pageTitle: text })}
+            ariaLabel="Finding title"
+            placeholder="Title"
+            className="mt-1.5 text-base font-black leading-tight text-white group-hover:text-accent-300"
+          />
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            aria-label={`Delete ${slide.pageTitle}`}
+            title="Delete this finding"
+            onClick={(e) => {
+              // Outside edit mode the whole card is a link; deleting must not navigate.
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="rounded-lg p-1.5 text-white/15 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+          >
+            <Trash2 size={14} />
+          </button>
+          {!editing && <ChevronRight size={16} className="text-white/20 group-hover:text-accent-400" />}
+        </div>
+      </div>
+
+      <div className="mt-4 h-56">
+        <ChartBoundary resetKey={`${slide.id}-${slide.chart?.chart_type}`}>
+          <LazyChart
+            data={slide.chart?.resultData}
+            type={slide.chart?.chart_type}
+            xKey={slide.chart?.xAxisKey}
+            yKey={slide.chart?.yAxisKey}
+            secondaryYKey={slide.chart?.secondaryYAxisKey}
+            colors={slide.chart?.colors}
+            eager={index < 2}
+          />
+        </ChartBoundary>
+      </div>
+
+      {(slide.insight_anchor || editing) && (
+        <EditableText
+          as="p"
+          editing={editing}
+          value={slide.insight_anchor}
+          display={cleanFloatingPoints(slide.insight_anchor)}
+          onCommit={(text) => onEdit({ insight_anchor: text })}
+          ariaLabel="Key finding"
+          placeholder="The finding in one sentence, with its number."
+          multiline
+          rows={2}
+          className={`mt-4 text-[13px] leading-relaxed text-white/45 ${editing ? '' : 'line-clamp-2'}`}
+        />
+      )}
+    </Wrapper>
   );
 }
 
@@ -289,7 +485,7 @@ function JoinNotice({ notice }) {
   );
 }
 
-function Scorecard({ icon: Icon, tone, label, text }) {
+function Scorecard({ icon: Icon, tone, label, text, editing, onCommit }) {
   const tones = {
     accent: 'border-accent-500/20 bg-accent-500/6 text-accent-400',
     rose: 'border-rose-500/20 bg-rose-500/6 text-rose-400',
@@ -301,7 +497,18 @@ function Scorecard({ icon: Icon, tone, label, text }) {
         <Icon size={14} />
         <span className="text-[9px] font-black uppercase tracking-[0.25em]">{label}</span>
       </div>
-      <p className="mt-2 text-[13px] font-medium leading-relaxed text-white/80">{cleanFloatingPoints(text) || '—'}</p>
+      <EditableText
+        as="p"
+        editing={editing}
+        value={text}
+        display={cleanFloatingPoints(text) || '—'}
+        onCommit={onCommit}
+        ariaLabel={label}
+        placeholder={`What would you put under ${label.toLowerCase()}?`}
+        multiline
+        rows={3}
+        className="mt-2 text-[13px] font-medium leading-relaxed text-white/80"
+      />
     </div>
   );
 }

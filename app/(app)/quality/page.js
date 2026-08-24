@@ -155,7 +155,7 @@ export default function QualityPage() {
                   <span className="shrink-0 text-[10px] text-white/25">{slide.chart?.resultData?.length || 0} rows</span>
                   <ChevronRight size={14} className="shrink-0 text-white/25 transition-transform group-open:rotate-90" />
                 </summary>
-                <pre className="mt-3 overflow-x-auto rounded-lg bg-black/50 p-3 font-mono text-[11px] leading-relaxed text-accent-200/70">
+                <pre className="mt-3 overflow-x-auto rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
                   {slide.chart?.sql || 'No query recorded.'}
                 </pre>
                 {slide.chart?.sqlError && (

@@ -7,6 +7,38 @@
  * a dataset is loaded, and managing connections has nothing to do with whatever
  * spreadsheet happens to be open.
  */
+
+// CONNECTIONS DISABLED (temporary)
+// The screen renders a notice instead of reaching the vault.
+// To restore: delete the stub below and uncomment the original code.
+
+import Link from 'next/link';
+
+export const dynamic = 'force-static';
+
+export default function ConnectionsPage() {
+  return (
+    <main className="relative min-h-screen bg-canvas">
+      <div className="ambient-wash" />
+      <div className="relative z-10 mx-auto w-full max-w-4xl px-6 py-20">
+        <div className="card flex max-w-lg flex-col gap-3 p-8">
+          <span className="label">Temporarily off</span>
+          <h1 className="text-lg font-black">Database connections are disabled</h1>
+          <p className="text-sm leading-relaxed text-white/50">
+            This deployment is running without the connection vault for now. Uploading a spreadsheet and
+            analysing it works exactly as before, and needs no account.
+          </p>
+          <Link href="/" className="text-sm font-black text-accent-400 hover:underline">
+            Back to Insight Analytics
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+/* ---- original implementation, commented out ----
+
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ArrowLeft, Zap } from 'lucide-react';
@@ -103,3 +135,5 @@ function Shell({ children }) {
     </main>
   );
 }
+
+---- end original ---- */

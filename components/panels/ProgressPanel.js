@@ -27,7 +27,7 @@ export default function ProgressPanel({ title }) {
       <p className="mt-3 text-sm font-semibold text-white/70">{job.stage || 'Working…'}</p>
 
       {job.logs.length > 0 && (
-        <div className="mt-4 max-h-32 overflow-y-auto rounded-lg border border-white/6 bg-black/40 p-3 font-mono text-[11px] leading-relaxed text-white/35">
+        <div className="mt-4 max-h-32 overflow-y-auto rounded-lg border border-white/6 code-surface p-3 font-mono text-[11px] leading-relaxed">
           {job.logs.map((line, i) => (
             <div key={i}>
               <span className="text-accent-500/60">›</span> {line}

@@ -9,6 +9,32 @@
  * response, never logged, and never attached to an error — driver errors are
  * scrubbed before they leave.
  */
+
+// CONNECTIONS DISABLED (temporary)
+// The connector runtime is off; no driver is loaded and no credential is opened.
+// To restore: delete the stub below and uncomment the original code.
+
+import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
+
+function disabled() {
+  return NextResponse.json(
+    { error: 'Database connections are temporarily disabled on this deployment.' },
+    { status: 503 }
+  );
+}
+
+export async function POST() {
+  return disabled();
+}
+
+export async function GET() {
+  return disabled();
+}
+
+/* ---- original implementation, commented out ----
+
 import { NextResponse } from 'next/server';
 import { openConnection, Forbidden, NotFound } from '../../../lib/vault/connections';
 import { isSupabaseConfigured, currentUser } from '../../../lib/vault/supabase.server';
@@ -141,3 +167,5 @@ export async function POST(request) {
 export async function GET() {
   return NextResponse.json({ maxRows: MAX_ROWS, sources: IMPLEMENTED });
 }
+
+---- end original ---- */

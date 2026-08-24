@@ -54,11 +54,35 @@
   --wash-a: rgba(20, 184, 166, 0.10);
   --wash-b: rgba(56, 89, 248, 0.07);
   --veil: rgba(128, 128, 128, 0.05);
+  /* Inset surface for code/query blocks, and its text. */
+  --code-bg: rgba(255, 255, 255, 0.04);
+  --code-fg: #cbd5e1;
   color-scheme: dark;
 }
 
-/* Light: white page, navy ink. */
+/* Light: white page, navy ink — and a navy accent.
+ *
+ * The brand accent is teal, which reads as turquoise on a white page and fights
+ * the navy ink beside it. Light mode therefore redefines the whole accent scale
+ * to one navy ramp. Tailwind v4 compiles `text-accent-400` to
+ * `var(--color-accent-400)`, so redefining the tokens here re-tints every accent
+ * utility in the app without touching a single component.
+ *
+ * The ramp does not get lighter as the numbers get lower, the way the teal one
+ * does: 100 through 500 are all used as *text* somewhere, and pale navy on white
+ * is unreadable. Only --color-accent-50 stays pale, since it is only ever a
+ * background.
+ */
 :root[data-theme='light'] {
+  --color-accent-50: #eef3fa;
+  --color-accent-100: #1b4f8a;
+  --color-accent-200: #1a4a80;
+  --color-accent-300: #164272;
+  --color-accent-400: #123a63;
+  --color-accent-500: #0f3057;
+  --color-accent-600: #0b2545;
+  --color-accent-700: #081b33;
+
   --color-white: #0b2545;
   --canvas: #ffffff;
   --canvas-raised: #f6f8fb;
@@ -74,9 +98,32 @@
   --scrollbar: rgba(11, 37, 69, 0.22);
   --scrollbar-hover: rgba(11, 37, 69, 0.38);
   --on-accent: #ffffff;
-  --wash-a: rgba(20, 184, 166, 0.10);
+  --wash-a: rgba(15, 48, 87, 0.10);
   --wash-b: rgba(11, 37, 69, 0.05);
   --veil: rgba(11, 37, 69, 0.06);
+
+  /* Status colours are Tailwind palette tokens, and their default 200–400
+     shades are near-invisible on white — the amber "Review joins" warning was
+     the reported case. Darken the shades used as TEXT so warnings, risks and
+     positives read clearly; the 500 base stays bright enough to work as the
+     low-alpha tint painted behind them. Same token-swap trick as the accent
+     ramp above: no component changes, every usage re-tints at once. */
+  --color-amber-200: #a1610a;
+  --color-amber-300: #b45309;
+  --color-amber-400: #b45309;
+  --color-amber-500: #c2740a;
+  --color-emerald-200: #047857;
+  --color-emerald-300: #059669;
+  --color-emerald-400: #047857;
+  --color-emerald-500: #059669;
+  --color-rose-200: #be123c;
+  --color-rose-300: #be123c;
+  --color-rose-400: #e11d48;
+  --color-rose-500: #e11d48;
+
+  /* Query/code blocks: a pale slate inset with navy text, not a dark box. */
+  --code-bg: #f1f5f9;
+  --code-fg: #0f3057;
   color-scheme: light;
 }
 
@@ -154,6 +201,21 @@ body {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 1rem;
+}
+
+/* An opaque raised panel for modals. `card`'s background is a near-transparent
+   tint, which over a dimmed backdrop looked muddy and washed-out in light mode;
+   a dialog needs a solid surface of its own. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+}
+
+/* A code/query block that follows the theme instead of hardcoding a dark box. */
+.code-surface {
+  background: var(--code-bg);
+  color: var(--code-fg);
 }
 
 .label {

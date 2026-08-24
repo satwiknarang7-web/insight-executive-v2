@@ -204,3 +204,48 @@ test('single-period trend reads cleanly (no "from X to X")', () => {
   assert.ok(!/from 2026-04 to 2026-04/.test(f.headline), 'should not repeat identical span');
   assert.ok(/stayed around/.test(f.headline));
 });
+
+test('the synthesis opens with a line that is not just the first bullet again', () => {
+  const charts = [
+    {
+      id: 's1', title: 'Revenue by Category', chart_type: 'bar', xAxisKey: 'cat', yAxisKey: 'Total',
+      resultData: [
+        { cat: 'Electronics', Total: 9000 },
+        { cat: 'Toys', Total: 600 },
+        { cat: 'Books', Total: 400 },
+      ],
+    },
+  ];
+  const { synthesis } = analyzeStoryboard(charts, new Array(1200).fill({}));
+
+  assert.ok(synthesis.headline.length > 0);
+  assert.notEqual(synthesis.headline, synthesis.macroInsights[0]);
+  // A concentrated leader is named, with the scale of the data it came from.
+  assert.match(synthesis.headline, /Electronics/);
+  assert.match(synthesis.headline, /1,200 rows/);
+});
+
+test('a summary bullet carries a consequence, not just the reading', () => {
+  const charts = [
+    {
+      id: 's1', title: 'Revenue by Category', chart_type: 'bar', xAxisKey: 'cat', yAxisKey: 'Total',
+      resultData: [
+        { cat: 'Electronics', Total: 9000 },
+        { cat: 'Toys', Total: 600 },
+        { cat: 'Books', Total: 400 },
+      ],
+    },
+  ];
+  const { perChart, synthesis } = analyzeStoryboard(charts, []);
+  const bullet = synthesis.macroInsights[0];
+
+  assert.ok(bullet.startsWith(perChart[0].headline), 'the finding still leads the bullet');
+  assert.ok(bullet.length > perChart[0].headline.length, 'and something follows from it');
+  assert.ok(bullet.length <= 240);
+});
+
+test('no findings still produces an honest opening line', () => {
+  const { synthesis } = analyzeStoryboard([], []);
+  assert.match(synthesis.headline, /Nothing/);
+  assert.equal(synthesis.macroInsights.length, 1);
+});

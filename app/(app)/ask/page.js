@@ -213,7 +213,7 @@ function Answer({ answer }) {
               <span className="label">Query</span>
               <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
             </summary>
-            <pre className="mt-2 overflow-x-auto rounded-lg bg-black/50 p-3 font-mono text-[11px] leading-relaxed text-accent-200/70">
+            <pre className="mt-2 overflow-x-auto rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
               {chart.sql}
             </pre>
           </details>
@@ -257,7 +257,7 @@ function SqlConsole() {
         onChange={(e) => setQuery(e.target.value)}
         rows={4}
         spellCheck={false}
-        className="mt-3 w-full resize-y rounded-lg border border-white/10 bg-black/40 p-3 font-mono text-[11px] leading-relaxed text-accent-200/80 outline-none focus:border-accent-500/50"
+        className="mt-3 w-full resize-y rounded-lg border border-white/10 code-surface p-3 font-mono text-[11px] leading-relaxed outline-none focus:border-accent-500/50"
       />
       <button
         onClick={run}

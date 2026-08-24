@@ -172,6 +172,11 @@ export default function PrintReport() {
             <h2 className="text-6xl font-black uppercase tracking-tighter leading-tight">
               {data.slideZero.title}
             </h2>
+            {data.slideZero.headline && (
+              <p className="text-2xl leading-relaxed text-white/70 max-w-3xl mx-auto">
+                {data.slideZero.headline}
+              </p>
+            )}
           </div>
 
           <div className="space-y-8">

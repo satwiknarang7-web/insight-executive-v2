@@ -5,6 +5,28 @@
  * repository turns it into a revocation that keeps the metadata row so the
  * audit trail still has something to point at.
  */
+
+// CONNECTIONS DISABLED (temporary)
+// Revocation is off along with the rest of the connection feature.
+// To restore: delete the stub below and uncomment the original code.
+
+import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
+
+function disabled() {
+  return NextResponse.json(
+    { error: 'Database connections are temporarily disabled on this deployment.' },
+    { status: 503 }
+  );
+}
+
+export async function DELETE() {
+  return disabled();
+}
+
+/* ---- original implementation, commented out ----
+
 import { NextResponse } from 'next/server';
 import { revokeConnection, Forbidden, NotFound } from '../../../../lib/vault/connections';
 import { isSupabaseConfigured, currentUser } from '../../../../lib/vault/supabase.server';
@@ -32,3 +54,5 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: 'That connection could not be revoked.' }, { status: 500 });
   }
 }
+
+---- end original ---- */

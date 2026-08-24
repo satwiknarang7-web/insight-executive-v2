@@ -10,6 +10,32 @@
  * failed for user postgres" is useful to the owner and equally useful to
  * someone probing, so specifics stay in the server log.
  */
+
+// CONNECTIONS DISABLED (temporary)
+// Connection CRUD is off; nothing is listed and nothing can be saved.
+// To restore: delete the stub below and uncomment the original code.
+
+import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
+
+function disabled() {
+  return NextResponse.json(
+    { error: 'Database connections are temporarily disabled on this deployment.' },
+    { status: 503 }
+  );
+}
+
+export async function GET() {
+  return disabled();
+}
+
+export async function POST() {
+  return disabled();
+}
+
+/* ---- original implementation, commented out ----
+
 import { NextResponse } from 'next/server';
 import {
   listConnections,
@@ -92,3 +118,5 @@ export async function POST(request) {
     return fail(error);
   }
 }
+
+---- end original ---- */

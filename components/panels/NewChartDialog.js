@@ -119,7 +119,7 @@ export default function NewChartDialog({ profile, onCreate, onClose }) {
       {spec && (
         <div className="mt-5">
           <div className="label mb-2">Query</div>
-          <pre className="overflow-x-auto rounded-lg bg-black/50 p-3 font-mono text-[11px] leading-relaxed text-accent-200/70">
+          <pre className="code-surface overflow-x-auto rounded-lg border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
             {spec.sql}
           </pre>
         </div>
@@ -161,7 +161,7 @@ function Shell({ children, onClose }) {
       role="presentation"
     >
       <div
-        className="card slide-in my-auto w-full max-w-2xl bg-surface p-6"
+        className="panel slide-in my-auto w-full max-w-2xl p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

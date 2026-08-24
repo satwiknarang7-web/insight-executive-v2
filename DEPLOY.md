@@ -29,6 +29,8 @@ In the Repl, open the **Secrets** panel (lock icon) and add:
 | `GROQ_API_KEY` | optional | Groq — first choice for narrative wording (fastest) |
 | `ANTHROPIC_API_KEY` | optional | Claude — second choice |
 | `GEMINI_API_KEY` | optional | Gemini — third choice |
+| `ELEVENLABS_API_KEY` | optional | Narrate the presentation with an ElevenLabs voice instead of the browser's |
+| `ELEVENLABS_VOICE_ID` | optional | Override the default narration voice (id from the ElevenLabs voice library) |
 
 **All three are optional.** Analysis, charts and every number are computed in the
 browser and are correct with no keys at all; a key only buys nicer wording on the

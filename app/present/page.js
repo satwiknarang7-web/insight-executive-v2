@@ -24,7 +24,7 @@ import { cleanFloatingPoints } from '../../lib/dataCleaner';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
-import useSpeech from '../../lib/useSpeech';
+import useNarration from '../../lib/useNarration';
 import { slideScript, summaryScript, pickVoice } from '../../lib/speech';
 
 const SPEEDS = [
@@ -47,7 +47,8 @@ export default function PresentPage() {
   const rootRef = useRef(null);
 
   const { avatar, avatarId, chooseAvatar } = useAvatar();
-  const { speak, stop, speaking, voices, supported } = useSpeech();
+  // Prefers the configured ElevenLabs voice; falls back to the browser voice.
+  const { speak, stop, speaking, voices, supported } = useNarration();
 
   const total = (analysis?.storyboard?.length || 0) + 1;
 
@@ -223,7 +224,7 @@ export default function PresentPage() {
           role="presentation"
         >
           <div
-            className="card w-full max-w-2xl bg-surface p-6"
+            className="panel w-full max-w-2xl p-6"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -322,6 +323,12 @@ function SummarySlide({ slideZero, kpis }) {
         <Sparkles size={18} className="text-accent-400" />
         <h1 className="text-3xl font-black tracking-tight md:text-5xl">{slideZero.title}</h1>
       </div>
+
+      {slideZero.headline && (
+        <p className="mb-6 text-xl font-medium leading-relaxed text-white/85 md:text-2xl">
+          {cleanFloatingPoints(slideZero.headline)}
+        </p>
+      )}
 
       {kpis?.length > 0 && (
         <div className="mb-7 grid grid-cols-2 gap-3 md:grid-cols-4">

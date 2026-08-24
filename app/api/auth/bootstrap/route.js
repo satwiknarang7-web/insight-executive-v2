@@ -5,6 +5,28 @@
  * has no INSERT policy, deliberately — so it happens here, with the service
  * role, and only for a user who has none.
  */
+
+// CONNECTIONS DISABLED (temporary)
+// Accounts exist only to hold connection credentials, so this is off too.
+// To restore: delete the stub below and uncomment the original code.
+
+import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
+
+function disabled() {
+  return NextResponse.json(
+    { error: 'Database connections are temporarily disabled on this deployment.' },
+    { status: 503 }
+  );
+}
+
+export async function POST() {
+  return disabled();
+}
+
+/* ---- original implementation, commented out ----
+
 import { NextResponse } from 'next/server';
 import { ensureOrganization, isSupabaseConfigured } from '../../../../lib/vault/supabase.server';
 
@@ -23,3 +45,5 @@ export async function POST() {
     return NextResponse.json({ error: 'Could not set up your organisation.' }, { status: 500 });
   }
 }
+
+---- end original ---- */

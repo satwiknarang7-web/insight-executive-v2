@@ -167,7 +167,7 @@ export default function InsightPage() {
                 <span className="label">Query</span>
                 <ChevronRight size={14} className="ml-auto text-white/25 transition-transform group-open:rotate-90" />
               </summary>
-              <pre className="mt-3 overflow-x-auto rounded-lg bg-black/50 p-3 font-mono text-[11px] leading-relaxed text-accent-200/70">
+              <pre className="mt-3 overflow-x-auto rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
                 {chart.sql}
               </pre>
             </details>
