@@ -53,6 +53,10 @@
      these: on a white page it is invisible ink. */
   --chart-label: #ffffff;
   --chart-label-halo: 0 2px 3px rgba(0, 0, 0, 0.8);
+  /* A radar's web is structure, not background: the rings and spokes are the
+     scale the shape is read against. It carries its own alpha so it is never
+     dimmed to the near-invisibility a background gridline can afford. */
+  --chart-web: rgba(255, 255, 255, 0.14);
   --scrollbar: rgba(255, 255, 255, 0.12);
   --scrollbar-hover: rgba(255, 255, 255, 0.22);
   --on-accent: #000000;
@@ -102,6 +106,9 @@
   --chart-stroke: #ffffff;
   --chart-label: #0b2545;
   --chart-label-halo: 0 1px 3px rgba(255, 255, 255, 0.95);
+  /* Navy needs far more presence on white than white needs on near-black: the
+     same faint alpha that reads as a grid in dark mode disappears entirely. */
+  --chart-web: rgba(11, 37, 69, 0.55);
   --scrollbar: rgba(11, 37, 69, 0.22);
   --scrollbar-hover: rgba(11, 37, 69, 0.38);
   --on-accent: #ffffff;

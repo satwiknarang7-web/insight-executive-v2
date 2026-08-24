@@ -41,7 +41,7 @@ export default function RadarUIChart({ data, nameKey }) {
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-        <PolarGrid stroke="var(--chart-grid)" opacity={0.1} />
+        <PolarGrid stroke="var(--chart-web)" />
         <PolarAngleAxis dataKey={nameKey} tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} />
         <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} axisLine={false} />
         <Tooltip content={<CustomTooltip />} />

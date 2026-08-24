@@ -61,7 +61,7 @@ export default function AreaChart({ data, xKey, yKey }) {
             </feMerge>
           </filter>
         </defs>
-        <CartesianGrid strokeDasharray="4 6" stroke="var(--chart-grid)" strokeOpacity={0.06} vertical={false} />
+        <CartesianGrid strokeDasharray="4 6" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         <XAxis {...x.props} tickMargin={10} />
         <YAxis {...y.props} domain={['auto', 'auto']} tickMargin={8} />
         <Tooltip content={<CustomTooltip />} cursor={{ stroke: CHART_COLORS[0], strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.4 }} />

@@ -97,7 +97,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
             <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" opacity={0.05} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         <XAxis
           dataKey={xKey}
           axisLine={false}
