@@ -9,12 +9,13 @@ import {
   Tooltip, 
   Legend, 
   ResponsiveContainer,
-  Cell
+  Cell,
+  Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin, clip } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, clip, prettyLabel } from './axis';
 
 const CustomXAxisTick = ({ x, y, payload, rotated }) => {
   const value = payload.value;
@@ -71,7 +72,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
+export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, yLabel, compact = false }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   const gradientId = React.useId();
@@ -83,9 +84,18 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
 
   const processedData = data;
 
-  const xGeo = useMemo(() => xAxisGeometry(processedData, xKey), [processedData, xKey]);
-  const yLeft = useMemo(() => yAxisGeometry(processedData, yKey), [processedData, yKey]);
-  const yRight = useMemo(() => yAxisGeometry(processedData, actualLineKey), [processedData, actualLineKey]);
+  const xGeo = useMemo(
+    () => xAxisGeometry(processedData, xKey, { compact, title: xLabel ?? prettyLabel(xKey) }),
+    [processedData, xKey, xLabel, compact]
+  );
+  const yLeft = useMemo(
+    () => yAxisGeometry(processedData, yKey, { compact, title: yLabel ?? prettyLabel(yKey) }),
+    [processedData, yKey, yLabel, compact]
+  );
+  const yRight = useMemo(
+    () => yAxisGeometry(processedData, actualLineKey, { compact, title: prettyLabel(actualLineKey) }),
+    [processedData, actualLineKey, compact]
+  );
 
 
   return (
@@ -105,7 +115,9 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey }) {
           tick={<CustomXAxisTick rotated={xGeo.rotated} />}
           interval={xGeo.props.interval}
           height={xGeo.bottom}
-        />
+        >
+          {xGeo.title && <Label {...xGeo.title} />}
+        </XAxis>
         <YAxis 
           yAxisId="left"
           axisLine={false} 

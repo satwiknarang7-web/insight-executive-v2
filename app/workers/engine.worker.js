@@ -809,14 +809,15 @@ function searchIndex({ key, rows, columns }) {
   return idx;
 }
 
-function page(
-  id,
-  { offset = 0, limit = 50, sortBy = null, sortDir = 'asc', filter = '', anomaliesOnly = false, table = null }
-) {
-  if (!state) {
-    reply(id, 'page', { rows: [], total: 0, offset, limit });
-    return;
-  }
+/**
+ * The rows a filter selects, before paging.
+ *
+ * Shared by `page` and `measureValues` so a measure shown beside a filtered
+ * table is computed over exactly the rows in that table — the whole point of
+ * showing it there. Two copies of this logic would silently disagree the first
+ * time either was tuned.
+ */
+function selectRows({ filter = '', anomaliesOnly = false, table = null } = {}) {
   const t = target(table);
   let rows = t.rows;
 
@@ -846,6 +847,20 @@ function page(
     }
   }
 
+  return { rows, table: t };
+}
+
+function page(
+  id,
+  { offset = 0, limit = 50, sortBy = null, sortDir = 'asc', filter = '', anomaliesOnly = false, table = null }
+) {
+  if (!state) {
+    reply(id, 'page', { rows: [], total: 0, offset, limit });
+    return;
+  }
+  const { rows: selected, table: t } = selectRows({ filter, anomaliesOnly, table });
+  let rows = selected;
+
   if (sortBy) {
     const dir = sortDir === 'desc' ? -1 : 1;
     rows = [...rows].sort((a, b) => {
@@ -865,6 +880,42 @@ function page(
     limit,
     table: t.key,
   });
+}
+
+/**
+ * Evaluate measures over the rows a filter selects.
+ *
+ * The measure SQL is compiled on the main thread (where the validator lives) and
+ * arrives here as a finished string; this only decides which rows it runs
+ * against. Mounting the filtered subset under the view's own name is what makes
+ * `SUM(Revenue)` mean "of what I can see" rather than "of everything".
+ *
+ * One failing measure returns its error rather than failing the batch: a typo in
+ * one formula should not blank out the others.
+ */
+function measureValues(id, { items = [], filter = '', anomaliesOnly = false, table = null } = {}) {
+  if (!state) {
+    reply(id, 'measureValues', { values: [], total: 0 });
+    return;
+  }
+
+  const { rows } = selectRows({ filter, anomaliesOnly, table });
+  const mounted = mountTables({ tables: sourceRows(), view: rows });
+  const values = [];
+  try {
+    for (const item of items) {
+      if (!item?.sql) continue;
+      try {
+        values.push({ id: item.id, rows: runSql(item.sql) });
+      } catch (e) {
+        values.push({ id: item.id, error: e.message });
+      }
+    }
+  } finally {
+    unmountTables(mounted);
+  }
+
+  reply(id, 'measureValues', { values, total: rows.length });
 }
 
 /** Serialise a cleaned table (the joined view by default) to CSV for download. */
@@ -915,6 +966,8 @@ self.onmessage = async (e) => {
         return sql(id, payload);
       case 'page':
         return page(id, payload);
+      case 'measureValues':
+        return measureValues(id, payload);
       case 'exportCsv':
         return exportCsv(id, payload);
       case 'saveAnalysis':

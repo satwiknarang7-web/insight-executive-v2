@@ -100,10 +100,17 @@ export default function PresentPage() {
     });
   }, [page, total]);
 
-  // Speak on arrival at a slide, and re-speak when the avatar changes so
-  // switching presenter mid-deck takes effect immediately.
+  // Narration is driven by the play button, not by arriving at a slide.
+  //
+  // Speaking the moment the deck opened meant a presenter connecting to a
+  // projector had the summary read to the room before they were ready, with no
+  // way to rewind it. It also fought the browser: audio started without a user
+  // gesture is blocked by autoplay policy, so the ElevenLabs voice would fail
+  // its first utterance and quietly fall back. Pressing play is that gesture.
+  //
+  // While playing, changing slide or presenter still re-speaks immediately.
   useEffect(() => {
-    if (!narrating || !supported || !script) {
+    if (!playing || !narrating || !supported || !script) {
       stop();
       return undefined;
     }
@@ -116,7 +123,7 @@ export default function PresentPage() {
       onDone: advance,
     });
     return () => stop();
-  }, [script, narrating, supported, avatar, voices, speak, stop, advance]);
+  }, [playing, script, narrating, supported, avatar, voices, speak, stop, advance]);
 
   // The timer only drives autoplay when the presenter is silent; otherwise the
   // voice paces the deck and a timer would fight it.
@@ -273,6 +280,15 @@ export default function PresentPage() {
         <button
           onClick={() => setPlaying((p) => !p)}
           aria-label={playing ? 'Pause' : 'Play'}
+          title={
+            narrating && supported
+              ? playing
+                ? 'Pause the presenter'
+                : 'Play — the presenter starts speaking'
+              : playing
+              ? 'Pause'
+              : 'Play'
+          }
           className={`rounded-xl border p-3 transition-colors ${
             playing ? 'border-accent-500/40 bg-accent-500/15 text-accent-300' : 'border-white/10 text-white/55 hover:bg-white/6 hover:text-white'
           }`}
@@ -404,6 +420,8 @@ function ChartSlide({ slide }) {
             colors={chart.colors}
             labels={chart.labels}
             colorBy={chart.colorBy}
+            xLabel={chart.xAxisLabel}
+            yLabel={chart.yAxisLabel}
             eager
           />
         </ChartBoundary>

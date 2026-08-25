@@ -31,6 +31,11 @@ In the Repl, open the **Secrets** panel (lock icon) and add:
 | `GEMINI_API_KEY` | optional | Gemini — third choice |
 | `ELEVENLABS_API_KEY` | optional | Narrate the presentation with an ElevenLabs voice instead of the browser's |
 | `ELEVENLABS_VOICE_ID` | optional | Override the default narration voice (id from the ElevenLabs voice library) |
+| `SMTP_USER` | for accounts | Gmail address that sends the two-factor codes |
+| `SMTP_PASSWORD` | for accounts | Gmail **app password** (16 characters, not the account password) |
+| `SMTP_HOST` / `SMTP_PORT` | optional | Defaults to `smtp.gmail.com` / `465` |
+| `SMTP_FROM` | optional | Overrides the From header |
+| `AUTH_OTP_PEPPER` | optional | Peppers one-time-code hashes; falls back to `VAULT_MASTER_KEY` |
 
 **All three are optional.** Analysis, charts and every number are computed in the
 browser and are correct with no keys at all; a key only buys nicer wording on the

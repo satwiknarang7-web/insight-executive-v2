@@ -1,7 +1,7 @@
 import React from 'react';
-import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label } from 'recharts';
 import { formatNumber as yAxisFormatter, formatAxisLabel } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel } from './axis';
 import { usePalette } from './palette';
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -28,7 +28,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function AreaChart({ data, xKey, yKey }) {
+export default function AreaChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   const id = React.useId();
@@ -37,8 +37,8 @@ export default function AreaChart({ data, xKey, yKey }) {
   const glowId = `area-glow-${id}`;
   if (!data || data.length === 0) return null;
 
-  const x = xAxisGeometry(data, xKey);
-  const y = yAxisGeometry(data, yKey);
+  const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
+  const y = yAxisGeometry(data, yKey, { compact, title: yLabel ?? prettyLabel(yKey) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -62,8 +62,8 @@ export default function AreaChart({ data, xKey, yKey }) {
           </filter>
         </defs>
         <CartesianGrid strokeDasharray="4 6" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis {...x.props} tickMargin={10} />
-        <YAxis {...y.props} domain={['auto', 'auto']} tickMargin={8} />
+        <XAxis {...x.props} tickMargin={10}>{x.title && <Label {...x.title} />}</XAxis>
+        <YAxis {...y.props} domain={['auto', 'auto']} tickMargin={8}>{y.title && <Label {...y.title} />}</YAxis>
         <Tooltip content={<CustomTooltip />} cursor={{ stroke: CHART_COLORS[0], strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.4 }} />
         <Area
           type="monotone"

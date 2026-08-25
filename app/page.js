@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Zap,
-  // CONNECTIONS DISABLED (temporary): Database,
+  Database,
   UploadCloud,
   FileSpreadsheet,
   ShieldCheck,
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset } from '../lib/store/DatasetProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
-// CONNECTIONS DISABLED (temporary): import { vaultAvailable } from '../lib/vault/supabase.client';
+import { vaultAvailable } from '../lib/vault/supabase.client';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
 
@@ -117,7 +117,6 @@ export default function LandingPage() {
             <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            {/* CONNECTIONS DISABLED (temporary)
             {vaultAvailable() && (
               <Link
                 href="/connections"
@@ -126,7 +125,6 @@ export default function LandingPage() {
                 <Database size={13} /> Connections
               </Link>
             )}
-            */}
             <ThemeToggle />
           </div>
         </header>

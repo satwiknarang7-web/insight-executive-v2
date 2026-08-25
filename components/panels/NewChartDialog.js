@@ -22,7 +22,11 @@ const AGGREGATES = [
   { key: 'MIN', label: 'Minimum' },
 ];
 
-const TYPES = ['bar', 'line', 'area', 'donut', 'treemap', 'radial', 'scatter'];
+const TYPES = [
+  'bar', 'hbar', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap',
+  'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar',
+  'card', 'multicard', 'kpi', 'table', 'matrix',
+];
 const LIMITS = [5, 10, 15, 20, 30];
 
 /** Compose the SQL. Bracketed identifiers so spaces and dots in joined columns work. */

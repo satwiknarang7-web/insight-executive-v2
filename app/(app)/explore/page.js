@@ -14,9 +14,10 @@ import {
   Calendar,
   Fingerprint,
 } from 'lucide-react';
-import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
+import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import { formatNumber } from '../../../lib/format';
+import { formatMeasureValue } from '../../../lib/measures';
 
 const PAGE_SIZE = 50;
 
@@ -24,7 +25,8 @@ const ROLE_ICON = { measure: Hash, dimension: Type, time: Calendar, identifier: 
 
 export default function ExplorePage() {
   const { dataset } = useDataset();
-  const { fetchPage } = useActions();
+  const { fetchPage, evaluateMeasuresOverView } = useActions();
+  const measures = useMeasures();
 
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -35,6 +37,8 @@ export default function ExplorePage() {
   const [filter, setFilter] = useState('');
   const [anomaliesOnly, setAnomaliesOnly] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [measureValues, setMeasureValues] = useState({});
+  const [measuresBusy, setMeasuresBusy] = useState(false);
 
   // Debounce the search box: every keystroke otherwise scans every row.
   const timerRef = useRef(0);
@@ -62,6 +66,27 @@ export default function ExplorePage() {
       cancelled = true;
     };
   }, [fetchPage, offset, sortBy, sortDir, filter, anomaliesOnly]);
+
+  // Measures follow the filter, not the page: paging through the same selection
+  // must not recompute them, and narrowing the selection must.
+  useEffect(() => {
+    if (!measures.length) {
+      setMeasureValues({});
+      return undefined;
+    }
+    let cancelled = false;
+    setMeasuresBusy(true);
+    evaluateMeasuresOverView({ filter, anomaliesOnly })
+      .then((results) => {
+        if (cancelled) return;
+        setMeasureValues(Object.fromEntries(results.map((r) => [r.id, r])));
+      })
+      .catch(() => !cancelled && setMeasureValues({}))
+      .finally(() => !cancelled && setMeasuresBusy(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [evaluateMeasuresOverView, measures, filter, anomaliesOnly]);
 
   const toggleSort = useCallback(
     (col) => {
@@ -114,6 +139,40 @@ export default function ExplorePage() {
         </div>
       }
     >
+      {/* Measures, over whatever the filter has selected */}
+      {measures.length > 0 && (
+        <section className="mb-6">
+          <div className="label mb-3">
+            Measures {filter || anomaliesOnly ? '· over the filtered rows' : '· over all rows'}
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {measures.map((m) => {
+              const result = measureValues[m.id];
+              return (
+                <div key={m.id} className="card p-3">
+                  <div className="truncate text-[11px] font-bold text-white/50" title={m.name}>
+                    {m.name}
+                  </div>
+                  <div className="mt-1 truncate text-lg font-black text-white/90">
+                    {result?.error ? (
+                      <span className="text-[12px] font-bold text-amber-400" title={result.error}>
+                        Not available
+                      </span>
+                    ) : result && result.value !== null && result.value !== undefined ? (
+                      formatMeasureValue(result.value, m.format)
+                    ) : measuresBusy ? (
+                      <span className="text-[12px] text-white/30">…</span>
+                    ) : (
+                      <span className="text-[12px] text-white/30">—</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Column profile */}
       <section className="mb-6">
         <div className="label mb-3">Columns</div>

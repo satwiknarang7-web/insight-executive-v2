@@ -38,6 +38,9 @@ export default function LazyChart({
   labels = null,
   colorBy = 'series',
   eager = false,
+  xLabel = null,
+  yLabel = null,
+  compact = false,
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
@@ -79,7 +82,16 @@ export default function LazyChart({
     <div ref={ref} className="h-full w-full">
       {visible ? (
         <ChartPalette colors={colors} colorBy={colorBy}>
-          <DynamicChart data={shown} type={type} xKey={xKey} yKey={yKey} secondaryYKey={secondaryYKey} />
+          <DynamicChart
+            data={shown}
+            type={type}
+            xKey={xKey}
+            yKey={yKey}
+            secondaryYKey={secondaryYKey}
+            xLabel={xLabel}
+            yLabel={yLabel}
+            compact={compact}
+          />
         </ChartPalette>
       ) : (
         <ChartSkeleton />

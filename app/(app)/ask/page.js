@@ -189,6 +189,8 @@ function Answer({ answer }) {
               xKey={chart.xAxisKey}
               yKey={chart.yAxisKey}
               secondaryYKey={chart.secondaryYAxisKey}
+              xLabel={chart.xAxisLabel}
+              yLabel={chart.yAxisLabel}
               eager
             />
           </ChartBoundary>

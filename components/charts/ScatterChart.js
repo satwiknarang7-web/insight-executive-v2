@@ -9,12 +9,13 @@ import {
   Tooltip, 
   ResponsiveContainer,
   Cell,
-  Legend
+  Legend,
+  Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, axisTitleProps } from './axis';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -45,7 +46,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function ScatterChart({ data, xKey, yKey }) {
+export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
@@ -77,10 +78,11 @@ export default function ScatterChart({ data, xKey, yKey }) {
 
   // A numeric x axis formats as numbers and needs no rotation; a categorical
   // one gets the same measured treatment as every other chart.
+  const xTitle = axisTitleProps(xLabel ?? prettyLabel(xKeyToUse), { axis: 'x' });
   const xGeo = xIsNumber
-    ? { props: {}, bottom: 44 }
-    : xAxisGeometry(data, xKeyToUse);
-  const yGeo = yAxisGeometry(data, yKeyToUse);
+    ? { props: {}, bottom: xTitle ? 66 : 44, title: xTitle }
+    : { ...xAxisGeometry(data, xKeyToUse, { compact, title: xLabel ?? prettyLabel(xKeyToUse) }) };
+  const yGeo = yAxisGeometry(data, yKeyToUse, { compact, title: yLabel ?? prettyLabel(yKeyToUse) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -97,7 +99,9 @@ export default function ScatterChart({ data, xKey, yKey }) {
           tickFormatter={xIsNumber ? yAxisFormatter : xGeo.props.tickFormatter}
           domain={xIsNumber ? ['auto', 'auto'] : undefined}
           height={xGeo.bottom}
-        />
+        >
+          {xGeo.title && <Label {...xGeo.title} />}
+        </XAxis>
         <YAxis
           {...yGeo.props}
           type={yIsNumber ? 'number' : 'category'}

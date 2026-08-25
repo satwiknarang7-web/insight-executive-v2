@@ -7,12 +7,13 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend
+  Legend,
+  Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel } from './axis';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -42,7 +43,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function LineChart({ data, xKey, yKey }) {
+export default function LineChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
@@ -57,20 +58,22 @@ export default function LineChart({ data, xKey, yKey }) {
   // Adaptive dot size
   const dotSize = data.length <= 5 ? 5 : data.length <= 15 ? 4 : 3;
 
-  const x = xAxisGeometry(data, xKey);
-  const y = yAxisGeometry(data, yKey);
+  const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
+  const y = yAxisGeometry(data, yKey, { compact, title: yLabel ?? prettyLabel(yKey) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsLineChart data={data} margin={chartMargin({ bottom: x.bottom })}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis {...x.props} />
+        <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
         <YAxis
           {...y.props}
           domain={yDomain}
           allowDecimals={!allIntegers}
           tickCount={yTickCount}
-        />
+        >
+          {y.title && <Label {...y.title} />}
+        </YAxis>
         <Tooltip content={<CustomTooltip />} />
         
         <Line 

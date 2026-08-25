@@ -133,6 +133,8 @@ export default function ReportPage() {
                   colors={slide.chart?.colors}
                   labels={slide.chart?.labels}
                   colorBy={slide.chart?.colorBy}
+                  xLabel={slide.chart?.xAxisLabel}
+                  yLabel={slide.chart?.yAxisLabel}
                   eager
                 />
               </ChartBoundary>

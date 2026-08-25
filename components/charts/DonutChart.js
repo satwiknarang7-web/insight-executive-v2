@@ -29,7 +29,8 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function DonutChart({ data, nameKey, valueKey }) {
+export default function DonutChart({ data, nameKey, valueKey, variant = 'donut' }) {
+  const solid = variant === 'pie';
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   return (
@@ -41,9 +42,9 @@ export default function DonutChart({ data, nameKey, valueKey }) {
           nameKey={nameKey} 
           cx="50%" 
           cy="50%" 
-          innerRadius="60%" 
-          outerRadius="80%" 
-          paddingAngle={5} 
+          innerRadius={solid ? 0 : '60%'}
+          outerRadius="80%"
+          paddingAngle={solid ? 1 : 5}
           stroke="none"
           labelLine={{ stroke: 'var(--chart-grid)', strokeOpacity: 0.25, strokeWidth: 1 }}
           label={({ cx, cy, midAngle, outerRadius, value, name }) => {
@@ -75,6 +76,7 @@ export default function DonutChart({ data, nameKey, valueKey }) {
           <Label
             position="center"
             content={({ viewBox }) => {
+              if (solid) return null;
               const { cx, cy } = viewBox || {};
               if (cx == null || cy == null) return null;
               const total = data.reduce((acc, curr) => acc + (Number(curr[valueKey]) || 0), 0);

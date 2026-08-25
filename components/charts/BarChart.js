@@ -8,12 +8,13 @@ import {
   Tooltip, 
   ResponsiveContainer, 
   Cell,
-  Legend
+  Legend,
+  Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette, useColorBy } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel } from './axis';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -43,7 +44,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function BarChart({ data, xKey, yKey }) {
+export default function BarChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   // One colour per bar, rather than one gradient across all of them.
@@ -54,8 +55,8 @@ export default function BarChart({ data, xKey, yKey }) {
 
   // Gutters sized to the labels actually being drawn, so long category names
   // rotate into space that exists instead of being cut off.
-  const x = xAxisGeometry(data, xKey);
-  const y = yAxisGeometry(data, yKey);
+  const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
+  const y = yAxisGeometry(data, yKey, { compact, title: yLabel ?? prettyLabel(yKey) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -67,8 +68,8 @@ export default function BarChart({ data, xKey, yKey }) {
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis {...x.props} />
-        <YAxis {...y.props} domain={[0, 'auto']} />
+        <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+        <YAxis {...y.props} domain={[0, 'auto']}>{y.title && <Label {...y.title} />}</YAxis>
         <Tooltip 
           content={<CustomTooltip />} 
           cursor={{ fill: 'var(--veil)', radius: [8, 8, 0, 0] }}

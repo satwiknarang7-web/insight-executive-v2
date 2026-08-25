@@ -558,6 +558,8 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
             colors={slide.chart?.colors}
             labels={slide.chart?.labels}
             colorBy={slide.chart?.colorBy}
+            xLabel={slide.chart?.xAxisLabel}
+            yLabel={slide.chart?.yAxisLabel}
             eager={index < 2}
           />
         </ChartBoundary>

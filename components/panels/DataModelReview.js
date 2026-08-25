@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset } from '../../lib/store/DatasetProvider';
 import { modelConcerns, POOR_MATCH, LOW_CONFIDENCE } from '../../lib/dataModel';
+import RelationshipGraph from './RelationshipGraph';
 
 export default function DataModelReview() {
   const { dataset } = useDataset();
@@ -121,6 +122,16 @@ export default function DataModelReview() {
 
   return (
     <div className="flex flex-col gap-6">
+      <RelationshipGraph
+        tables={model.tables || tables}
+        relationships={relationships}
+        joins={joins}
+        factTable={factTable}
+        disabled={disabled}
+        onToggleRelationship={toggle}
+        onSetFactTable={setFactTable}
+      />
+
       {/* What the engine concluded, and how sure it should make you */}
       {concerns.length > 0 ? (
         <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] p-4">

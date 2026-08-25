@@ -18,8 +18,20 @@ import { Check, Palette, RotateCcw, Save, Tags, Trash2, Type } from 'lucide-reac
 import { PALETTES } from '../charts/palette';
 import { CHART_COLORS } from '../../lib/constants';
 import { editableCategories } from '../../lib/chartLabels';
+import { prettyLabel } from '../charts/axis';
 
-const TYPES = ['auto', 'bar', 'line', 'area', 'donut', 'radial', 'scatter', 'treemap', 'radar', 'composed'];
+// Everything DynamicChart can render. 'column' is the vertical bar under the
+// name people expect from Power BI; the resolver maps it back to 'bar'.
+const TYPES = ['auto', 'bar', 'hbar', 'column', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap', 'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar', 'card', 'multicard', 'kpi', 'table', 'matrix'];
+
+/** Names that read better than the internal key. */
+const TYPE_LABEL = {
+  hbar: 'bar (horizontal)',
+  bar: 'column (vertical)',
+  column: 'column (vertical)',
+  multicard: 'multi-row card',
+  composed: 'combo (line + column)',
+};
 
 /** Which preset (if any) a saved colour list corresponds to. */
 function matchPreset(colors) {
@@ -38,6 +50,8 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
       colors: chart.colors || null,
       labels: chart.labels || null,
       colorBy: chart.colorBy || 'series',
+      xAxisLabel: chart.xAxisLabel ?? '',
+      yAxisLabel: chart.yAxisLabel ?? '',
     }),
     [
       slide.id,
@@ -47,6 +61,8 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
       chart.colors,
       chart.labels,
       chart.colorBy,
+      chart.xAxisLabel,
+      chart.yAxisLabel,
     ]
   );
 
@@ -70,6 +86,8 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
       colors: draft.colors,
       labels: draft.labels,
       colorBy: draft.colorBy,
+      xAxisLabel: draft.xAxisLabel,
+      yAxisLabel: draft.yAxisLabel,
     });
   }, [draft, onPreview, slide.id]);
 
@@ -79,6 +97,8 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
     draft.chartType !== saved.chartType ||
     (draft.colors || []).join() !== (saved.colors || []).join() ||
     draft.colorBy !== saved.colorBy ||
+    draft.xAxisLabel !== saved.xAxisLabel ||
+    draft.yAxisLabel !== saved.yAxisLabel ||
     JSON.stringify(draft.labels || {}) !== JSON.stringify(saved.labels || {});
 
   const set = useCallback((patch) => {
@@ -110,6 +130,10 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
         colors: draft.colors,
         labels: draft.labels,
         colorBy: draft.colorBy,
+        // Blank means "no override" — the chart falls back to naming the axis
+        // after its column, rather than persisting an empty title.
+        xAxisLabel: draft.xAxisLabel.trim() || null,
+        yAxisLabel: draft.yAxisLabel.trim() || null,
       },
     });
     setJustSaved(true);
@@ -156,6 +180,28 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
         />
       </label>
 
+      {/* Axis names */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-2">
+          <span className="label">X axis name</span>
+          <input
+            value={draft.xAxisLabel}
+            onChange={(e) => set({ xAxisLabel: e.target.value })}
+            placeholder={prettyLabel(chart.xAxisKey) || 'Category'}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-accent-500/50"
+          />
+        </label>
+        <label className="flex flex-col gap-2">
+          <span className="label">Y axis name</span>
+          <input
+            value={draft.yAxisLabel}
+            onChange={(e) => set({ yAxisLabel: e.target.value })}
+            placeholder={prettyLabel(chart.yAxisKey) || 'Value'}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-accent-500/50"
+          />
+        </label>
+      </div>
+
       {/* Chart type */}
       <label className="flex flex-col gap-2">
         <span className="label">Chart type</span>
@@ -164,9 +210,9 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
           onChange={(e) => set({ chartType: e.target.value })}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold capitalize text-white/85 outline-none focus:border-accent-500/50"
         >
-          {TYPES.filter((t) => t !== 'auto').map((t) => (
+          {TYPES.filter((t) => t !== 'auto' && t !== 'column').map((t) => (
             <option key={t} value={t} className="bg-surface">
-              {t}
+              {TYPE_LABEL[t] || t}
             </option>
           ))}
         </select>

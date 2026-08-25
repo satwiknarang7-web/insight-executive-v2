@@ -16,12 +16,12 @@ import {
   Menu,
   X,
   FileText,
-  // CONNECTIONS DISABLED (temporary): Database,
+  Database,
   GitBranch,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import ThemeToggle from './ThemeToggle';
-// CONNECTIONS DISABLED (temporary): import { vaultAvailable } from '../../lib/vault/supabase.client';
+import { vaultAvailable } from '../../lib/vault/supabase.client';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
@@ -130,7 +130,6 @@ export default function AppShell({ children }) {
 
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {/* Hidden entirely when there is no vault, rather than offered and broken. */}
-        {/* CONNECTIONS DISABLED (temporary)
         {vaultAvailable() && (
           <Link
             href="/connections"
@@ -140,7 +139,6 @@ export default function AppShell({ children }) {
             <Database size={14} /> Connections
           </Link>
         )}
-        */}
         <ThemeToggle />
         {analysis?.storyboard?.length > 0 && (
           <Link

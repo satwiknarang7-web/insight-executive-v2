@@ -20,12 +20,57 @@ const textWidth = (s, fontSize = 12) => String(s ?? '').length * fontSize * 0.58
 const HARD_MAX = 28;
 
 /**
+ * A human name for a column key: `total_revenue` -> `Total Revenue`.
+ *
+ * Duplicated from insightEngine's `prettyKey` rather than imported, so a chart
+ * component does not pull the whole analysis engine into the client bundle for
+ * one string transform.
+ */
+export function prettyLabel(key) {
+  return String(key ?? '')
+    .replace(/_/g, ' ')
+    .replace(/\./g, ' · ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Props for an axis title, or null when there is nothing worth saying.
+ *
+ * Callers pass `skip` when they want a deliberately bare axis (a sparkline, a
+ * thumbnail). Small charts are NOT skipped by default: a cramped chart is
+ * exactly where an unnamed axis is hardest to read.
+ */
+export function axisTitleProps(title, { axis = 'x', fontSize = 11, skip = false } = {}) {
+  const text = String(title ?? '').trim();
+  if (!text || skip) return null;
+
+  const common = {
+    value: text,
+    fill: 'var(--chart-axis, #94a3b8)',
+    fontSize,
+    fontWeight: 800,
+    letterSpacing: '0.08em',
+  };
+
+  return axis === 'y'
+    ? { ...common, angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }
+    : { ...common, position: 'insideBottom', offset: 0 };
+}
+
+/** Extra gutter an axis title needs, in px. */
+export const AXIS_TITLE_SPACE = 22;
+
+/**
  * X-axis geometry for a categorical or temporal axis.
  *
- * Returns props to spread onto `<XAxis>` plus the `bottom` margin the chart
- * should reserve, so the rotated labels have somewhere to go.
+ * Returns props to spread onto `<XAxis>`, the `bottom` margin the chart should
+ * reserve so rotated labels have somewhere to go, and the props for an optional
+ * axis title.
  */
-export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false } = {}) {
+export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false, title = null } = {}) {
   const labels = (data || []).map((row) => String(formatDateLabel(row?.[xKey]) ?? ''));
   const longest = labels.reduce((max, l) => Math.max(max, l.length), 0);
   const count = labels.length;
@@ -38,9 +83,14 @@ export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false } = {
   const shown = longest > HARD_MAX ? HARD_MAX : longest;
   // A rotated label projects cos(35°)≈0.82 of its width onto the vertical axis.
   const projected = crowded ? Math.ceil(textWidth(''.padEnd(shown, 'M'), fontSize) * 0.6) : fontSize + 6;
-  const height = Math.min(compact ? 92 : 130, Math.max(fontSize + 14, projected + 14));
+  const titleProps = axisTitleProps(title, { axis: 'x' });
+  // The title sits below the ticks, so the gutter has to grow to hold both.
+  const height =
+    Math.min(compact ? 92 : 130, Math.max(fontSize + 14, projected + 14)) +
+    (titleProps ? AXIS_TITLE_SPACE : 0);
 
   return {
+    title: titleProps,
     props: {
       dataKey: xKey,
       axisLine: false,
@@ -63,12 +113,21 @@ export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false } = {
  * Y-axis geometry sized to the widest tick the formatter will actually produce,
  * so "1234.5M" and "$12,345" are never clipped by a fixed gutter.
  */
-export function yAxisGeometry(data, yKey, { fontSize = 12, formatter = formatNumber } = {}) {
+export function yAxisGeometry(
+  data,
+  yKey,
+  { fontSize = 12, formatter = formatNumber, title = null, compact = false } = {}
+) {
   const values = (data || []).map((row) => row?.[yKey]).filter((v) => typeof v === 'number');
   const widest = values.reduce((max, v) => Math.max(max, String(formatter(v) ?? '').length), 3);
-  const width = Math.min(96, Math.max(40, Math.ceil(textWidth(''.padEnd(widest, '0'), fontSize)) + 14));
+  const titleProps = axisTitleProps(title, { axis: 'y' });
+  // A rotated title needs its own column beside the ticks.
+  const width =
+    Math.min(96, Math.max(40, Math.ceil(textWidth(''.padEnd(widest, '0'), fontSize)) + 14)) +
+    (titleProps ? AXIS_TITLE_SPACE : 0);
 
   return {
+    title: titleProps,
     props: {
       axisLine: false,
       tickLine: false,

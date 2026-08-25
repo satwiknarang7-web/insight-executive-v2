@@ -9,21 +9,6 @@
  * ever uploads files never pays for auth it does not use.
  */
 
-// CONNECTIONS DISABLED (temporary)
-// The Supabase session refresh is off, so the middleware is a pass-through
-// and the matcher is empty (it never runs).
-// To restore: delete the stub below and uncomment the original code.
-
-import { NextResponse } from 'next/server';
-
-export function middleware() {
-  return NextResponse.next();
-}
-
-export const config = { matcher: [] };
-
-/* ---- original implementation, commented out ----
-
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
@@ -58,5 +43,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|avatars|.*\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)',
   ],
 };
-
----- end original ---- */
