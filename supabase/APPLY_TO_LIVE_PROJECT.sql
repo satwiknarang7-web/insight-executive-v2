@@ -168,10 +168,15 @@ begin
   end if;
 
   if c.code_hash <> p_code_hash then
+    -- Table-qualified on purpose. `attempts` is also the name of one of this
+    -- function's RETURNS TABLE columns, and plpgsql resolves a bare reference
+    -- to that output parameter instead of the column — "column reference
+    -- "attempts" is ambiguous", raised on every wrong guess and only on a
+    -- wrong guess, since no other branch writes to the row.
     update app_private.auth_challenges
-       set attempts = attempts + 1
+       set attempts = auth_challenges.attempts + 1
      where id = p_id
-    returning attempts into c.attempts;
+    returning auth_challenges.attempts into c.attempts;
     return query select false,
                         case when c.attempts >= 5 then 'locked' else 'wrong' end,
                         c.attempts, c.email, c.purpose, c.user_id;

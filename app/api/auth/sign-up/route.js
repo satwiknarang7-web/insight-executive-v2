@@ -11,6 +11,7 @@ import { isSupabaseConfigured } from '../../../../lib/vault/supabase.server';
 import { createUnconfirmedUser, deleteAccount, findUserByEmail } from '../../../../lib/auth/accounts.server';
 import { authSchemaReady, createChallenge } from '../../../../lib/auth/challenges.server';
 import { isMailerConfigured, sendCodeEmail } from '../../../../lib/auth/mailer.server';
+import { authFailure, schemaMissingResponse } from '../../../../lib/auth/failures';
 import { normalizeEmail, passwordProblem } from '../../../../lib/auth/otp';
 import { clientKey, take } from '../../../../lib/auth/rateLimit';
 
@@ -54,14 +55,7 @@ export async function POST(request) {
   // arrived" — sending them to debug SMTP settings that are working fine.
   if (!(await authSchemaReady())) {
     console.error('[auth/sign-up] the auth migration has not been applied to this Supabase project');
-    return NextResponse.json(
-      {
-        error:
-          'This deployment is not finished: the sign-in tables are missing from the database. ' +
-          'Run supabase/APPLY_TO_LIVE_PROJECT.sql in the Supabase SQL editor.',
-      },
-      { status: 503 }
-    );
+    return schemaMissingResponse();
   }
 
   const created = await createUnconfirmedUser(email, body.password);
@@ -91,6 +85,8 @@ export async function POST(request) {
     // The account exists but has no way to be confirmed. Roll it back rather
     // than leave an unusable row that also blocks retrying the address.
     if (created.status === 'ok') await deleteAccount(created.user.id).catch(() => {});
+    const known = authFailure(error, 'auth/sign-up');
+    if (known) return known;
     console.error('[auth/sign-up]', error.message);
     return NextResponse.json({ error: 'That account could not be created.' }, { status: 500 });
   }

@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { isSupabaseConfigured } from '../../../../lib/vault/supabase.server';
 import { getChallenge, rotateCode } from '../../../../lib/auth/challenges.server';
 import { isMailerConfigured, sendCodeEmail } from '../../../../lib/auth/mailer.server';
+import { authFailure } from '../../../../lib/auth/failures';
 import { canResend, challengeState, resendWaitSeconds } from '../../../../lib/auth/otp';
 import { clientKey, take } from '../../../../lib/auth/rateLimit';
 
@@ -34,7 +35,16 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Expected a JSON body.' }, { status: 400 });
   }
 
-  const challenge = await getChallenge(body?.challengeId);
+  let challenge;
+  try {
+    challenge = await getChallenge(body?.challengeId);
+  } catch (error) {
+    const known = authFailure(error, 'auth/resend');
+    if (known) return known;
+    console.error('[auth/resend]', error.message);
+    return NextResponse.json({ error: 'Another code could not be sent.' }, { status: 502 });
+  }
+
   const state = challengeState(challenge);
   // An expired challenge may still be resent — the code is being replaced
   // anyway. A consumed or locked one may not.
@@ -49,9 +59,24 @@ export async function POST(request) {
     );
   }
 
-  const code = await rotateCode(challenge);
+  let code;
+  try {
+    code = await rotateCode(challenge);
+  } catch (error) {
+    const known = authFailure(error, 'auth/resend');
+    if (known) return known;
+    console.error('[auth/resend]', error.message);
+    return NextResponse.json({ error: 'Another code could not be sent.' }, { status: 502 });
+  }
+
   const sent = await sendCodeEmail({ to: challenge.email, code, purpose: challenge.purpose });
-  if (!sent.ok) return NextResponse.json({ error: 'The code email could not be sent.' }, { status: 502 });
+  if (!sent.ok) {
+    console.error('[auth/resend] email failed:', sent.reason);
+    return NextResponse.json(
+      { error: `The code email could not be sent (${sent.reason || 'unknown error'}).` },
+      { status: 502 }
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }

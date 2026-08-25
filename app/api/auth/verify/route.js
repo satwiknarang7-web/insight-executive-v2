@@ -10,6 +10,7 @@ import { NextResponse } from 'next/server';
 import { isSupabaseConfigured } from '../../../../lib/vault/supabase.server';
 import { confirmUser, mintSession } from '../../../../lib/auth/accounts.server';
 import { claimChallenge, trustDevice } from '../../../../lib/auth/challenges.server';
+import { authFailure } from '../../../../lib/auth/failures';
 import { DEVICE_COOKIE, TRUSTED_DEVICE_TTL_MS } from '../../../../lib/auth/otp';
 import { clientKey, take } from '../../../../lib/auth/rateLimit';
 
@@ -47,7 +48,18 @@ export async function POST(request) {
   const code = String(body?.code || '').replace(/\D/g, '');
   if (code.length !== 6) return NextResponse.json({ error: 'Enter the six-digit code.' }, { status: 400 });
 
-  const claim = await claimChallenge(body?.challengeId, code);
+  let claim;
+  try {
+    claim = await claimChallenge(body?.challengeId, code);
+  } catch (error) {
+    // Checking the code is the one step that cannot degrade to a guess, so a
+    // failure here is reported rather than treated as a wrong code.
+    const known = authFailure(error, 'auth/verify');
+    if (known) return known;
+    console.error('[auth/verify]', error.message);
+    return NextResponse.json({ error: 'That code could not be checked.' }, { status: 502 });
+  }
+
   if (!claim.ok) {
     const message = REASONS[claim.reason] || 'That code could not be checked.';
     const withCount =
@@ -72,15 +84,22 @@ export async function POST(request) {
     const user = await mintSession(challenge.email);
     const response = NextResponse.json({ ok: true, email: challenge.email });
 
+    // Remembering the browser is a convenience on top of a session that has
+    // already been issued. If it fails, the user is still signed in, and losing
+    // the whole sign-in over it would be the wrong trade.
     if (body?.remember && user?.id) {
-      const token = await trustDevice(user.id, request.headers.get('user-agent'));
-      response.cookies.set(DEVICE_COOKIE, token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-        maxAge: Math.floor(TRUSTED_DEVICE_TTL_MS / 1000),
-      });
+      try {
+        const token = await trustDevice(user.id, request.headers.get('user-agent'));
+        response.cookies.set(DEVICE_COOKIE, token, {
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          maxAge: Math.floor(TRUSTED_DEVICE_TTL_MS / 1000),
+        });
+      } catch (error) {
+        console.error('[auth/verify] this browser could not be remembered:', error.message);
+      }
     }
 
     return response;

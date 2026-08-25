@@ -44,6 +44,28 @@ matching the question against the planner's own charts).
 
 Do **not** commit these — `.env` is gitignored.
 
+### Checking the account setup
+
+Two-factor sign-in depends on a database migration and on SMTP, and both fail in
+ways that look like the other: a missing table means the code is never stored,
+which presents as an email that never arrives. Each has a check that answers
+directly.
+
+| Command | What it does |
+|---|---|
+| `npm run db:apply supabase/APPLY_TO_LIVE_PROJECT.sql` | Applies the auth (and vault) migration, then prints every `svc_*` function with whether the server can call it and the browser is blocked. Safe to re-run. |
+| `npm run mail:check` | Authenticates against SMTP without sending anything. Pass an address — `npm run mail:check you@example.com` — to also send one test message. |
+
+Both read `.env.local`. `db:apply` needs `SUPABASE_DB_URL`, the project's Postgres
+connection string, which is **not** one of the API keys above and carries the
+database password — take the *session pooler* URI from Project Settings ->
+Database, since the direct `db.<ref>.supabase.co` host is IPv6-only and
+unreachable from most networks. Never give it a `NEXT_PUBLIC_` prefix: anything
+so named is inlined into the browser bundle.
+
+If sign-in returns 503 naming `APPLY_TO_LIVE_PROJECT.sql`, the migration has not
+been applied. If sign-up returns 501, SMTP is not configured.
+
 ## 3. Run + get a URL
 
 - Click **Run**. Replit builds and serves on port 3000, giving you a live `*.replit.dev` preview URL.

@@ -11,6 +11,7 @@ import { isSupabaseConfigured } from '../../../../lib/vault/supabase.server';
 import { findUserByEmail, mintSession, verifyPassword } from '../../../../lib/auth/accounts.server';
 import { createChallenge, deviceIsTrusted } from '../../../../lib/auth/challenges.server';
 import { isMailerConfigured, sendCodeEmail } from '../../../../lib/auth/mailer.server';
+import { authFailure } from '../../../../lib/auth/failures';
 import { DEVICE_COOKIE, normalizeEmail } from '../../../../lib/auth/otp';
 import { clientKey, reset, take } from '../../../../lib/auth/rateLimit';
 
@@ -65,24 +66,54 @@ export async function POST(request) {
   if (check.status === 'unconfirmed') {
     const user = await findUserByEmail(email);
     if (!user) return NextResponse.json({ error: 'That email and password do not match.' }, { status: 401 });
-    const { challenge, code } = await createChallenge({ email, userId: user.id, purpose: 'signup' });
-    const sent = await sendCodeEmail({ to: email, code, purpose: 'signup' });
-    if (!sent.ok) return NextResponse.json({ error: 'The code email could not be sent.' }, { status: 502 });
-    return NextResponse.json({ pending: true, challengeId: challenge.id, email, purpose: 'signup' });
+    return issueCode({ email, userId: user.id, purpose: 'signup' });
   }
 
   // Known browser: the second factor was already satisfied here, within its
   // window, for this same account.
   const deviceToken = request.cookies.get(DEVICE_COOKIE)?.value;
   if (deviceToken && (await deviceIsTrusted(deviceToken, check.user.id))) {
-    await mintSession(email);
+    try {
+      await mintSession(email);
+    } catch (error) {
+      console.error('[auth/sign-in]', error.message);
+      return NextResponse.json({ error: 'Sign-in is temporarily unavailable.' }, { status: 502 });
+    }
     reset(clientKey(request, 'signin'));
     return NextResponse.json({ verified: true, trustedDevice: true });
   }
 
-  const { challenge, code } = await createChallenge({ email, userId: check.user.id, purpose: 'signin' });
-  const sent = await sendCodeEmail({ to: email, code, purpose: 'signin' });
-  if (!sent.ok) return NextResponse.json({ error: 'The code email could not be sent.' }, { status: 502 });
+  return issueCode({ email, userId: check.user.id, purpose: 'signin' });
+}
 
-  return NextResponse.json({ pending: true, challengeId: challenge.id, email, purpose: 'signin' });
+/**
+ * Open a challenge and email its code.
+ *
+ * Both paths above end here, and both can fail the same two ways: the auth
+ * migration is missing, or the mail server refused. Neither is the user's
+ * fault, and neither should reach them as an unexplained 500 — which is what
+ * happened until this was wrapped, because `createChallenge` throws.
+ */
+async function issueCode({ email, userId, purpose }) {
+  let challenge;
+  let code;
+  try {
+    ({ challenge, code } = await createChallenge({ email, userId, purpose }));
+  } catch (error) {
+    const known = authFailure(error, 'auth/sign-in');
+    if (known) return known;
+    console.error('[auth/sign-in]', error.message);
+    return NextResponse.json({ error: 'Sign-in is temporarily unavailable.' }, { status: 502 });
+  }
+
+  const sent = await sendCodeEmail({ to: email, code, purpose });
+  if (!sent.ok) {
+    console.error('[auth/sign-in] email failed:', sent.reason);
+    return NextResponse.json(
+      { error: `The code email could not be sent (${sent.reason || 'unknown error'}).` },
+      { status: 502 }
+    );
+  }
+
+  return NextResponse.json({ pending: true, challengeId: challenge.id, email, purpose });
 }
