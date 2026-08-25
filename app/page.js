@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Zap,
@@ -23,6 +23,8 @@ import ThemeToggle from '../components/shell/ThemeToggle';
 import { vaultAvailable } from '../lib/vault/supabase.client';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
+import { CONNECTORS } from '../lib/connectors/registry';
+import ConnectSource from '../components/panels/ConnectSource';
 
 const FEATURES = [
   {
@@ -50,6 +52,10 @@ export default function LandingPage() {
   // Two-step, because discarding a loaded dataset also discards any analysis of
   // it and there is no undo — but a modal for one button is heavier than this.
   const [confirmRemove, setConfirmRemove] = useState(false);
+  // One dropdown for every source. 'file' is a spreadsheet; anything else is a
+  // connector id from the registry.
+  const [source, setSource] = useState('file');
+  const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
 
   const busy = status === 'ingesting' || status === 'analyzing';
@@ -87,6 +93,23 @@ export default function LandingPage() {
     },
     [ingestText]
   );
+
+  // The organisation a saved connection belongs to. Bootstrapped on demand,
+  // and only once a database source is actually chosen — a visitor who only
+  // ever uploads a file never pays for it.
+  useEffect(() => {
+    if (source === 'file' || organization) return;
+    let cancelled = false;
+    fetch('/api/auth/bootstrap', { method: 'POST' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d?.organization) setOrganization(d.organization);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [source, organization]);
 
   const removeDataset = useCallback(async () => {
     setConfirmRemove(false);
@@ -245,6 +268,40 @@ export default function LandingPage() {
             )}
 
             {!busy && !dataset && (
+              <>
+                <div className="card p-5">
+                  <label className="flex flex-col gap-2">
+                    <span className="label">Data source</span>
+                    <select
+                      value={source}
+                      onChange={(e) => setSource(e.target.value)}
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                    >
+                      <option value="file" className="bg-surface">
+                        CSV or Excel file
+                      </option>
+                      {CONNECTORS.map((c) => (
+                        <option key={c.id} value={c.id} className="bg-surface">
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {source !== 'file' && (
+                    <div className="mt-4">
+                      <ConnectSource
+                        source={source}
+                        organization={organization}
+                        onNeedsAccount={() => router.push('/sign-in?next=/')}
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {!busy && !dataset && source === 'file' && (
               <>
                 <div
                   onDragOver={(e) => {

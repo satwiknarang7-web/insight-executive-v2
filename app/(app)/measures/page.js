@@ -11,7 +11,7 @@
  * on a card or broken out by any column — and that recomputes when the data
  * changes, because it is a query and not a number somebody remembered.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BarChart3,
@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import MeasureBuilder from '../../../components/panels/MeasureBuilder';
+import MeasureReference from '../../../components/panels/MeasureReference';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import { compileMeasure, formatMeasureValue, measureByDimensionSql } from '../../../lib/measures';
 
@@ -42,6 +43,10 @@ export default function MeasuresPage() {
   const measures = useMeasures();
   const { evaluateMeasure, deleteMeasure, createKpi, addSlide } = useActions();
   const router = useRouter();
+
+  // Set by MeasureBuilder; called by the reference panel to type into its box.
+  const insertRef = useRef(null);
+  const insert = useCallback((text, opts) => insertRef.current?.(text, opts), []);
 
   const [values, setValues] = useState({});
   const [editing, setEditing] = useState(null);
@@ -119,23 +124,28 @@ export default function MeasuresPage() {
       title="Measures"
       subtitle="Calculations you describe in plain English, computed from the loaded rows"
     >
-      <section className="card mb-8 p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Calculator size={15} className="text-accent-400" />
-          <h2 className="text-sm font-black text-white">
-            {editing ? `Editing ${editing.name}` : 'New measure'}
-          </h2>
-        </div>
-        <MeasureBuilder
-          key={editing?.id || 'new'}
-          initial={editing}
-          onSaved={() => {
-            setEditing(null);
-            setNotice(null);
-          }}
-          onCancel={() => setEditing(null)}
-        />
-      </section>
+      <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="card p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <Calculator size={15} className="text-accent-400" />
+            <h2 className="text-sm font-black text-white">
+              {editing ? `Editing ${editing.name}` : 'New measure'}
+            </h2>
+          </div>
+          <MeasureBuilder
+            key={editing?.id || 'new'}
+            initial={editing}
+            phraseRef={insertRef}
+            onSaved={() => {
+              setEditing(null);
+              setNotice(null);
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        </section>
+
+        <MeasureReference dataset={dataset} onInsert={insert} />
+      </div>
 
       {notice && (
         <p className="mb-6 rounded-lg border border-accent-500/25 bg-accent-500/[0.06] px-4 py-3 text-[13px] text-accent-200">

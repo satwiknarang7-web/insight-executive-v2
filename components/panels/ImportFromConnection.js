@@ -22,11 +22,11 @@ import {
 } from 'lucide-react';
 import { useActions } from '../../lib/store/DatasetProvider';
 
-export default function ImportFromConnection({ organization, connections, onClose }) {
+export default function ImportFromConnection({ organization, connections, initialConnectionId = null, onClose }) {
   const router = useRouter();
   const { ingestRemote } = useActions();
 
-  const [connectionId, setConnectionId] = useState(connections[0]?.id || null);
+  const [connectionId, setConnectionId] = useState(initialConnectionId || connections[0]?.id || null);
   const [step, setStep] = useState('idle'); // idle | testing | tables | pulling
   const [status, setStatus] = useState(null);
   const [tables, setTables] = useState([]);
@@ -281,7 +281,7 @@ function Shell({ children, onClose }) {
       role="presentation"
     >
       <div
-        className="card slide-in my-auto w-full max-w-2xl bg-surface p-6"
+        className="panel slide-in my-auto w-full max-w-2xl p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

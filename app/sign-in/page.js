@@ -13,15 +13,22 @@
  * The step is driven by what the server returns, not by local optimism: the
  * client never decides that a credential was good.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, KeyRound, Loader2, Mail, ShieldCheck, Zap } from 'lucide-react';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  // Where the middleware turned them away from, so they land where they meant
+  // to go. Relative paths only — an absolute URL here is an open redirect.
+  const nextPath = (() => {
+    const raw = params.get('next');
+    return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
+  })();
   const [mode, setMode] = useState('sign-in'); // sign-in | sign-up
   const [step, setStep] = useState('credentials'); // credentials | code
   const [email, setEmail] = useState('');
@@ -42,9 +49,9 @@ export default function SignInPage() {
     const supabase = supabaseBrowser();
     if (!supabase) return;
     supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) router.replace('/connections');
+      if (data?.user) router.replace(nextPath);
     });
-  }, [router]);
+  }, [router, nextPath]);
 
   // The resend cooldown, counted down so the button can say when it wakes up.
   useEffect(() => {
@@ -75,9 +82,11 @@ export default function SignInPage() {
   /** Signed in for real: give the user an organisation, then get out of the way. */
   const finish = useCallback(async () => {
     await fetch('/api/auth/bootstrap', { method: 'POST' }).catch(() => {});
-    router.replace('/connections');
+    // Straight to the data-source page: signing in is the first step, choosing
+    // a source is the second.
+    router.replace(nextPath);
     router.refresh();
-  }, [router]);
+  }, [router, nextPath]);
 
   const submitCredentials = useCallback(
     async (e) => {
@@ -191,19 +200,16 @@ export default function SignInPage() {
       <div className="relative z-10 mx-auto w-full max-w-lg px-6 pb-20 pt-6">
         <span className="label">{mode === 'sign-up' ? 'Create an account' : 'Sign in'}</span>
         <h1 className="mt-2 text-2xl font-black tracking-tight">
-          {step === 'code' ? 'Check your email' : 'An account only holds your connections'}
+          {step === 'code' ? 'Check your email' : 'Sign in to Insight Analytics'}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-white/50">
           {step === 'code' ? (
             <>We sent a six-digit code to <span className="font-bold text-white/75">{email}</span>.</>
           ) : (
             <>
-              Uploading a spreadsheet and analysing it needs no account and sends nothing anywhere. Sign in
-              only to save database connections —{' '}
-              <Link href="/" className="text-accent-400 underline decoration-accent-500/30 hover:text-accent-300">
-                carry on without one
-              </Link>
-              .
+              Your account is the first step; choosing a data source is the second. Spreadsheets are still
+              parsed and analysed entirely in your browser — the account exists so saved database
+              connections have somewhere safe to live.
             </>
           )}
         </p>
@@ -357,4 +363,12 @@ function Feedback({ error, notice }) {
     );
   }
   return null;
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-canvas" />}>
+      <SignInForm />
+    </Suspense>
+  );
 }

@@ -290,7 +290,7 @@ function AddConnection({ organization, onClose, onSaved }) {
       role="presentation"
     >
       <div
-        className="card slide-in my-auto w-full max-w-2xl bg-surface p-6"
+        className="panel slide-in my-auto w-full max-w-2xl p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

@@ -20,7 +20,7 @@ import { useActions, useDataset, useMeasures } from '../../lib/store/DatasetProv
 import { exampleMeasurePhrases } from '../../lib/measureLanguage';
 import { MEASURE_FORMATS, formatMeasureValue, measureSql } from '../../lib/measures';
 
-export default function MeasureBuilder({ initial = null, onSaved, onCancel }) {
+export default function MeasureBuilder({ initial = null, onSaved, onCancel, phraseRef = null }) {
   const { dataset } = useDataset();
   const measures = useMeasures();
   const { draftMeasure, saveMeasure, evaluateMeasure } = useActions();
@@ -98,6 +98,17 @@ export default function MeasureBuilder({ initial = null, onSaved, onCancel }) {
       setError(e.message);
     }
   };
+
+  // Let the reference panel append a column name or replace the whole phrase.
+  if (phraseRef) {
+    phraseRef.current = (text, { replace = false } = {}) => {
+      setPhrase((current) => {
+        if (replace) return text;
+        const trimmed = current.trimEnd();
+        return trimmed ? `${trimmed} ${text}` : text;
+      });
+    };
+  }
 
   const sql = draft ? measureSql(draft, context).sql : null;
   const canSave = !!draft && value !== null && !checking;

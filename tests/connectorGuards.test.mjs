@@ -241,3 +241,51 @@ test('row-locking clauses are refused without blocking a column called update', 
   assert.throws(() => assertReadOnlySql('SELECT * FROM t FOR NO KEY UPDATE'), UnsafeQuery);
   assert.ok(assertReadOnlySql('SELECT update FROM t'));
 });
+
+// ---------------------------------------------------------------------------
+// What assertReadOnlySql RETURNS
+//
+// Every test above checks that it accepts or rejects a query. None checked what
+// came back — and the drivers execute that return value. It used to be the
+// literal-stripped text, so the first real import against Postgres failed with
+// `syntax error at or near "."`, and any query with a WHERE clause would have
+// run with its filter values deleted.
+// ---------------------------------------------------------------------------
+
+test('the returned SQL keeps quoted identifiers, in every dialect', () => {
+  const cases = [
+    'select * from "public"."belconnen_sold"',   // postgres / snowflake / oracle
+    'select * from `analytics`.`orders`',        // mysql
+    'select * from [dbo].[Orders]',              // sql server
+  ];
+  for (const sql of cases) {
+    assert.equal(assertReadOnlySql(sql), sql, sql);
+  }
+});
+
+test('the returned SQL keeps string literals intact', () => {
+  const sql = "select * from t where region = 'West' and note = 'a; b'";
+  assert.equal(assertReadOnlySql(sql), sql);
+});
+
+test('only a terminating semicolon is removed', () => {
+  assert.equal(assertReadOnlySql('SELECT * FROM t;'), 'SELECT * FROM t');
+  assert.equal(assertReadOnlySql('SELECT * FROM t ;  '), 'SELECT * FROM t');
+  // A semicolon inside a literal is data, not a terminator.
+  assert.equal(assertReadOnlySql("SELECT 'ends with ;' FROM t"), "SELECT 'ends with ;' FROM t");
+});
+
+test('the result can be wrapped in a bounding subquery', () => {
+  // This is exactly what every driver does with the return value.
+  const inner = assertReadOnlySql('select * from "public"."orders";');
+  const bounded = `select * from (${inner}) as _insight_capped limit 5001`;
+  assert.equal(bounded, 'select * from (select * from "public"."orders") as _insight_capped limit 5001');
+  assert.doesNotMatch(bounded, /from\s+\./, 'no dangling qualified name');
+});
+
+test('checks still see through literals after the change', () => {
+  // The validation reads the stripped text; only the RETURN value changed.
+  assert.throws(() => assertReadOnlySql("SELECT * FROM t WHERE x = 'a' ; DROP TABLE t"), UnsafeQuery);
+  assert.throws(() => assertReadOnlySql('SELECT 1 /* c */ ; DROP TABLE t'), UnsafeQuery);
+  assert.ok(assertReadOnlySql("SELECT * FROM t WHERE note = 'DROP TABLE x'"));
+});
