@@ -118,6 +118,15 @@ as $$
   );
 $$;
 
+-- USAGE on the schema, not just EXECUTE on the functions.
+--
+-- The vault migration revoked all of `app_private` from anon and authenticated,
+-- and a function cannot be called without USAGE on its schema however the
+-- EXECUTE grant reads. The read policies below call into app_private, so
+-- without this every policy evaluation fails — invisibly while the table is
+-- empty, and on the first saved row after that.
+grant usage on schema app_private to authenticated;
+
 grant execute on function app_private.can_read_analysis to authenticated;
 
 create or replace function app_private.owns_analysis(target uuid)
