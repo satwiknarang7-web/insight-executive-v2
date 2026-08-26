@@ -107,8 +107,14 @@ $$;
 grant execute on function app_private.owns_analysis to authenticated;
 
 -- Read what you own or what was shared with you; write only what you own.
+-- The owner check is inline, and must stay inline: `can_read_analysis`
+-- re-queries this table, and during INSERT ... RETURNING the new row is not yet
+-- visible to its snapshot, so every save would be denied with 42501. Comparing
+-- owner_id on the row being returned needs no self-query. The shared case still
+-- goes through the function, which is what breaks the policy recursion.
 create policy analyses_read on public.analyses
-  for select to authenticated using (app_private.can_read_analysis(id));
+  for select to authenticated
+  using (owner_id = auth.uid() or app_private.can_read_analysis(id));
 
 create policy analyses_insert on public.analyses
   for insert to authenticated with check (owner_id = auth.uid());

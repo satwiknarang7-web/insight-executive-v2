@@ -136,8 +136,20 @@ grant execute on function app_private.owns_analysis to authenticated;
 
 -- Read what you own or what was shared with you; write only what you own.
 drop policy if exists analyses_read on public.analyses;
+-- The owner check is inline, and must stay inline.
+--
+-- `can_read_analysis` re-queries `public.analyses` for the row. That is fine
+-- when reading rows that already exist, but during INSERT ... RETURNING the new
+-- row is not yet visible to the function's snapshot, so it returns false and
+-- the SELECT check that RETURNING requires fails with 42501 — reported by
+-- PostgREST as "new row violates row-level security policy", which reads as a
+-- missing INSERT policy and sends you looking in the wrong place entirely.
+-- Comparing owner_id on the row being returned needs no self-query, so a save
+-- succeeds; the shared case still goes through the function, which is what
+-- keeps the analyses <-> analysis_shares policies from recursing.
 create policy analyses_read on public.analyses
-  for select to authenticated using (app_private.can_read_analysis(id));
+  for select to authenticated
+  using (owner_id = auth.uid() or app_private.can_read_analysis(id));
 
 drop policy if exists analyses_insert on public.analyses;
 create policy analyses_insert on public.analyses
