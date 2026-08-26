@@ -32,7 +32,12 @@ export default function MeasureBuilder({ initial = null, onSaved, onCancel, phra
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState(null);
 
-  const examples = useMemo(() => exampleMeasurePhrases(dataset?.profile), [dataset]);
+  // Four chips, not the whole list: this row sits under the box as a nudge, and
+  // the reference panel beside it is where the full set belongs.
+  const examples = useMemo(
+    () => exampleMeasurePhrases(dataset?.profile, { measures, sample: dataset?.preview || [] }).slice(0, 4),
+    [dataset, measures]
+  );
   const context = useMemo(
     () => ({ columns: dataset?.columns || [], profile: dataset?.profile, measures }),
     [dataset, measures]

@@ -20,7 +20,6 @@ import {
   TableVisual,
   MatrixVisual,
   GeoMap,
-  ArcGisMap,
 } from './index';
 import { resolveChart } from '../../lib/chartResolver';
 
@@ -65,8 +64,6 @@ export default function DynamicChart({
       return <GeoMap data={data} xKey={x} yKey={y} variant="bubble" xLabel={xLabel} yLabel={yLabel} />;
     case 'shapemap':
       return <GeoMap data={data} xKey={x} yKey={y} variant="shape" xLabel={xLabel} yLabel={yLabel} />;
-    case 'arcgis':
-      return <ArcGisMap data={data} xKey={x} yKey={y} />;
     case 'hbar':
       return <HorizontalBarChart data={data} xKey={x} yKey={y} {...axes} />;
     case 'waterfall':

@@ -144,7 +144,7 @@ export default function MeasuresPage() {
           />
         </section>
 
-        <MeasureReference dataset={dataset} onInsert={insert} />
+        <MeasureReference dataset={dataset} measures={measures} onInsert={insert} />
       </div>
 
       {notice && (

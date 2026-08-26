@@ -1,11 +1,20 @@
 /**
- * The connections screen.
+ * The account hub: who you are, what you have saved, and how to leave.
  *
  * A Server Component so the auth check happens before anything renders — a
- * client-side redirect would flash the page at a signed-out visitor first. It
- * sits outside the (app) route group deliberately: that layout's shell assumes
- * a dataset is loaded, and managing connections has nothing to do with whatever
- * spreadsheet happens to be open.
+ * client-side redirect would flash the page at a signed-out visitor first.
+ *
+ * It sits outside the (app) route group deliberately, for the same reason the
+ * connections screen used to: that layout assumes a dataset is loaded, and none
+ * of this has anything to do with whichever spreadsheet happens to be open. It
+ * matters most for the library — being shown findings without the file behind
+ * them is the entire point of sharing, and until now reaching your own library
+ * meant opening an unrelated file first.
+ *
+ * Stored connections live here too. There is no separate connections screen any
+ * more: a connection is made from the source dropdown on the home page, at the
+ * moment you actually want data out of it. What was left over was managing the
+ * credentials you already stored, and that is an account matter.
  */
 
 import Link from 'next/link';
@@ -18,17 +27,19 @@ import {
   userClient,
   VaultConfigError,
 } from '../../lib/vault/supabase.server';
+import AnalysisLibrary from '../../components/panels/AnalysisLibrary';
 import ConnectionsPanel from '../../components/panels/ConnectionsPanel';
 import AccountPanel from '../../components/panels/AccountPanel';
+import ProfilePanel from '../../components/panels/ProfilePanel';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ConnectionsPage() {
+export default async function ProfilePage() {
   if (!isSupabaseConfigured()) return <Unconfigured />;
 
   const user = await currentUser();
-  if (!user) redirect('/sign-in');
+  if (!user) redirect('/sign-in?next=/profile');
 
   // Credentials that are present but wrong only reveal themselves here, on the
   // first call that actually reaches Supabase. That is a configuration problem,
@@ -40,7 +51,7 @@ export default async function ConnectionsPage() {
     if (error instanceof VaultConfigError) return <Unconfigured detail={error.message} />;
     throw error;
   }
-  if (!organization) redirect('/sign-in');
+  if (!organization) redirect('/sign-in?next=/profile');
 
   // How much the delete button is about to destroy, counted here rather than
   // guessed at in the warning copy.
@@ -48,9 +59,36 @@ export default async function ConnectionsPage() {
 
   return (
     <Shell>
-      <ConnectionsPanel organization={organization} />
+      <ProfilePanel email={user.email} />
+
+      <Block title="Library" blurb="Analyses you saved, and analyses shared with you.">
+        <AnalysisLibrary />
+      </Block>
+
+      <Block
+        title="Saved connections"
+        blurb="Credentials you have stored. New connections are made from the data-source dropdown on the home page."
+      >
+        <ConnectionsPanel organization={organization} />
+      </Block>
+
       <AccountPanel email={user.email} connectionCount={connectionCount} />
     </Shell>
+  );
+}
+
+function Block({ title, blurb, children }) {
+  return (
+    <section className="flex flex-col gap-4">
+      <div>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">{title}</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+        </div>
+        <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-white/35">{blurb}</p>
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -59,11 +97,11 @@ function Unconfigured({ detail = null }) {
     <Shell>
       <div className="card flex max-w-lg flex-col gap-3 p-8">
         <span className="label">Not configured</span>
-        <h1 className="text-lg font-black">The connection vault is not set up</h1>
+        <h1 className="text-lg font-black">Accounts are not set up on this deployment</h1>
         <p className="text-sm leading-relaxed text-white/50">
-          This deployment has no Supabase project configured, so there is nowhere to store credentials.
-          Copy <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">.env.example</code> to{' '}
-          <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">.env.local</code>, fill in the
+          There is no Supabase project configured, so there is nowhere to keep a profile, a saved analysis
+          or a stored credential. Copy <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">.env.example</code>{' '}
+          to <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">.env.local</code>, fill in the
           Supabase values and <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">VAULT_MASTER_KEY</code>,
           then restart.
         </p>
@@ -107,7 +145,7 @@ function Shell({ children }) {
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pb-20">{children}</div>
+      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 pb-20">{children}</div>
     </main>
   );
 }

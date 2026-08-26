@@ -120,7 +120,9 @@ export default function ExplorePage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search all columns…"
-              className="w-56 rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-xs font-medium outline-none placeholder:text-white/25 focus:border-accent-500/50"
+              title={'Every word has to match somewhere in the row, in any column. Put "quotes" around a phrase to keep it together.'}
+              aria-label="Search all columns"
+              className="w-56 rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-xs font-medium outline-none placeholder:text-white/25 focus:border-accent-500/50 md:w-72"
             />
           </div>
           <button
@@ -277,6 +279,11 @@ export default function ExplorePage() {
                 <tr>
                   <td colSpan={columns.length} className="px-4 py-12 text-center text-white/30">
                     No rows match those filters.
+                    {filter && (
+                      <span className="mt-1 block text-[11px]">
+                        Every word has to appear somewhere in the row. Try fewer of them.
+                      </span>
+                    )}
                   </td>
                 </tr>
               )}

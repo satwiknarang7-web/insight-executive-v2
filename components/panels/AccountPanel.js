@@ -49,7 +49,7 @@ export default function AccountPanel({ email, connectionCount = 0 }) {
   }, [matches, typed, router]);
 
   return (
-    <div className="mt-8 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="card flex flex-wrap items-center gap-3 p-5">
         <UserRound size={16} className="text-accent-400" />
         <div className="min-w-0 flex-1">

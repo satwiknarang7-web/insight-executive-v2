@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import {
   analyzeChart,
   analyzeStoryboard,
+  chronological,
   pearson,
   compactNum,
+  truncation,
 } from '../lib/insightEngine.js';
 
 test('compactNum formats magnitudes', () => {
@@ -365,4 +367,154 @@ test('a scorecard card is left empty rather than filled with "nothing found"', (
   const { synthesis } = analyzeStoryboard(charts, new Array(1010).fill({}));
 
   assert.equal(synthesis.strategicScorecard.risk, '', 'no risk means no risk card');
+});
+
+// ---------------------------------------------------------------------------
+// Saying it correctly: a share of the top ten is not a share of the business
+// ---------------------------------------------------------------------------
+
+test('a result that hit its own LIMIT is known to be the top, not the whole', () => {
+  assert.deepEqual(truncation({ sql: 'SELECT a FROM t GROUP BY a LIMIT 10' }, 10), {
+    limited: true,
+    limit: 10,
+  });
+  assert.equal(truncation({ sql: 'SELECT a FROM t GROUP BY a LIMIT 10' }, 6).limited, false, 'room to spare');
+  assert.equal(truncation({ sql: 'SELECT SUM(x) AS v FROM t' }, 1).limited, false, 'no limit at all');
+});
+
+test('shares from a truncated query are not described as shares of the total', () => {
+  const rows = [
+    { Region: 'West', Revenue: 500 },
+    { Region: 'East', Revenue: 300 },
+    { Region: 'North', Revenue: 200 },
+  ];
+  const capped = analyzeChart({
+    id: 'c1',
+    title: 'Revenue by region',
+    chart_type: 'bar',
+    xAxisKey: 'Region',
+    yAxisKey: 'Revenue',
+    sql: 'SELECT [Region], SUM([Revenue]) AS [Revenue] FROM SalesData GROUP BY [Region] LIMIT 3',
+    resultData: rows,
+  });
+  assert.equal(capped.metrics.sharesMeasuredAgainst, 'shown');
+  assert.match(capped.headline, /of the 3 shown/);
+  assert.match(capped.detail, /not of the whole dataset/);
+
+  const whole = analyzeChart({
+    id: 'c2',
+    title: 'Revenue by region',
+    chart_type: 'bar',
+    xAxisKey: 'Region',
+    yAxisKey: 'Revenue',
+    sql: 'SELECT [Region], SUM([Revenue]) AS [Revenue] FROM SalesData GROUP BY [Region]',
+    resultData: rows,
+  });
+  assert.equal(whole.metrics.sharesMeasuredAgainst, 'total');
+  assert.match(whole.headline, /of the total/);
+  assert.doesNotMatch(whole.detail, /not of the whole dataset/);
+});
+
+test('a trend is read off the calendar, not off the sort order', () => {
+  // Exactly what `ORDER BY revenue DESC LIMIT 4` returns for a rising year.
+  const sortedBySize = [
+    { Month: '2026-04', Revenue: 400 },
+    { Month: '2026-03', Revenue: 300 },
+    { Month: '2026-02', Revenue: 200 },
+    { Month: '2026-01', Revenue: 100 },
+  ];
+  const finding = analyzeChart({
+    id: 't1',
+    title: 'Revenue by month',
+    chart_type: 'line',
+    xAxisKey: 'Month',
+    yAxisKey: 'Revenue',
+    resultData: sortedBySize,
+  });
+  assert.equal(finding.metrics.direction, 'rising', 'the year rose; only the query descended');
+  assert.equal(finding.metrics.startLabel, '2026-01');
+  assert.equal(finding.metrics.endLabel, '2026-04');
+});
+
+test('labels that are not periods keep the order the query chose', () => {
+  const points = [{ label: 'West', value: 3 }, { label: 'East', value: 1 }];
+  assert.deepEqual(chronological(points), points, 'no arbitrary re-sort');
+});
+
+test('the last period is reported separately from the overall direction', () => {
+  const rows = [
+    { Month: '2026-01', Revenue: 100 },
+    { Month: '2026-02', Revenue: 150 },
+    { Month: '2026-03', Revenue: 200 },
+    { Month: '2026-04', Revenue: 160 },
+  ];
+  const finding = analyzeChart({
+    id: 't2',
+    title: 'Revenue by month',
+    chart_type: 'line',
+    xAxisKey: 'Month',
+    yAxisKey: 'Revenue',
+    resultData: rows,
+  });
+  assert.equal(finding.metrics.direction, 'rising');
+  assert.ok(finding.metrics.lastPeriodChangePct < 0, 'the last month fell');
+  assert.match(finding.detail, /breaking the trend/);
+});
+
+test('every summary bullet carries a consequence a decision could hang on', () => {
+  const charts = [
+    {
+      id: 'a',
+      title: 'Revenue by category',
+      chart_type: 'bar',
+      xAxisKey: 'Category',
+      yAxisKey: 'Revenue',
+      resultData: [
+        { Category: 'Electronics', Revenue: 900 },
+        { Category: 'Home', Revenue: 220 },
+        { Category: 'Toys', Revenue: 180 },
+        { Category: 'Garden', Revenue: 90 },
+      ],
+    },
+    {
+      id: 'b',
+      title: 'Revenue by month',
+      chart_type: 'line',
+      xAxisKey: 'Month',
+      yAxisKey: 'Revenue',
+      resultData: [
+        { Month: '2026-01', Revenue: 400 },
+        { Month: '2026-02', Revenue: 330 },
+        { Month: '2026-03', Revenue: 280 },
+        { Month: '2026-04', Revenue: 210 },
+      ],
+    },
+  ];
+  const { synthesis } = analyzeStoryboard(charts, new Array(500).fill({}));
+
+  assert.ok(synthesis.macroInsights.length >= 1);
+  for (const bullet of synthesis.macroInsights) {
+    assert.ok(bullet.length > 60, `a bullet is more than a reading: ${bullet}`);
+  }
+  assert.ok(Array.isArray(synthesis.caveats), 'the summary carries its own caveats');
+});
+
+test('a truncated chart puts its caveat on the summary, not only on its slide', () => {
+  const charts = [
+    {
+      id: 'a',
+      title: 'Revenue by category',
+      chart_type: 'bar',
+      xAxisKey: 'Category',
+      yAxisKey: 'Revenue',
+      sql: 'SELECT [Category], SUM([Revenue]) AS [Revenue] FROM SalesData GROUP BY [Category] LIMIT 2',
+      resultData: [
+        { Category: 'Electronics', Revenue: 900 },
+        { Category: 'Home', Revenue: 220 },
+      ],
+    },
+  ];
+  const { synthesis } = analyzeStoryboard(charts, new Array(500).fill({}));
+  assert.equal(synthesis.caveats.length, 1);
+  assert.match(synthesis.caveats[0], /not of the whole dataset/);
 });

@@ -8,6 +8,7 @@ import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import { formatNumber } from '../../../lib/format';
+import { formatSql } from '../../../lib/sqlFormat';
 
 const EXAMPLES = [
   'Which category brings in the most revenue?',
@@ -215,8 +216,8 @@ function Answer({ answer }) {
               <span className="label">Query</span>
               <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
             </summary>
-            <pre className="mt-2 overflow-x-auto rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
-              {chart.sql}
+            <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
+              {formatSql(chart.sql)}
             </pre>
           </details>
         )}

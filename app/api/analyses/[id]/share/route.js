@@ -1,8 +1,9 @@
 /**
- * Share a saved analysis with another user, by handle.
+ * Share a saved analysis with another user, by username or by email address.
  *
- * The handle is resolved server-side; a caller cannot share with a user id they
- * guessed, only with someone who has published a handle to be found by.
+ * The name is resolved server-side; a caller cannot share with a user id they
+ * guessed, only with someone who has published a username or holds the address
+ * they typed.
  */
 import { NextResponse } from 'next/server';
 import { isSupabaseConfigured } from '../../../../../lib/vault/supabase.server';
@@ -39,7 +40,9 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Expected a JSON body.' }, { status: 400 });
   }
   try {
-    const shared = await shareAnalysis(id, body?.handle);
+    // `handle` is the older field name. Kept so a page served before this
+    // deploy does not start failing against the route served after it.
+    const shared = await shareAnalysis(id, body?.recipient ?? body?.handle);
     return NextResponse.json({ shared, shares: await listShares(id) });
   } catch (error) {
     return fail(error);

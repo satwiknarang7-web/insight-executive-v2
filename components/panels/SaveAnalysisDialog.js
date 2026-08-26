@@ -8,45 +8,23 @@
  * filled itself would quietly undo that. So nothing reaches the server until
  * someone presses the button here.
  *
- * Sharing needs a name to share *with*, which is what the handle is for — an
- * email address would publish one user's address to another. A user who has not
- * chosen a handle is asked for one here rather than being sent to a settings
- * page and losing the analysis they were trying to share.
+ * Everything about *who* can open it afterwards lives in `ShareControls`, which
+ * the library renders too — sharing is offered at the moment you save and again
+ * whenever you remember you meant to, and those two must not drift apart.
  */
-import { useCallback, useEffect, useState } from 'react';
-import { AtSign, Check, Loader2, Lock, Share2, Trash2, X } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { Check, Loader2, Lock, X } from 'lucide-react';
+import ShareControls from './ShareControls';
 
 export default function SaveAnalysisDialog({ snapshot, datasetName, rowCount, existing = null, onClose, onSaved }) {
   const [title, setTitle] = useState(existing?.title || defaultTitle(datasetName));
   const [savedId, setSavedId] = useState(existing?.id || null);
-  const [shares, setShares] = useState([]);
-  const [handle, setHandle] = useState('');
-  const [profile, setProfile] = useState(undefined); // undefined = still loading
-  const [myHandle, setMyHandle] = useState('');
-  const [busy, setBusy] = useState(null); // 'save' | 'share' | 'handle'
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
 
-  useEffect(() => {
-    fetch('/api/profile')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        setProfile(d?.profile || null);
-        if (!d?.profile && d?.suggestion) setMyHandle(d.suggestion);
-      })
-      .catch(() => setProfile(null));
-  }, []);
-
-  useEffect(() => {
-    if (!savedId) return;
-    fetch(`/api/analyses/${savedId}/share`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setShares(d?.shares || []))
-      .catch(() => {});
-  }, [savedId]);
-
   const save = useCallback(async () => {
-    setBusy('save');
+    setBusy(true);
     setError(null);
     try {
       const res = await fetch('/api/analyses', {
@@ -62,61 +40,9 @@ export default function SaveAnalysisDialog({ snapshot, datasetName, rowCount, ex
     } catch (e) {
       setError(e.message);
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   }, [savedId, title, datasetName, rowCount, snapshot, onSaved]);
-
-  const claimHandle = useCallback(async () => {
-    setBusy('handle');
-    setError(null);
-    try {
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ handle: myHandle }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || 'Could not save that handle.');
-      setProfile(body.profile);
-      setNotice(`You are @${body.profile.handle}. Other people can share with you using that.`);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(null);
-    }
-  }, [myHandle]);
-
-  const share = useCallback(async () => {
-    setBusy('share');
-    setError(null);
-    try {
-      const res = await fetch(`/api/analyses/${savedId}/share`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ handle }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || 'Could not share.');
-      setShares(body.shares || []);
-      setHandle('');
-      setNotice(`Shared with @${body.shared.handle}.`);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(null);
-    }
-  }, [savedId, handle]);
-
-  const unshare = useCallback(
-    async (userId) => {
-      const res = await fetch(`/api/analyses/${savedId}/share?user=${encodeURIComponent(userId)}`, {
-        method: 'DELETE',
-      });
-      const body = await res.json().catch(() => ({}));
-      if (res.ok) setShares(body.shares || []);
-    },
-    [savedId]
-  );
 
   return (
     <div
@@ -161,103 +87,12 @@ export default function SaveAnalysisDialog({ snapshot, datasetName, rowCount, ex
         <button
           type="button"
           onClick={save}
-          disabled={!title.trim() || busy === 'save'}
+          disabled={!title.trim() || busy}
           className="mt-4 flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-50"
         >
-          {busy === 'save' ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+          {busy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
           {savedId ? 'Update' : 'Save to my library'}
         </button>
-
-        {/* Sharing only makes sense once there is something to share. */}
-        {savedId && (
-          <div className="mt-6 border-t border-white/8 pt-5">
-            <div className="mb-3 flex items-center gap-2">
-              <Share2 size={14} className="text-accent-400" />
-              <span className="label">Share with someone</span>
-            </div>
-
-            {profile === undefined ? (
-              <p className="text-[12px] text-white/30">Checking your handle…</p>
-            ) : profile ? (
-              <>
-                <div className="flex gap-2">
-                  <div className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
-                    <AtSign size={13} className="shrink-0 text-white/30" />
-                    <input
-                      value={handle}
-                      onChange={(e) => setHandle(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handle.trim() && share()}
-                      placeholder="their handle"
-                      className="w-full bg-transparent py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={share}
-                    disabled={!handle.trim() || busy === 'share'}
-                    className="rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-accent-300 transition-colors hover:bg-accent-500/15 disabled:opacity-40"
-                  >
-                    {busy === 'share' ? <Loader2 size={13} className="animate-spin" /> : 'Share'}
-                  </button>
-                </div>
-                <p className="mt-2 text-[11px] text-white/30">
-                  You are <span className="font-bold text-white/50">@{profile.handle}</span> — that is what
-                  others use to share with you.
-                </p>
-              </>
-            ) : (
-              <div className="rounded-xl border border-white/8 bg-white/[0.02] p-4">
-                <p className="text-[12px] leading-relaxed text-white/50">
-                  Choose a handle first. It is how other people refer to you when sharing, so it is public —
-                  unlike your email address.
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <div className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
-                    <AtSign size={13} className="shrink-0 text-white/30" />
-                    <input
-                      value={myHandle}
-                      onChange={(e) => setMyHandle(e.target.value)}
-                      placeholder="3–24 letters, numbers or _"
-                      className="w-full bg-transparent py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={claimHandle}
-                    disabled={!myHandle.trim() || busy === 'handle'}
-                    className="rounded-lg bg-accent-500 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent disabled:opacity-40"
-                  >
-                    {busy === 'handle' ? <Loader2 size={13} className="animate-spin" /> : 'Claim'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {shares.length > 0 && (
-              <ul className="mt-4 flex flex-col gap-1.5">
-                {shares.map((s) => (
-                  <li
-                    key={s.userId}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-white/6 bg-white/[0.02] px-3 py-2"
-                  >
-                    <span className="truncate text-[12px] font-bold text-white/70">
-                      @{s.handle}
-                      {s.displayName ? <span className="ml-2 text-white/35">{s.displayName}</span> : null}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => unshare(s.userId)}
-                      aria-label={`Stop sharing with ${s.handle}`}
-                      className="rounded p-1 text-white/25 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
 
         {(error || notice) && (
           <p
@@ -269,6 +104,13 @@ export default function SaveAnalysisDialog({ snapshot, datasetName, rowCount, ex
           >
             {error || notice}
           </p>
+        )}
+
+        {/* Sharing only makes sense once there is something to share. */}
+        {savedId && (
+          <div className="mt-6 border-t border-white/8 pt-5">
+            <ShareControls analysisId={savedId} />
+          </div>
         )}
       </div>
     </div>

@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CARD_W,
+  FOOTER_H,
   MAX_ROWS,
   cardHeight,
+  footerBaseline,
   rowCentre,
   keyRoles,
   orderedColumns,
@@ -25,7 +27,24 @@ const rels = [
 
 test('a card grows with its column count and stops growing at the cap', () => {
   assert.ok(cardHeight(4) > cardHeight(2));
-  assert.equal(cardHeight(MAX_ROWS + 9), cardHeight(MAX_ROWS), 'truncated cards are all the same height');
+  assert.equal(cardHeight(MAX_ROWS + 9), cardHeight(MAX_ROWS + 1), 'truncated cards are all the same height');
+});
+
+test('a truncated card is exactly one footer taller than a full one', () => {
+  // The "+N more columns" line needs a strip of its own. It used to be drawn
+  // into the bottom padding, which is thinner than a row — so it landed on top
+  // of the last column name.
+  assert.equal(cardHeight(MAX_ROWS + 1) - cardHeight(MAX_ROWS), FOOTER_H);
+});
+
+test('the truncation line clears the last column row', () => {
+  const columns = MAX_ROWS + 5;
+  const lastRowBaseline = rowCentre(MAX_ROWS - 1) + 3.5;
+  assert.ok(
+    footerBaseline(columns) - lastRowBaseline >= 10,
+    'a full line of clear space between the last column and the footer'
+  );
+  assert.ok(footerBaseline(columns) < cardHeight(columns), 'and it stays inside the card');
 });
 
 test('row centres step down without overlapping', () => {

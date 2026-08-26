@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Table2,
-  FolderOpen,
   MessageSquare,
   Sigma,
   ShieldCheck,
@@ -19,12 +18,11 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   FileText,
-  Database,
+  UserRound,
   GitBranch,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import ThemeToggle from './ThemeToggle';
-import { vaultAvailable } from '../../lib/vault/supabase.client';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
@@ -32,7 +30,12 @@ const NAV = [
   { href: '/ask', label: 'Ask', icon: MessageSquare, hint: 'Question your data in plain English' },
   { href: '/measures', label: 'Measures', icon: Sigma, hint: 'Name a calculation once, then reuse it' },
   { href: '/quality', label: 'Data Quality', icon: ShieldCheck, hint: 'Cleaning report and query audit' },
-  { href: '/library', label: 'Library', icon: FolderOpen, hint: 'Saved analyses, and ones shared with you' },
+  {
+    href: '/profile',
+    label: 'Profile',
+    icon: UserRound,
+    hint: 'Your username, your library, saved connections and your account',
+  },
 ];
 
 function NavLink({ item, active, onNavigate, collapsed = false }) {
@@ -214,17 +217,6 @@ export default function AppShell({ children }) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-2 pt-4">
-        {/* Hidden entirely when there is no vault, rather than offered and broken. */}
-        {vaultAvailable() && (
-          <Link
-            href="/connections"
-            onClick={() => setMenuOpen(false)}
-            title="Connections"
-            className={`${actionClass(rail)} border-white/10 text-white/45 hover:bg-white/5 hover:text-white`}
-          >
-            <Database size={14} /> {!rail && 'Connections'}
-          </Link>
-        )}
         <ThemeToggle compact={rail} />
         {analysis?.storyboard?.length > 0 && (
           <Link

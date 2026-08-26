@@ -12,6 +12,7 @@
  * label is long enough that no reasonable gutter would hold it.
  */
 import { formatDateLabel, formatNumber } from '../../lib/format.js';
+import { prettyColumn } from '../../lib/aggregateNames.js';
 
 /** Rough width of a string at a given font size, in px. */
 const textWidth = (s, fontSize = 12) => String(s ?? '').length * fontSize * 0.58;
@@ -22,19 +23,13 @@ const HARD_MAX = 28;
 /**
  * A human name for a column key: `total_revenue` -> `Total Revenue`.
  *
- * Duplicated from insightEngine's `prettyKey` rather than imported, so a chart
- * component does not pull the whole analysis engine into the client bundle for
- * one string transform.
+ * The same function the query planner names its aggregates with, and that is
+ * the point: an axis reading "Total Daily Streams" and an alias built as
+ * "Total DailyStreams" would be two names for one number. It lives in a tiny
+ * pure module rather than in the analysis engine, so a chart component does not
+ * pull the engine into the client bundle for one string transform.
  */
-export function prettyLabel(key) {
-  return String(key ?? '')
-    .replace(/_/g, ' ')
-    .replace(/\./g, ' · ')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
+export const prettyLabel = prettyColumn;
 
 /**
  * Props for an axis title, or null when there is nothing worth saying.

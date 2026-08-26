@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Zap,
-  Database,
+  UserRound,
   UploadCloud,
   FileSpreadsheet,
   ShieldCheck,
@@ -140,12 +140,16 @@ export default function LandingPage() {
             <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {/* No Connections button: a connection is made in the dropdown
+                below, at the moment you actually want data out of it. What was
+                left on that screen — the credentials you already stored, and
+                the account itself — is on the profile page. */}
             {vaultAvailable() && (
               <Link
-                href="/connections"
+                href="/profile"
                 className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
               >
-                <Database size={13} /> Connections
+                <UserRound size={13} /> Profile
               </Link>
             )}
             <ThemeToggle />

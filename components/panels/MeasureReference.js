@@ -15,18 +15,28 @@
  */
 import { useMemo, useState } from 'react';
 import { Calendar, Fingerprint, Hash, Sigma, Type } from 'lucide-react';
+import { exampleMeasurePhrases } from '../../lib/measureLanguage';
 
-/** The shapes `parseMeasurePhrase` recognises, in the words it recognises. */
+/**
+ * The shapes `parseMeasurePhrase` recognises, and how to spot one.
+ *
+ * The examples used to be fixed strings — "total revenue", "average order
+ * value", "revenue per customer" — naming columns from a dataset nobody here
+ * has. Clicking one put a sentence in the box that could not resolve against
+ * the loaded file, so the tab that exists to show you what works was mostly
+ * showing you what does not. Now each shape is matched to a real suggestion
+ * generated from this dataset, and a shape with no match is simply not listed.
+ */
 const OPERATIONS = [
-  { verb: 'total / sum', example: 'total revenue', note: 'adds a column up' },
-  { verb: 'average / mean', example: 'average order value', note: 'the mean of a column' },
-  { verb: 'count', example: 'count of orders', note: 'how many rows' },
-  { verb: 'distinct count', example: 'number of distinct customers', note: 'unique values only' },
-  { verb: 'minimum / maximum', example: 'maximum discount', note: 'the smallest or largest' },
-  { verb: 'ratio / per', example: 'revenue per customer', note: 'one divided by another' },
-  { verb: 'percentage of', example: 'profit as a percentage of revenue', note: 'a share, formatted as %' },
-  { verb: 'difference', example: 'revenue minus cost', note: 'one column less another' },
-  { verb: 'filtered', example: 'total revenue where region is West', note: 'add “where …” to narrow it' },
+  { verb: 'total / sum', match: /^total /i, note: 'adds a column up' },
+  { verb: 'average / mean', match: /^average /i, note: 'the mean of a column' },
+  { verb: 'count', match: /^number of rows$/i, note: 'how many rows' },
+  { verb: 'distinct count', match: /^number of distinct /i, note: 'unique values only' },
+  { verb: 'minimum / maximum', match: /^(maximum|minimum) /i, note: 'the smallest or largest' },
+  { verb: 'percentage of', match: / as a percentage of /i, note: 'a share, formatted as %' },
+  { verb: 'ratio / per', match: / per /i, note: 'one divided by another' },
+  { verb: 'difference', match: / minus /i, note: 'one column less another' },
+  { verb: 'filtered', match: / where /i, note: 'add “where …” to narrow it' },
 ];
 
 const ROLE_META = {
@@ -38,8 +48,32 @@ const ROLE_META = {
 
 const ROLE_ORDER = ['measure', 'dimension', 'time', 'identifier'];
 
-export default function MeasureReference({ dataset, onInsert }) {
+export default function MeasureReference({ dataset, measures = [], onInsert }) {
   const [tab, setTab] = useState('columns');
+
+  /**
+   * One worked example per shape, built from the loaded columns.
+   *
+   * The generator already checks every phrase against the parser, so anything
+   * that reaches this list is something the box will accept. A shape with no
+   * example is dropped rather than shown with a placeholder, because a
+   * placeholder is the thing that was wrong with the old list.
+   */
+  const operations = useMemo(() => {
+    const phrases = exampleMeasurePhrases(dataset?.profile, {
+      measures,
+      sample: dataset?.preview || [],
+    });
+    const taken = new Set();
+    const out = [];
+    for (const op of OPERATIONS) {
+      const example = phrases.find((p) => op.match.test(p) && !taken.has(p));
+      if (!example) continue;
+      taken.add(example);
+      out.push({ ...op, example });
+    }
+    return out;
+  }, [dataset, measures]);
 
   const grouped = useMemo(() => {
     const profile = dataset?.profile?.columns || {};
@@ -114,7 +148,7 @@ export default function MeasureReference({ dataset, onInsert }) {
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
-            {OPERATIONS.map((op) => (
+            {operations.map((op) => (
               <button
                 key={op.verb}
                 type="button"
@@ -133,9 +167,16 @@ export default function MeasureReference({ dataset, onInsert }) {
                 <div className="text-[11px] text-white/35">{op.note}</div>
               </button>
             ))}
+            {operations.length === 0 && (
+              <p className="text-[13px] leading-relaxed text-white/40">
+                No worked example fits this dataset’s columns. Type what you want in plain English —
+                anything the parser does not recognise is sent to the language model.
+              </p>
+            )}
             <p className="text-[11px] leading-relaxed text-white/30">
-              Click an example to try it. Anything the parser does not recognise is sent to the language
-              model, which returns a formula you can read before saving.
+              Every example above is built from this file’s own columns and has already been checked
+              against the parser, so clicking one always works. Anything it does not recognise is sent to
+              the language model, which returns a formula you can read before saving.
             </p>
           </div>
         )}

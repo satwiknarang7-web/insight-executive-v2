@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { speakable, slideScript, summaryScript, deckScript, pickVoice } from '../lib/speech.js';
+import { speakable, slideScript, summaryScript, deckScript, dashboardScript, pickVoice } from '../lib/speech.js';
 import { AVATARS, getAvatar } from '../lib/avatars.js';
 
 const strategist = getAvatar('strategist');
@@ -94,10 +94,37 @@ test('the summary introduces the presenter by name', () => {
 
 test('the deck script covers the summary plus every slide', () => {
   const scripts = deckScript({ slideZero: { macroInsights: [] }, storyboard: [slide, { ...slide, id: 'slide_2' }] }, strategist);
-  assert.equal(scripts.length, 3);
+  // The summary, both findings, and the board that closes the deck.
+  assert.equal(scripts.length, 4);
   assert.equal(scripts[0].id, 'summary');
   assert.equal(scripts[2].id, 'slide_2');
+  assert.equal(scripts[3].id, 'dashboard');
   assert.ok(scripts.every((s) => typeof s.text === 'string'));
+});
+
+test('the closing board recaps rather than repeating the findings', () => {
+  const analysis = {
+    slideZero: {
+      headline: 'West carries the quarter.',
+      strategicScorecard: { focus: 'Protect the West.', risk: 'One region carries 42%.' },
+      macroInsights: [],
+    },
+    storyboard: [slide, { ...slide, id: 'slide_2' }],
+  };
+  const text = dashboardScript(analysis, strategist, { fileName: 'sales_2026.csv' });
+  assert.match(text, /2 findings/);
+  assert.match(text, /sales 2026/, 'the extension is not read out');
+  assert.match(text, /West carries the quarter/);
+  assert.match(text, /Protect the West/);
+  assert.doesNotMatch(text, /Check margin by region next/, 'it does not re-read each slide');
+  assert.doesNotMatch(text, /undefined|null/);
+});
+
+test('the closing board copes with an analysis that has no scorecard', () => {
+  const text = dashboardScript({ storyboard: [slide] }, strategist, {});
+  assert.match(text, /1 finding from/);
+  assert.doesNotMatch(text, /undefined|null/);
+  assert.equal(dashboardScript(null, strategist), '');
 });
 
 test('an empty slide does not produce a broken script', () => {

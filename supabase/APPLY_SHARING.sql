@@ -98,6 +98,17 @@ create table if not exists public.analysis_shares (
 
 create index if not exists analysis_shares_user_idx on public.analysis_shares (shared_with);
 
+-- What the owner typed when they shared: a username, or an email address.
+--
+-- Sharing by address means the recipient may have no row in public.profiles
+-- yet, and that table is where the owner's "shared with" list reads the name to
+-- display from. Without this, someone shared with by address is an anonymous
+-- row in a list the owner is meant to manage. Display only - authorisation is
+-- and remains shared_with.
+alter table public.analysis_shares
+  add column if not exists shared_as text
+  check (shared_as is null or length(shared_as) between 3 and 320);
+
 alter table public.analysis_shares enable row level security;
 
 -- A policy on `analyses` that queries `analysis_shares`, and a policy on

@@ -19,6 +19,7 @@ import {
   GitBranch,
   Pencil,
   Check,
+  Info,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
@@ -294,6 +295,21 @@ export default function DashboardPage() {
               >
                 <Plus size={13} /> Add a takeaway
               </button>
+            )}
+
+            {/* How to read the numbers above. Computed from what the queries
+                actually did, not written by anyone, and deliberately not
+                editable: a share of the top ten rows does not become a share of
+                the business because the wording was tidied up. */}
+            {summary.caveats?.length > 0 && (
+              <ul className="mt-5 flex flex-col gap-1.5 border-t border-white/8 pt-4">
+                {summary.caveats.map((line, i) => (
+                  <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
+                    <Info size={12} className="mt-0.5 shrink-0 text-amber-400/70" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 

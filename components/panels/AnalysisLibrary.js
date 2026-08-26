@@ -4,28 +4,35 @@
  * The library: analyses this user kept, and analyses other people shared.
  *
  * Two lists rather than one, because provenance changes what you can do. Your
- * own can be deleted and re-shared; a shared one you can open and present but
- * not manage, and the list says who it came from so it is never a mystery.
+ * own can be deleted and shared onward; a shared one you can open and present
+ * but not manage.
+ *
+ * It lives on the profile page, outside the app shell, and that is deliberate:
+ * the shell exists to hold a loaded dataset, and the whole point of a shared
+ * analysis is that you were sent findings without the file behind them. When
+ * the library was inside the shell you could not reach your own library without
+ * first opening a spreadsheet you did not have.
  *
  * Opening one restores the storyboard into the session. There is deliberately
- * no dataset behind it — see `restoreAnalysis` — so the page says plainly what
- * a restored analysis can and cannot do rather than letting someone discover it
- * on the Explore tab.
+ * no dataset behind it — see `restoreAnalysis` — so it opens as a presentation
+ * rather than as a dashboard when there is nothing loaded to re-query.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, FolderOpen, Loader2, Presentation, Share2, Trash2, Users } from 'lucide-react';
-import PageFrame from '../../../components/shell/PageFrame';
-import { useActions } from '../../../lib/store/DatasetProvider';
+import { Clock, FolderOpen, Loader2, Presentation, Share2, Trash2, Users, X } from 'lucide-react';
+import { useActions, useDataset } from '../../lib/store/DatasetProvider';
+import ShareControls from './ShareControls';
 
-export default function LibraryPage() {
+export default function AnalysisLibrary() {
   const router = useRouter();
   const { restoreAnalysis } = useActions();
+  const { dataset } = useDataset();
 
   const [mine, setMine] = useState([]);
   const [shared, setShared] = useState([]);
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(null);
+  const [sharing, setSharing] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
@@ -36,6 +43,7 @@ export default function LibraryPage() {
       if (!res.ok) throw new Error(body.error || 'Could not load your library.');
       setMine(body.mine || []);
       setShared(body.shared || []);
+      setError(null);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -56,27 +64,31 @@ export default function LibraryPage() {
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error || 'Could not open that analysis.');
         await restoreAnalysis(body.analysis.payload);
-        router.push('/dashboard');
+        // The dashboard reads the loaded rows for its header and its "re-run".
+        // With no dataset in the session there are none, so a restored analysis
+        // opens as the deck it is.
+        router.push(dataset ? '/dashboard' : '/present');
       } catch (e) {
         setError(e.message);
         setOpening(null);
       }
     },
-    [restoreAnalysis, router]
+    [restoreAnalysis, router, dataset]
   );
 
-  const remove = useCallback(
-    async (id) => {
-      const res = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
-      if (res.ok) setMine((list) => list.filter((a) => a.id !== id));
-    },
-    []
-  );
+  const remove = useCallback(async (id) => {
+    const res = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) setMine((list) => list.filter((a) => a.id !== id));
+    else setError(body.error || 'Could not delete that analysis.');
+  }, []);
+
+  const shareTarget = mine.find((a) => a.id === sharing) || null;
 
   return (
-    <PageFrame title="Library" subtitle="Analyses you saved, and analyses shared with you">
+    <div className="flex flex-col gap-6">
       {error && (
-        <p className="mb-4 rounded-lg border border-rose-500/25 bg-rose-500/8 px-3 py-2 text-[13px] text-rose-300">
+        <p className="rounded-lg border border-rose-500/25 bg-rose-500/8 px-3 py-2 text-[13px] text-rose-300">
           {error}
         </p>
       )}
@@ -95,6 +107,7 @@ export default function LibraryPage() {
             opening={opening}
             onOpen={open}
             onRemove={remove}
+            onShare={setSharing}
           />
           <Section
             title="Shared with you"
@@ -107,16 +120,20 @@ export default function LibraryPage() {
         </div>
       )}
 
-      <p className="mt-8 max-w-2xl text-[12px] leading-relaxed text-white/30">
+      <p className="max-w-2xl text-[12px] leading-relaxed text-white/30">
         A saved analysis holds the findings — charts, summary, KPIs and measures — not the rows behind
         them. Opening one restores the dashboard, report and presentation. Exploring or asking new
         questions needs the original file loaded again.
       </p>
-    </PageFrame>
+
+      {shareTarget && (
+        <ShareDialog analysis={shareTarget} onClose={() => setSharing(null)} />
+      )}
+    </div>
   );
 }
 
-function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove }) {
+function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove, onShare }) {
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
@@ -158,11 +175,23 @@ function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove })
                   )}
                   Open
                 </button>
+                {onShare && (
+                  <button
+                    type="button"
+                    onClick={() => onShare(a.id)}
+                    aria-label={`Share ${a.title}`}
+                    title="Share this analysis"
+                    className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.15em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <Share2 size={12} /> Share
+                  </button>
+                )}
                 {onRemove && (
                   <button
                     type="button"
                     onClick={() => onRemove(a.id)}
                     aria-label={`Delete ${a.title}`}
+                    title="Delete this analysis"
                     className="ml-auto rounded-lg p-1.5 text-white/20 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
                   >
                     <Trash2 size={13} />
@@ -174,5 +203,40 @@ function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove })
         </div>
       )}
     </section>
+  );
+}
+
+function ShareDialog({ analysis, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="panel slide-in my-auto w-full max-w-lg p-6"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Share ${analysis.title}`}
+      >
+        <div className="mb-4 flex items-center gap-3">
+          <Share2 size={16} className="text-accent-400" />
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-black text-white">{analysis.title}</h2>
+            <p className="text-[11px] text-white/35">Anyone here can open it, present it, and read the query behind every number.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="ml-auto shrink-0 rounded-lg border border-white/10 p-1.5 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <X size={14} />
+          </button>
+        </div>
+        <ShareControls analysisId={analysis.id} compact />
+      </div>
+    </div>
   );
 }

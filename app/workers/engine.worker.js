@@ -33,6 +33,7 @@ import {
 } from '../../lib/pipeline.js';
 import { planCharts } from '../../lib/analystPlanner.js';
 import { profileColumns } from '../../lib/chartResolver.js';
+import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import {
   buildDataModel,
@@ -777,12 +778,15 @@ function target(tableName) {
 }
 
 /**
- * Lowercased "all columns joined" text per row, built once and reused.
+ * The per-row search text, built once and reused.
  *
- * Searching without this re-stringified and re-lowercased every cell on every
+ * Searching without it re-stringified and re-lowercased every cell on every
  * keystroke — 1.8M string allocations per character on a 200k-row file. Built
  * lazily so a table that is never searched pays nothing for it, and keyed by
  * table so switching sheets rebuilds it rather than searching the wrong rows.
+ *
+ * The matching rules themselves live in `lib/rowSearch.js`, where they can be
+ * tested; this only decides when to build the index and when to throw it away.
  */
 let searchIdx = null;
 let searchIdxTable = null;
@@ -793,20 +797,13 @@ function invalidateSearchIndex() {
 }
 
 function searchIndex({ key, rows, columns }) {
-  if (searchIdx && searchIdxTable === key) return searchIdx;
-  const idx = new Array(rows.length);
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
-    let s = '';
-    for (let c = 0; c < columns.length; c++) {
-      const v = r[columns[c]];
-      if (v !== null && v !== undefined) s += v + '';
-    }
-    idx[i] = s.toLowerCase();
-  }
-  searchIdx = idx;
+  // Length is part of the check, not just the name: the view keeps its name
+  // across a model change, and an index one row out of step silently returns
+  // the wrong rows rather than failing.
+  if (searchIdx && searchIdxTable === key && searchIdx.length === rows.length) return searchIdx;
+  searchIdx = buildSearchIndex(rows, columns);
   searchIdxTable = key;
-  return idx;
+  return searchIdx;
 }
 
 /**
@@ -823,28 +820,12 @@ function selectRows({ filter = '', anomaliesOnly = false, table = null } = {}) {
 
   if (anomaliesOnly) rows = rows.filter((r) => r.isAnomaly);
 
-  if (filter) {
-    const needle = filter.toLowerCase();
-    if (rows === t.rows) {
-      // Fast path: scan the prebuilt index positionally.
-      const index = searchIndex(t);
-      const out = [];
-      for (let i = 0; i < index.length; i++) {
-        if (index[i].includes(needle)) out.push(t.rows[i]);
-      }
-      rows = out;
-    } else {
-      // Already filtered (outliers only), so fall back to a direct scan over the
-      // much smaller subset.
-      const cols = t.columns;
-      rows = rows.filter((r) => {
-        for (let c = 0; c < cols.length; c++) {
-          const v = r[cols[c]];
-          if (v !== null && v !== undefined && String(v).toLowerCase().includes(needle)) return true;
-        }
-        return false;
-      });
-    }
+  const terms = parseSearch(filter);
+  if (terms.length) {
+    // The prebuilt index only lines up with the full table. Once the outlier
+    // toggle has narrowed the rows, the subset is small enough to scan directly.
+    const index = rows === t.rows ? searchIndex(t) : null;
+    rows = searchRows(rows, t.columns, terms, index);
   }
 
   return { rows, table: t };

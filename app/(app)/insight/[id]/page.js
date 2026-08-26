@@ -20,6 +20,7 @@ import LazyChart from '../../../../components/charts/LazyChart';
 import ChartBoundary from '../../../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../../../lib/dataCleaner';
 import ChartStudio from '../../../../components/panels/ChartStudio';
+import { formatSql } from '../../../../lib/sqlFormat';
 
 export default function InsightPage() {
   const { id } = useParams();
@@ -191,8 +192,8 @@ export default function InsightPage() {
                 <span className="label">Query</span>
                 <ChevronRight size={14} className="ml-auto text-white/25 transition-transform group-open:rotate-90" />
               </summary>
-              <pre className="mt-3 overflow-x-auto rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
-                {chart.sql}
+              <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
+                {formatSql(chart.sql)}
               </pre>
             </details>
           )}

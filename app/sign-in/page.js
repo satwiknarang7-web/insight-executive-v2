@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck, Zap } from 'lucide-react';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
+import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 
 function SignInForm() {
@@ -40,6 +41,11 @@ function SignInForm() {
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
   const [cooldown, setCooldown] = useState(0);
+  // A correction the user can accept with one click, from either side: the
+  // typo checker here, or the server's answer when DNS says the domain does
+  // not take mail.
+  const [suggestion, setSuggestion] = useState(null);
+  const [touchedEmail, setTouchedEmail] = useState(false);
   const codeRef = useRef(null);
 
   const available = vaultAvailable();
@@ -64,6 +70,26 @@ function SignInForm() {
     if (step === 'code') codeRef.current?.focus();
   }, [step]);
 
+  /**
+   * What is wrong with the address, shown only once they have moved on from it.
+   *
+   * Validating as they type would tell someone their address is invalid before
+   * they have finished writing it, which is a form arguing with you. Only the
+   * server's answer is authoritative — this exists so the common mistakes are
+   * caught without a round trip.
+   */
+  const emailIssue = mode === 'sign-up' && touchedEmail && email ? emailProblem(email) : null;
+
+  // A near-miss on a well-known provider. Offered whether or not the address is
+  // otherwise valid: "sam@gmial.com" is perfectly well formed.
+  useEffect(() => {
+    if (mode !== 'sign-up' || !touchedEmail) {
+      setSuggestion(null);
+      return;
+    }
+    setSuggestion(emailProblem(email) ? null : suggestEmail(email));
+  }, [email, mode, touchedEmail]);
+
   const post = useCallback(async (path, payload) => {
     const res = await fetch(path, {
       method: 'POST',
@@ -74,6 +100,7 @@ function SignInForm() {
     if (!res.ok) {
       const err = new Error(data.error || 'That did not work.');
       err.restart = data.restart;
+      err.suggestion = data.suggestion;
       throw err;
     }
     return data;
@@ -115,6 +142,9 @@ function SignInForm() {
         setNotice(`Code sent to ${data.email}. It expires in 10 minutes.`);
       } catch (err) {
         setError(err.message);
+        // The server can see things this page cannot — whether the domain has a
+        // mail server at all — so its correction wins over the local guess.
+        if (err.suggestion) setSuggestion(err.suggestion);
       } finally {
         setBusy(false);
       }
@@ -235,10 +265,39 @@ function SignInForm() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouchedEmail(true)}
+                  aria-invalid={!!emailIssue}
+                  aria-describedby={emailIssue ? 'email-problem' : undefined}
                   className="w-full bg-transparent py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25"
                   placeholder="you@company.com"
                 />
               </div>
+
+              {emailIssue && (
+                <span id="email-problem" className="text-[12px] leading-relaxed text-amber-300/85">
+                  {emailIssue}
+                </span>
+              )}
+
+              {suggestion && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail(suggestion);
+                    setSuggestion(null);
+                    setError(null);
+                  }}
+                  className="self-start text-[12px] leading-relaxed text-accent-300 underline decoration-dotted underline-offset-2 hover:text-accent-200"
+                >
+                  Did you mean <span className="font-bold">{suggestion}</span>?
+                </button>
+              )}
+
+              {mode === 'sign-up' && !emailIssue && (
+                <span className="text-[11px] leading-relaxed text-white/30">
+                  A code goes to this address, so it has to be one you can open.
+                </span>
+              )}
             </label>
 
             <label className="flex flex-col gap-2">

@@ -3,6 +3,7 @@
 import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Code2, ChevronRight, Database } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
+import { formatSql } from '../../../lib/sqlFormat';
 
 export default function QualityPage() {
   const { dataset } = useDataset();
@@ -155,8 +156,8 @@ export default function QualityPage() {
                   <span className="shrink-0 text-[10px] text-white/25">{slide.chart?.resultData?.length || 0} rows</span>
                   <ChevronRight size={14} className="shrink-0 text-white/25 transition-transform group-open:rotate-90" />
                 </summary>
-                <pre className="mt-3 overflow-x-auto rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
-                  {slide.chart?.sql || 'No query recorded.'}
+                <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
+                  {formatSql(slide.chart?.sql) || 'No query recorded.'}
                 </pre>
                 {slide.chart?.sqlError && (
                   <p className="mt-2 text-[11px] text-rose-300/70">Engine error: {slide.chart.sqlError}</p>

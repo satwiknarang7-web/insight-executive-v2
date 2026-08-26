@@ -25,7 +25,14 @@ import ThemeToggle from '../../components/shell/ThemeToggle';
 import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
 import useNarration from '../../lib/useNarration';
-import { slideScript, summaryScript, pickVoice } from '../../lib/speech';
+import { dashboardScript, slideScript, summaryScript, pickVoice } from '../../lib/speech';
+
+/**
+ * Slides that are not one of the findings: the summary in front, and the board
+ * behind. Both exist because a deck that is only findings has no beginning and
+ * no end — you open on chart one and stop on chart nine.
+ */
+const EXTRA_SLIDES = 2;
 
 const SPEEDS = [
   { label: '1x', ms: 9000 },
@@ -46,11 +53,20 @@ export default function PresentPage() {
   const [choosing, setChoosing] = useState(false);
   const rootRef = useRef(null);
 
+  // Where "exit" goes. A restored analysis has no dataset, and the dashboard
+  // would only bounce back to the upload page — the profile page it was opened
+  // from is the honest way back.
+  const exitTo = dataset ? '/dashboard' : '/profile';
+
   const { avatar, avatarId, chooseAvatar } = useAvatar();
   // Prefers the configured ElevenLabs voice; falls back to the browser voice.
   const { speak, stop, speaking, voices, supported } = useNarration();
 
-  const total = (analysis?.storyboard?.length || 0) + 1;
+  const board = analysis?.storyboard || [];
+  const total = board.length + EXTRA_SLIDES;
+  // The closing board: every chart at once, after they have been walked
+  // through one at a time.
+  const onDashboard = total > EXTRA_SLIDES && page === total - 1;
 
   const go = useCallback(
     (delta) => {
@@ -60,15 +76,19 @@ export default function PresentPage() {
   );
 
   useEffect(() => {
-    if (status !== 'booting' && !dataset) router.replace('/');
-  }, [status, dataset, router]);
+    // A restored analysis has a storyboard and no rows behind it — that is what
+    // a shared analysis IS, and this is the screen for it. Requiring a dataset
+    // here meant an analysis someone sent you could be opened and then
+    // immediately bounced back to the upload page.
+    if (status !== 'booting' && !dataset && !analysis?.storyboard?.length) router.replace('/');
+  }, [status, dataset, analysis, router]);
 
   // Keyboard control: arrows, space to play/pause, escape to leave.
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'ArrowRight' || e.key === 'PageDown') go(1);
       else if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(-1);
-      else if (e.key === 'Escape') router.push('/dashboard');
+      else if (e.key === 'Escape') router.push(exitTo);
       else if (e.key === ' ') {
         e.preventDefault();
         setPlaying((p) => !p);
@@ -76,7 +96,7 @@ export default function PresentPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [go, router]);
+  }, [go, router, exitTo]);
 
   // The script for whatever slide is on screen, in the chosen avatar's voice.
   const script = useMemo(() => {
@@ -87,9 +107,10 @@ export default function PresentPage() {
         rowCount: dataset?.rowCount,
       });
     }
+    if (page === total - 1) return dashboardScript(analysis, avatar, { fileName: dataset?.fileName });
     const current = analysis.storyboard[page - 1];
     return slideScript(current, avatar, { index: page - 1, total: analysis.storyboard.length });
-  }, [analysis, avatar, page, dataset]);
+  }, [analysis, avatar, page, dataset, total]);
 
   const advance = useCallback(() => {
     setPlaying((isPlaying) => {
@@ -150,7 +171,7 @@ export default function PresentPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas text-center">
         <p className="text-sm text-white/40">There is nothing to present yet.</p>
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push(exitTo)}
           className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent hover:bg-accent-400"
         >
           Go to the dashboard
@@ -159,7 +180,7 @@ export default function PresentPage() {
     );
   }
 
-  const slide = page === 0 ? null : analysis.storyboard[page - 1];
+  const slide = page === 0 || onDashboard ? null : analysis.storyboard[page - 1];
 
   return (
     <div ref={rootRef} className="relative flex h-screen flex-col overflow-hidden bg-canvas">
@@ -177,7 +198,13 @@ export default function PresentPage() {
       {/* Top bar */}
       <header className="relative z-20 flex items-center justify-between gap-4 px-6 py-4">
         <div className="min-w-0">
-          <div className="label">{page === 0 ? 'Executive summary' : `Finding ${page} of ${total - 1}`}</div>
+          <div className="label">
+            {page === 0
+              ? 'Executive summary'
+              : onDashboard
+                ? 'Everything together'
+                : `Finding ${page} of ${total - EXTRA_SLIDES}`}
+          </div>
           <div className="mt-0.5 truncate text-sm font-bold text-white/60">{dataset?.fileName}</div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -218,7 +245,7 @@ export default function PresentPage() {
           <button onClick={goFullscreen} aria-label="Toggle fullscreen" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
             <Maximize2 size={15} />
           </button>
-          <button onClick={() => router.push('/dashboard')} aria-label="Exit presentation" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
+          <button onClick={() => router.push(exitTo)} aria-label="Exit presentation" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
             <X size={15} />
           </button>
         </div>
@@ -263,7 +290,13 @@ export default function PresentPage() {
 
       {/* Slide */}
       <div key={page} className="slide-in relative z-10 flex min-h-0 flex-1 flex-col px-6 pb-2 md:px-12">
-        {page === 0 ? <SummarySlide slideZero={analysis.slideZero} kpis={analysis.kpis} /> : <ChartSlide slide={slide} />}
+        {page === 0 ? (
+          <SummarySlide slideZero={analysis.slideZero} kpis={analysis.kpis} />
+        ) : onDashboard ? (
+          <DashboardSlide analysis={analysis} fileName={dataset?.fileName} />
+        ) : (
+          <ChartSlide slide={slide} />
+        )}
       </div>
 
       {/* Controls */}
@@ -322,7 +355,11 @@ export default function PresentPage() {
               }}
               aria-label={`Go to slide ${i + 1}`}
               className={`h-1 rounded-full transition-all ${
-                i === page ? 'w-7 bg-accent-500' : i === 0 ? 'w-3 bg-white/25' : 'w-3 bg-white/10 hover:bg-white/25'
+                i === page
+                  ? 'w-7 bg-accent-500'
+                  : i === 0 || i === total - 1
+                    ? 'w-3 bg-white/25'
+                    : 'w-3 bg-white/10 hover:bg-white/25'
               }`}
             />
           ))}
@@ -370,6 +407,87 @@ function SummarySlide({ slideZero, kpis }) {
         <Pill icon={Target} tone="accent" label="Focus" text={slideZero.strategicScorecard.focus} />
         <Pill icon={AlertTriangle} tone="rose" label="Risk" text={slideZero.strategicScorecard.risk} />
         <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={slideZero.strategicScorecard.opportunity} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The closing board: every finding at once.
+ *
+ * A deck read one chart at a time leaves the audience holding nine separate
+ * facts and no picture. This is the picture — the same charts, the same
+ * verified numbers, laid out together so the relationships between them are
+ * visible in one glance and so there is something to leave on screen while the
+ * room asks questions.
+ *
+ * Titles only, no narrative: every word has already been said, and repeating it
+ * in six-point type beside a thumbnail helps nobody.
+ */
+function DashboardSlide({ analysis, fileName }) {
+  const board = analysis.storyboard || [];
+  const kpis = analysis.kpis || [];
+  const card = analysis.slideZero?.strategicScorecard || {};
+
+  // Two columns up to four charts, three beyond that. Past nine, the grid stops
+  // being a dashboard and becomes a contact sheet, so it scrolls instead.
+  const columns = board.length <= 4 ? 'lg:grid-cols-2' : 'lg:grid-cols-3';
+
+  return (
+    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-y-auto py-2">
+      <div className="mb-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h1 className="text-2xl font-black tracking-tight md:text-3xl">
+          {analysis.slideZero?.title || 'Everything together'}
+        </h1>
+        <span className="text-[13px] text-white/40">
+          {board.length} {board.length === 1 ? 'finding' : 'findings'}
+          {fileName ? ` · ${fileName}` : ''}
+        </span>
+      </div>
+
+      {kpis.length > 0 && (
+        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {kpis.map((k, i) => (
+            <div key={`${k.label}-${i}`} className="card p-3">
+              <div className="text-xl font-black text-white md:text-2xl">{k.value}</div>
+              <div className="label mt-0.5 truncate">{k.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className={`grid gap-3 ${columns}`}>
+        {board.map((item) => (
+          <div key={item.id} className="card flex flex-col p-3">
+            <div className="mb-2 truncate text-[13px] font-black text-white/85" title={item.pageTitle}>
+              {item.pageTitle}
+            </div>
+            <div className="h-[190px] w-full">
+              <ChartBoundary resetKey={`board-${item.id}-${item.chart?.chart_type}`}>
+                <LazyChart
+                  data={item.chart?.resultData}
+                  type={item.chart?.chart_type}
+                  xKey={item.chart?.xAxisKey}
+                  yKey={item.chart?.yAxisKey}
+                  secondaryYKey={item.chart?.secondaryYAxisKey}
+                  colors={item.chart?.colors}
+                  labels={item.chart?.labels}
+                  colorBy={item.chart?.colorBy}
+                  xLabel={item.chart?.xAxisLabel}
+                  yLabel={item.chart?.yAxisLabel}
+                  compact
+                  eager
+                />
+              </ChartBoundary>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <Pill icon={Target} tone="accent" label="Focus" text={card.focus} />
+        <Pill icon={AlertTriangle} tone="rose" label="Risk" text={card.risk} />
+        <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={card.opportunity} />
       </div>
     </div>
   );
