@@ -42,7 +42,7 @@ export default function AreaChart({ data, xKey, yKey, xLabel, yLabel, compact = 
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsAreaChart data={data} margin={chartMargin({ bottom: x.bottom, right: 18 })}>
+      <RechartsAreaChart data={data} margin={chartMargin({ right: 18 })}>
         <defs>
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={0.35} />

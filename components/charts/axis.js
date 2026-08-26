@@ -140,20 +140,40 @@ export function yAxisGeometry(
 }
 
 /**
- * Legend props that reserve their own row instead of overlapping the plot.
- * Returns `null` for a single series, where a legend is pure noise.
+ * Legend props that reserve their own row instead of eating the plot.
+ *
+ * Every chart used to hand-roll its own `<Legend>`, and a vertical one aligned
+ * to the right had no width cap — on a dashboard card the radial chart's legend
+ * grew to 144px and squeezed the plot down to EIGHT pixels. Recharts reserves
+ * space from the legend's measured box, so the only reliable fix is to give it
+ * a shape that cannot grow: one horizontal row, of fixed height, along the top.
+ *
+ * Returns `null` when a legend would be noise or would not fit — a single
+ * series names itself, and a small card has no room for one at all. Callers
+ * render `{legend && <Legend {...legend} />}`.
  */
-export function legendGeometry(seriesCount = 1) {
-  if (seriesCount < 2) return null;
+export function legendProps({ seriesCount = 1, compact = false } = {}) {
+  if (seriesCount < 2 || compact) return null;
   return {
     verticalAlign: 'top',
     align: 'right',
-    height: 28,
+    layout: 'horizontal',
+    height: LEGEND_H,
     iconType: 'circle',
     iconSize: 8,
-    wrapperStyle: { paddingBottom: 8, paddingRight: 4, lineHeight: '18px' },
+    wrapperStyle: {
+      paddingBottom: 6,
+      paddingRight: 4,
+      lineHeight: '16px',
+      // Never taller than one row, whatever the series count.
+      maxHeight: LEGEND_H,
+      overflow: 'hidden',
+    },
   };
 }
+
+/** The one row a legend is allowed. */
+export const LEGEND_H = 26;
 
 /** Truncate only as a last resort, and only past `max`. */
 export function clip(value, max = HARD_MAX) {
@@ -162,9 +182,16 @@ export function clip(value, max = HARD_MAX) {
 }
 
 /**
- * Standard chart margins. `bottom` comes from the x geometry so rotated labels
- * always have room; the top gap leaves space for a legend row.
+ * Standard chart margins — breathing room only, never axis space.
  */
-export function chartMargin({ bottom = 40, legend = false, right = 16 } = {}) {
-  return { top: legend ? 8 : 16, right, left: 4, bottom: Math.max(8, bottom - 24) };
+export function chartMargin({ legend = false, right = 16 } = {}) {
+  // `bottom` is deliberately NOT derived from the x-axis gutter any more.
+  //
+  // Recharts reserves the axis gutter from `<XAxis height>` AND the margin on
+  // top of it, so passing the gutter here counted it twice: a rotated axis with
+  // a title reserved ~150px of a 224px card through the axis, then another
+  // ~128px through the margin. That is what pushed labels out of their box and
+  // left a band of dead space under every chart. The margin is now just
+  // breathing room; the axis owns its own gutter.
+  return { top: legend ? 4 : 12, right, left: 4, bottom: 6 };
 }

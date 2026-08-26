@@ -14,3 +14,5 @@ export { default as BubbleChart } from './BubbleChart';
 export { default as RibbonChart } from './RibbonChart';
 export { default as GaugeChart } from './GaugeChart';
 export { CardVisual, MultiRowCardVisual, KpiVisual, TableVisual, MatrixVisual } from './DataVisuals';
+export { default as GeoMap } from './GeoMap';
+export { default as ArcGisMap } from './ArcGisMap';

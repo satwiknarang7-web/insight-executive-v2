@@ -53,7 +53,7 @@ export default function HorizontalBarChart({ data, xKey, yKey, xLabel, yLabel, c
       <BarChart
         data={data}
         layout="vertical"
-        margin={chartMargin({ bottom: measureTitle ? 56 : 34, right: 24 })}
+        margin={chartMargin({ right: 24 })}
       >
         <CartesianGrid
           strokeDasharray="3 3"

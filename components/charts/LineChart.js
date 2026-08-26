@@ -63,7 +63,7 @@ export default function LineChart({ data, xKey, yKey, xLabel, yLabel, compact = 
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsLineChart data={data} margin={chartMargin({ bottom: x.bottom })}>
+      <RechartsLineChart data={data} margin={chartMargin()}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
         <YAxis

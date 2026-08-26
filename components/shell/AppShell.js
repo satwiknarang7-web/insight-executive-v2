@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Table2,
+  FolderOpen,
   MessageSquare,
   Sigma,
   ShieldCheck,
@@ -15,6 +16,8 @@ import {
   RotateCcw,
   Menu,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
   FileText,
   Database,
   GitBranch,
@@ -29,26 +32,54 @@ const NAV = [
   { href: '/ask', label: 'Ask', icon: MessageSquare, hint: 'Question your data in plain English' },
   { href: '/measures', label: 'Measures', icon: Sigma, hint: 'Name a calculation once, then reuse it' },
   { href: '/quality', label: 'Data Quality', icon: ShieldCheck, hint: 'Cleaning report and query audit' },
+  { href: '/library', label: 'Library', icon: FolderOpen, hint: 'Saved analyses, and ones shared with you' },
 ];
 
-function NavLink({ item, active, onNavigate }) {
+function NavLink({ item, active, onNavigate, collapsed = false }) {
   const Icon = item.icon;
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
-      title={item.hint}
-      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+      // Collapsed, the tooltip has to carry the name — the hint alone leaves a
+      // row of unlabelled icons.
+      title={collapsed ? `${item.label} — ${item.hint}` : item.hint}
+      aria-label={item.label}
+      className={`group flex items-center rounded-xl text-sm font-semibold transition-colors ${
+        collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'
+      } ${
         active
           ? 'bg-accent-500/12 text-accent-300 ring-1 ring-accent-500/25'
           : 'text-white/55 hover:bg-white/5 hover:text-white'
       }`}
     >
-      <Icon size={17} className={active ? 'text-accent-400' : 'text-white/35 group-hover:text-white/70'} />
-      {item.label}
+      <Icon
+        size={17}
+        className={`shrink-0 ${active ? 'text-accent-400' : 'text-white/35 group-hover:text-white/70'}`}
+      />
+      {!collapsed && item.label}
     </Link>
   );
 }
+
+/** Sidebar widths, in px. Applied inline — see the aside below. */
+const FULL_W = 256;
+const RAIL_W = 68;
+
+/** localStorage key for the rail preference. */
+const COLLAPSE_KEY = 'insight.sidebar.collapsed';
+
+/**
+ * The footer buttons, in both widths.
+ *
+ * One helper rather than two class strings per button: they were already
+ * near-identical, and a rail variant written out four more times is four more
+ * places for the two to drift apart.
+ */
+const actionClass = (rail) =>
+  `flex items-center rounded-lg border text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+    rail ? 'justify-center px-0 py-2.5' : 'gap-2 px-3 py-2'
+  }`;
 
 export default function AppShell({ children }) {
   const { dataset, status } = useDataset();
@@ -57,6 +88,28 @@ export default function AppShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Read after mount rather than during render: touching localStorage while
+  // rendering makes the server and client disagree and React throws.
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+    } catch {
+      /* private mode, or storage disabled — the default stands */
+    }
+  }, []);
+
+  const toggleCollapsed = () =>
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0');
+      } catch {
+        /* not worth failing a click over */
+      }
+      return next;
+    });
 
   // The whole app is client-side state; without a dataset these pages have
   // nothing to render, so send people back to the upload screen.
@@ -76,27 +129,56 @@ export default function AppShell({ children }) {
     );
   }
 
-  const sidebar = (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto p-5">
-      <Link href="/" className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
-          <Zap size={18} fill="currentColor" />
-        </div>
-        <div className="flex flex-col leading-none">
-          <span className="text-base font-black tracking-tight">Insight</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
-        </div>
-      </Link>
+  const renderSidebar = (rail = false) => (
+    <div className={`flex h-full flex-col gap-6 overflow-y-auto overflow-x-hidden ${rail ? 'p-3' : 'p-5'}`}>
+      <div className={`flex items-center ${rail ? 'flex-col gap-3' : 'gap-3'}`}>
+        <Link href="/" className="flex items-center gap-3" title="Insight Analytics">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
+            <Zap size={18} fill="currentColor" />
+          </div>
+          {!rail && (
+            <div className="flex flex-col leading-none">
+              <span className="text-base font-black tracking-tight">Insight</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
+            </div>
+          )}
+        </Link>
 
-      <div className="rounded-xl border border-white/7 bg-white/[0.02] p-3">
-        <div className="label mb-1">Dataset</div>
-        <div className="truncate text-sm font-bold text-white/85" title={dataset.fileName}>
-          {dataset.fileName}
-        </div>
-        <div className="mt-1 text-[11px] text-white/40">
-          {dataset.rowCount.toLocaleString()} rows · {dataset.columns.length} columns
-        </div>
+        {/* Desktop only: the drawer is dismissed, not collapsed. */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label={rail ? 'Expand the sidebar' : 'Collapse the sidebar'}
+          aria-expanded={!rail}
+          title={rail ? 'Expand the sidebar' : 'Collapse the sidebar'}
+          className={`hidden shrink-0 rounded-lg border border-white/10 p-1.5 text-white/40 transition-colors hover:bg-white/5 hover:text-white md:block ${
+            rail ? '' : 'ml-auto'
+          }`}
+        >
+          {rail ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+        </button>
       </div>
+
+      {/* The dataset card is all text; as a rail it becomes one icon with the
+          same information in its tooltip. */}
+      {rail ? (
+        <div
+          className="flex h-9 items-center justify-center rounded-lg border border-white/7 bg-white/[0.02] text-white/40"
+          title={`${dataset.fileName} — ${dataset.rowCount.toLocaleString()} rows · ${dataset.columns.length} columns`}
+        >
+          <FileText size={15} />
+        </div>
+      ) : (
+        <div className="rounded-xl border border-white/7 bg-white/[0.02] p-3">
+          <div className="label mb-1">Dataset</div>
+          <div className="truncate text-sm font-bold text-white/85" title={dataset.fileName}>
+            {dataset.fileName}
+          </div>
+          <div className="mt-1 text-[11px] text-white/40">
+            {dataset.rowCount.toLocaleString()} rows · {dataset.columns.length} columns
+          </div>
+        </div>
+      )}
 
       <nav className="flex flex-col gap-1">
         {NAV.map((item) => (
@@ -105,6 +187,7 @@ export default function AppShell({ children }) {
             item={item}
             active={pathname === item.href || pathname.startsWith(item.href + '/')}
             onNavigate={() => setMenuOpen(false)}
+            collapsed={rail}
           />
         ))}
         {dataset?.multiTable && (
@@ -117,6 +200,7 @@ export default function AppShell({ children }) {
             }}
             active={pathname === '/model'}
             onNavigate={() => setMenuOpen(false)}
+            collapsed={rail}
           />
         )}
         {analysis?.storyboard?.length > 0 && (
@@ -124,6 +208,7 @@ export default function AppShell({ children }) {
             item={{ href: '/present', label: 'Present', icon: Presentation, hint: 'Full-screen slide deck' }}
             active={pathname === '/present'}
             onNavigate={() => setMenuOpen(false)}
+            collapsed={rail}
           />
         )}
       </nav>
@@ -134,34 +219,38 @@ export default function AppShell({ children }) {
           <Link
             href="/connections"
             onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            title="Connections"
+            className={`${actionClass(rail)} border-white/10 text-white/45 hover:bg-white/5 hover:text-white`}
           >
-            <Database size={14} /> Connections
+            <Database size={14} /> {!rail && 'Connections'}
           </Link>
         )}
-        <ThemeToggle />
+        <ThemeToggle compact={rail} />
         {analysis?.storyboard?.length > 0 && (
           <Link
             href="/report"
-            className="flex items-center gap-2 rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-300 transition-colors hover:bg-accent-500/15"
+            title="Report"
+            className={`${actionClass(rail)} border-accent-500/25 bg-accent-500/8 text-accent-300 hover:bg-accent-500/15`}
           >
-            <FileText size={14} /> Report
+            <FileText size={14} /> {!rail && 'Report'}
           </Link>
         )}
         <button
           onClick={exportCsv}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50 transition-colors hover:bg-white/8 hover:text-white"
+          title="Download the cleaned CSV"
+          className={`${actionClass(rail)} border-white/10 bg-white/[0.03] text-white/50 hover:bg-white/8 hover:text-white`}
         >
-          <Download size={14} /> Cleaned CSV
+          <Download size={14} /> {!rail && 'Cleaned CSV'}
         </button>
         <button
           onClick={async () => {
             await reset();
             router.push('/');
           }}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-transparent px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/35 transition-colors hover:bg-white/5 hover:text-white/70"
+          title="Start over with a new dataset"
+          className={`${actionClass(rail)} border-white/10 bg-transparent text-white/35 hover:bg-white/5 hover:text-white/70`}
         >
-          <RotateCcw size={14} /> New dataset
+          <RotateCcw size={14} /> {!rail && 'New dataset'}
         </button>
       </div>
     </div>
@@ -196,13 +285,21 @@ export default function AppShell({ children }) {
               <X size={16} />
             </button>
           </div>
-          <div className="h-[calc(100vh-56px)]">{sidebar}</div>
+          <div className="h-[calc(100vh-56px)]">{renderSidebar(false)}</div>
         </div>
       )}
 
       <div className="relative z-10 flex">
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-white/7 bg-canvas-raised/80 md:block print:hidden">
-          {sidebar}
+        <aside
+          // The width is an inline style, not a utility class, on purpose: it is
+          // a piece of state, and relying on the JIT to have generated an
+          // arbitrary `w-[68px]` proved unreliable in dev — the class landed on
+          // the element with no rule behind it, so the rail silently stayed
+          // full width. A style attribute cannot be tree-shaken away.
+          style={{ width: collapsed ? RAIL_W : FULL_W }}
+          className="sticky top-0 hidden h-screen shrink-0 border-r border-white/7 bg-canvas-raised/80 transition-[width] duration-200 md:block print:hidden"
+        >
+          {renderSidebar(collapsed)}
         </aside>
         <main className="min-w-0 flex-1">{children}</main>
       </div>

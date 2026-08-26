@@ -152,31 +152,36 @@ export default function LandingPage() {
           </div>
         </header>
 
-        <div className="grid flex-1 items-center gap-12 py-12 lg:grid-cols-2 lg:gap-16">
+        <div className="grid items-start gap-10 py-12 lg:grid-cols-[1fr_minmax(0,470px)] lg:gap-14">
           {/* Left: pitch */}
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-black leading-[1.05] tracking-tight md:text-6xl">
+          <div className="flex flex-col lg:pt-6">
+            <h1 className="text-4xl font-black leading-[1.05] tracking-tight md:text-5xl">
               Upload a spreadsheet.
               <br />
-              <span className="text-accent-400">Get an analysis you can defend.</span>
+              <span className="text-white/45">Get an analysis you can defend.</span>
             </h1>
-            <p className="mt-6 max-w-lg text-base leading-relaxed text-white/50 md:text-lg">
-              Insight profiles your CSV, builds the charts an analyst would build, and computes every
-              statistic itself — so each claim on screen traces back to a query you can read.
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/50">
+              Transform raw data into findings you can stand behind. Insight profiles your data, builds the
+              charts an analyst would build, and computes every statistic itself — so each claim on screen
+              traces back to a query you can read.
             </p>
 
-            <div className="mt-10 flex flex-col gap-5">
-              {FEATURES.map((f) => (
-                <div key={f.title} className="flex gap-4">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-accent-400">
-                    <f.icon size={16} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white/85">{f.title}</div>
-                    <p className="mt-1 text-[13px] leading-relaxed text-white/40">{f.body}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="mt-8">
+              <span className="text-[9px] font-black uppercase tracking-[0.28em] text-white/30">
+                Works with
+              </span>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {['CSV & Excel', 'PostgreSQL', 'MySQL', 'SQL Server', 'Snowflake', 'Oracle', 'Fabric', 'Tableau'].map(
+                  (name) => (
+                    <span
+                      key={name}
+                      className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[11px] font-bold text-white/55"
+                    >
+                      {name}
+                    </span>
+                  )
+                )}
+              </div>
             </div>
           </div>
 
@@ -186,6 +191,12 @@ export default function LandingPage() {
 
             {!busy && dataset && (
               <div className="card p-6">
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="label">Data integrity report</span>
+                  <span className="ml-auto flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-emerald-400">
+                    <ShieldCheck size={10} /> Verified
+                  </span>
+                </div>
                 <div className="flex items-start gap-3">
                   <FileSpreadsheet className="mt-0.5 shrink-0 text-accent-400" size={20} />
                   <div className="min-w-0 flex-1">
@@ -228,10 +239,11 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-                  <Stat label="Redacted" value={dataset.metrics.redactedPII} tone="accent" />
-                  <Stat label="Blanks" value={dataset.metrics.nullsFound} tone="amber" />
-                  <Stat label="Coerced" value={dataset.metrics.typesCoerced} tone="plain" />
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <Stat label="Redacted PII" value={dataset.metrics.redactedPII} tone="accent" />
+                  <Stat label="Blanks found" value={dataset.metrics.nullsFound} tone="amber" />
+                  <Stat label="Types coerced" value={dataset.metrics.typesCoerced} tone="plain" />
+                  <Stat label="Outliers flagged" value={dataset.metrics.outliersCount} tone="plain" />
                 </div>
 
                 <button
@@ -375,6 +387,19 @@ export default function LandingPage() {
           </div>
         </div>
 
+        {/* What the product does, as three cards rather than a list. */}
+        <section className="grid gap-4 border-t border-white/6 py-10 md:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="card p-5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/8 bg-white/[0.04] text-accent-400">
+                <f.icon size={16} />
+              </div>
+              <div className="mt-4 text-sm font-bold text-white/85">{f.title}</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{f.body}</p>
+            </div>
+          ))}
+        </section>
+
         <footer className="border-t border-white/6 pt-6 text-[11px] text-white/25">
           Files are parsed, cleaned and queried entirely in your browser. Only anonymous summary statistics
           are sent to a language model, and only to phrase them — never your rows.
@@ -385,11 +410,11 @@ export default function LandingPage() {
 }
 
 function Stat({ label, value, tone }) {
-  const color = tone === 'accent' ? 'text-accent-400' : tone === 'amber' ? 'text-amber-400' : 'text-white/70';
+  const color = tone === 'accent' ? 'text-accent-400' : tone === 'amber' ? 'text-amber-400' : 'text-white/80';
   return (
-    <div className="rounded-lg border border-white/6 bg-white/[0.02] px-2 py-2.5">
-      <div className={`text-base font-black ${color}`}>{(value || 0).toLocaleString()}</div>
-      <div className="mt-0.5 text-[8px] font-black uppercase tracking-[0.2em] text-white/25">{label}</div>
+    <div className="rounded-xl border border-white/6 bg-white/[0.02] px-3 py-3">
+      <div className={`text-2xl font-black tracking-tight ${color}`}>{(value || 0).toLocaleString()}</div>
+      <div className="mt-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/30">{label}</div>
     </div>
   );
 }

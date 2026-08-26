@@ -15,7 +15,7 @@ import {
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin, clip, prettyLabel } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, clip, prettyLabel, legendProps } from './axis';
 
 const CustomXAxisTick = ({ x, y, payload, rotated }) => {
   const value = payload.value;
@@ -73,6 +73,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, yLabel, compact = false }) {
+  const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   const gradientId = React.useId();
@@ -100,7 +101,7 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, y
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <ComposedChart data={processedData} margin={chartMargin({ bottom: xGeo.bottom })}>
+      <ComposedChart data={processedData} margin={chartMargin({ legend: true })}>
         <defs>
           <linearGradient id={composedGradient} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
@@ -146,18 +147,16 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, y
           cursor={{ fill: 'var(--veil)', radius: [8, 8, 0, 0] }}
           animationDuration={200}
         />
-        <Legend 
-          verticalAlign="top" 
-          align="right"
-          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
-          iconType="circle" 
-          iconSize={8}
-          formatter={(value) => (
-            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace(/_/g, ' ')}
-            </span>
-          )}
-        />
+        {legend && (
+          <Legend
+            {...legend}
+            formatter={(value) => (
+              <span className="ml-1.5 text-[10px] font-black uppercase tracking-widest text-white/60">
+                {String(value).replace(/_/g, ' ')}
+              </span>
+            )}
+          />
+        )}
         <Bar 
           yAxisId="left" 
           dataKey={yKey} 

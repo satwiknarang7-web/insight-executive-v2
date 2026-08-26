@@ -60,7 +60,7 @@ export default function BarChart({ data, xKey, yKey, xLabel, yLabel, compact = f
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsBarChart data={data} margin={chartMargin({ bottom: x.bottom })}>
+      <RechartsBarChart data={data} margin={chartMargin()}>
         <defs>
           <linearGradient id={barGradient} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>

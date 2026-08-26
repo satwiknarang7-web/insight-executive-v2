@@ -8,6 +8,7 @@ import {
   PolarAngleAxis
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { legendProps } from './axis';
 import { usePalette } from './palette';
 import { formatNumber } from '../../lib/format';
 
@@ -31,7 +32,9 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function RadialBarChart({ data, nameKey, valueKey }) {
+export default function RadialBarChart({ data, nameKey, valueKey, compact = false }) {
+  // One row, or none at all on a small card — see legendProps.
+  const legend = legendProps({ seriesCount: (data || []).length, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
@@ -69,20 +72,16 @@ export default function RadialBarChart({ data, nameKey, valueKey }) {
           cornerRadius={10}
           animationDuration={450}
         />
-        <Legend 
-          iconSize={8} 
-          layout="vertical" 
-          verticalAlign="middle" 
-          align="right"
-          wrapperStyle={{
-            paddingLeft: '40px',
-          }}
-          formatter={(value) => (
-            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {value}
-            </span>
-          )}
-        />
+        {legend && (
+          <Legend
+            {...legend}
+            formatter={(value) => (
+              <span className="ml-1.5 text-[10px] font-black uppercase tracking-widest text-white/60">
+                {value}
+              </span>
+            )}
+          />
+        )}
       </RechartsRadialBarChart>
     </ResponsiveContainer>
   );

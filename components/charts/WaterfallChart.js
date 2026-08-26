@@ -59,7 +59,7 @@ export default function WaterfallChart({ data, xKey, yKey, xLabel, yLabel, compa
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <BarChart data={rows} margin={chartMargin({ bottom: x.bottom })} stackOffset="sign">
+      <BarChart data={rows} margin={chartMargin()} stackOffset="sign">
         <CartesianGrid
           strokeDasharray="3 3"
           stroke="var(--chart-grid)"

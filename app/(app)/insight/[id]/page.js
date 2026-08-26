@@ -116,7 +116,11 @@ export default function InsightPage() {
             )}
           </div>
 
-          <div className="h-[420px] w-full md:h-[520px]">
+          {/* Sized to the chart, not to a round number. 520px was chosen when the
+              axis gutter was double-counted and ~110px of it went unused; the
+              chart now fills what it is given, so this is smaller and the page
+              no longer opens with a band of empty space under the plot. */}
+          <div className="h-[360px] w-full md:h-[440px]">
             <ChartBoundary resetKey={`${slide.id}-${shownType}-${shownColorBy}-${(shownColors || []).join()}`}>
               <LazyChart
                 data={chart.resultData}

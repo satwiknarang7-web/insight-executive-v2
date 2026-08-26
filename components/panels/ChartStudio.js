@@ -22,7 +22,7 @@ import { prettyLabel } from '../charts/axis';
 
 // Everything DynamicChart can render. 'column' is the vertical bar under the
 // name people expect from Power BI; the resolver maps it back to 'bar'.
-const TYPES = ['auto', 'bar', 'hbar', 'column', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap', 'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar', 'card', 'multicard', 'kpi', 'table', 'matrix'];
+const TYPES = ['auto', 'bar', 'hbar', 'column', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap', 'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar', 'card', 'multicard', 'kpi', 'table', 'matrix', 'filledmap', 'bubblemap', 'shapemap', 'arcgis'];
 
 /** Names that read better than the internal key. */
 const TYPE_LABEL = {
@@ -31,6 +31,10 @@ const TYPE_LABEL = {
   column: 'column (vertical)',
   multicard: 'multi-row card',
   composed: 'combo (line + column)',
+  filledmap: 'filled map',
+  bubblemap: 'bubble map',
+  shapemap: 'shape map',
+  arcgis: 'ArcGIS map',
 };
 
 /** Which preset (if any) a saved colour list corresponds to. */

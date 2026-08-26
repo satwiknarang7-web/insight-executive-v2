@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { legendProps } from './axis';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter, formatValue } from '../../lib/format';
 
@@ -29,7 +30,8 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function DonutChart({ data, nameKey, valueKey, variant = 'donut' }) {
+export default function DonutChart({ data, nameKey, valueKey, variant = 'donut', compact = false }) {
+  const legend = legendProps({ seriesCount: (data || []).length, compact });
   const solid = variant === 'pie';
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
@@ -94,19 +96,16 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut' 
           />
         </Pie>
         <Tooltip content={<CustomTooltip />} />
-        <Legend 
-          layout="vertical" 
-          verticalAlign="middle" 
-          align="right"
-          iconType="circle" 
-          iconSize={8}
-          wrapperStyle={{ paddingLeft: '20px', lineHeight: '2.2em' }}
-          formatter={(value) => (
-            <span className="text-white/50 font-bold text-[11px] ml-2 capitalize">
-              {String(value).replace(/_/g, ' ')}
-            </span>
-          )}
-        />
+        {legend && (
+          <Legend
+            {...legend}
+            formatter={(value) => (
+              <span className="ml-1.5 text-[11px] font-bold capitalize text-white/50">
+                {String(value).replace(/_/g, ' ')}
+              </span>
+            )}
+          />
+        )}
       </PieChart>
     </ResponsiveContainer>
   );

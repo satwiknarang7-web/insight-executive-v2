@@ -14,6 +14,7 @@ import {
   Presentation,
   Plus,
   Trash2,
+  Bookmark,
   StickyNote,
   GitBranch,
   Pencil,
@@ -28,6 +29,7 @@ import EditableText from '../../../components/panels/EditableText';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 import { KPI_METRICS, metricNeedsColumn } from '../../../lib/kpiMetrics';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
+import SaveAnalysisDialog from '../../../components/panels/SaveAnalysisDialog';
 import { modelConcerns } from '../../../lib/dataModel';
 
 export default function DashboardPage() {
@@ -36,10 +38,11 @@ export default function DashboardPage() {
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
   const customMeasures = useMeasures();
-  const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi } =
+  const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
     useActions();
   const router = useRouter();
   const [building, setBuilding] = useState(false);
+  const [saving, setSaving] = useState(false);
   // One switch for the whole page. A pencil beside every field would put an
   // affordance next to every sentence on a dashboard whose job is to be read.
   const [editing, setEditing] = useState(false);
@@ -150,6 +153,12 @@ export default function DashboardPage() {
             className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
           >
             <Plus size={13} /> New chart
+          </button>
+          <button
+            onClick={() => setSaving(true)}
+            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <Bookmark size={13} /> Save
           </button>
           <button
             onClick={() => router.push('/present')}
@@ -339,6 +348,15 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+
+      {saving && (
+        <SaveAnalysisDialog
+          snapshot={analysisSnapshot()}
+          datasetName={dataset?.fileName}
+          rowCount={dataset?.rowCount}
+          onClose={() => setSaving(false)}
+        />
+      )}
 
       {building && (
         <NewChartDialog
@@ -560,6 +578,7 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
             colorBy={slide.chart?.colorBy}
             xLabel={slide.chart?.xAxisLabel}
             yLabel={slide.chart?.yAxisLabel}
+            compact
             eager={index < 2}
           />
         </ChartBoundary>

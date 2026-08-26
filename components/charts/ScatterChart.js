@@ -15,7 +15,7 @@ import {
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, axisTitleProps } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, axisTitleProps, legendProps } from './axis';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -47,6 +47,7 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
+  const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
@@ -86,7 +87,7 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
-      <RechartsScatterChart margin={chartMargin({ bottom: xGeo.bottom })}>
+      <RechartsScatterChart margin={chartMargin({ legend: true })}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         <XAxis
           {...xGeo.props}
@@ -111,19 +112,16 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
         />
         <ZAxis type="number" range={[60, 400]} />
         <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--chart-grid)', strokeOpacity: 0.25 }} />
-        <Legend 
-          verticalAlign="top" 
-          align="right"
-          height={26}
-          wrapperStyle={{ paddingBottom: '6px', paddingRight: '10px' }}
-          iconType="circle" 
-          iconSize={8}
-          formatter={(value) => (
-            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace(/_/g, ' ')}
-            </span>
-          )}
-        />
+        {legend && (
+          <Legend
+            {...legend}
+            formatter={(value) => (
+              <span className="ml-1.5 text-[10px] font-black uppercase tracking-widest text-white/60">
+                {String(value).replace(/_/g, ' ')}
+              </span>
+            )}
+          />
+        )}
         
         {/* Historical Series - Split for performance on large datasets */}
         {data.length > 1000 && xIsNumber && yIsNumber ? (

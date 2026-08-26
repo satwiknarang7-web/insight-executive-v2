@@ -26,6 +26,7 @@ const TYPES = [
   'bar', 'hbar', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap',
   'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar',
   'card', 'multicard', 'kpi', 'table', 'matrix',
+  'filledmap', 'bubblemap', 'shapemap', 'arcgis',
 ];
 const LIMITS = [5, 10, 15, 20, 30];
 

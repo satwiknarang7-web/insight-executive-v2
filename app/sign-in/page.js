@@ -16,7 +16,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, KeyRound, Loader2, Mail, ShieldCheck, Zap } from 'lucide-react';
+import { Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck, Zap } from 'lucide-react';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 
@@ -173,11 +173,11 @@ function SignInForm() {
   }, []);
 
   return (
-    <main className="relative min-h-screen bg-canvas">
-      <div className="ambient-wash" />
-
-      <header className="relative z-10 flex items-center gap-3 px-6 py-5">
-        <Link href="/" className="flex items-center gap-3">
+    <main className="relative min-h-screen bg-canvas lg:grid lg:grid-cols-[1.1fr_1fr]">
+      {/* Left: the pitch, on its own raised panel. */}
+      <section className="relative flex flex-col overflow-hidden bg-canvas-raised px-7 py-8 lg:px-12 lg:py-12">
+        <div className="ambient-wash" />
+        <Link href="/sign-in" className="relative z-10 flex w-fit items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
             <Zap size={18} fill="currentColor" />
           </span>
@@ -186,33 +186,32 @@ function SignInForm() {
             <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
           </span>
         </Link>
-        <div className="ml-auto flex items-center gap-2">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
-          >
-            <ArrowLeft size={13} /> Back
-          </Link>
+        <Pitch />
+      </section>
+
+      {/* Right: the form, centred, on the plain page. */}
+      <section className="relative flex items-center justify-center px-6 py-10 lg:px-10">
+        <div className="absolute right-5 top-5 z-20">
           <ThemeToggle />
         </div>
-      </header>
 
-      <div className="relative z-10 mx-auto w-full max-w-lg px-6 pb-20 pt-6">
-        <span className="label">{mode === 'sign-up' ? 'Create an account' : 'Sign in'}</span>
-        <h1 className="mt-2 text-2xl font-black tracking-tight">
-          {step === 'code' ? 'Check your email' : 'Sign in to Insight Analytics'}
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-white/50">
+        <div className="panel relative z-10 w-full max-w-md p-7">
+          <h1 className="text-xl font-black tracking-tight">
+            {step === 'code'
+              ? 'Check your email'
+              : mode === 'sign-up'
+              ? 'Create your account'
+              : 'Sign in to Insight Analytics'}
+          </h1>
           {step === 'code' ? (
-            <>We sent a six-digit code to <span className="font-bold text-white/75">{email}</span>.</>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/50">
+              We sent a six-digit code to <span className="font-bold text-white/75">{email}</span>.
+            </p>
           ) : (
-            <>
-              Your account is the first step; choosing a data source is the second. Spreadsheets are still
-              parsed and analysed entirely in your browser — the account exists so saved database
-              connections have somewhere safe to live.
-            </>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/45">
+              Your account is the first step; choosing a data source is the second.
+            </p>
           )}
-        </p>
 
         {!available ? (
           <div className="card mt-6 flex flex-col gap-2 p-5">
@@ -337,15 +336,100 @@ function SignInForm() {
           </form>
         )}
 
-        <p className="mt-5 flex items-start gap-2 text-[12px] leading-relaxed text-white/35">
-          <ShieldCheck size={14} className="mt-0.5 shrink-0 text-accent-400/70" />
-          Your spreadsheet never leaves your browser. Database credentials you save are encrypted on the
-          server and are never sent back to it.
-        </p>
-      </div>
+          <p className="mt-5 flex items-start gap-2 text-[11px] leading-relaxed text-white/30">
+            <ShieldCheck size={13} className="mt-0.5 shrink-0 text-accent-400/70" />
+            Your spreadsheet never leaves your browser. Database credentials you save are encrypted on the
+            server and are never sent back to it.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
+
+/**
+ * The left half of the landing page.
+ *
+ * Says what the product does and why its numbers can be trusted, because the
+ * sign-in form on its own gives someone arriving for the first time no reason
+ * to fill it in. Every claim here is one the app actually keeps — the
+ * statistics really are computed locally, and the model really is only allowed
+ * to phrase findings it was handed.
+ */
+function Pitch() {
+  return (
+    <div className="relative z-10 mt-12 flex flex-1 flex-col justify-center lg:mt-0">
+      <h2 className="max-w-md text-[2rem] font-black leading-[1.12] tracking-tight lg:text-[2.6rem]">
+        Every number on the dashboard traces back to a{' '}
+        <span className="text-accent-400">query you can read.</span>
+      </h2>
+
+      <p className="mt-4 text-sm font-bold text-white/55">Analysis you can defend.</p>
+
+      <div className="mt-9 flex max-w-lg flex-col gap-5">
+        {HIGHLIGHTS.map((h) => (
+          <div key={h.title} className="flex gap-3.5">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/8 bg-white/[0.04] text-accent-400">
+              <h.icon size={14} />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[13px] font-bold text-white/85">{h.title}</div>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{h.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-10 max-w-lg border-t border-white/6 pt-6">
+        <span className="text-[9px] font-black uppercase tracking-[0.28em] text-white/30">
+          Supported integrations
+        </span>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {SOURCES.map((name) => (
+            <span
+              key={name}
+              className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[11px] font-bold text-white/55"
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Named rather than pulled from the connector registry: this is a claim about
+ *  what the product supports, and it should not silently change if a driver is
+ *  added behind a feature flag. */
+const SOURCES = [
+  'PostgreSQL',
+  'MySQL',
+  'SQL Server',
+  'Snowflake',
+  'Oracle',
+  'Microsoft Fabric',
+  'Tableau',
+  'CSV & Excel',
+];
+
+const HIGHLIGHTS = [
+  {
+    icon: Gauge,
+    title: 'Computed, not guessed',
+    body: 'Statistics come from real SQL over your rows. The model only phrases findings it was handed — it never does the maths.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Your data stays yours',
+    body: 'Spreadsheets are parsed and queried in your browser. Saved credentials are encrypted server-side and never sent back.',
+  },
+  {
+    icon: Presentation,
+    title: 'Ready to present',
+    body: 'A narrated deck, an executive summary and an exportable report, from the same verified findings — shareable with your team.',
+  },
+];
 
 function Feedback({ error, notice }) {
   if (error) {

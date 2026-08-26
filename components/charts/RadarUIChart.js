@@ -1,5 +1,6 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
+import { legendProps } from './axis';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 
@@ -31,7 +32,8 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function RadarUIChart({ data, nameKey }) {
+export default function RadarUIChart({ data, nameKey, compact = false }) {
+  const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   // Radar charts usually show multiple variables for a single subject or compare subjects across variables.
@@ -45,18 +47,16 @@ export default function RadarUIChart({ data, nameKey }) {
         <PolarAngleAxis dataKey={nameKey} tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} />
         <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }} axisLine={false} />
         <Tooltip content={<CustomTooltip />} />
-        <Legend 
-          verticalAlign="top" 
-          align="right"
-          wrapperStyle={{ paddingBottom: '40px', paddingRight: '10px' }}
-          iconType="circle" 
-          iconSize={8}
-          formatter={(value) => (
-            <span className="text-white/60 font-black text-[10px] ml-2 uppercase tracking-widest">
-              {String(value).replace(/_/g, ' ')}
-            </span>
-          )}
-        />
+        {legend && (
+          <Legend
+            {...legend}
+            formatter={(value) => (
+              <span className="ml-1.5 text-[10px] font-black uppercase tracking-widest text-white/60">
+                {String(value).replace(/_/g, ' ')}
+              </span>
+            )}
+          />
+        )}
         {keys.map((key, index) => (
           <Radar
             key={key}

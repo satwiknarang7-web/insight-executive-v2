@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xAxisGeometry, yAxisGeometry, legendGeometry, clip } from '../components/charts/axis.js';
+import { xAxisGeometry, yAxisGeometry, legendProps, chartMargin, LEGEND_H, clip } from '../components/charts/axis.js';
 
 const rows = (labels, key = 'region', value = 'Total') =>
   labels.map((l, i) => ({ [key]: l, [value]: (i + 1) * 1000 }));
@@ -60,11 +60,35 @@ test('the y gutter grows to fit the widest formatted tick', () => {
 });
 
 test('a single series gets no legend', () => {
-  assert.equal(legendGeometry(1), null);
-  const two = legendGeometry(2);
-  assert.equal(two.height, 28);
+  assert.equal(legendProps({ seriesCount: 1 }), null);
+  const two = legendProps({ seriesCount: 2 });
+  assert.equal(two.height, LEGEND_H);
   // The old legend reserved 40px of *padding* and still overlapped the plot.
   assert.ok(two.wrapperStyle.paddingBottom <= 12);
+});
+
+test('a legend is never taller than one row, however many series', () => {
+  // A vertical legend with no cap grew to 144px on a 224px card and squeezed
+  // the plot into what was left.
+  const many = legendProps({ seriesCount: 12 });
+  assert.equal(many.layout, 'horizontal');
+  assert.equal(many.height, LEGEND_H);
+  assert.equal(many.wrapperStyle.maxHeight, LEGEND_H);
+  assert.equal(many.wrapperStyle.overflow, 'hidden');
+});
+
+test('a small card gets no legend at all', () => {
+  assert.equal(legendProps({ seriesCount: 6, compact: true }), null);
+});
+
+test('the margin never reserves axis space', () => {
+  // The axis reserves its own gutter through `<XAxis height>`; adding it to the
+  // margin counted it twice and pushed labels out of the container.
+  const m = chartMargin();
+  assert.ok(m.bottom <= 12, `bottom margin should stay small, got ${m.bottom}`);
+  assert.ok(m.top <= 16);
+  // And it must not vary with the axis gutter any more.
+  assert.deepEqual(chartMargin(), chartMargin({ bottom: 130 }));
 });
 
 test('empty data does not throw', () => {
