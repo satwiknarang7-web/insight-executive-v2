@@ -1,83 +1,57 @@
-import { NextResponse } from "next/server";
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+/**
+ * Download the report as a PDF.
+ *
+ * The rendering itself lives in `lib/report/pdf.server.js`, because emailing a
+ * report has to produce byte-for-byte the same document as downloading one —
+ * two copies of the headless-Chrome setup would drift on page size, waits or
+ * scale within a release, and a report that looks different depending on how it
+ * left the building is one nobody can refer to in a meeting.
+ */
+import { NextResponse } from 'next/server';
+import {
+  ReportRendererUnavailable,
+  cookiesOf,
+  originOf,
+  renderReportPdf,
+  reportFilename,
+} from '../../../../lib/report/pdf.server';
+
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 export async function POST(request) {
-  let browser = null;
+  let analysis;
   try {
-    const reportData = await request.json();
+    analysis = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Expected a JSON body.' }, { status: 400 });
+  }
 
-    if (!reportData) {
-      return NextResponse.json({ error: "No data provided for report generation" }, { status: 400 });
-    }
+  if (!analysis) {
+    return NextResponse.json({ error: 'No data provided for report generation' }, { status: 400 });
+  }
 
-    // Determine the base URL for navigation
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    const host = request.headers.get('host');
-    const baseUrl = `${protocol}://${host}`;
-    const printUrl = `${baseUrl}/report/print`;
-
-    const isLocal = process.env.NODE_ENV === 'development';
-    const executablePath = isLocal 
-      ? (process.env.CHROME_PATH || 
-         (process.platform === 'win32' ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' :
-          process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' :
-          '/usr/bin/google-chrome'))
-      : await chromium.executablePath();
-
-    browser = await puppeteer.launch({
-      args: isLocal ? [] : chromium.args,
-      defaultViewport: { width: 1920, height: 1080 },
-      executablePath: executablePath,
-      headless: true,
+  try {
+    const pdf = await renderReportPdf(analysis, {
+      origin: originOf(request),
+      cookies: cookiesOf(request),
     });
-
-    const page = await browser.newPage();
-    
-    // Force the virtual browser window size to match A4 at 96 DPI
-    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
-    
-    // Inject the data before navigation so it's available in the print route
-    await page.evaluateOnNewDocument((data) => {
-      window.PRINT_DATA = data;
-    }, reportData);
-
-    await page.goto(printUrl, { 
-      waitUntil: 'networkidle0',
-      timeout: 60000 
-    });
-
-    // Wait for the data to be injected and the main container to render
-    await page.waitForSelector('.print-container-rendered', { timeout: 20000 }).catch(() => console.warn('Render selector timeout'));
-    // Add a buffer for Recharts and other elements to stabilize
-    await new Promise(resolve => setTimeout(resolve, 3000)); 
-
-    const pdf = await page.pdf({
-      width: '794px',
-      height: '1123px',
-      printBackground: true,
-      displayHeaderFooter: false,
-      margin: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0
-      }
-    });
+    const filename = reportFilename(analysis?.slideZero?.title || 'Insight Executive Report');
 
     return new Response(pdf, {
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="Insight_Executive_Report.pdf"',
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
-
   } catch (error) {
-    console.error("PDF Generation Error:", error);
-    return NextResponse.json({ error: "Failed to generate PDF", details: error.message }, { status: 500 });
-  } finally {
-    if (browser) {
-      await browser.close();
+    // A host with no browser is a deployment fact, not a bug. The page offers
+    // browser printing instead, which always works.
+    if (error instanceof ReportRendererUnavailable) {
+      console.error('[export/pdf]', error.message);
+      return NextResponse.json({ error: error.message, rendererMissing: true }, { status: 503 });
     }
+    console.error('[export/pdf]', error.message);
+    return NextResponse.json({ error: 'Failed to generate PDF', details: error.message }, { status: 500 });
   }
 }

@@ -9,6 +9,7 @@ import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import { formatNumber } from '../../../lib/format';
 import { formatSql } from '../../../lib/sqlFormat';
+import { questionRelevance } from '../../../lib/askIntent';
 
 const EXAMPLES = [
   'Which category brings in the most revenue?',
@@ -30,6 +31,18 @@ export default function AskPage() {
     async (text) => {
       const q = (text ?? question).trim();
       if (!q || busy) return;
+
+      // A question that is not about the data has no honest answer here. The
+      // deterministic planner will always return *something* — its own best
+      // candidate — and presenting that as the answer to "hello how are you"
+      // is a chart with a confident sentence under it about a question nobody
+      // asked. Refusing is the only truthful option.
+      const relevance = questionRelevance(q, { columns: dataset?.columns || [] });
+      if (!relevance.answerable) {
+        setError(relevance.reason);
+        return;
+      }
+
       setBusy(true);
       setError(null);
 
@@ -55,8 +68,19 @@ export default function AskPage() {
         if (!spec) {
           const suggested = await call('suggest', { question: q });
           if (!suggested?.spec) throw new Error('Could not build a chart for that question.');
+          // `matched` means at least one word of the question landed on one of
+          // the planner's candidates. Without that, its "best" candidate is
+          // simply its first, and showing it as an answer is the bug this
+          // page had: a chart labelled "closest available" that is closest to
+          // nothing.
+          if (!suggested.matched) {
+            throw new Error(
+              'No language model is configured, and nothing in that question matches a column here — ' +
+                'so there is no chart that would honestly answer it. Try naming a column, or open the Dashboard for the charts already built.'
+            );
+          }
           spec = suggested.spec;
-          source = suggested.matched ? 'planner' : 'planner-default';
+          source = 'planner';
         }
 
         // 3. Execute locally and compute verified statistics.
@@ -145,8 +169,9 @@ export default function AskPage() {
               computed from the real results — not written by the model.
             </p>
             <p className="mt-3 text-[12px] leading-relaxed text-white/35">
-              With no model configured, a deterministic planner picks the closest matching chart instead, so
-              the page still works offline.
+              With no model configured, a deterministic planner matches your question against the charts it
+              can build from these columns, so the page still works offline. When nothing matches it says so
+              rather than showing you an unrelated chart.
             </p>
           </div>
 
@@ -169,7 +194,7 @@ function Answer({ answer }) {
             {source !== 'model' && (
               <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.15em] text-amber-400/70">
                 <Info size={10} />
-                {source === 'planner' ? 'Matched offline' : 'Closest available chart'}
+                Matched offline
               </span>
             )}
           </div>

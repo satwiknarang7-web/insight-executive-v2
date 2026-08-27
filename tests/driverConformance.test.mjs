@@ -149,8 +149,11 @@ test('Fabric offers no password, because Entra ID is the only way in', () => {
 
 test('the registry advertises exactly the sources that have a driver', () => {
   const registry = read('drivers.server.js');
-  // Supabase shares the Postgres driver.
-  for (const name of [...DRIVERS, 'supabase']) {
+  // Supabase and Neon both share the Postgres driver. Neon stores as `postgres`
+  // so it does not normally reach its own entry; the entry is kept so that a row
+  // stored under `neon` — by an older build, or a widened constraint — still
+  // resolves to a driver rather than to nothing.
+  for (const name of [...DRIVERS, 'supabase', 'neon']) {
     assert.match(registry, new RegExp(`\\b${name}:`), `${name} is missing from the driver registry`);
   }
   // Every planned source now has a driver, so the registry should list
@@ -158,7 +161,7 @@ test('the registry advertises exactly the sources that have a driver', () => {
   const listed = [...registry.matchAll(/^ {2}(\w+):/gm)].map((m) => m[1]);
   assert.deepEqual(
     [...listed].sort(),
-    [...DRIVERS, 'supabase'].sort(),
+    [...DRIVERS, 'supabase', 'neon'].sort(),
     'the driver registry and the driver list have drifted apart'
   );
 });

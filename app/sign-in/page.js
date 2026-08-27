@@ -16,9 +16,10 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck, Zap } from 'lucide-react';
+import { Eye, EyeOff, Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck, Zap } from 'lucide-react';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
+import { MIN_PASSWORD } from '../../lib/auth/otp';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 
 function SignInForm() {
@@ -46,6 +47,9 @@ function SignInForm() {
   // not take mail.
   const [suggestion, setSuggestion] = useState(null);
   const [touchedEmail, setTouchedEmail] = useState(false);
+  // Revealing the password is a deliberate, momentary act, so it resets
+  // whenever the form changes purpose rather than staying on across modes.
+  const [showPassword, setShowPassword] = useState(false);
   const codeRef = useRef(null);
 
   const available = vaultAvailable();
@@ -78,17 +82,22 @@ function SignInForm() {
    * server's answer is authoritative — this exists so the common mistakes are
    * caught without a round trip.
    */
-  const emailIssue = mode === 'sign-up' && touchedEmail && email ? emailProblem(email) : null;
+  const emailIssue = touchedEmail && email ? emailProblem(email) : null;
 
   // A near-miss on a well-known provider. Offered whether or not the address is
   // otherwise valid: "sam@gmial.com" is perfectly well formed.
   useEffect(() => {
-    if (mode !== 'sign-up' || !touchedEmail) {
+    if (!touchedEmail) {
       setSuggestion(null);
       return;
     }
     setSuggestion(emailProblem(email) ? null : suggestEmail(email));
-  }, [email, mode, touchedEmail]);
+  }, [email, touchedEmail]);
+
+  // Switching between signing in and signing up starts the password over.
+  useEffect(() => {
+    setShowPassword(false);
+  }, [mode]);
 
   const post = useCallback(async (path, payload) => {
     const res = await fetch(path, {
@@ -305,14 +314,26 @@ function SignInForm() {
               <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 focus-within:border-accent-500/50">
                 <KeyRound size={14} className="shrink-0 text-white/30" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-transparent py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25"
-                  placeholder={mode === 'sign-up' ? 'At least 10 characters' : '••••••••••'}
+                  placeholder={mode === 'sign-up' ? `At least ${MIN_PASSWORD} characters` : '••••••••••'}
                 />
+                {/* Typing a password you cannot see is how people end up locked
+                    out of an account they created correctly. */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  className="-mr-1 shrink-0 rounded-md p-1.5 text-white/30 transition-colors hover:bg-white/5 hover:text-white/70"
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
               </div>
             </label>
 
@@ -463,6 +484,7 @@ function Pitch() {
  *  added behind a feature flag. */
 const SOURCES = [
   'PostgreSQL',
+  'Neon',
   'MySQL',
   'SQL Server',
   'Snowflake',

@@ -18,8 +18,14 @@
  * that id alone.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ChevronDown, Loader2, Lock, Plus, ShieldCheck } from 'lucide-react';
-import { getConnector, defaultConfig, validateConfig } from '../../lib/connectors/registry';
+import { AlertTriangle, ChevronDown, ClipboardPaste, Loader2, Lock, Plus, ShieldCheck } from 'lucide-react';
+import {
+  connectionIsFor,
+  getConnector,
+  defaultConfig,
+  validateConfig,
+} from '../../lib/connectors/registry';
+import { CONNECTION_STRING_EXAMPLES, parseConnectionString } from '../../lib/connectors/connectionString';
 import ImportFromConnection from './ImportFromConnection';
 
 export default function ConnectSource({ source, organization, onNeedsAccount }) {
@@ -34,6 +40,12 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problems, setProblems] = useState([]);
+  // Pasting a connection string is an alternative way to *fill in* the form,
+  // never a way past it: what it produces lands in the same fields, and the
+  // user sees every one of them before anything reaches the vault.
+  const [pasting, setPasting] = useState(false);
+  const [pasted, setPasted] = useState('');
+  const [pasteNote, setPasteNote] = useState(null);
 
   // A new source is a fresh form; carrying the previous one's values across
   // would silently send a Postgres port to MySQL.
@@ -43,7 +55,41 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
     setProblems([]);
     setShowAdvanced(false);
     setMode('list');
+    setPasting(false);
+    setPasted('');
+    setPasteNote(null);
   }, [source]);
+
+  /**
+   * Read a pasted string into the form.
+   *
+   * A string for a different source than the one selected is not an error — the
+   * dropdown is a guess about what you are connecting to and the string is the
+   * fact. It is reported rather than silently accepted, though, because the
+   * fields on screen are about to change out from under the reader.
+   */
+  const applyConnectionString = useCallback(() => {
+    const parsed = parseConnectionString(pasted);
+    if (parsed.error) {
+      setPasteNote(null);
+      setProblems([parsed.error]);
+      return;
+    }
+
+    setProblems([]);
+    setConfig({ ...defaultConfig(parsed.source), ...parsed.config });
+    setPasting(false);
+    setPasted('');
+
+    if (parsed.source !== source) {
+      const label = getConnector(parsed.source)?.label || parsed.source;
+      setPasteNote(
+        `That is a ${label} connection string. The fields below are filled in — switch the source above to ${label} before connecting.`
+      );
+    } else {
+      setPasteNote('Filled in from the connection string. Check it, then connect.');
+    }
+  }, [pasted, source]);
 
   const refresh = useCallback(async () => {
     if (!organization?.id) return;
@@ -68,7 +114,9 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
   }, [refresh]);
 
   const mine = useMemo(
-    () => connections.filter((c) => c.source === source && !c.revoked_at),
+    // Matched on the flavour rather than the stored source, so a Neon
+    // connection lists under Neon and not under PostgreSQL.
+    () => connections.filter((c) => connectionIsFor(c, source) && !c.revoked_at),
     [connections, source]
   );
 
@@ -164,6 +212,62 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
       {/* The form */}
       {mode === 'new' && (
         <div className="flex flex-col gap-3">
+          {CONNECTION_STRING_EXAMPLES[source] && !pasting && (
+            <button
+              type="button"
+              onClick={() => {
+                setPasting(true);
+                setPasteNote(null);
+              }}
+              className="flex items-center gap-2 self-start rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:border-accent-500/40 hover:text-white"
+            >
+              <ClipboardPaste size={13} /> Paste a connection string
+            </button>
+          )}
+
+          {pasting && (
+            <div className="flex flex-col gap-2 rounded-xl border border-accent-500/25 bg-accent-500/[0.05] p-3">
+              <span className="label">Connection string</span>
+              <textarea
+                rows={3}
+                autoFocus
+                value={pasted}
+                onChange={(e) => setPasted(e.target.value)}
+                placeholder={CONNECTION_STRING_EXAMPLES[source]}
+                className="resize-y rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] leading-relaxed text-white/85 outline-none placeholder:text-white/20 focus:border-accent-500/50"
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={applyConnectionString}
+                  disabled={!pasted.trim()}
+                  className="rounded-lg bg-accent-500 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-40"
+                >
+                  Fill the form
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPasting(false);
+                    setPasted('');
+                  }}
+                  className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <span className="ml-auto text-[11px] text-white/30">
+                  Nothing is sent until you press Connect.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {pasteNote && (
+            <p className="rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[12px] leading-relaxed text-accent-200">
+              {pasteNote}
+            </p>
+          )}
+
           <label className="flex flex-col gap-1.5">
             <span className="label">Name this connection</span>
             <input

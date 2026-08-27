@@ -42,7 +42,7 @@ import {
   describeModel,
 } from '../../lib/dataModel.js';
 import { readWorkbook, isWorkbookFile } from '../../lib/workbook.js';
-import { idbGet, idbSet, idbDel, KEYS } from '../../lib/store/idb.js';
+import { idbDel, KEYS } from '../../lib/store/idb.js';
 
 /**
  * @type {{
@@ -401,7 +401,6 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
 
   progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
   reply(id, 'ingested', summary());
-  persist();
 }
 
 /**
@@ -479,7 +478,6 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
 
   progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
   reply(id, 'ingested', summary());
-  persist();
 }
 
 /**
@@ -524,95 +522,40 @@ function rollUpMetrics(tables, view) {
 // Persistence
 // ---------------------------------------------------------------------------
 
-/** Total rows across every table — the real cost of persisting a session. */
-function totalRows() {
-  return state ? state.order.reduce((n, t) => n + state.tables[t].rows.length, 0) : 0;
-}
-
-async function persist() {
-  if (!state) return;
-  // Very large sessions are not worth (or able to be) persisted; the session
-  // still works, it just won't survive a refresh.
-  if (totalRows() > 400000) return;
-  await idbSet(KEYS.dataset, {
-    tables: state.tables,
-    order: state.order,
-    model: state.model,
-    fileName: state.fileName,
-    notices: state.notices,
-    ingestedAt: state.ingestedAt,
-  });
+/**
+ * A loaded dataset lives for as long as the tab does, and no longer.
+ *
+ * It used to be written to IndexedDB so a refresh or a direct link to
+ * /dashboard could rehydrate it. That is a real convenience and it was the
+ * wrong trade: a spreadsheet someone opened to look at once then sat in this
+ * browser's storage indefinitely, surviving the tab being closed, and turned up
+ * again for whoever opened the app next on a shared machine. For a product
+ * whose promise is that your file never leaves your browser, leaving it there
+ * afterwards is the wrong half of that sentence to honour.
+ *
+ * So nothing is stored. The worker holds the rows in memory; closing the tab
+ * destroys the worker and the rows with it. Client-side navigation between
+ * pages keeps the same worker, so moving around the app costs nothing — only a
+ * genuine reload starts over, which is what a reload now means.
+ *
+ * The cost is real and worth stating: a refresh on the dashboard loses the
+ * session. Saving an analysis to the library is the deliberate way to keep one.
+ */
+async function purgeStoredSession() {
+  await idbDel(KEYS.dataset).catch(() => {});
+  await idbDel(KEYS.analysis).catch(() => {});
 }
 
 async function restore(id) {
+  // Sessions stored by an earlier build are cleared rather than loaded, so a
+  // user carrying one does not keep seeing it come back.
+  await purgeStoredSession();
+
   if (state) {
-    reply(id, 'restored', { dataset: summary(), analysis: await idbGet(KEYS.analysis) });
+    reply(id, 'restored', { dataset: summary(), analysis: null });
     return;
   }
-  const saved = await idbGet(KEYS.dataset);
-  const revived = saved ? reviveSession(saved) : null;
-  if (!revived) {
-    reply(id, 'restored', { dataset: null, analysis: null });
-    return;
-  }
-  state = revived;
-  invalidateSearchIndex();
-  reply(id, 'restored', { dataset: summary(), analysis: await idbGet(KEYS.analysis) });
-}
-
-/**
- * Rebuild in-memory state from a stored session.
- *
- * Sessions saved before multi-sheet support are a single `{rows, columns, ...}`
- * blob; they are promoted to a one-table model rather than thrown away, so a
- * tab that refreshes after a deploy keeps its data.
- */
-function reviveSession(saved) {
-  if (saved.tables && saved.order?.length) {
-    const model = saved.model || buildDataModel(saved.order.map((n) => saved.tables[n]));
-    const view = buildAnalysisView(saved.tables, model);
-    const metrics = rollUpMetrics(saved.tables, view);
-    return {
-      tables: saved.tables,
-      order: saved.order,
-      model,
-      view,
-      viewProfile: buildProfile(view.rows, view.columns, metrics),
-      viewSchema: describeSchema(view.rows, TABLE),
-      metrics,
-      fileName: saved.fileName,
-      notices: saved.notices || [],
-      ingestedAt: saved.ingestedAt,
-    };
-  }
-
-  if (!saved.rows?.length) return null;
-  const name = normalizeTableName(saved.fileName || 'Dataset');
-  const table = {
-    name,
-    sheetName: null,
-    sourceFile: saved.fileName || null,
-    rows: saved.rows,
-    columns: saved.columns,
-    metrics: saved.metrics,
-    profile: saved.profile,
-    schema: saved.schema,
-  };
-  const tables = { [name]: table };
-  const model = buildDataModel([table]);
-  const view = buildAnalysisView(tables, model);
-  return {
-    tables,
-    order: [name],
-    model,
-    view,
-    viewProfile: saved.profile,
-    viewSchema: saved.schema,
-    metrics: saved.metrics,
-    fileName: saved.fileName,
-    notices: [],
-    ingestedAt: saved.ingestedAt,
-  };
+  reply(id, 'restored', { dataset: null, analysis: null });
 }
 
 // ---------------------------------------------------------------------------
@@ -644,7 +587,6 @@ function setModel(id, { factTable = null, relationships = null }) {
   invalidateSearchIndex();
 
   reply(id, 'model', summary());
-  persist();
 }
 
 // ---------------------------------------------------------------------------
@@ -952,7 +894,9 @@ self.onmessage = async (e) => {
       case 'exportCsv':
         return exportCsv(id, payload);
       case 'saveAnalysis':
-        await idbSet(KEYS.analysis, payload);
+        // Kept as a no-op rather than removed: the provider calls it whenever
+        // the board changes, and an unknown-command error on every edit would
+        // be noise. Nothing about a session is written to disk any more.
         return reply(id, 'saved', {});
       case 'reset':
         return reset(id);

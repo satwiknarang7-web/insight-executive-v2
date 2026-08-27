@@ -13,6 +13,7 @@ import { createChallenge, deviceIsTrusted } from '../../../../lib/auth/challenge
 import { isMailerConfigured, sendCodeEmail } from '../../../../lib/auth/mailer.server';
 import { authFailure } from '../../../../lib/auth/failures';
 import { DEVICE_COOKIE, normalizeEmail } from '../../../../lib/auth/otp';
+import { emailProblem, suggestEmail } from '../../../../lib/auth/emailAddress';
 import { clientKey, reset, take } from '../../../../lib/auth/rateLimit';
 
 export const runtime = 'nodejs';
@@ -35,6 +36,15 @@ export async function POST(request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Expected a JSON body.' }, { status: 400 });
+  }
+
+  // The same strict rules the sign-up form uses. Only the shape, though: no
+  // DNS lookup here. The account already exists, its domain was checked when it
+  // was created, and a per-sign-in network round trip would slow the hot path
+  // to tell us something we cannot act on anyway.
+  const shape = emailProblem(body?.email);
+  if (shape) {
+    return NextResponse.json({ error: shape, suggestion: suggestEmail(body?.email) }, { status: 400 });
   }
 
   const email = normalizeEmail(body?.email);

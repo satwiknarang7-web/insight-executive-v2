@@ -175,7 +175,7 @@ export default function LandingPage() {
                 Works with
               </span>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {['CSV & Excel', 'PostgreSQL', 'MySQL', 'SQL Server', 'Snowflake', 'Oracle', 'Fabric', 'Tableau'].map(
+                {['CSV & Excel', 'PostgreSQL', 'Neon', 'MySQL', 'SQL Server', 'Snowflake', 'Oracle', 'Fabric', 'Tableau'].map(
                   (name) => (
                     <span
                       key={name}

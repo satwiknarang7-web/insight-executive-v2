@@ -17,6 +17,7 @@ import {
   saveConnection,
   Forbidden,
   NotFound,
+  SourceNotPermitted,
 } from '../../../lib/vault/connections';
 import { isSupabaseConfigured, currentUser } from '../../../lib/vault/supabase.server';
 import { isVaultConfigured } from '../../../lib/vault/crypto';
@@ -42,6 +43,13 @@ function guard() {
 function fail(error) {
   if (error instanceof Forbidden) return NextResponse.json({ error: error.message }, { status: 403 });
   if (error instanceof NotFound) return NextResponse.json({ error: error.message }, { status: 404 });
+  // Deployment state rather than a credential, so this one says what it is.
+  // The terseness elsewhere is to avoid helping someone probing; a missing
+  // migration helps nobody but the person who has to fix it.
+  if (error instanceof SourceNotPermitted) {
+    console.error('[connections]', error.message);
+    return NextResponse.json({ error: error.message, setupRequired: true }, { status: 409 });
+  }
   console.error('[connections]', error);
   return NextResponse.json({ error: 'That request could not be completed.' }, { status: 500 });
 }

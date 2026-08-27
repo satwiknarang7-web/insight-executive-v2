@@ -13,6 +13,7 @@
  */
 import { formatDateLabel, formatNumber } from '../../lib/format.js';
 import { prettyColumn } from '../../lib/aggregateNames.js';
+import { legendRows } from '../../lib/sliceLabels.js';
 
 /** Rough width of a string at a given font size, in px. */
 const textWidth = (s, fontSize = 12) => String(s ?? '').length * fontSize * 0.58;
@@ -149,25 +150,33 @@ export function yAxisGeometry(
  */
 export function legendProps({ seriesCount = 1, compact = false } = {}) {
   if (seriesCount < 2 || compact) return null;
+
+  // A legend is allowed a second row, and no more. Clipping it to one hid
+  // entries past the first, which left colours in the chart that nothing on
+  // screen named; letting it grow freely squeezed the plot, which is why it was
+  // pinned in the first place. Past two rows the entries scroll.
+  const rows = legendRows(seriesCount);
+  const height = LEGEND_H * rows;
+
   return {
     verticalAlign: 'top',
     align: 'right',
     layout: 'horizontal',
-    height: LEGEND_H,
+    height,
     iconType: 'circle',
     iconSize: 8,
     wrapperStyle: {
       paddingBottom: 6,
       paddingRight: 4,
       lineHeight: '16px',
-      // Never taller than one row, whatever the series count.
-      maxHeight: LEGEND_H,
-      overflow: 'hidden',
+      maxHeight: height,
+      overflowY: rows > 1 ? 'auto' : 'hidden',
+      overflowX: 'hidden',
     },
   };
 }
 
-/** The one row a legend is allowed. */
+/** The height of one row of legend entries. */
 export const LEGEND_H = 26;
 
 /** Truncate only as a last resort, and only past `max`. */

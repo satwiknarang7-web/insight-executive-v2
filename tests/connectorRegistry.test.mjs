@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {
   CONNECTORS,
+  connectionIsFor,
+  connectorFor,
   getConnector,
   secretFields,
+  storedSource,
   defaultConfig,
   validateConfig,
 } from '../lib/connectors/registry.js';
@@ -70,18 +73,55 @@ test('every source that authenticates has something to vault', () => {
 // Registry shape
 // ---------------------------------------------------------------------------
 
-test('connector ids are unique and match the database check constraint', () => {
+test('every connector stores under a source the database permits', () => {
   const ids = CONNECTORS.map((c) => c.id);
   assert.equal(new Set(ids).size, ids.length, 'duplicate connector id');
 
-  // public.connections has a CHECK on exactly this set; drift means an insert
-  // fails at runtime with a constraint violation.
+  // `public.connections.source` has a CHECK on exactly this set. A connector
+  // storing outside it cannot be saved at all — the insert fails with a check
+  // violation, which is what "That request could not be completed" used to be
+  // hiding. A connector that is a *flavour* of another (Neon over Postgres)
+  // stores under the base source precisely so that adding one never needs a
+  // migration; what has to hold is that the stored value is permitted.
   const allowed = new Set([
     'postgres', 'supabase', 'mysql', 'sqlserver',
     'oracle', 'snowflake', 'fabric', 'tableau',
   ]);
-  for (const id of ids) assert.ok(allowed.has(id), `${id} is not permitted by the connections CHECK constraint`);
-  assert.equal(ids.length, allowed.size, 'the registry and the CHECK constraint have drifted apart');
+
+  for (const id of ids) {
+    assert.ok(
+      allowed.has(storedSource(id)),
+      `${id} stores as "${storedSource(id)}", which the connections CHECK constraint rejects`
+    );
+  }
+});
+
+test('a flavour connector points at a real base, never at itself', () => {
+  for (const connector of CONNECTORS) {
+    if (!connector.storeAs) continue;
+    assert.notEqual(connector.storeAs, connector.id, `${connector.id} stores as itself`);
+    const base = CONNECTORS.find((c) => c.id === connector.storeAs);
+    assert.ok(base, `${connector.id} stores as "${connector.storeAs}", which is not a connector`);
+    assert.ok(!base.storeAs, 'a flavour of a flavour would never resolve to a stored source');
+  }
+});
+
+test('a saved row is shown as the flavour it was set up as', () => {
+  // Neon stores as postgres. Without the provider stamp it would come back
+  // labelled PostgreSQL, and the connector the user chose would vanish.
+  assert.equal(storedSource('neon'), 'postgres');
+  assert.equal(connectorFor({ source: 'postgres', config: { provider: 'neon' } })?.id, 'neon');
+  assert.equal(connectorFor({ source: 'postgres', config: {} })?.id, 'postgres');
+  assert.equal(connectorFor({ source: 'mysql' })?.id, 'mysql');
+  assert.equal(connectorFor(null), null);
+});
+
+test('a connection lists under the connector it belongs to', () => {
+  const neon = { source: 'postgres', config: { provider: 'neon' } };
+  const plain = { source: 'postgres', config: {} };
+  assert.equal(connectionIsFor(neon, 'neon'), true);
+  assert.equal(connectionIsFor(neon, 'postgres'), false, 'it is not listed twice');
+  assert.equal(connectionIsFor(plain, 'postgres'), true);
 });
 
 test('field names are unique within a connector', () => {

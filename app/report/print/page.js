@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import ReactMarkdown from "react-markdown";
 import DynamicChart from "../../../components/charts/DynamicChart";
+import ChartBoundary from "../../../components/charts/ChartBoundary";
 import { ChartPalette } from "../../../components/charts/palette";
 import { renameCategories } from "../../../lib/chartLabels";
 import { Zap, Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
@@ -41,18 +42,28 @@ export default function PrintReport() {
     // renames have to be applied here too or the PDF disagrees with the deck.
     const rows = renameCategories(result, x, chart.labels);
 
+    // Boundaried, and that is load-bearing here rather than merely tidy.
+    //
+    // This page has no interactive recovery: a headless browser opens it, waits
+    // for the container to appear, and prints. A chart throwing during render
+    // unmounts the whole tree — including the sentinel the renderer waits for —
+    // so one bad chart did not degrade one panel, it silently cost the entire
+    // report, and the failure surfaced as "the report did not finish
+    // rendering" with nothing pointing at which chart was responsible.
     return (
       <div className="w-full flex justify-center scale-[0.85] origin-center">
         <div style={{ width: '600px', height: '400px' }}>
-          <ChartPalette colors={chart.colors} colorBy={chart.colorBy}>
-            <DynamicChart
-              data={rows}
-              type={type}
-              xKey={x}
-              yKey={y}
-              secondaryYKey={chart.secondaryYAxisKey}
-            />
-          </ChartPalette>
+          <ChartBoundary resetKey={chart.id || type}>
+            <ChartPalette colors={chart.colors} colorBy={chart.colorBy}>
+              <DynamicChart
+                data={rows}
+                type={type}
+                xKey={x}
+                yKey={y}
+                secondaryYKey={chart.secondaryYAxisKey}
+              />
+            </ChartPalette>
+          </ChartBoundary>
         </div>
       </div>
     );

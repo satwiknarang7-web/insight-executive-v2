@@ -67,14 +67,25 @@ test('a single series gets no legend', () => {
   assert.ok(two.wrapperStyle.paddingBottom <= 12);
 });
 
-test('a legend is never taller than one row, however many series', () => {
+test('a legend is never taller than two rows, however many series', () => {
   // A vertical legend with no cap grew to 144px on a 224px card and squeezed
-  // the plot into what was left.
+  // the plot into what was left. It stays horizontal and capped — but at two
+  // rows rather than one, because a single row with the overflow hidden simply
+  // dropped every entry past it and left unnamed colours in the chart.
   const many = legendProps({ seriesCount: 12 });
   assert.equal(many.layout, 'horizontal');
-  assert.equal(many.height, LEGEND_H);
-  assert.equal(many.wrapperStyle.maxHeight, LEGEND_H);
-  assert.equal(many.wrapperStyle.overflow, 'hidden');
+  assert.equal(many.height, LEGEND_H * 2);
+  assert.equal(many.wrapperStyle.maxHeight, LEGEND_H * 2);
+  assert.equal(many.wrapperStyle.overflowY, 'auto', 'the rest scrolls rather than eating the plot');
+
+  const lots = legendProps({ seriesCount: 40 });
+  assert.equal(lots.height, LEGEND_H * 2, 'and no taller, however many there are');
+});
+
+test('a legend that fits on one row still gets one row', () => {
+  const few = legendProps({ seriesCount: 3 });
+  assert.equal(few.height, LEGEND_H);
+  assert.equal(few.wrapperStyle.overflowY, 'hidden');
 });
 
 test('a small card gets no legend at all', () => {

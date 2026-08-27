@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { legendProps } from './axis';
 import { usePalette } from './palette';
+import { labelledSlices } from '../../lib/sliceLabels';
 import { formatNumber as yAxisFormatter, formatValue } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
@@ -35,6 +36,29 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut',
   const solid = variant === 'pie';
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+
+  // Which slices have room for a number beside them. Past about ten categories
+  // the thin ones bunch up at one end of the circle and their labels overprint
+  // each other; the ones that go unlabelled keep their colour, their legend
+  // entry and their tooltip.
+  const labelled = useMemo(
+    () => labelledSlices((data || []).map((row) => row?.[valueKey])),
+    [data, valueKey]
+  );
+
+  /**
+   * Leader lines: all of them, or none.
+   *
+   * `labelLine` takes a props object or a boolean. It does NOT take a function
+   * returning a props object — Recharts reads a function there as a render prop
+   * and renders whatever comes back as a child, so returning `{ stroke, ... }`
+   * threw "Objects are not valid as a React child" and took the whole chart
+   * down with it. Per-slice control has to come from the `label` renderer,
+   * which really is a render prop, so this stays all-or-nothing: lines when
+   * every slice is labelled, and none once the crowded ones have been dropped,
+   * where the remaining labels sit beside the few big arcs anyway.
+   */
+  const everySliceLabelled = labelled.size === (data?.length || 0);
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <PieChart margin={{ top: 20, bottom: 20, left: 20, right: 20 }}>
@@ -48,10 +72,18 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut',
           outerRadius="80%"
           paddingAngle={solid ? 1 : 5}
           stroke="none"
-          labelLine={{ stroke: 'var(--chart-grid)', strokeOpacity: 0.25, strokeWidth: 1 }}
-          label={({ cx, cy, midAngle, outerRadius, value, name }) => {
+          labelLine={
+            everySliceLabelled
+              ? { stroke: 'var(--chart-grid)', strokeOpacity: 0.25, strokeWidth: 1 }
+              : false
+          }
+          label={({ cx, cy, midAngle, outerRadius, value, name, index }) => {
+            // A slice with no room for a label draws none, rather than one on
+            // top of its neighbour's.
+            if (!labelled.has(index)) return null;
+
             const RADIAN = Math.PI / 180;
-            const radius = outerRadius + 20; 
+            const radius = outerRadius + 20;
             const xPos = cx + radius * Math.cos(-midAngle * RADIAN);
             const yPos = cy + radius * Math.sin(-midAngle * RADIAN);
 

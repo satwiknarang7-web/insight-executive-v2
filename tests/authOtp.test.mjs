@@ -122,7 +122,9 @@ test('addresses are lower-cased and trimmed, junk is rejected', () => {
 });
 
 test('password rules reject the weak cases and accept a reasonable one', () => {
-  assert.match(passwordProblem('short1'), /10 characters/);
+  assert.match(passwordProblem('short1'), /8 characters/);
+  assert.equal(passwordProblem('abcdefg1'), null, 'eight is enough');
+  assert.match(passwordProblem('abcdef1'), /8 characters/, 'seven is not');
   assert.match(passwordProblem('alllettershere'), /letter and one number/);
   assert.match(passwordProblem('1234567890'), /letter and one number/);
   assert.match(passwordProblem('a1'.repeat(40)), /at most 72/);

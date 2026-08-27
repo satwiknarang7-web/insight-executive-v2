@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Check,
+  ClipboardPaste,
   Database,
   Loader2,
   Lock,
@@ -21,7 +22,14 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { CONNECTORS, defaultConfig, getConnector, validateConfig } from '../../lib/connectors/registry';
+import {
+  CONNECTORS,
+  connectorFor,
+  defaultConfig,
+  getConnector,
+  validateConfig,
+} from '../../lib/connectors/registry';
+import { CONNECTION_STRING_EXAMPLES, parseConnectionString } from '../../lib/connectors/connectionString';
 import ImportFromConnection from './ImportFromConnection';
 
 const PHASE_LABEL = {
@@ -187,7 +195,9 @@ export default function ConnectionsPanel({ organization }) {
 
 function ConnectionRow({ connection, onRevoke }) {
   const [confirming, setConfirming] = useState(false);
-  const connector = getConnector(connection.source);
+  // The flavour it was set up as, not just the driver behind it: a Neon
+  // connection stores as `postgres` and would otherwise read as PostgreSQL.
+  const connector = connectorFor(connection);
   const cfg = connection.config || {};
   const target = [cfg.host || cfg.server || cfg.account || cfg.endpoint, cfg.database]
     .filter(Boolean)
@@ -246,6 +256,12 @@ function AddConnection({ organization, onClose, onSaved }) {
   const [config, setConfig] = useState(() => defaultConfig('postgres'));
   const [busy, setBusy] = useState(false);
   const [problems, setProblems] = useState([]);
+  // Pasting a connection string fills the form in; it never bypasses it. The
+  // fields — including the password — are on screen before anything is saved,
+  // because what goes into the vault should be something you have seen.
+  const [pasting, setPasting] = useState(false);
+  const [pasted, setPasted] = useState('');
+  const [pasteNote, setPasteNote] = useState(null);
 
   const connector = getConnector(sourceId);
 
@@ -253,7 +269,40 @@ function AddConnection({ organization, onClose, onSaved }) {
     setSourceId(id);
     setConfig(defaultConfig(id));
     setProblems([]);
+    setPasteNote(null);
   }, []);
+
+  /**
+   * Read a pasted string into the form, switching source if it names another.
+   *
+   * The source buttons above are a guess about what is being connected to; the
+   * string is the fact. `postgresql://…@ep-x.neon.tech/…` is Neon whichever
+   * button happens to be lit, so the selection follows the string rather than
+   * the other way round — and says that it did, since the fields on screen are
+   * about to change.
+   */
+  const applyConnectionString = useCallback(() => {
+    const parsed = parseConnectionString(pasted);
+    if (parsed.error) {
+      setPasteNote(null);
+      setProblems([parsed.error]);
+      return;
+    }
+
+    const switched = parsed.source !== sourceId;
+    setSourceId(parsed.source);
+    setConfig({ ...defaultConfig(parsed.source), ...parsed.config });
+    setProblems([]);
+    setPasting(false);
+    setPasted('');
+
+    const label = getConnector(parsed.source)?.label || parsed.source;
+    setPasteNote(
+      switched
+        ? `Read as a ${label} connection, and the source above has been switched to match. Check the fields, then save.`
+        : 'Filled in from the connection string. Check the fields, then save.'
+    );
+  }, [pasted, sourceId]);
 
   const set = (field, value) => setConfig((c) => ({ ...c, [field]: value }));
 
@@ -331,6 +380,60 @@ function AddConnection({ organization, onClose, onSaved }) {
         {connector && (
           <>
             <p className="mb-4 text-[12px] leading-relaxed text-white/40">{connector.blurb}</p>
+
+            {CONNECTION_STRING_EXAMPLES[sourceId] && !pasting && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPasting(true);
+                  setPasteNote(null);
+                }}
+                className="mb-4 flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:border-accent-500/40 hover:text-white"
+              >
+                <ClipboardPaste size={13} /> Paste a connection string
+              </button>
+            )}
+
+            {pasting && (
+              <div className="mb-4 flex flex-col gap-2 rounded-xl border border-accent-500/25 bg-accent-500/[0.05] p-3">
+                <span className="label">Connection string</span>
+                <textarea
+                  rows={3}
+                  autoFocus
+                  value={pasted}
+                  onChange={(e) => setPasted(e.target.value)}
+                  placeholder={CONNECTION_STRING_EXAMPLES[sourceId]}
+                  className="resize-y rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] leading-relaxed text-white/85 outline-none placeholder:text-white/20 focus:border-accent-500/50"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={applyConnectionString}
+                    disabled={!pasted.trim()}
+                    className="rounded-lg bg-accent-500 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-40"
+                  >
+                    Fill the form
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPasting(false);
+                      setPasted('');
+                    }}
+                    className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <span className="ml-auto text-[11px] text-white/30">Nothing is stored until you save.</span>
+                </div>
+              </div>
+            )}
+
+            {pasteNote && (
+              <p className="mb-4 rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[12px] leading-relaxed text-accent-200">
+                {pasteNote}
+              </p>
+            )}
 
             {connector.oauth && (
               <p className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-[12px] text-amber-300">

@@ -16,7 +16,7 @@
  * cannot be used to share with an account you merely guessed at.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { AtSign, Loader2, Share2, Trash2, UserPlus } from 'lucide-react';
+import { AtSign, Clock, Loader2, Mail, Share2, Trash2, UserPlus, Users } from 'lucide-react';
 
 export default function ShareControls({ analysisId, compact = false }) {
   const [shares, setShares] = useState([]);
@@ -26,6 +26,16 @@ export default function ShareControls({ analysisId, compact = false }) {
   const [busy, setBusy] = useState(null); // 'share' | 'handle'
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
+  // Who to offer: people already shared with, and usernames matching what has
+  // been typed. Typing a username from memory is the step most likely to be
+  // got wrong, and the one this removes.
+  const [suggestions, setSuggestions] = useState({ recent: [], matches: [] });
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  // Sharing is silent otherwise: the analysis appears in their library and
+  // nothing tells them to look. When this is on they are sent the report
+  // itself, as a PDF — not a link, which only works once they have signed in.
+  // Off by default: the sharer knows whether this warrants an email.
+  const [notify, setNotify] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,6 +51,24 @@ export default function ShareControls({ analysisId, compact = false }) {
       cancelled = true;
     };
   }, []);
+
+  // Debounced, because this runs against the database on every keystroke
+  // otherwise, and the answer for a half-typed name is not worth the round trip.
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch(`/api/share-suggestions?q=${encodeURIComponent(recipient.trim())}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!cancelled && d) setSuggestions({ recent: d.recent || [], matches: d.matches || [] });
+        })
+        .catch(() => {});
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [recipient]);
 
   const load = useCallback(async () => {
     if (!analysisId) return;
@@ -86,19 +114,34 @@ export default function ShareControls({ analysisId, compact = false }) {
       const res = await fetch(`/api/analyses/${analysisId}/share`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ recipient }),
+        body: JSON.stringify({ recipient, notify }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Could not share.');
       setShares(body.shares || []);
       setRecipient('');
-      setNotice(`Shared with ${nameOf(body.shared)}.`);
+      setShowSuggestions(false);
+
+      // The email is a separate step and reports separately: a share that
+      // worked must not read as a failure because the notification bounced.
+      const emailed = body.notified;
+      setNotice(
+        `Shared with ${nameOf(body.shared)}.` +
+          (emailed?.sent ? ' The report is on its way to them as a PDF.' : '') +
+          (emailed && !emailed.sent ? ` The report was not emailed — ${emailed.reason}` : '')
+      );
     } catch (e) {
       setError(e.message);
     } finally {
       setBusy(null);
     }
-  }, [analysisId, recipient]);
+  }, [analysisId, recipient, notify]);
+
+  /** Someone picked from the list rather than typing the whole thing. */
+  const choose = useCallback((person) => {
+    setRecipient(person.handle ? `@${person.handle}` : person.sharedAs || '');
+    setShowSuggestions(false);
+  }, []);
 
   const unshare = useCallback(
     async (userId) => {
@@ -122,13 +165,22 @@ export default function ShareControls({ analysisId, compact = false }) {
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="relative flex gap-2">
         <div className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
           <AtSign size={13} className="shrink-0 text-white/30" />
           <input
             value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && recipient.trim() && share()}
+            onChange={(e) => {
+              setRecipient(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            // A click on a suggestion has to land before the list closes.
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && recipient.trim()) share();
+              if (e.key === 'Escape') setShowSuggestions(false);
+            }}
             placeholder="username or email address"
             aria-label="Username or email address to share with"
             className="w-full bg-transparent py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25"
@@ -143,7 +195,42 @@ export default function ShareControls({ analysisId, compact = false }) {
           {busy === 'share' ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
           Share
         </button>
+
+        {showSuggestions && (suggestions.recent.length > 0 || suggestions.matches.length > 0) && (
+          <div className="absolute left-0 right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-surface shadow-2xl">
+            <SuggestionGroup
+              icon={Clock}
+              label="Shared with before"
+              people={suggestions.recent.filter((p) => !shares.some((s) => s.userId === p.userId))}
+              onPick={choose}
+            />
+            <SuggestionGroup
+              icon={Users}
+              label="Matching"
+              people={suggestions.matches.filter((p) => !shares.some((s) => s.userId === p.userId))}
+              onPick={choose}
+            />
+          </div>
+        )}
       </div>
+
+      <label className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          checked={notify}
+          onChange={(e) => setNotify(e.target.checked)}
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-accent-500"
+        />
+        <span className="text-[12px] leading-relaxed text-white/55">
+          <span className="flex items-center gap-1.5">
+            <Mail size={12} className="shrink-0 text-white/30" />
+            Email them the report as a PDF
+          </span>
+          <span className="mt-0.5 block text-[11px] text-white/30">
+            The report itself, readable without signing in. Rendering it takes a few seconds.
+          </span>
+        </span>
+      </label>
 
       {/* Your own username. Not required to share with someone else — it is how
           they share back with you — so this asks rather than blocks. */}
@@ -219,6 +306,38 @@ export default function ShareControls({ analysisId, compact = false }) {
           {error || notice}
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * One labelled block of suggestions.
+ *
+ * Rendered as nothing when the group is empty, so the list never shows a
+ * heading with nothing under it.
+ */
+function SuggestionGroup({ icon: Icon, label, people, onPick }) {
+  if (!people.length) return null;
+  return (
+    <div className="border-b border-white/6 last:border-0">
+      <div className="flex items-center gap-1.5 px-3 pb-1 pt-2">
+        <Icon size={10} className="text-white/25" />
+        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">{label}</span>
+      </div>
+      {people.map((person) => (
+        <button
+          key={person.userId}
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onPick(person)}
+          className="flex w-full items-baseline gap-2 px-3 py-2 text-left transition-colors hover:bg-white/5"
+        >
+          <span className="truncate text-[13px] font-bold text-white/80">{nameOf(person)}</span>
+          {person.displayName && (
+            <span className="truncate text-[11px] text-white/35">{person.displayName}</span>
+          )}
+        </button>
+      ))}
     </div>
   );
 }
