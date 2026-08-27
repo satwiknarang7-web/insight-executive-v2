@@ -12,6 +12,36 @@ import { ChartPalette } from "../../../components/charts/palette";
 import { renameCategories } from "../../../lib/chartLabels";
 import { Zap, Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
 
+/**
+ * Trim a finding's write-up to what an A4 page can actually hold.
+ *
+ * The verified-metrics list has no natural length — it is however many facts the
+ * engine could prove — and the page is a fixed 1123px that clips whatever runs
+ * past it. Cutting here, deliberately and at a whole bullet, is the difference
+ * between a report that ends and one that stops mid-sentence. The deck on
+ * screen still shows every fact; only the printed page is abridged.
+ */
+const PRINT_BULLETS = 1;
+
+/** How many synthesis cards the summary page can hold at this type size. */
+const PRINT_SUMMARY_CARDS = 4;
+
+function fitForPrint(markdown) {
+  const lines = String(markdown || '').split('\n');
+  const out = [];
+  let bullets = 0;
+  for (const line of lines) {
+    if (/^\s*[-*]\s+/.test(line)) {
+      bullets += 1;
+      if (bullets > PRINT_BULLETS) continue;
+    } else if (line.trim()) {
+      bullets = 0; // a new paragraph starts a new list
+    }
+    out.push(line);
+  }
+  return out.join('\n');
+}
+
 export default function PrintReport() {
   const [data, setData] = useState(null);
   const [reportDate] = useState(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
@@ -26,13 +56,13 @@ export default function PrintReport() {
     }
   }, []);
 
-  if (!data) return <div className="p-20 text-white/20 text-center font-mono uppercase tracking-[0.5em] animate-pulse">Initializing Executive Synthesis...</div>;
+  if (!data) return <div className="p-20 text-slate-400 text-center font-mono uppercase tracking-[0.5em] animate-pulse">Initializing Executive Synthesis...</div>;
 
   const renderChart = (chart) => {
     const result = chart.resultData;
     const type = chart.chart_type?.toLowerCase() || 'bar';
     if (!result || result.length === 0) return (
-      <div className="text-white/20 text-xs font-mono">Insufficient Data for Synthesis</div>
+      <div className="text-slate-400 text-xs font-mono">Insufficient Data for Synthesis</div>
     );
 
     const keys = Object.keys(result[0]);
@@ -50,9 +80,15 @@ export default function PrintReport() {
     // so one bad chart did not degrade one panel, it silently cost the entire
     // report, and the failure surfaced as "the report did not finish
     // rendering" with nothing pointing at which chart was responsible.
+    // The chart box is given a definite height, not `h-full`. Recharts'
+    // ResponsiveContainer measures its parent, and a percentage height inside a
+    // flex column resolves to zero here — it then logs "width(-1) and
+    // height(-1)" and renders nothing at all, which is worse than the bug it
+    // replaced because there is not even an empty frame to notice. 460px is
+    // what the panel leaves once the page's own furniture is accounted for.
     return (
-      <div className="w-full flex justify-center scale-[0.85] origin-center">
-        <div style={{ width: '600px', height: '400px' }}>
+      <div className="w-full flex items-center justify-center">
+        <div style={{ width: '100%', height: '460px' }}>
           <ChartBoundary resetKey={chart.id || type}>
             <ChartPalette colors={chart.colors} colorBy={chart.colorBy}>
               <DynamicChart
@@ -80,10 +116,10 @@ export default function PrintReport() {
   };
 
   return (
-    <div className="print-container-rendered block bg-slate-950 w-full text-white font-['Outfit'] selection:bg-accent-500/30" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
+    <div className="print-container-rendered block bg-white w-full text-slate-900 font-['Outfit'] selection:bg-accent-500/20" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
       
       {/* PAGE 1: COVER PAGE */}
-      <div style={slideStyle} className="p-20 flex flex-col justify-between bg-black">
+      <div style={slideStyle} className="p-20 flex flex-col justify-between bg-white">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent-500/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         
         <div className="flex items-center gap-4">
@@ -91,73 +127,73 @@ export default function PrintReport() {
             <Zap size={24} fill="currentColor" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-2xl tracking-tighter leading-none">Insight</span>
+            <span className="font-black text-2xl tracking-tight leading-none">Insight</span>
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accent-500">Executive Intelligence</span>
           </div>
         </div>
 
         <div className="space-y-8 relative z-10">
           <div className="h-px w-24 bg-accent-500/50 mb-10" />
-          <h1 className="text-8xl font-black uppercase tracking-tighter leading-[0.9] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
+          <h1 className="text-8xl font-black uppercase tracking-tight leading-[0.9] text-transparent bg-clip-text bg-gradient-to-b from-slate-900 to-slate-600">
             {data.slideZero.title.split(' ')[0]} <br />
             <span className="text-accent-500">{data.slideZero.title.split(' ').slice(1).join(' ')}</span>
           </h1>
-          <p className="text-2xl text-white/40 font-medium tracking-tight max-w-2xl leading-relaxed">
+          <p className="text-2xl text-slate-500 font-medium tracking-tight max-w-2xl leading-relaxed">
             Strategic analysis and data-driven storyboard synthesized for executive decision-making.
           </p>
         </div>
 
-        <div className="flex justify-between items-end border-t border-white/10 pt-10">
+        <div className="flex justify-between items-end border-t border-slate-200 pt-10">
           <div className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 italic">Report Identity</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Report Identity</span>
             <div className="flex items-center gap-3 font-mono text-accent-500">
               <Hash size={14} />
               <span className="text-xl font-bold">{reportId}</span>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 text-white/60">
+            <div className="flex items-center gap-2 text-slate-600">
               <Calendar size={16} className="text-accent-500" />
               <span className="font-bold uppercase tracking-widest">{reportDate}</span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Authorized for Disclosure</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Authorized for Disclosure</span>
           </div>
         </div>
       </div>
 
       {/* PAGE 2: TABLE OF CONTENTS */}
-      <div style={slideStyle} className="p-20 flex flex-col space-y-12 bg-black">
-        <div className="flex items-center gap-4 border-b border-white/10 pb-8">
+      <div style={slideStyle} className="p-20 flex flex-col space-y-12 bg-white">
+        <div className="flex items-center gap-4 border-b border-slate-200 pb-8">
           <Layout className="text-accent-500" size={32} />
-          <h2 className="text-4xl font-black uppercase tracking-tighter">Strategic Roadmap</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight">Strategic Roadmap</h2>
         </div>
 
         <div className="grid grid-cols-1 gap-2 flex-1 overflow-hidden">
-          <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl group">
+          <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl group">
             <div className="flex items-center gap-6">
-              <span className="text-2xl font-black text-white/10">01</span>
+              <span className="text-2xl font-black text-slate-300">01</span>
               <span className="text-lg font-bold text-accent-400 uppercase tracking-widest">Executive Synthesis</span>
             </div>
-            <div className="h-px flex-1 mx-8 border-t border-dashed border-white/10" />
-            <span className="text-white/40 font-mono">P. 03</span>
+            <div className="h-px flex-1 mx-8 border-t border-dashed border-slate-200" />
+            <span className="text-slate-500 font-mono">P. 03</span>
           </div>
           {data.storyboard.map((slide, i) => (
-            <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+            <div key={i} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               <div className="flex items-center gap-6">
-                <span className="text-2xl font-black text-white/10">{(i + 2).toString().padStart(2, '0')}</span>
-                <span className="text-lg font-bold text-white/80 uppercase tracking-widest line-clamp-1">{slide.pageTitle}</span>
+                <span className="text-2xl font-black text-slate-300">{(i + 2).toString().padStart(2, '0')}</span>
+                <span className="text-lg font-bold text-slate-700 uppercase tracking-widest line-clamp-1">{slide.pageTitle}</span>
               </div>
-              <div className="h-px flex-1 mx-8 border-t border-dashed border-white/10" />
-              <span className="text-white/40 font-mono">P. {(i + 4).toString().padStart(2, '0')}</span>
+              <div className="h-px flex-1 mx-8 border-t border-dashed border-slate-200" />
+              <span className="text-slate-500 font-mono">P. {(i + 4).toString().padStart(2, '0')}</span>
             </div>
           ))}
-          <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
             <div className="flex items-center gap-6">
-              <span className="text-2xl font-black text-white/10">...</span>
-              <span className="text-lg font-bold text-white/40 uppercase tracking-widest italic">Data Methodology Audit</span>
+              <span className="text-2xl font-black text-slate-300">...</span>
+              <span className="text-lg font-bold text-slate-500 uppercase tracking-widest italic">Data Methodology Audit</span>
             </div>
-            <div className="h-px flex-1 mx-8 border-t border-dashed border-white/10" />
-            <span className="text-white/40 font-mono">P. {data.storyboard.length + 4}</span>
+            <div className="h-px flex-1 mx-8 border-t border-dashed border-slate-200" />
+            <span className="text-slate-500 font-mono">P. {data.storyboard.length + 4}</span>
           </div>
         </div>
 
@@ -170,8 +206,8 @@ export default function PrintReport() {
                   <div className="absolute top-0 right-0 p-4 opacity-10">
                     <TrendingUp size={32} />
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40 block mb-2">{kpi.label}</span>
-                  <div className="text-2xl font-black text-white">{kpi.value}</div>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">{kpi.label}</span>
+                  <div className="text-2xl font-black text-slate-900">{kpi.value}</div>
                 </div>
               ))}
             </div>
@@ -180,22 +216,26 @@ export default function PrintReport() {
       </div>
 
       {/* PAGE 3: EXECUTIVE SYNTHESIS */}
-      <div style={slideStyle} className="p-20 flex flex-col justify-center bg-black">
-        <div className="max-w-4xl mx-auto space-y-12">
+      {/* `justify-start`, not `justify-center`: this page's content has no fixed
+          length, and centring an over-tall column pushes the heading off the top
+          of the page as well as the last card off the bottom. Anchored to the
+          top, an overlong summary loses only its tail. */}
+      <div style={slideStyle} className="p-16 flex flex-col justify-start bg-white overflow-hidden">
+        <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
             <span className="text-[10px] font-black uppercase tracking-[0.6em] text-accent-500">Perspective 01</span>
-            <h2 className="text-6xl font-black uppercase tracking-tighter leading-tight">
+            <h2 className="text-5xl font-black uppercase tracking-tight leading-tight">
               {data.slideZero.title}
             </h2>
             {data.slideZero.headline && (
-              <p className="text-2xl leading-relaxed text-white/70 max-w-3xl mx-auto">
+              <p className="text-xl leading-relaxed text-slate-600 max-w-3xl mx-auto">
                 {data.slideZero.headline}
               </p>
             )}
           </div>
 
-          <div className="space-y-8">
-            {(data.slideZero.macroInsights || data.slideZero.synthesis_points || []).map((insight, i) => {
+          <div className="space-y-5">
+            {(data.slideZero.macroInsights || data.slideZero.synthesis_points || []).slice(0, PRINT_SUMMARY_CARDS).map((insight, i) => {
               const hasColon = insight.includes(':');
               const prefix = hasColon ? insight.split(':')[0] : null;
               const content = hasColon ? insight.split(':').slice(1).join(':').trim() : insight;
@@ -203,18 +243,18 @@ export default function PrintReport() {
               return (
                 <div 
                   key={i} 
-                  className="bg-white/[0.03] border border-white/10 p-10 relative [clip-path:polygon(0_0,_calc(100%-30px)_0,_100%_30px,_100%_100%,_30px_100%,_0_calc(100%-30px))]"
+                  className="bg-slate-50 border border-slate-200 p-6 relative [clip-path:polygon(0_0,_calc(100%-30px)_0,_100%_30px,_100%_100%,_30px_100%,_0_calc(100%-30px))]"
                 >
                   <div className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-accent-500/20">
                     <Target size={24} />
                   </div>
-                  <p className="text-white/80 text-2xl leading-relaxed">
+                  <p className="text-slate-700 text-lg leading-relaxed">
                     {prefix && (
                       <span className="text-accent-500 font-black tracking-[0.2em] mr-4 uppercase text-sm block mb-3 border-l-4 border-accent-500 pl-4">
                         {prefix}
                       </span>
                     )}
-                    <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-black">$1</strong>') }} />
+                    <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900 font-black">$1</strong>') }} />
                   </p>
                 </div>
               );
@@ -225,55 +265,62 @@ export default function PrintReport() {
 
       {/* STORYBOARD SLIDES */}
       {data.storyboard.map((slide, index) => (
-        <div key={index} style={slideStyle} className="p-16 flex flex-col gap-10 bg-black">
-          <div className="flex justify-between items-start border-b border-white/10 pb-8">
+        <div key={index} style={slideStyle} className="p-16 flex flex-col gap-10 bg-white">
+          <div className="flex justify-between items-start border-b border-slate-200 pb-8">
             <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Strategic Insight {index + 1}</span>
-              <h2 className="text-5xl font-black uppercase tracking-tighter leading-none">
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Strategic Insight {index + 1}</span>
+              <h2 className="text-5xl font-black uppercase tracking-tight leading-none">
                 {slide.pageTitle}
               </h2>
             </div>
-            <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-mono text-white/40 tracking-widest uppercase">
+            <div className="px-6 py-3 bg-slate-100 border border-slate-200 rounded-xl text-[10px] font-mono text-slate-500 tracking-widest uppercase">
               MODULE: {slide.chart.id.toUpperCase()}
             </div>
           </div>
           
-          <div className="grid grid-cols-12 gap-10 flex-1 items-center min-h-0">
+          {/* `grid-rows-1` and `min-h-0` on both columns are what keep a slide on
+              its page. Without them the row is sized by the narrative, which for
+              a long finding runs to twice the height of an A4 page — and since
+              the page itself is `overflow: hidden`, everything below the fold is
+              erased rather than wrapped. That is what removed the charts from
+              the PDF: the visual column is centred in an over-tall row, so its
+              middle sat past the bottom edge. */}
+          <div className="grid grid-cols-12 grid-rows-1 gap-10 flex-1 items-stretch min-h-0 overflow-hidden">
             {/* Analysis Side */}
-            <div className="col-span-5 flex flex-col justify-center space-y-8">
-              <div className="prose prose-invert max-w-none">
+            <div className="col-span-5 flex flex-col justify-start space-y-6 min-h-0 overflow-hidden">
+              <div className="prose max-w-none min-h-0 flex-1 overflow-hidden">
                 <ReactMarkdown
                   components={{
-                    p: ({node, ...props}) => <p className="text-xl text-white/60 leading-relaxed mb-6" {...props} />,
+                    p: ({node, ...props}) => <p className="text-[14px] text-slate-600 leading-relaxed mb-3" {...props} />,
                     strong: ({node, ...props}) => <strong className="text-accent-400 font-black underline decoration-accent-500/30 underline-offset-8" {...props} />,
                     ul: ({node, ...props}) => <ul className="space-y-6" {...props} />,
                     li: ({node, ...props}) => (
-                      <li className="text-lg text-white/80 flex items-start gap-4 p-4 bg-white/[0.02] border-l-4 border-accent-500 rounded-r-2xl">
+                      <li className="text-[14px] text-slate-700 flex items-start gap-3 p-3 bg-slate-50 border-l-4 border-accent-500 rounded-r-2xl">
                         <div className="w-2 h-2 rounded-full bg-accent-500 mt-2 shrink-0 shadow-[0_0_15px_rgba(20,184,166,0.8)]" />
                         <span className="line-clamp-3">{props.children}</span>
                       </li>
                     ),
                   }}
                 >
-                  {slide.markdownAnalysis}
+                  {fitForPrint(slide.markdownAnalysis)}
                 </ReactMarkdown>
               </div>
 
               {/* Call to Action / Insight Box */}
-              <div className="p-8 bg-accent-500/10 border border-accent-500/20 rounded-3xl relative overflow-hidden">
+              <div className="shrink-0 p-5 bg-accent-500/10 border border-accent-500/20 rounded-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                   <Activity size={80} />
                 </div>
                 <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-accent-500 mb-2">Strategic Lever</h4>
-                <p className="text-md text-accent-100 font-medium leading-relaxed italic">
+                <p className="text-md text-accent-700 font-medium leading-relaxed italic">
                   Immediate reallocation of resources toward high-impact categories is recommended to optimize ROI based on these trends.
                 </p>
               </div>
             </div>
 
             {/* Visual Side */}
-            <div className="col-span-7 flex flex-col gap-6 h-full justify-center overflow-hidden">
-              <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 flex items-center justify-center min-h-0 flex-1 shadow-2xl relative overflow-hidden">
+            <div className="col-span-7 flex flex-col gap-6 min-h-0 justify-center overflow-hidden">
+              <div className="bg-slate-50 border border-slate-200 rounded-[2.5rem] p-6 flex items-center justify-center min-h-0 flex-1 shadow-lg relative overflow-hidden">
                 <div className="absolute top-6 left-8 flex items-center gap-2 opacity-20">
                   <div className="w-2 h-2 rounded-full bg-red-500" />
                   <div className="w-2 h-2 rounded-full bg-yellow-500" />
@@ -283,7 +330,7 @@ export default function PrintReport() {
                   {renderChart(slide.chart)}
                 </div>
               </div>
-              <div className="flex justify-center gap-12 text-[9px] font-black uppercase tracking-[0.5em] text-white/10 italic">
+              <div className="flex justify-center gap-12 text-[9px] font-black uppercase tracking-[0.5em] text-slate-300 italic">
                 <span>SQL Verified</span>
                 <span>Aggregated Logic</span>
                 <span>Top 10 Precision</span>
@@ -294,13 +341,13 @@ export default function PrintReport() {
       ))}
 
       {/* FINAL PAGE: METHODOLOGY & AUDIT */}
-      <div style={slideStyle} className="p-20 flex flex-col justify-between border-t-8 border-accent-500 bg-black">
+      <div style={slideStyle} className="p-20 flex flex-col justify-between border-t-8 border-accent-500 bg-white">
         <div className="space-y-16">
           <div className="flex items-center gap-8">
             <Shield className="text-accent-500" size={64} />
             <div>
               <h2 className="text-5xl font-black uppercase tracking-tight">Data Integrity Audit</h2>
-              <p className="text-white/40 text-xl font-medium">Compliance and methodology summary for {reportId}</p>
+              <p className="text-slate-500 text-xl font-medium">Compliance and methodology summary for {reportId}</p>
             </div>
           </div>
 
@@ -314,7 +361,7 @@ export default function PrintReport() {
                   "Context-Aware Narrative Synthesis",
                   "Multi-Model Cross-Validation"
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-4 text-white/60 text-lg">
+                  <li key={i} className="flex items-center gap-4 text-slate-600 text-lg">
                     <CheckCircle2 size={24} className="text-accent-500" />
                     <span>{item}</span>
                   </li>
@@ -323,7 +370,7 @@ export default function PrintReport() {
             </div>
             <div className="space-y-8">
               <h3 className="text-xs font-black uppercase tracking-[0.5em] text-accent-500 border-b border-accent-500/20 pb-6">Audit Footprint</h3>
-              <div className="p-10 bg-white/5 border border-white/10 rounded-[2rem] font-mono text-xs text-white/40 leading-loose">
+              <div className="p-10 bg-slate-100 border border-slate-200 rounded-[2rem] font-mono text-xs text-slate-500 leading-loose">
                 TIMESTAMP: {new Date().toISOString()} <br />
                 ENGINE_VERSION: NL2QUERY_PRO_V2 <br />
                 ID: {reportId} <br />
@@ -341,7 +388,7 @@ export default function PrintReport() {
             <span className="text-[12px] font-black uppercase tracking-[1.5em]">End of Report</span>
             <div className="h-px w-32 bg-white" />
           </div>
-          <p className="text-sm text-white/20 max-w-2xl mx-auto leading-relaxed italic">
+          <p className="text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed italic">
             This document and the data contained herein are confidential. Unauthorized reproduction or distribution is strictly prohibited under the terms of the master service agreement.
           </p>
         </div>
