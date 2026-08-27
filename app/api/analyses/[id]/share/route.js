@@ -137,7 +137,12 @@ async function emailReport({ request, analysisId, shared, shares }) {
   } catch (error) {
     console.error('[analyses/share] report render failed:', error.message);
     if (error instanceof ReportRendererUnavailable) {
-      return { sent: false, reason: 'this server has no browser available to render the report.' };
+      return {
+        sent: false,
+        reason: error.cause
+          ? `the browser that renders the report could not start (${error.cause}).`
+          : 'this server has no browser available to render the report.',
+      };
     }
     // The reason, not a shrug. "The report could not be rendered" sends whoever
     // reads it to a server log; the actual message says what broke.
