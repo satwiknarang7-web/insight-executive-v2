@@ -10,6 +10,7 @@ import DynamicChart from "../../../components/charts/DynamicChart";
 import ChartBoundary from "../../../components/charts/ChartBoundary";
 import { ChartPalette } from "../../../components/charts/palette";
 import { renameCategories } from "../../../lib/chartLabels";
+import { boldSegments } from "../../../lib/richText";
 import { Zap, Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
 
 /**
@@ -268,7 +269,24 @@ export default function PrintReport() {
                         {prefix}
                       </span>
                     )}
-                    <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-black">$1</strong>') }} />
+                    {/* Segments, not markup. This text is editable on the
+                        dashboard and travels with a shared analysis, so the
+                        person who wrote it and the person whose browser renders
+                        it are not necessarily the same — and the PDF renderer
+                        runs this page carrying the reader's own session. React
+                        escapes each segment; a string replace into
+                        dangerouslySetInnerHTML escaped nothing. */}
+                    <span>
+                      {boldSegments(content).map((segment, j) =>
+                        segment.bold ? (
+                          <strong key={j} className="text-white font-black">
+                            {segment.text}
+                          </strong>
+                        ) : (
+                          segment.text
+                        )
+                      )}
+                    </span>
                   </p>
                 </div>
               );
