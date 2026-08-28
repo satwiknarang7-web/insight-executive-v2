@@ -36,6 +36,11 @@ export default function ExplorePage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
   const [anomaliesOnly, setAnomaliesOnly] = useState(false);
+  // null means the joined analysis view — the table every chart and measure
+  // runs against. The source sheets are browsable in their own right, which
+  // they were not: with three files loaded this page showed the view and gave
+  // no way to look at the other two at all.
+  const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
   const [measureValues, setMeasureValues] = useState({});
   const [measuresBusy, setMeasuresBusy] = useState(false);
@@ -54,7 +59,7 @@ export default function ExplorePage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPage({ offset, limit: PAGE_SIZE, sortBy, sortDir, filter, anomaliesOnly })
+    fetchPage({ offset, limit: PAGE_SIZE, sortBy, sortDir, filter, anomaliesOnly, table })
       .then((res) => {
         if (cancelled) return;
         setRows(res.rows);
@@ -65,7 +70,7 @@ export default function ExplorePage() {
     return () => {
       cancelled = true;
     };
-  }, [fetchPage, offset, sortBy, sortDir, filter, anomaliesOnly]);
+  }, [fetchPage, offset, sortBy, sortDir, filter, anomaliesOnly, table]);
 
   // Measures follow the filter, not the page: paging through the same selection
   // must not recompute them, and narrowing the selection must.
@@ -103,7 +108,10 @@ export default function ExplorePage() {
 
   if (!dataset) return null;
 
-  const columns = dataset.columns;
+  // The columns belong to whatever is being shown: the view has the joined set,
+  // a source sheet has its own.
+  const sourceTable = (dataset.tables || []).find((t) => t.name === table) || null;
+  const columns = sourceTable ? sourceTable.columns : dataset.columns;
   const profile = dataset.profile?.columns || {};
   const pageStart = total === 0 ? 0 : offset + 1;
   const pageEnd = Math.min(offset + PAGE_SIZE, total);
@@ -141,8 +149,55 @@ export default function ExplorePage() {
         </div>
       }
     >
+      {/* Which table is on screen.
+          The analysis view is the default because it is what every chart and
+          measure runs against — but it is fact-grain, so a dimension sheet's
+          own rows are only visible here. Shown only when there is more than one
+          table, since a single upload has nothing to switch between. */}
+      {dataset.multiTable && (dataset.tables || []).length > 1 && (
+        <section className="mb-6">
+          <div className="label mb-2">Table</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => { setTable(null); setOffset(0); setSortBy(null); }}
+              className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                table === null
+                  ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                  : 'border-white/10 text-white/50 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              Analysis view
+              <span className="ml-1.5 text-white/30">{dataset.rowCount.toLocaleString()} rows</span>
+            </button>
+            {(dataset.tables || []).map((t) => (
+              <button
+                key={t.name}
+                type="button"
+                onClick={() => { setTable(t.name); setOffset(0); setSortBy(null); }}
+                title={`${t.role === 'fact' ? 'Fact table' : 'Dimension table'} · ${t.sourceFile || t.name}`}
+                className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                  table === t.name
+                    ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                    : 'border-white/10 text-white/50 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                {t.name}
+                <span className="ml-1.5 text-white/30">{t.rowCount.toLocaleString()} rows</span>
+              </button>
+            ))}
+          </div>
+          {table && (
+            <p className="mt-2 text-[11px] leading-relaxed text-white/30">
+              These are the rows of {table} itself. Charts and measures run against the analysis
+              view, which joins them onto the fact table.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Measures, over whatever the filter has selected */}
-      {measures.length > 0 && (
+      {measures.length > 0 && table === null && (
         <section className="mb-6">
           <div className="label mb-3">
             Measures {filter || anomaliesOnly ? '· over the filtered rows' : '· over all rows'}

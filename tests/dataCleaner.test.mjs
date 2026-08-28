@@ -97,3 +97,52 @@ test('stray text in a measure is blanked so aggregates keep working', async () =
   assert.ok(typeof out.Value === 'number' && isFinite(out.Value), 'the average computes');
   alasql(`DROP TABLE ${table}`);
 });
+
+// ---------------------------------------------------------------------------
+// Redaction has to be conservative: it cannot be undone by looking again
+// ---------------------------------------------------------------------------
+
+test('an identifier that contains ten digits is not a phone number', () => {
+  // This is the bug in full. A real export keyed `ORD0000000001` had every one
+  // of its 250,000 order ids rewritten to `ORD[REDACTED_PHONE]` — one distinct
+  // value where there had been a quarter of a million — which turned every
+  // count of orders into 1 and every per-order figure into the total.
+  const out = clean([
+    { Order_ID: 'ORD0000000001', Customer_ID: 'CUST00014303', Product_ID: 'PROD001017' },
+    { Order_ID: 'ORD0000000002', Customer_ID: 'CUST00014304', Product_ID: 'PROD001018' },
+  ]);
+  assert.equal(out[0].Order_ID, 'ORD0000000001');
+  assert.equal(out[1].Order_ID, 'ORD0000000002');
+  assert.equal(out[0].Customer_ID, 'CUST00014303');
+  assert.equal(out[0].Product_ID, 'PROD001017');
+  assert.equal(new Set(out.map((r) => r.Order_ID)).size, 2, 'the ids stay distinct');
+});
+
+test('a long numeric key is not a phone number either', () => {
+  // Compared as text: a purely numeric column is also type-coerced, which is
+  // fine and separate. What matters is that the digits are still there.
+  const out = clean([{ Ref: '123456789012' }, { Ref: '98765432101234' }]);
+  assert.equal(String(out[0].Ref), '123456789012');
+  assert.equal(String(out[1].Ref), '98765432101234');
+});
+
+test('real phone numbers are still redacted', () => {
+  const out = clean([
+    { Phone: '+91-9625152011', Note: 'call 555-123-4567 today' },
+    { Phone: '(555) 123-4567', Note: '+1 555 123 4567' },
+    { Phone: '9625152011', Note: 'nothing here' },
+  ]);
+  assert.equal(out[0].Phone, '[REDACTED_PHONE]');
+  assert.equal(out[0].Note, 'call [REDACTED_PHONE] today', 'the surrounding words survive');
+  assert.equal(out[1].Phone, '[REDACTED_PHONE]');
+  assert.equal(out[1].Note, '[REDACTED_PHONE]');
+  assert.equal(out[2].Phone, '[REDACTED_PHONE]');
+  assert.equal(out[2].Note, 'nothing here');
+});
+
+test('emails and government-shaped ids are untouched by the change', () => {
+  const out = clean([{ Email: 'sam@example.com', SSN: '123-45-6789', Card: '4111-1111-1111-1111' }]);
+  assert.equal(out[0].Email, '[REDACTED_EMAIL]');
+  assert.equal(out[0].SSN, '[REDACTED_ID]');
+  assert.equal(out[0].Card, '[REDACTED_ID]');
+});
