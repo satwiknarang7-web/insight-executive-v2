@@ -461,6 +461,109 @@ test('the last period is reported separately from the overall direction', () => 
   assert.match(finding.detail, /breaking the trend/);
 });
 
+// ---------------------------------------------------------------------------
+// A fitted direction and a start-to-end change are two measurements, not one.
+//
+// The bug these cover: the headline took its adjective from the regression
+// slope and its percentage from the endpoints, so a series that climbed for six
+// periods and collapsed in the seventh was described as "trended up ... a 10.0%
+// decrease" — a contradiction inside one clause, on a slide, in a product whose
+// promise is an analysis you can defend. The same pairing appeared in the
+// implication, the summary lede and both scorecard cards.
+// ---------------------------------------------------------------------------
+
+/** A month-by-month line chart over the given values. */
+const trendChart = (values, id = 'rev') => ({
+  id,
+  title: 'Revenue by month',
+  chart_type: 'line',
+  xAxisKey: 'Month',
+  yAxisKey: 'Revenue',
+  sql: 'SELECT [Month], SUM([Revenue]) AS [Revenue] FROM SalesData GROUP BY [Month] ORDER BY [Month] ASC',
+  resultData: values.map((v, i) => ({ Month: `2025-${String(i + 1).padStart(2, '0')}`, Revenue: v })),
+});
+
+const REVERSED_UP = [100, 140, 180, 220, 260, 300, 90]; // rises, then collapses
+const REVERSED_DOWN = [300, 260, 220, 180, 140, 100, 340]; // falls, then recovers
+
+test('a headline never calls the same move both an increase and a decrease', () => {
+  for (const values of [REVERSED_UP, REVERSED_DOWN]) {
+    const { headline } = analyzeChart(trendChart(values));
+    const saysUp = /trended up|increase/.test(headline);
+    const saysDown = /trended down|decrease/.test(headline);
+    assert.ok(!(saysUp && saysDown), `contradictory headline: ${headline}`);
+  }
+});
+
+test('a series that rises then collapses is described as both, not as one', () => {
+  const f = analyzeChart(trendChart(REVERSED_UP));
+  assert.equal(f.metrics.direction, 'rising');
+  assert.equal(f.metrics.totalChangePct, -10);
+  assert.match(f.headline, /rose across most of/);
+  assert.match(f.headline, /finished 10\.0% below where it started/);
+  assert.ok(f.metrics.netChangeVsTrend, 'the disagreement is recorded for the narrator');
+});
+
+test('a series that falls then recovers reads the same way, mirrored', () => {
+  const f = analyzeChart(trendChart(REVERSED_DOWN));
+  assert.equal(f.metrics.direction, 'declining');
+  assert.match(f.headline, /fell across most of/);
+  assert.match(f.headline, /finished 13\.3% above where it started/);
+});
+
+test('an ordinary trend keeps the wording it always had', () => {
+  const up = analyzeChart(trendChart([100, 140, 180, 220, 260, 300, 340]));
+  assert.equal(up.headline, 'Revenue trended up from 2025-01 to 2025-07, a 240.0% increase.');
+  assert.equal(up.metrics.netChangeVsTrend, null);
+
+  const down = analyzeChart(trendChart([340, 300, 260, 220, 180, 140, 100]));
+  assert.match(down.headline, /trended down from 2025-01 to 2025-07, a 70\.6% decrease\./);
+  assert.equal(down.metrics.netChangeVsTrend, null);
+});
+
+test('a flat series reports its net change as its own fact, not as a move', () => {
+  const f = analyzeChart(trendChart([200, 205, 198, 202, 199, 203, 201]));
+  assert.equal(f.metrics.direction, 'flat');
+  assert.match(f.headline, /held roughly flat from 2025-01 to 2025-07, within 0\.5% end to end\./);
+});
+
+test('the per-period rate is named as the endpoint measure it is', () => {
+  // It is a start-to-end rate, so on a reversed series it runs opposite to the
+  // fitted direction. Saying "that works out to" made it read as a restatement
+  // of the trend rather than a second measurement of it.
+  const f = analyzeChart(trendChart(REVERSED_UP));
+  assert.match(f.detail, /Measured start to end that is about 1\.7% decline per period/);
+});
+
+test('a reversal is put on the risk card, never offered as the opportunity', () => {
+  const rows = trendChart(REVERSED_UP).resultData;
+  const { synthesis } = analyzeStoryboard([trendChart(REVERSED_UP)], rows);
+  const { risk, opportunity } = synthesis.strategicScorecard;
+
+  assert.match(risk, /rose for most of the period and then turned/);
+  assert.match(risk, /ending 10\.0% below where it started/);
+  // A rise that ended below its start is not an upside to chase, and the
+  // opportunity card only ever looked at the fitted direction.
+  assert.equal(opportunity, '');
+});
+
+test('the risk card does not quote a recovery as the size of a fall', () => {
+  const rows = trendChart(REVERSED_DOWN).resultData;
+  const { synthesis } = analyzeStoryboard([trendChart(REVERSED_DOWN)], rows);
+  const { risk } = synthesis.strategicScorecard;
+
+  assert.match(risk, /still trending down, though it has recovered past where it started/);
+  assert.ok(!/13\.3%/.test(risk), 'the +13.3% net change is not reported as a decline');
+});
+
+test('the summary lede calls a reversal a reversal', () => {
+  const rows = trendChart(REVERSED_UP).resultData;
+  const { synthesis } = analyzeStoryboard([trendChart(REVERSED_UP)], rows);
+  assert.match(synthesis.headline, /is a reversal:/);
+  assert.match(synthesis.headline, /rose for most of the period and ended 10\.0% below where it started/);
+  assert.ok(!/is growth:/.test(synthesis.headline));
+});
+
 test('every summary bullet carries a consequence a decision could hang on', () => {
   const charts = [
     {
