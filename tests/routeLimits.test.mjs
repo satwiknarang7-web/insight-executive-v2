@@ -105,6 +105,11 @@ const ROUTES = {
   'app/api/analyses/[id]/share/route.js': 'shareNotify',
 };
 
+/** Buckets that guard something other than cost, checked separately. */
+const DISCLOSURE_ROUTES = {
+  'app/api/analyses/[id]/share/route.js': 'share',
+};
+
 test('every route that costs money charges itself against a bucket', () => {
   for (const [path, bucket] of Object.entries(ROUTES)) {
     const source = readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -125,4 +130,30 @@ test('no route charges against a bucket that does not exist', () => {
       assert.ok(bucket in LIMITS, `${path} uses an unknown bucket "${bucket}"`);
     }
   }
+});
+
+test('sharing by email is rate limited, because the message is an oracle', () => {
+  // The wording is deliberate — it tells the caller whether an address has an
+  // account, which is what someone sharing actually needs to know. The limit is
+  // what stops that from scaling into a way to walk a list of addresses, and it
+  // is the only thing that does: a share that lands returns 200 and one that
+  // does not returns 400, so the signal survives any rewording.
+  for (const [path, bucket] of Object.entries(DISCLOSURE_ROUTES)) {
+    const source = readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+    assert.match(
+      source,
+      new RegExp(`enforceLimit\\(request, '${bucket}'\\)`),
+      `${path} must charge against the "${bucket}" bucket`
+    );
+  }
+  assert.ok(LIMITS.share, 'the share bucket exists');
+  assert.ok(LIMITS.share.limit >= 20, 'generous enough that real sharing never hits it');
+  assert.ok(LIMITS.share.limit <= 60, 'tight enough that enumeration is not practical');
+});
+
+test('the helpful message survives — the limit is what bounds it, not the wording', () => {
+  // Guards the decision itself. If someone later softens this to a generic
+  // failure they should do it deliberately, not because it looked like a leak.
+  const source = readFileSync(new URL('../lib/analyses.server.js', import.meta.url), 'utf8');
+  assert.match(source, /No account here uses \$\{parsed\.value\}\. Ask them to sign up first\./);
 });

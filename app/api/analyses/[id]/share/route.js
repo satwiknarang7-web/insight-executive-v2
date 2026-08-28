@@ -65,6 +65,14 @@ export async function GET(request, { params }) {
 
 export async function POST(request, { params }) {
   if (!isSupabaseConfigured()) return NextResponse.json({ error: 'Not configured.' }, { status: 501 });
+
+  // Not a cost control. Resolving a recipient by email reveals whether that
+  // address has an account, which is a deliberate trade — see `resolveRecipient`
+  // in lib/analyses.server.js — and this is what keeps it from scaling into a
+  // way to walk a list of addresses.
+  const refused = await enforceLimit(request, 'share');
+  if (refused) return refused;
+
   const { id } = await params;
   let body;
   try {
