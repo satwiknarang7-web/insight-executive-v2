@@ -1,5 +1,6 @@
 import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
+import { assertEngineSelect, UnsafeQuery } from '../../../lib/engineSql';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -49,15 +50,24 @@ Return ONE minified JSON object, no markdown, no commentary:
 }
 `;
 
-const FORBIDDEN = /\b(insert|update|delete|drop|alter|create|attach|truncate|merge|replace)\b/i;
-
+/**
+ * Check the model's query, and return it ready to run.
+ *
+ * The checks themselves live in `lib/engineSql.js`, which composes the connector
+ * guard rather than keeping a second, weaker copy of it — see that module for
+ * what the copy here used to let through.
+ *
+ * Returns `{ sql }` or `{ problem }`, because the caller reports a refusal as an
+ * `unavailable` reason rather than an error.
+ */
 function validate(spec) {
-  if (!spec || typeof spec.sql !== 'string') return 'The model did not return a query.';
-  const sql = spec.sql.trim();
-  if (!/^select\b/i.test(sql)) return 'Only SELECT queries are allowed.';
-  if (FORBIDDEN.test(sql)) return 'Only read-only queries are allowed.';
-  if (sql.includes(';') && !/;\s*$/.test(sql)) return 'Only a single statement is allowed.';
-  return null;
+  if (!spec || typeof spec.sql !== 'string') return { problem: 'The model did not return a query.' };
+  try {
+    return { sql: assertEngineSelect(spec.sql) };
+  } catch (error) {
+    if (error instanceof UnsafeQuery) return { problem: error.message };
+    throw error;
+  }
 }
 
 export async function POST(request) {
@@ -77,13 +87,14 @@ export async function POST(request) {
     const spec = await generateJson(`QUESTION: ${question}\n\nReturn the chart specification as JSON.`, SYSTEM(schema));
     if (!spec) return Response.json({ unavailable: true, reason: 'generation_failed' });
 
-    const problem = validate(spec);
-    if (problem) return Response.json({ unavailable: true, reason: problem });
+    const checked = validate(spec);
+    if (checked.problem) return Response.json({ unavailable: true, reason: checked.problem });
 
     return Response.json({
       title: spec.title || question,
       chart_type: spec.chart_type || 'bar',
-      sql: spec.sql.trim().replace(/;\s*$/, ''),
+      // The guard already returned the query with a trailing semicolon removed.
+      sql: checked.sql,
       xAxisKey: spec.xAxisKey || null,
       yAxisKey: spec.yAxisKey || null,
       secondaryYAxisKey: spec.secondaryYAxisKey || null,
