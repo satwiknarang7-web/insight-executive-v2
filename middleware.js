@@ -89,8 +89,38 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: [
-    // Everything except static assets and the worker bundle.
-    '/((?!_next/static|_next/image|favicon.ico|avatars|.*\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)',
-  ],
+  /**
+   * Everything except the places this app genuinely serves static files from.
+   *
+   * This list decides which requests reach the code above, so anything it
+   * excludes is not merely skipping a session refresh — it is skipping the
+   * sign-in check. That makes it part of the auth surface, and it has to be
+   * read as one.
+   *
+   * It used to end with `.*\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$`, which was
+   * wrong twice over.
+   *
+   * The dot was not escaped. In a single-quoted JavaScript string `\.` is just
+   * `.`, so Next received a pattern matching ANY character before those
+   * letters — confirmed in the compiled matcher the build emits. `/insight/[id]`
+   * is a real dynamic route, so `/insight/abcpng` skipped the door outright.
+   * Escaping it would still have left `/insight/abc.png` open, because an id
+   * may contain a dot.
+   *
+   * And it was guarding nothing. The only files this app serves out of
+   * `public/` are the four optional avatar portraits, and `avatars/` has its
+   * own entry. Build assets — including anything imported through the bundler —
+   * are under `_next/static`.
+   *
+   * So the extension test is gone rather than repaired: a rule that excludes
+   * paths by how they end cannot tell an asset from a route whose id happens to
+   * end the same way. What is left names locations instead, which a route
+   * cannot accidentally resemble.
+   *
+   * This fails closed. A static file added to `public/` that a signed-out
+   * visitor must load — something on the sign-in page — has to be added here
+   * deliberately. Nothing needs it today: neither `/sign-in` nor the root
+   * layout references an image or a font file.
+   */
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|avatars/).*)'],
 };
