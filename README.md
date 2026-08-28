@@ -69,6 +69,26 @@ GEMINI_API_KEY=...
 They are tried in that order and each is optional. Without them, `/ask` falls back
 to matching your question against the planner's own charts.
 
+### A note on `xlsx`
+
+One dependency does not come from the npm registry:
+
+```json
+"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+```
+
+SheetJS stopped publishing to npm after 0.18.5 in March 2022 and moved to their
+own CDN. That version is not a substitute: it carries two high-severity
+advisories — [prototype pollution](https://github.com/advisories/GHSA-4r6h-8v6p-xvw6)
+(fixed in 0.19.3) and [ReDoS](https://github.com/advisories/GHSA-5pgg-2g8v-p4x9)
+(fixed in 0.20.2) — and neither fix was ever published to npm. For an app whose
+job is parsing spreadsheets it did not write, pinning back to the registry would
+trade a build inconvenience for two real vulnerabilities.
+
+The cost is that `npm install` needs to reach `cdn.sheetjs.com`. On a network
+that blocks it the install fails outright with a 403, and every later command
+fails with missing modules. `npm test` checks for this first and says so.
+
 ## Tests
 
 ```bash

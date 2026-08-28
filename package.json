@@ -9,7 +9,8 @@
     "test": "node --test \"tests/*.test.mjs\"",
     "db:apply": "node --env-file=.env.local scripts/apply-sql.mjs",
     "mail:check": "node --env-file=.env.local scripts/check-mail.mjs",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "pretest": "node scripts/preflight.mjs"
   },
   "keywords": [],
   "author": "",
@@ -47,5 +48,9 @@
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.3"
   }
 }

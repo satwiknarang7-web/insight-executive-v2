@@ -50,10 +50,33 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
   const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
-  if (!data || data.length === 0) return null;
 
-  const xKeyToUse = xKey || (data[0] ? Object.keys(data[0])[0] : null);
-  const yKeyToUse = yKey || (data[0] ? Object.keys(data[0])[1] : null);
+  // The memo below is a hook, so it has to run on every render — including the
+  // empty ones the two early returns used to take before reaching it. A chart
+  // that arrives empty and then fills would otherwise change its hook count
+  // between renders, which React reports as "Rendered more hooks than during
+  // the previous render" and recovers from by unmounting the tree.
+  const rows = Array.isArray(data) ? data : [];
+  const xKeyToUse = xKey || (rows[0] ? Object.keys(rows[0])[0] : null);
+  const yKeyToUse = yKey || (rows[0] ? Object.keys(rows[0])[1] : null);
+  const xIsNumber = typeof rows[0]?.[xKeyToUse] === 'number';
+  const yIsNumber = typeof rows[0]?.[yKeyToUse] === 'number';
+
+  // Optimization: Memoize filtered data
+  const { normalData, anomalyData, isTooLargeForCategories } = React.useMemo(() => {
+    // If we have categories with huge datasets, we must truncate to prevent browser crash
+    const limit = (!xIsNumber || !yIsNumber) ? 500 : Infinity;
+    const truncatedData = rows.length > limit ? rows.slice(0, limit) : rows;
+
+    return {
+      normalData: truncatedData.filter(d => !d.isAnomaly),
+      anomalyData: truncatedData.filter(d => d.isAnomaly),
+      isTooLargeForCategories: rows.length > limit
+    };
+  }, [rows, xIsNumber, yIsNumber]);
+
+  // Every hook has now run. Past this point it is safe to leave early.
+  if (rows.length === 0) return null;
 
   if (!xKeyToUse || !yKeyToUse) return (
     <div className="h-full flex flex-col items-center justify-center text-white/20 gap-2">
@@ -61,29 +84,13 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
     </div>
   );
 
-  const xIsNumber = typeof data[0][xKeyToUse] === 'number';
-  const yIsNumber = typeof data[0][yKeyToUse] === 'number';
-  
-  // Optimization: Memoize filtered data
-  const { normalData, anomalyData, isTooLargeForCategories } = React.useMemo(() => {
-    // If we have categories with huge datasets, we must truncate to prevent browser crash
-    const limit = (!xIsNumber || !yIsNumber) ? 500 : Infinity;
-    const truncatedData = data.length > limit ? data.slice(0, limit) : data;
-
-    return {
-      normalData: truncatedData.filter(d => !d.isAnomaly),
-      anomalyData: truncatedData.filter(d => d.isAnomaly),
-      isTooLargeForCategories: data.length > limit
-    };
-  }, [data, xKeyToUse, yKeyToUse, xIsNumber, yIsNumber]);
-
   // A numeric x axis formats as numbers and needs no rotation; a categorical
   // one gets the same measured treatment as every other chart.
   const xTitle = axisTitleProps(xLabel ?? prettyLabel(xKeyToUse), { axis: 'x' });
   const xGeo = xIsNumber
     ? { props: {}, bottom: xTitle ? 66 : 44, title: xTitle }
-    : { ...xAxisGeometry(data, xKeyToUse, { compact, title: xLabel ?? prettyLabel(xKeyToUse) }) };
-  const yGeo = yAxisGeometry(data, yKeyToUse, { compact, title: yLabel ?? prettyLabel(yKeyToUse) });
+    : { ...xAxisGeometry(rows, xKeyToUse, { compact, title: xLabel ?? prettyLabel(xKeyToUse) }) };
+  const yGeo = yAxisGeometry(rows, yKeyToUse, { compact, title: yLabel ?? prettyLabel(yKeyToUse) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -124,7 +131,7 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
         )}
         
         {/* Historical Series - Split for performance on large datasets */}
-        {data.length > 1000 && xIsNumber && yIsNumber ? (
+        {rows.length > 1000 && xIsNumber && yIsNumber ? (
           <>
             <Scatter 
               name="Actual Baseline" 

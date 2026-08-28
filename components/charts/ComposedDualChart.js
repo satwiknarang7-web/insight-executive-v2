@@ -78,12 +78,20 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, y
   const CHART_COLORS = usePalette();
   const gradientId = React.useId();
   const composedGradient = `composed-primary-${gradientId}`;
-  if (!data || data.length === 0) return null;
 
-  const keys = Object.keys(data[0] || {});
-  const actualLineKey = lineKey || keys.find(k => k !== xKey && k !== yKey && typeof data[0][k] === 'number');
+  // Everything down to the early return runs on every render, empty data
+  // included, because the three useMemo calls below are hooks.
+  //
+  // They used to sit after `if (!data || data.length === 0) return null`, so an
+  // empty render called two hooks and a populated one called five. A chart that
+  // arrives empty and then fills — a re-run, or changing what it measures in the
+  // Studio — changes its hook count between renders, and React answers that with
+  // "Rendered more hooks than during the previous render" and unmounts the tree.
+  const rows = Array.isArray(data) ? data : [];
+  const keys = Object.keys(rows[0] || {});
+  const actualLineKey = lineKey || keys.find(k => k !== xKey && k !== yKey && typeof rows[0][k] === 'number');
 
-  const processedData = data;
+  const processedData = rows;
 
   const xGeo = useMemo(
     () => xAxisGeometry(processedData, xKey, { compact, title: xLabel ?? prettyLabel(xKey) }),
@@ -98,6 +106,8 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, y
     [processedData, actualLineKey, compact]
   );
 
+  // Every hook has now run. Past this point it is safe to leave early.
+  if (rows.length === 0) return null;
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>

@@ -1,0 +1,62 @@
+# Run what a contributor runs, on every push and pull request.
+#
+# There was no CI at all before this. The suite and the build both worked and
+# nothing ran them, which is how a broken lint script and an install that fails
+# on a restricted network both reached the default branch unnoticed.
+#
+# Ordered cheapest first, so an obvious failure is reported in under a minute
+# rather than after a full Next build.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Least privilege: this workflow only ever reads the repository.
+permissions:
+  contents: read
+
+# A new push supersedes the run in flight for the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # `npm ci` rather than `npm install`: it installs exactly the lockfile and
+      # fails if package.json and the lock have drifted, which is the check that
+      # matters most here.
+      #
+      # This step reaches cdn.sheetjs.com for the `xlsx` dependency — see the
+      # note in README.md. A network that blocks it fails the install outright,
+      # which is why the failure is worth recognising rather than debugging.
+      - name: Install dependencies
+        run: npm ci
+
+      # Warnings do not fail the build. The React Compiler-era hook rules flag a
+      # backlog this codebase predates, and they are configured as warnings in
+      # eslint.config.mjs so they stay visible here without blocking. Errors —
+      # rules-of-hooks among them — still fail.
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      # Last because it is the slowest, and because a compile error usually
+      # shows up as a test failure first.
+      - name: Build
+        run: npm run build
