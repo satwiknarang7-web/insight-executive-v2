@@ -13,6 +13,14 @@
  * Save is the moment the choice reaches the dashboard rather than the moment
  * you first get to see it.
  */
+import {
+  AGGREGATES,
+  aggregateLabel,
+  buildChartSpec,
+  chartRequirement,
+  pretty as prettyColumn,
+} from '../../lib/chartSpecs';
+import { useDataset, useMeasures } from '../../lib/store/DatasetProvider';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Palette, RotateCcw, Save, Tags, Trash2, Type } from 'lucide-react';
 import { PALETTES } from '../charts/palette';
@@ -53,7 +61,9 @@ function matchPreset(colors) {
   return hit ? hit.key : 'custom';
 }
 
-export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy = false }) {
+export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPreview, busy = false }) {
+  const { dataset } = useDataset();
+  const savedMeasures = useMeasures();
   const chart = slide.chart || {};
   const saved = useMemo(
     () => ({
@@ -159,6 +169,56 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
     []
   );
 
+  // ---- what the chart measures ------------------------------------------
+  //
+  // Appearance is a patch; this is a re-query. The controls mirror the New
+  // chart dialog because they build the spec with the same function — a chart
+  // edited here and one created there cannot drift apart.
+  const requirement = chartRequirement(draft.chartType);
+  const profile = dataset?.profile;
+  const dimensionOptions = profile?.dimensions || [];
+  const columnOptions = profile?.measures || [];
+
+  const [dims, setDims] = useState({});
+  const [vals, setVals] = useState({});
+  const [rebuilding, setRebuilding] = useState(false);
+  const [rebuildError, setRebuildError] = useState(null);
+
+  // Start from what the chart is already showing, so the controls describe the
+  // chart in front of you rather than an empty form.
+  useEffect(() => {
+    const req = chartRequirement(chart.chart_type || 'bar');
+    const nextDims = {};
+    // `dimension` is the real column; `xAxisKey` can be a SQL alias — a trend
+    // bucketed by month is grouped on SUBSTRING(...) and comes back as "Month",
+    // which matches no column in the list and would leave the control blank on
+    // exactly the charts people most want to re-point.
+    if (req.dimensions[0]) nextDims[req.dimensions[0].key] = chart.dimension || chart.xAxisKey || '';
+    setDims(nextDims);
+    setVals({});
+    setRebuildError(null);
+  }, [slide.id, chart.chart_type, chart.xAxisKey, chart.dimension]);
+
+  const applyData = useCallback(async () => {
+    const built = buildChartSpec(
+      { type: draft.chartType, dims, vals, limit: null },
+      { columns: dataset?.columns || [], measures: savedMeasures }
+    );
+    if (built.error) {
+      setRebuildError(built.error);
+      return;
+    }
+    setRebuilding(true);
+    setRebuildError(null);
+    try {
+      await onRebuild?.(built.spec);
+    } catch (e) {
+      setRebuildError(e.message || 'That chart could not be rebuilt.');
+    } finally {
+      setRebuilding(false);
+    }
+  }, [draft.chartType, dims, vals, dataset, savedMeasures, onRebuild]);
+
   const save = useCallback(() => {
     onSave({
       pageTitle: draft.pageTitle,
@@ -257,6 +317,100 @@ export default function ChartStudio({ slide, onSave, onDelete, onPreview, busy =
             />
           </label>
         </div>
+
+        {/* What the chart measures.
+            Separate from everything below it, and deliberately so: the rest of
+            this panel restyles a chart that already exists, while this re-runs
+            the query and recomputes the finding underneath it. Its own button
+            says so. */}
+        {onRebuild && dimensionOptions.length > 0 && (
+          <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <span className="label">What this chart measures</span>
+
+            {requirement.dimensions.map((slot) => (
+              <label key={slot.key} className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">
+                  {slot.label}
+                </span>
+                <select
+                  value={dims[slot.key] || ''}
+                  onChange={(e) => setDims((d) => ({ ...d, [slot.key]: e.target.value }))}
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                >
+                  <option value="" className="bg-surface">Choose a column…</option>
+                  {dimensionOptions.map((d) => (
+                    <option key={d} value={d} className="bg-surface">{prettyColumn(d)}</option>
+                  ))}
+                </select>
+              </label>
+            ))}
+
+            {requirement.measures.map((slot) => {
+              const value = vals[slot.key] || {};
+              const pick = (patch) => setVals((v) => ({ ...v, [slot.key]: { ...v[slot.key], ...patch } }));
+              const selection = value.measureId ? `measure:${value.measureId}` : value.aggregate || '';
+              return (
+                <div key={slot.key} className="flex flex-col gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">
+                    {slot.label}
+                  </span>
+                  <select
+                    value={selection}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v.startsWith('measure:')) pick({ measureId: v.slice(8), aggregate: null, column: null });
+                      else pick({ measureId: null, aggregate: v, column: value.column || columnOptions[0] || null });
+                    }}
+                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                  >
+                    <option value="" className="bg-surface">Choose a measure…</option>
+                    {AGGREGATES.map((a) => (
+                      <option key={a.key} value={a.key} className="bg-surface">{a.label}</option>
+                    ))}
+                    {savedMeasures.length > 0 && (
+                      <optgroup label="Your measures">
+                        {savedMeasures.map((m) => (
+                          <option key={m.id} value={`measure:${m.id}`} className="bg-surface">{m.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                  {value.aggregate && value.aggregate !== 'COUNT' && (
+                    <select
+                      value={value.column || ''}
+                      onChange={(e) => pick({ column: e.target.value })}
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                    >
+                      <option value="" className="bg-surface">Of which column…</option>
+                      {columnOptions.map((c) => (
+                        <option key={c} value={c} className="bg-surface">{prettyColumn(c)}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              );
+            })}
+
+            {rebuildError && (
+              <p className="rounded-lg border border-rose-500/25 bg-rose-500/8 px-3 py-2 text-[12px] text-rose-300">
+                {rebuildError}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={applyData}
+              disabled={rebuilding || busy}
+              className="self-start rounded-lg bg-accent-500 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30"
+            >
+              {rebuilding ? 'Recomputing…' : 'Apply and recompute'}
+            </button>
+            <p className="text-[11px] leading-relaxed text-white/30">
+              This re-runs the query and recomputes the finding underneath the chart. Your title,
+              notes and colours are kept.
+            </p>
+          </div>
+        )}
 
         {/* Chart type */}
         <label className="flex flex-col gap-2">

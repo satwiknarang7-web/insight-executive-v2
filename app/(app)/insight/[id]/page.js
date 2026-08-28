@@ -26,7 +26,7 @@ export default function InsightPage() {
   const { id } = useParams();
   const router = useRouter();
   const { analysis } = useAnalysis();
-  const { editSlide, deleteSlide } = useActions();
+  const { editSlide, deleteSlide, rebuildSlide } = useActions();
   // The studio's unsaved draft, so the chart shows a choice while it is being
   // made. Save is what commits it to the dashboard, the deck and the report.
   const [preview, setPreview] = useState(null);
@@ -146,6 +146,7 @@ export default function InsightPage() {
             slide={slide}
             onPreview={onPreview}
             onSave={(patch) => editSlide(slide.id, patch)}
+            onRebuild={(spec) => rebuildSlide(slide.id, spec)}
             onDelete={() => {
               deleteSlide(slide.id);
               router.push('/dashboard');
