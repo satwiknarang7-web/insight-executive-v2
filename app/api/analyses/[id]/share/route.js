@@ -82,7 +82,7 @@ export async function POST(request, { params }) {
     // open it, and a report that failed to render must not read as a failed
     // share.
     let notified = null;
-    if (body?.notify) notified = await emailReport({ request, analysisId: id, shared, shares });
+    if (body?.notify) notified = await emailReport({ request, analysisId: id, shared });
 
     return NextResponse.json({ shared, shares, notified });
   } catch (error) {
@@ -108,15 +108,22 @@ export async function POST(request, { params }) {
  * missing browser or an oversized PDF is a reason the email did not go, not a
  * reason to tell someone their share did not work.
  */
-async function emailReport({ request, analysisId, shared, shares }) {
+async function emailReport({ request, analysisId, shared }) {
   if (!isMailerConfigured()) return { sent: false, reason: 'email is not configured on this deployment.' };
 
-  const target = (shares || []).find(
-    (s) => s.handle === shared?.handle || s.sharedAs === shared?.label
-  );
-  if (!target?.userId) return { sent: false, reason: 'we could not work out where to send it.' };
+  // The id of the person the share was just written for, taken from the write
+  // itself.
+  //
+  // This used to search the refreshed share list for a row whose handle or
+  // label matched, which quietly picked the wrong person. A recipient who has
+  // not chosen a username has `handle: null`, so `s.handle === shared.handle`
+  // was `null === null` against every other handle-less recipient — and the
+  // list is ordered oldest first, so the earliest one won and short-circuited
+  // before the label clause that would have been right. Share with alice, then
+  // share with bob and ask to notify, and the report went to alice.
+  if (!shared?.userId) return { sent: false, reason: 'we could not work out where to send it.' };
 
-  const account = await findUserById(target.userId);
+  const account = await findUserById(shared.userId);
   if (!account?.email) return { sent: false, reason: 'that account has no email address on file.' };
 
   const [me, analysis] = await Promise.all([
