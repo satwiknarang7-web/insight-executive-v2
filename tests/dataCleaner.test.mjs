@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeDataset, nullifyStrayValues } from '../lib/dataCleaner.js';
+import {
+  sanitizeDataset,
+  nullifyStrayValues,
+  commaConvention,
+  commaEvidence,
+  createMetrics,
+  sanitizeChunk,
+  finalizeMetrics,
+} from '../lib/dataCleaner.js';
 
 const clean = (rows) => sanitizeDataset(rows).cleanedData;
 
@@ -51,6 +59,125 @@ test('genuine numbers still coerce, including currency and accounting', () => {
   assert.equal(row.b, -500);
   assert.equal(row.c, 0);
   assert.equal(row.d, 42);
+});
+
+// ---------------------------------------------------------------------------
+// Commas: thousands separator or decimal point?
+//
+// The bug these cover: every comma was stripped as a thousands separator, so a
+// German or Brazilian export where "900,50" means nine hundred and a half was
+// silently stored as 90050. The column still typed cleanly as a number, so
+// nothing downstream flagged it and every total, chart and "verified" finding
+// was a hundred times too big — stated with the confidence the product exists
+// to earn. A comma cannot be read one cell at a time, so it is decided for the
+// whole column.
+// ---------------------------------------------------------------------------
+
+test('a decimal-comma column is read as decimals, not multiplied by a hundred', () => {
+  const rows = clean([
+    { branch: 'Nord', turnover: '900,50' },
+    { branch: 'Sud', turnover: '1200,75' },
+    { branch: 'Ost', turnover: '340,20' },
+  ]);
+  assert.deepEqual(rows.map((r) => r.turnover), [900.5, 1200.75, 340.2]);
+});
+
+test('dot-grouped European numbers parse instead of being left as text', () => {
+  const rows = clean([{ v: '1.234,56' }, { v: '2.000,00' }, { v: '900,50' }]);
+  assert.deepEqual(rows.map((r) => r.v), [1234.56, 2000, 900.5]);
+});
+
+test('comma-grouped thousands still parse the way they always did', () => {
+  const rows = clean([{ v: '1,234.50' }, { v: '12,345' }, { v: '1,234,567' }]);
+  assert.deepEqual(rows.map((r) => r.v), [1234.5, 12345, 1234567]);
+});
+
+test('a column that contradicts itself is left as text rather than half wrong', () => {
+  // "1,234.50" proves the comma groups; "900,50" proves it is the decimal
+  // point. No reading makes both true, so neither is guessed at.
+  const { cleanedData, metrics } = sanitizeDataset([{ v: '1,234.50' }, { v: '900,50' }]);
+  assert.deepEqual(cleanedData.map((r) => r.v), ['1,234.50', '900,50']);
+  assert.equal(metrics.columnStats.v.commaConvention, 'mixed');
+  assert.deepEqual(metrics.ambiguousCommaColumns, ['v']);
+});
+
+test('with no evidence either way a comma is a thousands separator', () => {
+  // "1,234" is 1234 in en-US and 1.234 in de-DE and nothing here says which.
+  // The commoner export format wins, which is also the behaviour every file
+  // already had.
+  const rows = clean([{ v: '1,234' }, { v: '5,678' }]);
+  assert.deepEqual(rows.map((r) => r.v), [1234, 5678]);
+});
+
+test('one decimal-comma value settles the whole column, ambiguous ones included', () => {
+  const { cleanedData, metrics } = sanitizeDataset([{ v: '1,234' }, { v: '900,50' }]);
+  assert.deepEqual(cleanedData.map((r) => r.v), [1.234, 900.5]);
+  assert.deepEqual(metrics.decimalCommaColumns, ['v']);
+});
+
+test('percentages and accounting negatives follow the column convention too', () => {
+  assert.equal(clean([{ v: '12,5%' }, { v: '7,25%' }])[0].v, 0.125);
+  assert.equal(clean([{ v: '(1.200,50)' }, { v: '300,25' }])[0].v, -1200.5);
+});
+
+test('a plain decimal in a decimal-comma column is not regrouped', () => {
+  // The dot only becomes a group separator in a value that has a comma to be
+  // the decimal point. Otherwise 3.14 would become 314.
+  const rows = clean([{ v: '900,50' }, { v: '3.14' }]);
+  assert.deepEqual(rows.map((r) => r.v), [900.5, 3.14]);
+});
+
+test('a decimal-comma value is not mistaken for a zero-padded code', () => {
+  // "0,5" reaches looksLikeIdentifier as digits "05". In this column the comma
+  // is the decimal point, so it is half — not a padded identifier.
+  const rows = clean([{ v: '0,5' }, { v: '900,50' }]);
+  assert.deepEqual(rows.map((r) => r.v), [0.5, 900.5]);
+});
+
+test('genuinely malformed numbers are still refused', () => {
+  // Neither grouping explains these, and parseFloat would answer both with a
+  // plausible wrong number rather than failing.
+  const rows = clean([{ v: '1,2,3' }, { v: '1.234.567' }]);
+  assert.deepEqual(rows.map((r) => r.v), ['1,2,3', '1.234.567']);
+});
+
+test('the column decision survives a streamed ingest, chunk boundaries and all', () => {
+  // The path the app actually takes: sanitizeChunk cannot see a whole column,
+  // and here the first decimal comma does not appear until the third chunk. The
+  // convention has to be settled in finalizeMetrics or the early rows keep a
+  // reading the later ones disprove.
+  const columns = ['umsatz'];
+  const metrics = createMetrics(columns, 0);
+  const cleaned = [];
+
+  const raw = [];
+  for (let i = 0; i < 40; i++) raw.push({ umsatz: String(100 + i) });
+  for (let i = 0; i < 40; i++) raw.push({ umsatz: `${900 + i},50` });
+
+  const CHUNK = 17; // deliberately not a divisor of 80
+  for (let i = 0; i < raw.length; i += CHUNK) {
+    sanitizeChunk(raw.slice(i, i + CHUNK), columns, metrics, cleaned);
+  }
+  finalizeMetrics(cleaned, columns, metrics);
+
+  assert.equal(metrics.columnStats.umsatz.commaConvention, 'decimal');
+  assert.equal(metrics.columnStats.umsatz.type, 'number');
+  assert.ok(cleaned.every((r) => typeof r.umsatz === 'number'), 'every row ends up numeric');
+  assert.equal(cleaned[40].umsatz, 900.5);
+  assert.ok(Math.max(...cleaned.map((r) => r.umsatz)) < 1000, 'nothing was inflated');
+});
+
+test('commaConvention reads only positional evidence, never a guess', () => {
+  assert.equal(commaEvidence('1,234.56'), 'thousands'); // dot after comma
+  assert.equal(commaEvidence('1.234,56'), 'decimal'); //   dot before comma
+  assert.equal(commaEvidence('1,234,567'), 'thousands'); // two commas
+  assert.equal(commaEvidence('900,50'), 'decimal'); //      not three digits
+  assert.equal(commaEvidence('1,234'), null); //            unknowable
+  assert.equal(commaEvidence('42'), null); //               no comma at all
+
+  assert.equal(commaConvention(['1,234']), 'thousands');
+  assert.equal(commaConvention(['1,234', '900,50']), 'decimal');
+  assert.equal(commaConvention(['1,234.5', '900,50']), 'mixed');
 });
 
 test('a mostly-numeric column with one stray string is typed as a number', () => {

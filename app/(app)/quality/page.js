@@ -17,6 +17,12 @@ export default function QualityPage() {
   const columns = dataset.columns;
   const profile = dataset.profile?.columns || {};
 
+  // Columns whose commas were decided one way rather than assumed. Reported
+  // because the two readings differ by a factor of a hundred, and a reader who
+  // knows their own file is the only one who can say the call was right.
+  const decimalComma = m.decimalCommaColumns || [];
+  const ambiguousComma = m.ambiguousCommaColumns || [];
+
   return (
     <PageFrame title="Data Quality" subtitle={`Cleaning report for ${dataset.fileName}`}>
       {/* Integrity headline */}
@@ -64,6 +70,22 @@ export default function QualityPage() {
             Currency symbols, thousands separators, percentages and accounting negatives were parsed into
             numbers; date-shaped strings became ISO dates. {m.typesCoerced.toLocaleString()} values changed type.
           </Bullet>
+          {decimalComma.length > 0 && (
+            <Bullet title="Read commas as decimal points">
+              {listColumns(decimalComma)} {decimalComma.length === 1 ? 'is written' : 'are written'} in the
+              European convention, where the comma is the decimal point — so{' '}
+              <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">900,50</code> was read as
+              900.5, not 90,050. The whole column decides this together; no cell is guessed at on its own.
+            </Bullet>
+          )}
+          {ambiguousComma.length > 0 && (
+            <Bullet title="Left ambiguous numbers as text">
+              {listColumns(ambiguousComma)} {ambiguousComma.length === 1 ? 'contains' : 'contain'} commas
+              used both ways — as a thousands separator in some rows and as a decimal point in others. No
+              reading makes every value true, so they were kept as text rather than half of them being
+              wrong. Fix the source column to include them in the analysis.
+            </Bullet>
+          )}
           <Bullet title="Standardised blanks">
             Tokens like <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">N/A</code>,{' '}
             <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">null</code> and{' '}
@@ -185,6 +207,14 @@ function Metric({ icon: Icon, label, value, tone }) {
       <div className="mt-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/30">{label}</div>
     </div>
   );
+}
+
+/** "Turnover", "Turnover and Cost", "Turnover, Cost and 3 more". */
+function listColumns(names) {
+  const shown = names.slice(0, 2).map((n) => `“${n}”`);
+  const rest = names.length - shown.length;
+  if (rest > 0) return `${shown.join(', ')} and ${rest} more`;
+  return shown.length === 2 ? `${shown[0]} and ${shown[1]}` : shown[0];
 }
 
 function Bullet({ title, children }) {

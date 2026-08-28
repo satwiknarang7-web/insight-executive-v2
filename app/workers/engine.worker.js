@@ -550,6 +550,11 @@ function rollUpMetrics(tables, view) {
     totalAnomalies: 0,
     totalCells: 0,
     cleanRows: view.rows.length,
+    // Which columns had their commas decided one way or the other. Carried up
+    // rather than recomputed, because the decision is made per source table and
+    // /quality reports it against the view the user is looking at.
+    decimalCommaColumns: [],
+    ambiguousCommaColumns: [],
     columnStats: {},
   };
   for (const name of Object.keys(tables)) {
@@ -567,7 +572,12 @@ function rollUpMetrics(tables, view) {
   for (const col of view.columns) {
     const p = view.provenance[col];
     const src = p && tables[p.table];
-    if (src) out.columnStats[col] = src.metrics.columnStats[p.column] || {};
+    if (!src) continue;
+    const stat = src.metrics.columnStats[p.column] || {};
+    out.columnStats[col] = stat;
+    // Named by the view's column, which is what the user sees on /quality.
+    if (stat.commaConvention === 'decimal') out.decimalCommaColumns.push(col);
+    else if (stat.commaConvention === 'mixed') out.ambiguousCommaColumns.push(col);
   }
   return out;
 }
