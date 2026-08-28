@@ -20,6 +20,7 @@ import {
   Pencil,
   Check,
   Info,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
@@ -563,6 +564,20 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
           />
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          {/* In edit mode the card is a plain div so that clicking a text field
+              does not navigate — which also removed the only route to the chart
+              editor, where what a chart measures can be changed. This is that
+              route, and it is a link rather than a second copy of the editor. */}
+          {editing && (
+            <Link
+              href={`/insight/${slide.id || `slide_${index + 1}`}`}
+              aria-label={`Edit the chart for ${slide.pageTitle}`}
+              title="Change what this chart measures"
+              className="rounded-lg p-1.5 text-white/15 transition-colors hover:bg-accent-500/10 hover:text-accent-300"
+            >
+              <SlidersHorizontal size={14} />
+            </Link>
+          )}
           <button
             type="button"
             aria-label={`Delete ${slide.pageTitle}`}
