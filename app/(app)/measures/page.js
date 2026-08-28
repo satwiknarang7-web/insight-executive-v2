@@ -27,6 +27,7 @@ import {
 import PageFrame from '../../../components/shell/PageFrame';
 import MeasureBuilder from '../../../components/panels/MeasureBuilder';
 import MeasureReference from '../../../components/panels/MeasureReference';
+import DerivedMeasures from '../../../components/panels/DerivedMeasures';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import { compileMeasure, formatMeasureValue, measureByDimensionSql } from '../../../lib/measures';
 
@@ -147,6 +148,8 @@ export default function MeasuresPage() {
         <MeasureReference dataset={dataset} measures={measures} onInsert={insert} />
       </div>
 
+      <DerivedMeasures derived={dataset.derivedMeasures || []} />
+
       {notice && (
         <p className="mb-6 rounded-lg border border-accent-500/25 bg-accent-500/[0.06] px-4 py-3 text-[13px] text-accent-200">
           {notice}
@@ -201,7 +204,11 @@ function MeasureCard({ measure, state, context, dimensions, onPin, onEdit, onDel
         <div className="min-w-0">
           <div className="truncate text-sm font-black text-white">{measure.name}</div>
           <div className="mt-0.5 text-[11px] text-white/30">
-            {measure.source === 'model' ? 'Written by the model' : 'Read from your words'}
+            {measure.source === 'model'
+              ? 'Written by the model'
+              : measure.source === 'auto'
+                ? 'Written for this dataset'
+                : 'Read from your words'}
             {compiled.ok && compiled.dependsOn?.length ? ` · uses ${compiled.dependsOn.join(', ')}` : ''}
           </div>
         </div>

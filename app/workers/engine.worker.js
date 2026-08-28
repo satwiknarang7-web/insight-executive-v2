@@ -32,6 +32,7 @@ import {
   TABLE,
 } from '../../lib/pipeline.js';
 import { planCharts } from '../../lib/analystPlanner.js';
+import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
@@ -118,8 +119,61 @@ function summary() {
       addedColumns: state.view.joins.flatMap((j) => j.addedColumns),
       provenance: state.view.provenance,
     },
+    // Measures the app wrote for this dataset: order value, discount rates,
+    // basket size, failure rates. Computed here because this is the only place
+    // that holds the rows, the profile and the data model at once — and shown
+    // on /measures beside the ones the user writes, because they are the same
+    // kind of object and the only difference is who typed them.
+    derivedMeasures: describeDerived(),
+    columnRoles: columnRoles(),
     notices: state.notices,
   };
+}
+
+/** The data model's roles, keyed by table, as the semantics layer wants them. */
+function modelRoles() {
+  return Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role]));
+}
+
+/** Measures derived from this dataset's shape, ready for the Measures page. */
+function describeDerived() {
+  if (!state) return [];
+  try {
+    return deriveMeasures({
+      profile: state.viewProfile,
+      provenance: state.view.provenance,
+      roles: modelRoles(),
+      cardinality: state.viewProfile?.cardinality || {},
+      rowCount: state.view.rows.length,
+      columns: state.view.columns,
+      sample: state.view.rows.slice(0, 500),
+    });
+  } catch {
+    // A derived measure is a convenience; failing to work one out must never
+    // cost the dataset summary that everything else on screen depends on.
+    return [];
+  }
+}
+
+/**
+ * What each column is, so the UI can stop offering to sum things that must not
+ * be summed. The reference panel listed `Total_Spent` under "things to add up"
+ * while the planner had already learned not to touch it.
+ */
+function columnRoles() {
+  if (!state) return {};
+  try {
+    const { byColumn } = classifyColumns({
+      profile: state.viewProfile,
+      provenance: state.view.provenance,
+      roles: modelRoles(),
+      cardinality: state.viewProfile?.cardinality || {},
+      rowCount: state.view.rows.length,
+    });
+    return byColumn;
+  } catch {
+    return {};
+  }
 }
 
 /** Column profile with the extra display facts the Explore page needs. */
