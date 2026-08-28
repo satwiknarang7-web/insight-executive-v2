@@ -609,6 +609,11 @@ function analyze(id, { focus, maxCharts }) {
     focus,
     maxCharts,
     tables: sourceRows(),
+    // Which table each column came from, and whether that table is the fact or
+    // a dimension. Without it the planner cannot tell a fact measure from
+    // somebody else's total, and sums the latter once per joined row.
+    provenance: state.view.provenance,
+    roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
   reply(id, 'analyzed', result);
