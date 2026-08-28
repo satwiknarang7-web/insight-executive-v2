@@ -15,11 +15,15 @@ import {
   renderReportPdf,
   reportFilename,
 } from '../../../../lib/report/pdf.server';
+import { enforceLimit } from '../../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(request) {
+  const refused = await enforceLimit(request, 'pdf');
+  if (refused) return refused;
+
   let analysis;
   try {
     analysis = await request.json();

@@ -1,4 +1,5 @@
 import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
+import { enforceLimit } from '../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -64,6 +65,9 @@ export async function POST(request) {
     if (!hasAnyProvider()) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
+
+    const refused = await enforceLimit(request, 'ask');
+    if (refused) return refused;
 
     const { question, schema } = await request.json();
     if (!question || !schema) {

@@ -16,6 +16,7 @@ import { isSupabaseConfigured, currentUser } from '../../../lib/vault/supabase.s
 import { isVaultConfigured } from '../../../lib/vault/crypto';
 import { BlockedHost, UnsafeQuery, MAX_ROWS } from '../../../lib/connectors/guards';
 import { driverFor, IMPLEMENTED } from '../../../lib/connectors/drivers.server';
+import { enforceLimit } from '../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -28,6 +29,9 @@ export async function POST(request) {
 
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
+  const refused = await enforceLimit(request, 'connect');
+  if (refused) return refused;
 
   let body;
   try {

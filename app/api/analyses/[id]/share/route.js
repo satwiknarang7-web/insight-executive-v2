@@ -27,6 +27,7 @@ import {
   renderReportPdf,
   reportFilename,
 } from '../../../../../lib/report/pdf.server';
+import { enforceLimit } from '../../../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 // Rendering the report runs a headless browser over the print page, which is
@@ -110,6 +111,16 @@ export async function POST(request, { params }) {
  */
 async function emailReport({ request, analysisId, shared }) {
   if (!isMailerConfigured()) return { sent: false, reason: 'email is not configured on this deployment.' };
+
+  // Only this branch is rate limited, not sharing itself. Writing a share row is
+  // cheap and people do it in bursts; rendering a PDF in headless Chrome and
+  // putting it through SMTP is neither, and it is the half someone could point
+  // at an inbox. Reported as a refusal rather than returned as a 429, because
+  // the share has already succeeded and did not fail.
+  const refused = await enforceLimit(request, 'shareNotify');
+  if (refused) {
+    return { sent: false, reason: 'too many reports have been emailed just now — try again shortly.' };
+  }
 
   // The id of the person the share was just written for, taken from the write
   // itself.

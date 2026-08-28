@@ -1,4 +1,5 @@
 import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
+import { enforceLimit } from '../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -114,6 +115,9 @@ export async function POST(request) {
     if (!hasAnyProvider()) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
+
+    const refused = await enforceLimit(request, 'narrate');
+    if (refused) return refused;
 
     const { findings = [], synthesis = {}, focus = null } = await request.json();
     if (!Array.isArray(findings) || findings.length === 0) {

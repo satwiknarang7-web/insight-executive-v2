@@ -9,6 +9,7 @@
  * number-only prose — never raw rows.
  */
 import { hasElevenLabs, synthesizeSpeech, defaultVoiceId } from '../../../lib/elevenlabs.server';
+import { enforceLimit } from '../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -21,6 +22,9 @@ export async function POST(request) {
   if (!hasElevenLabs()) {
     return Response.json({ unavailable: true }, { status: 501 });
   }
+
+  const refused = await enforceLimit(request, 'speech');
+  if (refused) return refused;
 
   let body;
   try {

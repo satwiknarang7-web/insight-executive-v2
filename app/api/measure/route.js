@@ -1,5 +1,6 @@
 import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
 import { validateExpression } from '../../../lib/measures';
+import { enforceLimit } from '../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -67,6 +68,9 @@ export async function POST(request) {
     if (!hasAnyProvider()) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
+
+    const refused = await enforceLimit(request, 'measure');
+    if (refused) return refused;
 
     const { question, schema, columns = [], measures = [] } = await request.json();
     if (!question || !schema) {
