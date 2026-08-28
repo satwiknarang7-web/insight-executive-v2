@@ -14,7 +14,7 @@
  * Clicking any of them types it, so a name never has to be transcribed by hand.
  */
 import { useMemo, useState } from 'react';
-import { Calendar, Fingerprint, Hash, Sigma, Type } from 'lucide-react';
+import { Calendar, Fingerprint, Hash, Percent, Sigma, TriangleAlert, Type } from 'lucide-react';
 import { exampleMeasurePhrases } from '../../lib/measureLanguage';
 
 /**
@@ -41,12 +41,26 @@ const OPERATIONS = [
 
 const ROLE_META = {
   measure: { label: 'Measures — things to add up', icon: Hash, tone: 'text-accent-400' },
+  rate: {
+    label: 'Rates & prices — average these',
+    icon: Percent,
+    tone: 'text-white/50',
+    note: 'A price or score has no meaningful total: adding up every unit price answers nothing.',
+  },
+  joined: {
+    label: 'Totals from a joined table — do not add these up',
+    icon: TriangleAlert,
+    tone: 'text-amber-400',
+    note:
+      'Already a total, and it repeats on every row it joined to. Summing one counts the same ' +
+      'value once per matching row. Group by it, or average it, but do not add it up.',
+  },
   dimension: { label: 'Dimensions — things to group by', icon: Type, tone: 'text-white/50' },
   time: { label: 'Dates', icon: Calendar, tone: 'text-white/50' },
   identifier: { label: 'Identifiers — count these, do not sum them', icon: Fingerprint, tone: 'text-amber-400' },
 };
 
-const ROLE_ORDER = ['measure', 'dimension', 'time', 'identifier'];
+const ROLE_ORDER = ['measure', 'rate', 'joined', 'dimension', 'time', 'identifier'];
 
 export default function MeasureReference({ dataset, measures = [], onInsert }) {
   const [tab, setTab] = useState('columns');
@@ -75,11 +89,26 @@ export default function MeasureReference({ dataset, measures = [], onInsert }) {
     return out;
   }, [dataset, measures]);
 
+  /**
+   * Columns grouped by what may be done to them.
+   *
+   * The profiler's own role says whether a column is a number; it cannot say
+   * whether adding that number up means anything, because that depends on which
+   * table it came from. `columnRoles` — computed in the worker, where the data
+   * model is — supplies the rest, and it matters here more than anywhere: this
+   * panel is a list of suggestions, and listing `Total_Spent` under "things to
+   * add up" invites exactly the mistake the planner now refuses to make.
+   */
   const grouped = useMemo(() => {
     const profile = dataset?.profile?.columns || {};
+    const semantics = dataset?.columnRoles || {};
     const out = {};
     for (const name of dataset?.columns || []) {
-      const role = profile[name]?.role || 'dimension';
+      let role = profile[name]?.role || 'dimension';
+      const kind = semantics[name]?.kind;
+      if (kind === 'identifier') role = 'identifier';
+      else if (role === 'measure' && (kind === 'preAggregate' || kind === 'attribute')) role = 'joined';
+      else if (role === 'measure' && kind === 'rate') role = 'rate';
       (out[role] ||= []).push(name);
     }
     return out;
@@ -125,13 +154,16 @@ export default function MeasureReference({ dataset, measures = [], onInsert }) {
                       {meta.label}
                     </span>
                   </div>
+                  {meta.note && (
+                    <p className="mb-1.5 text-[10px] leading-relaxed text-white/30">{meta.note}</p>
+                  )}
                   <div className="flex flex-wrap gap-1.5">
                     {grouped[role].map((name) => (
                       <button
                         key={name}
                         type="button"
                         onClick={() => onInsert?.(name)}
-                        title={`Add “${name}” to what you are typing`}
+                        title={dataset?.columnRoles?.[name]?.why || `Add “${name}” to what you are typing`}
                         className="max-w-full truncate rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-bold text-white/70 transition-colors hover:border-accent-500/40 hover:bg-accent-500/10 hover:text-accent-200"
                       >
                         {name}
