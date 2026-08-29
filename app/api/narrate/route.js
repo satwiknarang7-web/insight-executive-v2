@@ -44,6 +44,37 @@ correlation: the findings report how much variation is left UNEXPLAINED, so a
 relationship is something to test, never something that "drives" or "causes".
 The dataset-level synthesis carries a 'caveats' list. Never contradict it.
 
+# THE THIRD RULE: MATCH THE VERB TO THE EVIDENCE
+Every finding carries an 'evidence' tier and the 'evidence_notes' behind it.
+It is not decoration — it is the ceiling on how hard you may push, and the
+difference between an analyst a room trusts twice and one it trusts once:
+
+- strong      Say what to do. "Move the budget."
+- moderate    Say what to check first, then what it would mean. "Confirm X, then move."
+- indicative  Say what to watch. Never an instruction.
+- thin        Say plainly that there is not enough here yet, and what would settle it.
+              Never dress a thin finding up. Never lead the summary with one.
+
+Some findings carry explicit warnings you must not soften or drop:
+'statisticalSignificance' says whether a correlation is beyond what chance
+produces at that sample size — when it is not, say so in the sentence that
+reports it. 'outlierWarning' says a few extreme points are carrying a
+relationship. 'leadIsReal' says whether a ranking's leader is genuinely clear of
+the field or whether the order is inside ordinary variation; where it is not,
+the ordering is provisional and you must not write about "the leader" as though
+it were established. 'skew' on a distribution says the average sits away from
+the typical record, so do not quote an average as typical when it does.
+
+# THE FOURTH RULE: THE BEST SENTENCE USUALLY JOINS TWO CHARTS
+The synthesis carries a 'connections' list: statements computed by holding two
+findings together — a segment taking a large share of one measure on a small
+share of another, two measures whose leaders differ, a trend that one segment
+largely is. These are already verified arithmetic over both findings, and they
+are almost always the most useful thing in the report, because neither chart
+contains them. Use them. Do not invent more of them: a link between two
+findings that is not in that list has not been checked, and inventing one is
+the fastest way to put a confident falsehood on a slide.
+
 # HOW A REAL ANALYST SOUNDS
 - Lead with the conclusion, then the evidence. Not "we analysed X and found Y" —
   just "Y, because X."
@@ -54,11 +85,16 @@ The dataset-level synthesis carries a 'caveats' list. Never contradict it.
   this is true. A number with no "so what" is a reading, not a finding.
 - Use the shape of the data, not only its top. A leader means one thing when the
   field behind it is even and another when the field has collapsed — the
-  findings carry the spread, the count below average and the size of the tail,
-  and those are what turn a ranking into an argument.
-- Reach across findings where they genuinely bear on each other: a rising trend
-  and a concentrated mix together say something neither says alone. Never
-  manufacture a link the numbers do not support.
+  findings carry the spread, the median against the mean, the count below
+  average, how many standard deviations clear the leader is, and how much of a
+  trend's movement the direction actually explains. Those are what turn a
+  reading into an argument.
+- Prefer the number that changes a decision over the number that is largest. A
+  median beside a mean, a fit quality, a rank correlation beside a raw one:
+  these are the figures a careful analyst reaches for and a report generator
+  never does.
+- Reach across findings using the 'connections' list, which has already done the
+  arithmetic. Never manufacture a link that is not in it.
 - Be calibrated. Say "flat", "marginal", "too few records to tell" when that is
   the truth. Confidence you have not earned is the fastest way to lose a room.
 - One idea per sentence. Short sentences. No semicolon chains.
@@ -72,7 +108,12 @@ The dataset-level synthesis carries a 'caveats' list. Never contradict it.
 - Meta-commentary about the analysis, the chart, the dataset shape, or the
   method. Nobody in the room wants to hear about the query.
 - Rhetorical questions used as insight, or any sentence that only restates the
-  chart title.
+  chart title. Do not read a chart title aloud mid-sentence — say "revenue",
+  not "Total Revenue Trend Over Month".
+- The same rhetorical move twice. If one takeaway ends "so a bad quarter there
+  is a bad quarter overall", the next one must reach for a different
+  consequence, even where the underlying shape is similar. Repetition down a
+  summary is what makes it read as generated.
 
 # VERIFIED FINDINGS (your only source of facts)
 ${JSON.stringify(findings)}
@@ -90,7 +131,7 @@ commentary before or after.
     "title": "A specific title naming what the data is about — not the words 'Executive Summary'",
     "headline": "One sentence, the thing you would say first if you had ten seconds. The conclusion, with the number that carries it.",
     "macroInsights": [
-      "4 takeaways, or 3 if there is genuinely only that much to say. Two or three sentences each: what is true, with its verified number and the basis that number was measured against; what it implies; and what it changes. Ordered by how much a decision hangs on it. Never two takeaways about the same fact."
+      "4 takeaways, or 3 if there is genuinely only that much to say. Two or three sentences each: what is true, with its verified number and the basis that number was measured against; what it implies; and what it changes. Ordered by how much a decision hangs on it. Never two takeaways about the same fact, and never two that draw the same kind of consequence. Where the synthesis carries connections, at least one takeaway is one of them."
     ],
     "strategicScorecard": {
       "focus": "The one thing you would tell them to act on, stated as an action.",
@@ -103,7 +144,7 @@ commentary before or after.
       "id": "Matching id from the findings",
       "pageTitle": "What this slide shows, in the words you would use out loud. No jargon, no colon-subtitle constructions.",
       "insight_anchor": "The finding in one sentence, carrying its verified number and the basis it was measured against.",
-      "insight_implication": "Two or three sentences: why it matters to this business, what the rest of the distribution says about how solid it is, and what changes if it is true.",
+      "insight_implication": "Two or three sentences: why it matters to this business, what the rest of the distribution says about how solid it is, and what changes if it is true. Where the finding's evidence tier is indicative or thin, say what is missing rather than what to do.",
       "insight_question": "The next question you would want answered, or the decision this puts in front of them. Specific enough to assign to someone."
     }
   ]
@@ -140,7 +181,11 @@ Constraints you will be checked against:
 3. Every observation carries a consequence, and then a decision it bears on.
 4. No buzzwords, no hedging filler, no commentary about the method.
 5. Nothing contradicts the caveats in the synthesis.
-6. Exactly ${findings.length} entries in 'storyboard'.`;
+6. Exactly ${findings.length} entries in 'storyboard'.
+7. No finding is written with more confidence than its 'evidence' tier allows,
+   and every explicit warning it carries survives into the prose.
+8. At least one takeaway comes from the synthesis 'connections' list when that
+   list is not empty, and no two takeaways draw the same consequence.`;
 
     const result = await generateJson(prompt, SYSTEM(findings, synthesis, focus));
 

@@ -98,7 +98,7 @@
   --surface: #ffffff;
   --card-bg: rgba(11, 37, 69, 0.02);
   --card-border: rgba(11, 37, 69, 0.12);
-  --chart-axis: #4a6484;
+  --chart-axis: #245b93;
   --chart-grid: #0b2545;
   --chart-grid-opacity: 0.10;
   --chart-tooltip-bg: rgba(255, 255, 255, 0.96);
@@ -138,7 +138,93 @@
   /* Query/code blocks: a pale slate inset with navy text, not a dark box. */
   --code-bg: #f1f5f9;
   --code-fg: #0f3057;
+
+  /* The navy ink ramp light mode reads its muted text from. See the block below
+     for why an alpha ramp cannot supply it. Contrast is quoted against the
+     white page; every step also clears 4.5:1 against --canvas-raised, the
+     slightly darker ground cards sit on, so no tier of the hierarchy drops
+     below AA anywhere it is used. */
+  --ink-1: #0b2545; /* 15.4:1 — primary copy, headings */
+  --ink-2: #123a63; /* 11.6:1 — strong secondary */
+  --ink-3: #1a4a80; /*  9.0:1 — secondary */
+  --ink-4: #245b93; /*  7.0:1 — muted; also --chart-axis above */
+  --ink-5: #3d6a92; /*  5.7:1 — faint labels, captions */
+  --ink-6: #457399; /*  5.0:1 — placeholders, disabled, decoration */
+
   color-scheme: light;
+}
+
+/*
+ * Muted text in light mode is navy, not grey.
+ *
+ * The token swap above flips `--color-white` to navy, which is right for
+ * borders and surface tints: `border-white/10` wants to be a faint navy rule
+ * and `bg-white/[0.03]` a pale navy wash. It is wrong for text, because an
+ * alpha is a blend toward the page rather than a shade of the ink.
+ * `text-white/40` — the most-used muted class in the app — composited navy at
+ * 40% over white and landed on #9da8b5: a light grey at 2.4:1, well under the
+ * 4.5:1 a reader needs. `text-white/30` came out at 1.9:1, effectively
+ * invisible. That is the grey people were seeing; it was never a grey token,
+ * it was navy diluted by the page behind it.
+ *
+ * Tailwind bakes the alpha into each utility's own compiled rule, so no token
+ * can reach it. The alpha steps are grouped onto the opaque navy ramp instead,
+ * which keeps the hierarchy the design was drawn with — /85 still reads
+ * stronger than /45, /45 still stronger than /30 — while every step stays
+ * legible. Only the *text* utilities are remapped; the alpha borders and
+ * washes are left exactly as they were.
+ *
+ * Two cascade details make this safe rather than a blunt instrument:
+ *
+ *  - The rules live in `@layer utilities`, not outside it. Unlayered CSS beats
+ *    every layered rule regardless of specificity, so an unlayered override
+ *    would have silently killed `hover:text-accent-300` on every element that
+ *    also carried a muted class.
+ *  - The theme guard is wrapped in `:where()`, which contributes no
+ *    specificity. Each rule therefore weighs exactly what the utility it
+ *    replaces weighs, and wins only on source order — so a `hover:` or
+ *    `focus:` variant, which carries one more pseudo-class, still beats it.
+ *
+ * Variants need their own rules because Tailwind compiles `hover:text-white/70`
+ * to a separate class name the base rule cannot match. Keep the list in step
+ * with the classes actually used in the app.
+ */
+@layer utilities {
+  :where(:root[data-theme='light']) .text-white\/90,
+  :where(:root[data-theme='light']) .text-white\/85,
+  :where(:root[data-theme='light']) .text-white\/80 { color: var(--ink-1); }
+
+  :where(:root[data-theme='light']) .text-white\/75,
+  :where(:root[data-theme='light']) .text-white\/70,
+  :where(:root[data-theme='light']) .text-white\/65 { color: var(--ink-2); }
+
+  :where(:root[data-theme='light']) .text-white\/60,
+  :where(:root[data-theme='light']) .text-white\/55,
+  :where(:root[data-theme='light']) .text-white\/50 { color: var(--ink-3); }
+
+  :where(:root[data-theme='light']) .text-white\/45,
+  :where(:root[data-theme='light']) .text-white\/40 { color: var(--ink-4); }
+
+  :where(:root[data-theme='light']) .text-white\/35,
+  :where(:root[data-theme='light']) .text-white\/30 { color: var(--ink-5); }
+
+  :where(:root[data-theme='light']) .text-white\/25,
+  :where(:root[data-theme='light']) .text-white\/20,
+  :where(:root[data-theme='light']) .text-white\/15,
+  :where(:root[data-theme='light']) .text-white\/12,
+  :where(:root[data-theme='light']) .text-white\/10 { color: var(--ink-6); }
+
+  :where(:root[data-theme='light']) .hover\:text-white\/80:hover { color: var(--ink-1); }
+  :where(:root[data-theme='light']) .hover\:text-white\/70:hover { color: var(--ink-2); }
+  :where(:root[data-theme='light']) .hover\:text-white\/60:hover { color: var(--ink-3); }
+  :where(:root[data-theme='light']) .group:hover .group-hover\:text-white\/70 { color: var(--ink-2); }
+
+  /* A placeholder and a disabled control are meant to read as inactive, so both
+     take the faintest step rather than the one their alpha would map to. */
+  :where(:root[data-theme='light']) .placeholder\:text-white\/25::placeholder,
+  :where(:root[data-theme='light']) .placeholder\:text-white\/20::placeholder { color: var(--ink-6); }
+  :where(:root[data-theme='light']) .disabled\:text-white\/30:disabled,
+  :where(:root[data-theme='light']) .disabled\:text-white\/15:disabled { color: var(--ink-6); }
 }
 
 html,
@@ -238,6 +324,13 @@ body {
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: color-mix(in oklab, var(--color-white) 35%, transparent);
+}
+
+/* Same reason as the utility remap above: 35% navy over a white page is a grey.
+   Section labels are 9px and letter-spaced, which is exactly the shape of text
+   that needs the contrast most. */
+:root[data-theme='light'] .label {
+  color: var(--ink-5);
 }
 
 @media (prefers-reduced-motion: reduce) {

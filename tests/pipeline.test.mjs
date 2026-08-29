@@ -169,3 +169,79 @@ test('a long aggregated result is kept, not replaced with an average by category
   assert.equal(chart.resultData.length, 36, 'all thirty-six months survive');
   assert.equal(chart.resultData[0].Month, '2023-01');
 });
+
+/**
+ * A deck where the only advanced type still missing is a part-to-whole one, so
+ * the diversity pass reaches for a share chart on its very first attempt. The
+ * pass walks the deck backwards and advances through the missing types one per
+ * chart, so the chart under test goes last.
+ */
+function deckMissingOnlyShareTypes(subject) {
+  const present = [
+    { id: 'area', chart_type: 'area', xAxisKey: 'Month', yAxisKey: 'Total Revenue',
+      resultData: [
+        { Month: '2026-01', 'Total Revenue': 100 },
+        { Month: '2026-02', 'Total Revenue': 140 },
+      ] },
+    { id: 'scatter', chart_type: 'scatter', xAxisKey: 'Spend', yAxisKey: 'Total Revenue',
+      resultData: [{ Spend: 1, 'Total Revenue': 2 }, { Spend: 3, 'Total Revenue': 5 }] },
+    { id: 'radar', chart_type: 'radar', xAxisKey: 'Team', yAxisKey: 'Total Revenue',
+      resultData: [{ Team: 'A', 'Total Revenue': 2 }, { Team: 'B', 'Total Revenue': 5 }] },
+    { id: 'composed', chart_type: 'composed', xAxisKey: 'Team', yAxisKey: 'Total Revenue',
+      resultData: [{ Team: 'A', 'Total Revenue': 2 }, { Team: 'B', 'Total Revenue': 5 }] },
+    // Two bars, so the pass is willing to retype one of them.
+    { id: 'filler', title: 'Total Revenue by Channel', chart_type: 'bar', xAxisKey: 'Channel',
+      yAxisKey: 'Total Revenue',
+      resultData: [
+        { Channel: 'Online', 'Total Revenue': 900 },
+        { Channel: 'Retail', 'Total Revenue': 400 },
+        { Channel: 'Partner', 'Total Revenue': 120 },
+      ] },
+    subject,
+  ];
+  return enforceChartDiversity(present.map((c) => ({ ...c })));
+}
+
+test('an average by category is never redrawn as a part-to-whole chart', () => {
+  // A donut asserts that its slices add up to something. Four category averages
+  // sum to a number that is not the revenue of any business, so a slice of it
+  // reads as a market share of a quantity that does not exist.
+  const out = deckMissingOnlyShareTypes({
+    id: 'subject',
+    title: 'Average Total Revenue by Category',
+    chart_type: 'bar',
+    xAxisKey: 'Category',
+    yAxisKey: 'Average Total Revenue',
+    resultData: [
+      { Category: 'Electronics', 'Average Total Revenue': 800 },
+      { Category: 'Home', 'Average Total Revenue': 210 },
+      { Category: 'Toys', 'Average Total Revenue': 160 },
+      { Category: 'Garden', 'Average Total Revenue': 110 },
+    ],
+  });
+  const subject = out.find((c) => c.id === 'subject');
+  for (const partToWhole of ['donut', 'treemap', 'radial', 'pie']) {
+    assert.notEqual(subject.chart_type, partToWhole, `averages drawn as a ${partToWhole}`);
+  }
+});
+
+test('a summed measure is still free to be redrawn as a share', () => {
+  const out = deckMissingOnlyShareTypes({
+    id: 'subject',
+    title: 'Total Revenue by Category',
+    chart_type: 'bar',
+    xAxisKey: 'Category',
+    yAxisKey: 'Total Revenue',
+    resultData: [
+      { Category: 'Electronics', 'Total Revenue': 800 },
+      { Category: 'Home', 'Total Revenue': 210 },
+      { Category: 'Toys', 'Total Revenue': 160 },
+      { Category: 'Garden', 'Total Revenue': 110 },
+    ],
+  });
+  const subject = out.find((c) => c.id === 'subject');
+  assert.ok(
+    ['donut', 'treemap', 'radial'].includes(subject.chart_type),
+    `a real total should still be offered as a share, got ${subject.chart_type}`
+  );
+});

@@ -69,7 +69,11 @@ test('a summed chart says it is a sum, and of what', () => {
   assert.equal(summed.yAxisKey, 'Total Billed Artist Count');
   assert.match(summed.sql, /AS \[Total Billed Artist Count\]/);
   assert.ok(!/AS \[Total\]/.test(summed.sql), 'never a bare "Total"');
-  assert.match(summed.title, /^Total Billed Artist Count by /);
+  // The title names the aggregate and the column too. Which chart carries the
+  // sum — the ranking or the share of it — is the planner's call and depends on
+  // what the data shows; both title shapes lead with the full alias, which is
+  // the thing the reported bug was about.
+  assert.match(summed.title, /^Total Billed Artist Count\b.*\bby Is Collaboration$/);
 });
 
 test('the record count Power BI was showing is available too, and named', () => {

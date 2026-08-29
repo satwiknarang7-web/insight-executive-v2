@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { planCharts, planKpis, pretty, recommendedChartCount } from '../lib/analystPlanner.js';
 import { isAggregatedSql } from '../lib/chartResolver.js';
+import { mountTable, runSql, unmountTable } from '../lib/pipeline.js';
 
 // A telco-churn-like dataset (the one from the screenshots).
 function telco(n = 200) {
@@ -229,4 +230,183 @@ test('an explicitly total price IS summable', () => {
   }
   const sql = planCharts(rows, { max: 8 }).map((c) => c.sql).join(' ');
   assert.match(sql, /SUM\(\[total_price\]\)/i);
+});
+
+// ---------------------------------------------------------------------------
+// Signal-driven selection: what the data shows decides which charts get built
+// ---------------------------------------------------------------------------
+
+/**
+ * A retail export with three distinguishable stories and two dead ends:
+ * a real seasonal climb, a lopsided category mix, long product names, a
+ * dimension that duplicates another, and a metric that is pure noise.
+ */
+function retail(n = 2000) {
+  const CATS = ['Electronics', 'Home & Kitchen', 'Toys', 'Garden'];
+  const PRODUCTS = [
+    'Wireless Noise Cancelling Headphones',
+    'Stainless Steel Cookware Set for Six',
+    'Robot Building Kit for Young Engineers',
+    'Cordless Hedge Trimmer 40V Battery',
+  ];
+  const STATES = ['California', 'Texas', 'New York', 'Florida'];
+  const CITIES = ['Los Angeles', 'Houston', 'New York City', 'Miami'];
+  return Array.from({ length: n }, (_, i) => {
+    const c = i % 97 < 60 ? 0 : i % 97 < 80 ? 1 : i % 97 < 92 ? 2 : 3;
+    const s = i % 4;
+    const month = i % 24;
+    return {
+      order_date: `20${25 + Math.floor(month / 12)}-${String((month % 12) + 1).padStart(2, '0')}-15`,
+      category: CATS[c],
+      product_name: PRODUCTS[c],
+      state: STATES[s],
+      city: CITIES[s], // one city per state: the same dimension twice
+      total_revenue: Math.round((c === 0 ? 400 : 90) * (1 + month * 0.04) * (1 + (i % 7) / 10)),
+      unit_price: 20 + (i % 50),
+    };
+  });
+}
+
+test('a chart with nothing to show is outranked by one that has something', () => {
+  // Two dimensions, identical structure, opposite stories: `segment` splits the
+  // revenue heavily, `coin` splits it exactly in half. Both are valid charts;
+  // only one is worth a slide, and the planner has to look at the values to
+  // know which.
+  // The segment cycle is odd so it is independent of the coin: each coin face
+  // gets its share of the Enterprise rows, and a chart of `coin` is two equal
+  // bars however you aggregate it.
+  const rows = Array.from({ length: 660 }, (_, i) => ({
+    segment: i % 11 === 0 ? 'Enterprise' : 'SMB',
+    coin: i % 2 === 0 ? 'Heads' : 'Tails',
+    total_revenue: i % 11 === 0 ? 5000 : 50,
+  }));
+  const charts = planCharts(rows, { max: 8 });
+  const segment = charts.find((c) => (c.dimension || c.xAxisKey) === 'segment');
+  const coin = charts.find((c) => (c.dimension || c.xAxisKey) === 'coin');
+
+  assert.ok(segment, 'the dimension that splits the revenue is charted');
+  assert.ok(segment.signalScore > 0.5, `expected real signal, got ${segment.signalScore}`);
+  if (coin) {
+    assert.ok(coin.signalScore < segment.signalScore, 'and the even split scores below it');
+    assert.ok(
+      charts.indexOf(segment) < charts.indexOf(coin),
+      'so it is presented first'
+    );
+  }
+});
+
+test('a dead flat metric is not presented as a headline finding', () => {
+  const rows = Array.from({ length: 400 }, (_, i) => ({
+    region: ['N', 'S', 'E', 'W'][i % 4],
+    // Every region averages the same: a chart of this says nothing at all.
+    satisfaction_score: 7 + ((i % 8) - 4) * 0.01,
+    total_revenue: 100 + (i % 4) * 300,
+  }));
+  const charts = planCharts(rows, { max: 6 });
+  const flat = charts.find((c) => /satisfaction/i.test(c.title) && /AVG/i.test(c.sql));
+  if (flat) {
+    assert.ok(flat.signalScore < 0.2, `a flat average scored ${flat.signalScore}`);
+    assert.notEqual(charts[0].title, flat.title, 'and it never opens the deck');
+  }
+});
+
+test('long category names are drawn as horizontal bars', () => {
+  const charts = planCharts(retail(), { max: 8 });
+  const products = charts.find((c) => (c.dimension || c.xAxisKey) === 'product_name');
+  assert.ok(products, 'products are worth a chart');
+  assert.equal(products.chart_type, 'hbar', 'their names do not fit under a vertical bar');
+
+  const categories = charts.find((c) => (c.dimension || c.xAxisKey) === 'category');
+  assert.ok(categories);
+  assert.notEqual(categories.chart_type, 'hbar', 'short names do not need turning');
+});
+
+test('a donut is refused when its slices are not the whole', () => {
+  // Forty roughly equal segments: the top six are a sixth of the total, and a
+  // donut of them invites the reader to add the slices up to a business.
+  const rows = Array.from({ length: 1200 }, (_, i) => ({
+    supplier: `Supplier ${i % 40}`,
+    channel: ['Online', 'Retail'][i % 2],
+    total_revenue: 100 + (i % 3),
+  }));
+  for (const c of planCharts(rows, { max: 8 })) {
+    if ((c.dimension || c.xAxisKey) !== 'supplier') continue;
+    assert.notEqual(c.chart_type, 'donut', `a long tail was drawn as a donut: ${c.title}`);
+    assert.notEqual(c.chart_type, 'pie');
+  }
+});
+
+test('a short series is a line rather than a mostly-empty area', () => {
+  const rows = Array.from({ length: 120 }, (_, i) => ({
+    month: `2026-0${(i % 5) + 1}`,
+    region: ['N', 'S'][i % 2],
+    total_revenue: 100 + (i % 5) * 60,
+  }));
+  const trend = planCharts(rows, { max: 6 }).find((c) => c.xAxisKey === 'month');
+  assert.ok(trend);
+  assert.equal(trend.chart_type, 'line', 'five points do not need an area fill');
+});
+
+test('a dimension that duplicates another loses its place in the deck', () => {
+  const charts = planCharts(retail(), { max: 7 });
+  const dims = charts.map((c) => c.dimension || c.xAxisKey);
+  assert.ok(
+    !(dims.includes('state') && dims.includes('city')),
+    `city and state are the same dimension twice: ${dims.join(', ')}`
+  );
+});
+
+test('histogram bands are sized from the values, and cover every row', () => {
+  // A long right tail. Four fixed bands would put nearly everything in the
+  // first one and leave the rest of the chart empty.
+  const rows = Array.from({ length: 500 }, (_, i) => ({
+    store: ['A', 'B', 'C'][i % 3],
+    basket_value: Math.round(Math.exp((i % 100) / 14) * 3) + 5,
+  }));
+  const hist = planCharts(rows, { max: 10 }).find((c) => /^Distribution of/.test(c.title));
+  assert.ok(hist, 'a continuous measure gets a distribution');
+  assert.ok(hist.sortLabels.length > 4, `expected more than four bands, got ${hist.sortLabels.length}`);
+  assert.ok(hist.sortLabels.length <= 10, 'but still a readable number');
+  assert.equal(new Set(hist.sortLabels).size, hist.sortLabels.length, 'no two bands share a name');
+
+  // One WHEN per band except the last, which is the ELSE. The CASE appears
+  // twice — once in the SELECT and once in the GROUP BY — so count one of them.
+  const firstCase = hist.sql.slice(hist.sql.indexOf('CASE'), hist.sql.indexOf('END'));
+  const whens = (firstCase.match(/\bWHEN\b/gi) || []).length;
+  assert.equal(whens, hist.sortLabels.length - 1);
+
+  mountTable(rows);
+  try {
+    const result = runSql(hist.sql);
+    const covered = result.reduce((sum, r) => sum + r['Record Count'], 0);
+    assert.equal(covered, rows.length, 'every row lands in exactly one band');
+    for (const r of result) {
+      assert.ok(hist.sortLabels.includes(r[hist.xAxisKey]), `unexpected band ${r[hist.xAxisKey]}`);
+    }
+  } finally {
+    unmountTable();
+  }
+});
+
+test('a candidate with only one group is dropped rather than drawn', () => {
+  const rows = Array.from({ length: 200 }, (_, i) => ({
+    country: 'Ireland', // nothing to compare
+    channel: ['Online', 'Retail', 'Partner'][i % 3],
+    total_revenue: 100 + (i % 50),
+  }));
+  for (const c of planCharts(rows, { max: 6 })) {
+    assert.notEqual(c.dimension || c.xAxisKey, 'country', `a single-group chart survived: ${c.title}`);
+  }
+});
+
+test('scoring a large file stays bounded by the signal sample', () => {
+  const rows = Array.from({ length: 120_000 }, (_, i) => ({
+    category: ['A', 'B', 'C', 'D'][i % 4],
+    channel: ['Online', 'Retail'][i % 2],
+    total_revenue: 10 + (i % 900),
+  }));
+  const started = Date.now();
+  const charts = planCharts(rows, { max: 7 });
+  assert.ok(charts.length > 0);
+  assert.ok(Date.now() - started < 10_000, 'planning does not scale with row count');
 });
