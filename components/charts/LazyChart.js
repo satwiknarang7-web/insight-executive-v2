@@ -34,6 +34,8 @@ export default function LazyChart({
   xKey,
   yKey,
   secondaryYKey,
+  seriesKey = null,
+  seriesSort = 'value-desc',
   colors = null,
   labels = null,
   colorBy = 'series',
@@ -88,6 +90,8 @@ export default function LazyChart({
             xKey={xKey}
             yKey={yKey}
             secondaryYKey={secondaryYKey}
+            seriesKey={seriesKey}
+            seriesSort={seriesSort}
             xLabel={xLabel}
             yLabel={yLabel}
             compact={compact}

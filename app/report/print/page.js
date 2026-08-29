@@ -113,6 +113,8 @@ export default function PrintReport() {
                 xKey={x}
                 yKey={y}
                 secondaryYKey={chart.secondaryYAxisKey}
+                seriesKey={chart?.seriesKey}
+                seriesSort={chart?.seriesSort}
               />
             </ChartPalette>
           </ChartBoundary>

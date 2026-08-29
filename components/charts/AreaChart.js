@@ -1,7 +1,7 @@
 import React from 'react';
-import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label } from 'recharts';
+import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, Legend } from 'recharts';
 import { formatNumber as yAxisFormatter, formatAxisLabel } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, legendProps } from './axis';
 import { usePalette } from './palette';
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -28,7 +28,17 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function AreaChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
+export default function AreaChart({
+  data,
+  xKey,
+  yKey,
+  xLabel,
+  yLabel,
+  compact = false,
+  // Split by a legend the areas stack, because the thing worth reading off a
+  // split area chart is the total and how its mix changes underneath.
+  seriesKeys = null,
+}) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   const id = React.useId();
@@ -38,7 +48,11 @@ export default function AreaChart({ data, xKey, yKey, xLabel, yLabel, compact = 
   if (!data || data.length === 0) return null;
 
   const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
-  const y = yAxisGeometry(data, yKey, { compact, title: yLabel ?? prettyLabel(yKey) });
+  const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
+  const y = yAxisGeometry(data, split ? seriesKeys : yKey, {
+    compact,
+    title: yLabel ?? prettyLabel(yKey),
+  });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -65,6 +79,25 @@ export default function AreaChart({ data, xKey, yKey, xLabel, yLabel, compact = 
         <XAxis {...x.props} tickMargin={10}>{x.title && <Label {...x.title} />}</XAxis>
         <YAxis {...y.props} domain={['auto', 'auto']} tickMargin={8}>{y.title && <Label {...y.title} />}</YAxis>
         <Tooltip content={<CustomTooltip />} cursor={{ stroke: CHART_COLORS[0], strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.4 }} />
+        {split && <Legend {...legendProps({ seriesCount: seriesKeys.length, compact })} />}
+
+        {split ? (
+          seriesKeys.map((key, index) => (
+            <Area
+              key={key}
+              type="monotone"
+              dataKey={key}
+              name={key}
+              stackId="series"
+              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              strokeWidth={2}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+              fillOpacity={0.35}
+              dot={false}
+              animationDuration={450}
+            />
+          ))
+        ) : (
         <Area
           type="monotone"
           dataKey={yKey}
@@ -78,6 +111,7 @@ export default function AreaChart({ data, xKey, yKey, xLabel, yLabel, compact = 
           animationDuration={450}
           animationEasing="ease-out"
         />
+        )}
       </RechartsAreaChart>
     </ResponsiveContainer>
   );

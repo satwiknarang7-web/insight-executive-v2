@@ -470,6 +470,8 @@ function DashboardSlide({ analysis, fileName }) {
                   xKey={item.chart?.xAxisKey}
                   yKey={item.chart?.yAxisKey}
                   secondaryYKey={item.chart?.secondaryYAxisKey}
+                  seriesKey={item.chart?.seriesKey}
+                  seriesSort={item.chart?.seriesSort}
                   colors={item.chart?.colors}
                   labels={item.chart?.labels}
                   colorBy={item.chart?.colorBy}
@@ -535,6 +537,8 @@ function ChartSlide({ slide }) {
             xKey={chart.xAxisKey}
             yKey={chart.yAxisKey}
             secondaryYKey={chart.secondaryYAxisKey}
+            seriesKey={chart?.seriesKey}
+            seriesSort={chart?.seriesSort}
             colors={chart.colors}
             labels={chart.labels}
             colorBy={chart.colorBy}

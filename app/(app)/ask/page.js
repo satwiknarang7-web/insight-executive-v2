@@ -215,6 +215,8 @@ function Answer({ answer }) {
               xKey={chart.xAxisKey}
               yKey={chart.yAxisKey}
               secondaryYKey={chart.secondaryYAxisKey}
+              seriesKey={chart?.seriesKey}
+              seriesSort={chart?.seriesSort}
               xLabel={chart.xAxisLabel}
               yLabel={chart.yAxisLabel}
               eager

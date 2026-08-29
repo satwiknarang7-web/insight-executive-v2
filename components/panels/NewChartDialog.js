@@ -125,8 +125,11 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
       const taken = [];
       for (const slot of req.dimensions) {
         const kept = current[slot.key];
-        const value =
-          kept && dimensions.includes(kept) && !taken.includes(kept)
+        // An optional well starts empty. Guessing a legend for someone would
+        // change what the chart claims without being asked to.
+        const value = slot.optional
+          ? (kept && dimensions.includes(kept) && !taken.includes(kept) ? kept : '')
+          : kept && dimensions.includes(kept) && !taken.includes(kept)
             ? kept
             : pickDimension(slot, { dimensions, temporal, taken });
         next[slot.key] = value;
@@ -163,6 +166,7 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
     for (const slot of requirement.dimensions) {
       const chosen = dims[slot.key];
       if (!chosen) continue;
+      if (slot.optional) continue;
       if (slot.prefer === 'geo') {
         // The values, when they can be read; the name only as a fallback while
         // the boundary file is still loading.
@@ -298,8 +302,10 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
               <Select
                 value={dims[slot.key] || ''}
                 onChange={(v) => setDims((d) => ({ ...d, [slot.key]: v }))}
-                options={dimensions}
-                format={pretty}
+                // An optional well can be emptied again, so it carries the way
+                // out as its first choice.
+                options={slot.optional ? ['', ...dimensions] : dimensions}
+                format={(v) => (v === '' ? 'None' : pretty(v))}
               />
             </Field>
           ))}

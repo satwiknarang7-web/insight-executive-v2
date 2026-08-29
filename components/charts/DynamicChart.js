@@ -21,6 +21,7 @@ import {
   MatrixVisual,
   GeoMap,
 } from './index';
+import { pivotSeries } from '../../lib/chartSeries';
 import { resolveChart } from '../../lib/chartResolver';
 
 // DynamicChart is the final render gate for both the live storyboard and the PDF
@@ -42,6 +43,7 @@ export default function DynamicChart({
   // target for a gauge or KPI.
   sizeKey = null,
   seriesKey = null,
+  seriesSort = 'value-desc',
   target = null,
 }) {
   if (!data || data.length === 0) return null;
@@ -54,6 +56,29 @@ export default function DynamicChart({
   });
 
   const axes = { xLabel, yLabel, compact };
+
+  /**
+   * A legend column turns one row per category into one row per category per
+   * series, which is the shape a GROUP BY returns and not the shape a chart
+   * draws. Only the types that can draw grouped series fold it — a ribbon and
+   * a matrix read the long rows themselves.
+   */
+  const SPLITTABLE = new Set(['bar', 'hbar', 'line', 'area']);
+  if (seriesKey && SPLITTABLE.has(finalType) && seriesKey !== x) {
+    const { data: wide, keys } = pivotSeries(data, {
+      xKey: x,
+      seriesKey,
+      yKey: y,
+      sort: seriesSort,
+    });
+    if (keys.length > 1) {
+      const props = { data: wide, xKey: x, yKey: y, seriesKeys: keys, ...axes };
+      if (finalType === 'bar') return <BarChart {...props} />;
+      if (finalType === 'hbar') return <HorizontalBarChart {...props} />;
+      if (finalType === 'line') return <LineChart {...props} />;
+      return <AreaChart {...props} />;
+    }
+  }
 
   switch (finalType) {
     // Maps take a region name on the x axis and a measure on the y, exactly

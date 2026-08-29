@@ -9,10 +9,10 @@
  * whole row each, which is why this is the right default for ranked categories
  * with real names, and the column chart is right for time.
  */
-import { Bar, BarChart, CartesianGrid, Cell, Label, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, Label, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { usePalette, useColorBy } from './palette';
 import { formatNumber } from '../../lib/format';
-import { chartMargin, clip, prettyLabel, axisTitleProps } from './axis';
+import { chartMargin, clip, prettyLabel, axisTitleProps, legendProps } from './axis';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -37,11 +37,21 @@ function categoryGutter(data, key) {
   return Math.min(200, Math.max(70, Math.ceil(Math.min(longest, 26) * 6.9) + 16));
 }
 
-export default function HorizontalBarChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
+export default function HorizontalBarChart({
+  data,
+  xKey,
+  yKey,
+  xLabel,
+  yLabel,
+  compact = false,
+  // One bar per legend value, grouped against each category.
+  seriesKeys = null,
+}) {
   const CHART_COLORS = usePalette();
   const perCategory = useColorBy() === 'category';
   if (!data?.length) return null;
 
+  const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
   const gutter = categoryGutter(data, xKey);
   // The axes swap roles here: the category runs down the Y axis and the measure
   // along the X, so the titles swap with them.
@@ -84,6 +94,19 @@ export default function HorizontalBarChart({ data, xKey, yKey, xLabel, yLabel, c
           {categoryTitle && <Label {...categoryTitle} />}
         </YAxis>
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--veil)' }} />
+        {split && <Legend {...legendProps({ seriesCount: seriesKeys.length, compact })} />}
+        {split ? (
+          seriesKeys.map((key, index) => (
+            <Bar
+              key={key}
+              dataKey={key}
+              name={key}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+              radius={[0, 4, 4, 0]}
+              maxBarSize={compact ? 14 : 20}
+            />
+          ))
+        ) : (
         <Bar dataKey={yKey} name={yKey} radius={[0, 6, 6, 0]} maxBarSize={compact ? 18 : 26}>
           {data.map((entry, i) => (
             <Cell
@@ -98,6 +121,7 @@ export default function HorizontalBarChart({ data, xKey, yKey, xLabel, yLabel, c
             />
           ))}
         </Bar>
+        )}
       </BarChart>
     </ResponsiveContainer>
   );

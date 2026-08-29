@@ -114,7 +114,12 @@ export function yAxisGeometry(
   yKey,
   { fontSize = 12, formatter = formatNumber, title = null, compact = false } = {}
 ) {
-  const values = (data || []).map((row) => row?.[yKey]).filter((v) => typeof v === 'number');
+  // A split chart has one key per series rather than one y column, and the
+  // gutter has to fit the widest number across all of them.
+  const keys = Array.isArray(yKey) ? yKey : [yKey];
+  const values = (data || [])
+    .flatMap((row) => keys.map((key) => row?.[key]))
+    .filter((v) => typeof v === 'number');
   const widest = values.reduce((max, v) => Math.max(max, String(formatter(v) ?? '').length), 3);
   const titleProps = axisTitleProps(title, { axis: 'y' });
   // A rotated title needs its own column beside the ticks.

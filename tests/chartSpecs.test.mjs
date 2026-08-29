@@ -221,6 +221,12 @@ const dated = {
 };
 const amount = { measure: sum('Total_Amount') };
 
+const split = {
+  ...dated,
+  columns: [...dated.columns, 'Region'],
+  profile: { ...dated.profile, dimensions: ['Order_Date', 'Category', 'Region'], cardinality: { ...dated.profile.cardinality, Region: 4, Category: 8 } },
+};
+
 test('a trend over dates groups by a period instead of listing days', () => {
   const { spec } = buildChartSpec({ type: 'line', dims: { dimension: 'Order_Date' }, vals: amount }, dated);
   assert.match(spec.sql, /SUBSTRING\(\[Order_Date\], 1, 4\) AS \[Year\]/);
@@ -296,4 +302,66 @@ test('the funnel does not claim an order it does not apply', () => {
   const blurb = chartRequirement('funnel').blurb;
   assert.doesNotMatch(blurb, /the way the process runs\./);
   assert.match(blurb, /sort by category/i);
+});
+
+/* The legend well — Power BI's optional Legend, which splits one measure into
+   series rather than adding a second measure. */
+
+test('a legend left empty is not an error', () => {
+  const { spec, error } = buildChartSpec(
+    { type: 'bar', dims: { dimension: 'Category', series: '' }, vals: amount },
+    dated
+  );
+  assert.equal(error, null);
+  assert.equal(spec.seriesKey, null);
+  assert.doesNotMatch(spec.sql, /Region/);
+});
+
+test('a legend adds a second grouping and names itself on the spec', () => {
+  const { spec } = buildChartSpec(
+    { type: 'bar', dims: { dimension: 'Category', series: 'Region' }, vals: amount },
+    split
+  );
+  assert.match(spec.sql, /GROUP BY \[Category\], \[Region\]/);
+  assert.equal(spec.seriesKey, 'Region');
+  assert.equal(spec.xAxisKey, 'Category');
+});
+
+test('a split chart is not cut to a top ten', () => {
+  const { spec } = buildChartSpec(
+    { type: 'bar', dims: { dimension: 'Category', series: 'Region' }, vals: amount },
+    split
+  );
+  assert.doesNotMatch(spec.sql, /LIMIT/);
+});
+
+test('a legend refuses a column with more values than the eye can separate', () => {
+  const { error } = buildChartSpec(
+    { type: 'bar', dims: { dimension: 'Category', series: 'Order_Date' }, vals: amount },
+    split
+  );
+  assert.match(error, /too many to tell apart/);
+});
+
+test('a legend cannot be the column already on the axis', () => {
+  const { error } = buildChartSpec(
+    { type: 'bar', dims: { dimension: 'Category', series: 'Category' }, vals: amount },
+    split
+  );
+  assert.match(error, /different column/);
+});
+
+test('a legend does not stop a date axis from being bucketed', () => {
+  const { spec } = buildChartSpec(
+    { type: 'line', dims: { dimension: 'Order_Date', series: 'Region' }, vals: amount, bucket: 'month' },
+    split
+  );
+  assert.match(spec.sql, /SUBSTRING\(\[Order_Date\], 1, 7\) AS \[Month\]/);
+  assert.match(spec.sql, /GROUP BY SUBSTRING\(\[Order_Date\], 1, 7\), \[Region\]/);
+  assert.equal(spec.seriesKey, 'Region');
+});
+
+test('only what a chart requires counts towards its arity', () => {
+  assert.deepEqual(chartArity('bar'), { dimensions: 1, measures: 1 });
+  assert.equal(chartRequirement('bar').dimensions.length, 2, 'the legend is offered');
 });

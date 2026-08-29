@@ -130,6 +130,8 @@ export default function ReportPage() {
                   xKey={slide.chart?.xAxisKey}
                   yKey={slide.chart?.yAxisKey}
                   secondaryYKey={slide.chart?.secondaryYAxisKey}
+                  seriesKey={slide.chart?.seriesKey}
+                  seriesSort={slide.chart?.seriesSort}
                   colors={slide.chart?.colors}
                   labels={slide.chart?.labels}
                   colorBy={slide.chart?.colorBy}

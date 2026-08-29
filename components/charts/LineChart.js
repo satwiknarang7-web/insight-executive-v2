@@ -13,7 +13,7 @@ import {
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
-import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel } from './axis';
+import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, legendProps } from './axis';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -43,15 +43,31 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function LineChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
+export default function LineChart({
+  data,
+  xKey,
+  yKey,
+  xLabel,
+  yLabel,
+  compact = false,
+  // One line per legend value, when a legend column was chosen.
+  seriesKeys = null,
+}) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
   if (!data || data.length === 0) return null;
 
-  // Smart Y-axis domain: use integer ticks for count data
-  const yValues = data.map(d => Number(d[yKey])).filter(v => !isNaN(v));
-  const maxY = Math.max(...yValues);
-  const allIntegers = yValues.every(v => Number.isInteger(v));
+  const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
+
+  // Smart Y-axis domain: use integer ticks for count data. A split chart holds
+  // its numbers under one key per series and none under yKey at all — reading
+  // yKey there left the domain at [0, -Infinity] and no line was drawn.
+  const valueKeys = split ? seriesKeys : [yKey];
+  const yValues = data
+    .flatMap((d) => valueKeys.map((key) => Number(d[key])))
+    .filter((v) => !isNaN(v));
+  const maxY = yValues.length ? Math.max(...yValues) : 0;
+  const allIntegers = yValues.length > 0 && yValues.every(v => Number.isInteger(v));
   const yDomain = allIntegers && maxY <= 20 ? [0, Math.ceil(maxY * 1.2)] : ['auto', 'auto'];
   const yTickCount = allIntegers && maxY <= 10 ? maxY + 1 : undefined;
 
@@ -59,7 +75,10 @@ export default function LineChart({ data, xKey, yKey, xLabel, yLabel, compact = 
   const dotSize = data.length <= 5 ? 5 : data.length <= 15 ? 4 : 3;
 
   const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
-  const y = yAxisGeometry(data, yKey, { compact, title: yLabel ?? prettyLabel(yKey) });
+  const y = yAxisGeometry(data, split ? seriesKeys : yKey, {
+    compact,
+    title: yLabel ?? prettyLabel(yKey),
+  });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -76,6 +95,24 @@ export default function LineChart({ data, xKey, yKey, xLabel, yLabel, compact = 
         </YAxis>
         <Tooltip content={<CustomTooltip />} />
         
+        {split && <Legend {...legendProps({ seriesCount: seriesKeys.length, compact })} />}
+
+        {split ? (
+          seriesKeys.map((key, index) => (
+            <Line
+              key={key}
+              type="monotone"
+              dataKey={key}
+              name={key}
+              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              strokeWidth={3}
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 0 }}
+              animationDuration={450}
+              connectNulls
+            />
+          ))
+        ) : (
         <Line 
           type="monotone" 
           dataKey={yKey} 
@@ -86,6 +123,7 @@ export default function LineChart({ data, xKey, yKey, xLabel, yLabel, compact = 
           name="Actual Baseline"
           animationDuration={450}
         />
+        )}
       </RechartsLineChart>
     </ResponsiveContainer>
   );

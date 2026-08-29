@@ -129,6 +129,8 @@ export default function InsightPage() {
                 xKey={chart.xAxisKey}
                 yKey={chart.yAxisKey}
                 secondaryYKey={chart.secondaryYAxisKey}
+                seriesKey={chart?.seriesKey}
+                seriesSort={chart?.seriesSort}
                 colors={shownColors}
                 labels={shownLabels}
                 colorBy={shownColorBy}
