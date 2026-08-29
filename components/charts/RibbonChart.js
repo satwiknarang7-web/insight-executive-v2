@@ -14,7 +14,7 @@
  * its position in the next period with a filled quadrilateral.
  */
 import { useMemo, useState } from 'react';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber, formatDateLabel } from '../../lib/format';
 import { prettyLabel } from './axis';
 import { toPeriods } from '../../lib/pivot';
@@ -23,6 +23,7 @@ const PAD = { top: 18, right: 18, bottom: 46, left: 62 };
 
 export default function RibbonChart({ data, xKey, yKey, seriesKey, xLabel, yLabel }) {
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   const [hover, setHover] = useState(null);
 
   const periods = useMemo(
@@ -54,7 +55,7 @@ export default function RibbonChart({ data, xKey, yKey, seriesKey, xLabel, yLabe
 
   const yOf = (v) => PAD.top + plotH - (v / maxTotal) * plotH;
   const xOf = (i) => PAD.left + colBand * i + colBand / 2;
-  const colorOf = (name) => CHART_COLORS[names.indexOf(name) % CHART_COLORS.length];
+  const colorOf = (name) => seriesColor(names.indexOf(name));
 
   return (
     <div className="h-full w-full overflow-x-auto">

@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { legendProps } from './axis';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
@@ -37,13 +37,14 @@ export default function RadialBarChart({ data, nameKey, valueKey, compact = fals
   const legend = legendProps({ seriesCount: (data || []).length, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   if (!data || data.length === 0) return null;
 
   // Transform data for RadialBarChart if necessary
   const chartData = data.map((item, index) => ({
     name: item[nameKey],
     value: item[valueKey],
-    fill: CHART_COLORS[index % CHART_COLORS.length],
+    fill: seriesColor(index),
   })).slice(0, 8); // Limit to 8 for visual clarity
 
   return (

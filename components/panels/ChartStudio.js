@@ -511,7 +511,10 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
               <Tags size={12} className="text-white/40" />
               <span className="label">Value names</span>
             </div>
-            <div className="flex flex-col gap-1.5">
+            {/* One row per category, and a chart can legitimately have twenty.
+                Bounded so renaming a value does not push the notes, the buttons
+                and everything after them off the bottom of the panel. */}
+            <div className="-mr-1 flex max-h-56 flex-col gap-1.5 overflow-y-auto pr-1">
               {categories.map((name) => (
                 <div key={name} className="flex items-center gap-2">
                   <span className="w-28 shrink-0 truncate text-[11px] text-white/30" title={name}>

@@ -11,7 +11,7 @@ import {
   Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, legendProps } from './axis';
 
@@ -55,6 +55,7 @@ export default function LineChart({
 }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   if (!data || data.length === 0) return null;
 
   const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
@@ -104,7 +105,7 @@ export default function LineChart({
               type="monotone"
               dataKey={key}
               name={key}
-              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              stroke={seriesColor(index)}
               strokeWidth={3}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}

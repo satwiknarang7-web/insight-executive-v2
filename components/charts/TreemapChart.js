@@ -1,6 +1,6 @@
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload }) => {
@@ -29,10 +29,12 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 const CustomizedContent = (props) => {
-  const { root, depth, x, y, width, height, index, payload, name, value } = props;
+  const { root, depth, x, y, width, height, index, payload, name, value, colorAt } = props;
 
-  // Map the color based on the index from the constants
-  const fill = CHART_COLORS[index % CHART_COLORS.length];
+  // Recharts clones this element with the cell's props, so the colour accessor
+  // is handed down rather than read from a hook — this renders outside the
+  // component that owns the palette context.
+  const fill = colorAt ? colorAt(index) : 'var(--chart-grid)';
 
   // Do not render text if the box is too small
   if (width < 40 || height < 20) {
@@ -93,6 +95,7 @@ const CustomizedContent = (props) => {
 export default function TreemapChart({ data, nameKey, dataKey }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <Treemap
@@ -100,7 +103,7 @@ export default function TreemapChart({ data, nameKey, dataKey }) {
         dataKey={dataKey}
         nameKey={nameKey}
         stroke="var(--chart-stroke)"
-        content={<CustomizedContent />}
+        content={<CustomizedContent colorAt={seriesColor} />}
         animationDuration={450}
       >
         <Tooltip content={<CustomTooltip />} />

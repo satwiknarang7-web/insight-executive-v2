@@ -10,7 +10,8 @@
  * looking for.
  */
 import { Funnel, FunnelChart, LabelList, ResponsiveContainer, Tooltip, Cell } from 'recharts';
-import { usePalette } from './palette';
+import { usePalette, usePaletteMode, useSeriesColor } from './palette';
+import { ordinalRamp } from '../../lib/chartPalette';
 import { formatNumber } from '../../lib/format';
 import { clip } from './axis';
 
@@ -43,7 +44,16 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function FunnelChartView({ data, xKey, yKey }) {
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
+  const mode = usePaletteMode();
   if (!data?.length) return null;
+
+  // Funnel stages are ordinal, not nominal: swapping two of them would change
+  // what the chart means. So the colour carries the order too — a single hue,
+  // light to dark — rather than saying these are unrelated things. Past the
+  // number of steps a reader can rank by eye the ramp stops working, and the
+  // geometry is left to carry the order on its own.
+  const ramp = ordinalRamp(data.length, mode);
 
   const first = Number(data[0]?.[yKey]) || 0;
   const rows = data.map((row, i) => {
@@ -54,7 +64,7 @@ export default function FunnelChartView({ data, xKey, yKey }) {
       value,
       ofFirst: first ? Math.round((value / first) * 100) : 0,
       fromPrev: prev ? Math.round((value / prev) * 100) : null,
-      fill: CHART_COLORS[i % CHART_COLORS.length],
+      fill: ramp ? ramp[i] : seriesColor(i),
     };
   });
 

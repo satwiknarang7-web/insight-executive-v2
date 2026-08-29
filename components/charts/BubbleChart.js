@@ -19,7 +19,7 @@ import {
   ZAxis,
   Cell,
 } from 'recharts';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber } from '../../lib/format';
 import { chartMargin, prettyLabel, axisTitleProps } from './axis';
 
@@ -47,6 +47,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function BubbleChart({ data, xKey, yKey, sizeKey, labelKey, xLabel, yLabel, compact = false }) {
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   if (!data?.length || !xKey || !yKey) return null;
 
   const rows = data.map((row) => ({ ...row, __label: labelKey ? row[labelKey] : undefined }));
@@ -92,7 +93,7 @@ export default function BubbleChart({ data, xKey, yKey, sizeKey, labelKey, xLabe
         <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--chart-grid)' }} />
         <Scatter data={rows} fill={CHART_COLORS[0]} fillOpacity={0.65} isAnimationActive={false}>
           {rows.map((row, i) => (
-            <Cell key={i} fill={row.isAnomaly ? '#f43f5e' : CHART_COLORS[i % CHART_COLORS.length]} />
+            <Cell key={i} fill={row.isAnomaly ? '#f43f5e' : seriesColor(i)} />
           ))}
         </Scatter>
       </ScatterChart>

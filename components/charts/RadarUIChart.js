@@ -1,7 +1,7 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { legendProps } from './axis';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -36,6 +36,7 @@ export default function RadarUIChart({ data, nameKey, compact = false }) {
   const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   // Radar charts usually show multiple variables for a single subject or compare subjects across variables.
   // Here we assume data is formatted as [{ subject: 'Math', A: 120, B: 110, fullMark: 150 }, ...]
   const keys = Object.keys(data[0] || {}).filter(k => k !== nameKey && typeof data[0][k] === 'number');
@@ -62,8 +63,8 @@ export default function RadarUIChart({ data, nameKey, compact = false }) {
             key={key}
             name={key}
             dataKey={key}
-            stroke={CHART_COLORS[index % CHART_COLORS.length]}
-            fill={CHART_COLORS[index % CHART_COLORS.length]}
+            stroke={seriesColor(index)}
+            fill={seriesColor(index)}
             fillOpacity={0.3}
             strokeWidth={3}
             animationDuration={450}

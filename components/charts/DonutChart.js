@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { legendProps } from './axis';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { labelledSlices } from '../../lib/sliceLabels';
 import { formatNumber as yAxisFormatter, formatValue } from '../../lib/format';
 
@@ -36,6 +36,7 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut',
   const solid = variant === 'pie';
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
 
   // Which slices have room for a number beside them. Past about ten categories
   // the thin ones bunch up at one end of the circle and their labels overprint
@@ -105,7 +106,7 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut',
           }}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} className="hover:brightness-110 transition-all cursor-pointer" />
+            <Cell key={`cell-${index}`} fill={seriesColor(index)} className="hover:brightness-110 transition-all cursor-pointer" />
           ))}
           <Label
             position="center"

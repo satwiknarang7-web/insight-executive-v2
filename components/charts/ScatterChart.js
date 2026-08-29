@@ -13,7 +13,7 @@ import {
   Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, axisTitleProps, legendProps } from './axis';
 
@@ -50,6 +50,7 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
   const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
 
   // The memo below is a hook, so it has to run on every render — including the
   // empty ones the two early returns used to take before reaching it. A chart
@@ -150,7 +151,7 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
             {normalData.length <= 1000 && normalData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
-                fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                fill={seriesColor(index)} 
                 opacity={0.7}
               />
             ))}

@@ -90,8 +90,21 @@ export default function InsightPage() {
         </div>
       }
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        {/* Chart */}
+      {/*
+        The chart is the subject of the page, and the editing panel is a tool
+        for changing it. They were previously equal columns, which meant the
+        panel — title, axis names, chart type, colours, a row per value label,
+        notes — set the height of the page while the chart sat in a fixed box
+        with the whole left half empty underneath it and three screens of
+        scrolling to its right.
+
+        So the chart now takes the width it was wasting, the narrative sits
+        under it where there was nothing, and the panel is a sticky rail that
+        scrolls inside itself rather than dragging the page down with it.
+      */}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {/* Chart and what it says */}
+        <div className="flex min-w-0 flex-col gap-4">
         <div className="card flex flex-col p-5">
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-accent-500/10 px-3 py-1.5 text-[11px] font-bold text-accent-300">
@@ -121,7 +134,7 @@ export default function InsightPage() {
               axis gutter was double-counted and ~110px of it went unused; the
               chart now fills what it is given, so this is smaller and the page
               no longer opens with a band of empty space under the plot. */}
-          <div className="h-[360px] w-full md:h-[440px]">
+          <div className="h-[360px] w-full md:h-[460px] xl:h-[520px]">
             <ChartBoundary resetKey={`${slide.id}-${shownType}-${shownColorBy}-${(shownColors || []).join()}`}>
               <LazyChart
                 data={chart.resultData}
@@ -142,19 +155,6 @@ export default function InsightPage() {
           </div>
         </div>
 
-        {/* Narrative */}
-        <div className="flex flex-col gap-4">
-          <ChartStudio
-            slide={slide}
-            onPreview={onPreview}
-            onSave={(patch) => editSlide(slide.id, patch)}
-            onRebuild={(spec) => rebuildSlide(slide.id, spec)}
-            onDelete={() => {
-              deleteSlide(slide.id);
-              router.push('/dashboard');
-            }}
-          />
-
           {slide.analystNotes && (
             <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-5">
               <div className="mb-2 flex items-center gap-2">
@@ -165,9 +165,13 @@ export default function InsightPage() {
             </div>
           )}
 
-          <Block icon={Sparkles} tone="accent" label="Key finding" text={slide.insight_anchor} />
-          <Block icon={Activity} tone="plain" label="What it means" text={slide.insight_implication} />
-          <Block icon={HelpCircle} tone="plain" label="What to ask next" text={slide.insight_question} />
+          {/* Three short paragraphs, read across rather than down. Stacked they
+              were most of the scrolling and none of the content. */}
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Block icon={Sparkles} tone="accent" label="Key finding" text={slide.insight_anchor} />
+            <Block icon={Activity} tone="plain" label="What it means" text={slide.insight_implication} />
+            <Block icon={HelpCircle} tone="plain" label="What to ask next" text={slide.insight_question} />
+          </div>
 
           {facts.length > 0 && (
             <div className="card p-5">
@@ -175,7 +179,9 @@ export default function InsightPage() {
                 <ShieldCheck size={13} className="text-emerald-400" />
                 <span className="label !text-emerald-400/70">Verified metrics</span>
               </div>
-              <ul className="flex flex-col gap-2">
+              {/* Sixteen one-line facts were sixteen rows of a list, most of the
+                  width blank. They are short enough to sit several to a row. */}
+              <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {facts.map((f, i) => (
                   <li key={i} className="rounded-lg bg-white/[0.03] px-3 py-2 font-mono text-[11px] text-white/60">
                     {f}
@@ -200,6 +206,20 @@ export default function InsightPage() {
               </pre>
             </details>
           )}
+        </div>
+
+        {/* The editing rail: pinned, and scrolling inside itself. */}
+        <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1">
+          <ChartStudio
+            slide={slide}
+            onPreview={onPreview}
+            onSave={(patch) => editSlide(slide.id, patch)}
+            onRebuild={(spec) => rebuildSlide(slide.id, spec)}
+            onDelete={() => {
+              deleteSlide(slide.id);
+              router.push('/dashboard');
+            }}
+          />
         </div>
       </div>
 

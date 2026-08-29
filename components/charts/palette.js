@@ -10,10 +10,36 @@
  * falls back to the default palette when no provider is present — which is what
  * the PDF print route and any bare render get.
  */
-import { createContext, useContext, useMemo } from 'react';
-import { CHART_COLORS } from '../../lib/constants';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { DEFAULT_PALETTE, paletteFor, seriesColor as pickColor } from '../../lib/chartPalette';
 
-const PaletteCtx = createContext(CHART_COLORS);
+const PaletteCtx = createContext(null);
+const ModeCtx = createContext('dark');
+
+/**
+ * Which surface the charts are being drawn on.
+ *
+ * The palette is stepped per surface — the same eight hues, lightened or
+ * darkened to stay inside the readable band and to keep 3:1 against the
+ * background. A single set of hexes cannot do both, so the theme has to reach
+ * the chart, and the theme lives in an attribute on <html> rather than in
+ * React. Observed rather than read once, so switching theme repaints the
+ * charts instead of leaving them coloured for the surface they are no longer on.
+ */
+function useThemeMode() {
+  const [mode, setMode] = useState('dark');
+
+  useEffect(() => {
+    const read = () =>
+      setMode(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+
+  return mode;
+}
 /**
  * How a single-series chart spends its palette.
  *
@@ -27,7 +53,26 @@ const ColorByCtx = createContext('series');
 /** The colours the current chart should use. Never empty. */
 export function usePalette() {
   const palette = useContext(PaletteCtx);
-  return palette?.length ? palette : CHART_COLORS;
+  const mode = useContext(ModeCtx);
+  return palette?.length ? palette : paletteFor('default', mode);
+}
+
+/** Which surface the current chart is on: 'light' or 'dark'. */
+export function usePaletteMode() {
+  return useContext(ModeCtx);
+}
+
+/**
+ * The colour for series `index` — the neutral once the palette runs out.
+ *
+ * Every chart used to write `COLORS[i % COLORS.length]`, which meant series one
+ * and series nine were drawn the same colour while the legend insisted they
+ * were different things. This never repeats.
+ */
+export function useSeriesColor() {
+  const palette = usePalette();
+  const mode = useContext(ModeCtx);
+  return useMemo(() => (index) => pickColor(palette, index, mode), [palette, mode]);
 }
 
 /** Whether this chart paints per category rather than per series. */
@@ -41,48 +86,20 @@ export function useColorBy() {
  * leave the remaining ones undefined.
  */
 export function ChartPalette({ colors, colorBy = 'series', children }) {
+  const mode = useThemeMode();
   const value = useMemo(() => {
-    if (!colors?.length) return CHART_COLORS;
-    return CHART_COLORS.map((fallback, i) => colors[i] || fallback);
-  }, [colors]);
+    const base = paletteFor('default', mode);
+    if (!colors?.length) return base;
+    return base.map((fallback, i) => colors[i] || fallback);
+  }, [colors, mode]);
 
   return (
-    <PaletteCtx.Provider value={value}>
-      <ColorByCtx.Provider value={colorBy}>{children}</ColorByCtx.Provider>
-    </PaletteCtx.Provider>
+    <ModeCtx.Provider value={mode}>
+      <PaletteCtx.Provider value={value}>
+        <ColorByCtx.Provider value={colorBy}>{children}</ColorByCtx.Provider>
+      </PaletteCtx.Provider>
+    </ModeCtx.Provider>
   );
 }
 
-/**
- * Preset palettes offered in the colour editor. Each is ordered so the first
- * two colours carry the most weight — they are what a single-series bar or a
- * gradient uses.
- */
-export const PALETTES = [
-  { key: 'default', name: 'Signal', colors: CHART_COLORS },
-  {
-    key: 'ocean',
-    name: 'Ocean',
-    colors: ['#0ea5e9', '#22d3ee', '#2dd4bf', '#38bdf8', '#0284c7', '#14b8a6', '#67e8f9', '#0891b2'],
-  },
-  {
-    key: 'ember',
-    name: 'Ember',
-    colors: ['#f97316', '#f43f5e', '#fbbf24', '#ef4444', '#fb923c', '#e11d48', '#fcd34d', '#dc2626'],
-  },
-  {
-    key: 'forest',
-    name: 'Forest',
-    colors: ['#10b981', '#84cc16', '#14b8a6', '#4ade80', '#059669', '#a3e635', '#2dd4bf', '#65a30d'],
-  },
-  {
-    key: 'violet',
-    name: 'Violet',
-    colors: ['#8b5cf6', '#a855f7', '#6366f1', '#c084fc', '#7c3aed', '#818cf8', '#d8b4fe', '#4f46e5'],
-  },
-  {
-    key: 'mono',
-    name: 'Mono',
-    colors: ['#64748b', '#94a3b8', '#475569', '#cbd5e1', '#334155', '#e2e8f0', '#1e293b', '#f1f5f9'],
-  },
-];
+export { PALETTES, DEFAULT_PALETTE } from '../../lib/chartPalette';

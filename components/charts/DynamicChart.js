@@ -22,6 +22,7 @@ import {
   GeoMap,
 } from './index';
 import { pivotSeries } from '../../lib/chartSeries';
+import { MAX_SERIES, foldToOther } from '../../lib/chartPalette';
 import { resolveChart } from '../../lib/chartResolver';
 
 // DynamicChart is the final render gate for both the live storyboard and the PDF
@@ -56,6 +57,17 @@ export default function DynamicChart({
   });
 
   const axes = { xLabel, yLabel, compact };
+
+  /**
+   * A share-of-a-whole chart gets at most as many slices as there are colours.
+   *
+   * These are the forms where every mark takes its own colour, so a twelfth
+   * slice used to be drawn in the same colour as the fourth. Dropping the tail
+   * would change what the chart says the total is, so it is folded into one
+   * "Other" instead — which is both readable and still adds up.
+   */
+  const SHARE_TYPES = new Set(['pie', 'donut', 'treemap', 'radial', 'multicard']);
+  const rows = SHARE_TYPES.has(finalType) ? foldToOther(data, x, y, MAX_SERIES) : data;
 
   /**
    * A legend column turns one row per category into one row per category per
@@ -113,7 +125,7 @@ export default function DynamicChart({
     case 'gauge':
       return <GaugeChart data={data} xKey={x} yKey={y} target={target} />;
     case 'pie':
-      return <DonutChart data={data} nameKey={x} valueKey={y} variant="pie" compact={compact} />;
+      return <DonutChart data={rows} nameKey={x} valueKey={y} variant="pie" compact={compact} />;
     case 'card':
       return <CardVisual data={data} xKey={x} yKey={y} label={yLabel} />;
     case 'multicard':
@@ -125,7 +137,7 @@ export default function DynamicChart({
     case 'matrix':
       return <MatrixVisual data={data} xKey={x} yKey={y} columnKey={seriesKey || secondaryKey} />;
     case 'radial':
-      return <RadialBarChart data={data} nameKey={x} valueKey={y} compact={compact} />;
+      return <RadialBarChart data={rows} nameKey={x} valueKey={y} compact={compact} />;
     case 'scatter':
       return <ScatterChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
     case 'composed':
@@ -143,13 +155,13 @@ export default function DynamicChart({
     case 'radar':
       return <RadarUIChart data={data} nameKey={x} compact={compact} />;
     case 'treemap':
-      return <TreemapChart data={data} nameKey={x} dataKey={y} />;
+      return <TreemapChart data={rows} nameKey={x} dataKey={y} />;
     case 'line':
       return <LineChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
     case 'area':
       return <AreaChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
     case 'donut':
-      return <DonutChart data={data} nameKey={x} valueKey={y} compact={compact} />;
+      return <DonutChart data={rows} nameKey={x} valueKey={y} compact={compact} />;
     case 'bar':
     default:
       return <BarChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;

@@ -12,7 +12,7 @@ import {
   Label
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
-import { usePalette, useColorBy } from './palette';
+import { usePalette, useSeriesColor, useColorBy } from './palette';
 import { formatNumber as yAxisFormatter } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, legendProps } from './axis';
 
@@ -58,6 +58,7 @@ export default function BarChart({
 }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   // One colour per bar, rather than one gradient across all of them.
   const perCategory = useColorBy() === 'category';
   const gradientId = React.useId();
@@ -99,7 +100,7 @@ export default function BarChart({
               key={key}
               dataKey={key}
               name={key}
-              fill={CHART_COLORS[index % CHART_COLORS.length]}
+              fill={seriesColor(index)}
               radius={[4, 4, 0, 0]}
               maxBarSize={40}
               animationBegin={0}
@@ -125,7 +126,7 @@ export default function BarChart({
                 entry.isAnomaly
                   ? '#f43f5e'
                   : perCategory
-                  ? CHART_COLORS[index % CHART_COLORS.length]
+                  ? seriesColor(index)
                   : `url(#${barGradient})`
               }
               stroke={entry.isAnomaly ? '#f43f5e' : 'none'}

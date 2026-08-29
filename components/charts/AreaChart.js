@@ -2,7 +2,7 @@ import React from 'react';
 import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, Legend } from 'recharts';
 import { formatNumber as yAxisFormatter, formatAxisLabel } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, legendProps } from './axis';
-import { usePalette } from './palette';
+import { usePalette, useSeriesColor } from './palette';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -41,6 +41,7 @@ export default function AreaChart({
 }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
+  const seriesColor = useSeriesColor();
   const id = React.useId();
   const fillId = `area-fill-${id}`;
   const strokeId = `area-stroke-${id}`;
@@ -89,9 +90,9 @@ export default function AreaChart({
               dataKey={key}
               name={key}
               stackId="series"
-              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              stroke={seriesColor(index)}
               strokeWidth={2}
-              fill={CHART_COLORS[index % CHART_COLORS.length]}
+              fill={seriesColor(index)}
               fillOpacity={0.35}
               dot={false}
               animationDuration={450}
