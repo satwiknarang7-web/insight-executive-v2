@@ -380,6 +380,7 @@ export default function DashboardPage() {
           profile={dataset?.profile}
           columns={dataset?.columns}
           customMeasures={customMeasures}
+          sample={dataset?.preview}
           onCreate={(spec) => addSlide(spec)}
           onClose={() => setBuilding(false)}
         />

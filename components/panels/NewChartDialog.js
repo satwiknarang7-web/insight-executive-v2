@@ -23,11 +23,14 @@ import { AlertTriangle, BarChart3, Loader2, Plus, X } from 'lucide-react';
 import { formatSql } from '../../lib/sqlFormat';
 import {
   AGGREGATES,
+  BUCKETS,
   CHART_TYPE_GROUPS,
+  SORTS,
   aggregateLabel,
   buildChartSpec,
   chartRequirement,
   chartTypeLabel,
+  bucketableColumn,
   limitFormat,
   looksGeographic,
   pretty,
@@ -55,7 +58,7 @@ function pickMeasure(index, measures) {
   return { aggregate: 'SUM', column: measures[Math.min(index, measures.length - 1)], measureId: null };
 }
 
-export default function NewChartDialog({ profile, columns = [], customMeasures = [], onCreate, onClose }) {
+export default function NewChartDialog({ profile, columns = [], customMeasures = [], sample = [], onCreate, onClose }) {
   const dimensions = useMemo(() => profile?.dimensions || [], [profile]);
   const measures = useMemo(() => profile?.measures || [], [profile]);
   const temporal = useMemo(() => profile?.temporal || [], [profile]);
@@ -64,10 +67,53 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
   const [dims, setDims] = useState({});
   const [vals, setVals] = useState({});
   const [limit, setLimit] = useState(10);
+  const [sort, setSort] = useState('value-desc');
+  const [bucket, setBucket] = useState('auto');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
   const requirement = chartRequirement(chartType);
+
+  /**
+   * Can this map actually place the column that was chosen?
+   *
+   * The name test is not enough, and this dialog was proving it: a column called
+   * `region` holding "North", "South", "East", "West" passes `looksGeographic`,
+   * so no warning fired, and the map it built matched none of the four and drew
+   * an empty world. The boundary file holds country names — so the honest check
+   * is against the boundary file, using the values themselves.
+   *
+   * The atlas is imported only once a map type is selected, which is the same
+   * module the map itself loads, so nothing extra is downloaded for anyone
+   * building a bar chart.
+   */
+  const geoSlot = requirement.dimensions.find((slot) => slot.prefer === 'geo');
+  const geoColumn = geoSlot ? dims[geoSlot.key] : null;
+  const [geoCheck, setGeoCheck] = useState(null);
+
+  useEffect(() => {
+    // No clearing branch: setting state synchronously here would re-render on
+    // every pass. The result carries the column it describes instead, and a
+    // result for a column no longer selected is simply not read.
+    if (!geoColumn) return undefined;
+    let cancelled = false;
+    Promise.all([
+      import('world-atlas/countries-110m.json'),
+      import('topojson-client'),
+      import('../../lib/geo'),
+    ])
+      .then(([topoMod, topojson, geo]) => {
+        if (cancelled) return;
+        const topo = topoMod.default || topoMod;
+        const names = topojson.feature(topo, topo.objects.countries).features.map((f) => f.properties.name);
+        const values = (sample || []).map((row) => row?.[geoColumn]);
+        setGeoCheck({ column: geoColumn, ...geo.placeableRegions(values, names) });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [geoColumn, sample]);
 
   // Changing the type changes the questions, so it re-seeds the answers. Slots
   // the new type shares with the old one keep what was already chosen — picking
@@ -96,11 +142,16 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
       return next;
     });
     setLimit(req.limit?.preset ?? null);
+    setSort('value-desc');
   }, [chartType, dimensions, measures, temporal]);
 
   const { spec, error: specError } = useMemo(
-    () => buildChartSpec({ type: chartType, dims, vals, limit }, { columns, profile, measures: customMeasures }),
-    [chartType, dims, vals, limit, columns, profile, customMeasures]
+    () =>
+      buildChartSpec(
+        { type: chartType, dims, vals, limit, sort, bucket },
+        { columns, profile, sample, measures: customMeasures }
+      ),
+    [chartType, dims, vals, limit, sort, bucket, columns, profile, sample, customMeasures]
   );
 
   // Warnings, not refusals: each of these produces a chart that renders and
@@ -108,13 +159,29 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
   // this dialog to know whether the column really does hold countries.
   const warnings = useMemo(() => {
     const list = [];
+    const geo = geoCheck && geoCheck.column === geoColumn ? geoCheck : null;
     for (const slot of requirement.dimensions) {
       const chosen = dims[slot.key];
       if (!chosen) continue;
-      if (slot.prefer === 'geo' && !looksGeographic(chosen)) {
-        list.push(
-          `“${pretty(chosen)}” does not look like a place. A map can only draw names it can match to a country — check the count it reports once it is on the board.`
-        );
+      if (slot.prefer === 'geo') {
+        // The values, when they can be read; the name only as a fallback while
+        // the boundary file is still loading.
+        if (geo && geo.total > 0 && geo.matched.length === 0) {
+          list.push(
+            `None of the values in “${pretty(chosen)}” match a country in the boundary file` +
+              ` (${geo.unmatched.slice(0, 4).join(', ')}${geo.unmatched.length > 4 ? '…' : ''}).` +
+              ' A filled map can only shade countries, so this one would come out blank.'
+          );
+        } else if (geo && geo.matched.length > 0 && geo.share < 0.5) {
+          list.push(
+            `Only ${geo.matched.length} of ${geo.total} values in “${pretty(chosen)}” match a country` +
+              ` — the rest (${geo.unmatched.slice(0, 3).join(', ')}…) would be left off the map.`
+          );
+        } else if (!geo && !looksGeographic(chosen)) {
+          list.push(
+            `“${pretty(chosen)}” does not look like a place. A map can only draw names it can match to a country — check the count it reports once it is on the board.`
+          );
+        }
       }
       if (slot.prefer === 'time' && temporal.length > 0 && !temporal.includes(chosen)) {
         list.push(
@@ -134,7 +201,14 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
       }
     }
     return list;
-  }, [requirement, dims, vals, temporal]);
+  }, [requirement, dims, vals, temporal, geoCheck, geoColumn]);
+
+  // The date axis is grouped by month or year rather than by the individual
+  // day. Only offered when the chosen column is actually a date — on anything
+  // else the control would be a no-op.
+  const timeSlot = requirement.dimensions.find((slot) => slot.prefer === 'time' || requirement.ordered);
+  const showBucket =
+    !!timeSlot && bucketableColumn(dims[timeSlot.key], { profile, sample });
 
   const create = async () => {
     if (!spec) return;
@@ -181,13 +255,35 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
           </select>
         </Field>
 
-        {requirement.limit && (
+        {requirement.limit && !showBucket && (
           <Field label={requirement.limit.label}>
             <Select
               value={limit ?? requirement.limit.preset}
               onChange={(v) => setLimit(Number(v))}
               options={requirement.limit.options}
               format={limitFormat}
+            />
+          </Field>
+        )}
+
+        {requirement.sortable && (
+          <Field label="Order">
+            <Select
+              value={sort}
+              onChange={setSort}
+              options={SORTS.map((s) => s.key)}
+              format={(k) => SORTS.find((s) => s.key === k)?.label || k}
+            />
+          </Field>
+        )}
+
+        {showBucket && (
+          <Field label="Group dates">
+            <Select
+              value={bucket}
+              onChange={setBucket}
+              options={BUCKETS.map((b) => b.key)}
+              format={(k) => BUCKETS.find((b) => b.key === k)?.label || k}
             />
           </Field>
         )}

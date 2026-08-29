@@ -203,3 +203,97 @@ test('a map prefers a column that names places', () => {
 test('the retired ArcGIS type is not offered any more', () => {
   assert.ok(!CHART_TYPES.includes('arcgis'));
 });
+
+/* Sorting and date grouping — the three defects these were written for:
+   a trend that showed its first ten days, a funnel ordered by size, and no
+   way to change the order of anything. */
+
+const dated = {
+  columns: ['Order_Date', 'Category', 'Total_Amount'],
+  profile: {
+    dimensions: ['Order_Date', 'Category'],
+    measures: ['Total_Amount'],
+    temporal: ['Order_Date'],
+    cardinality: { Order_Date: 900 },
+  },
+  sample: [{ Order_Date: '2025-03-15' }],
+  measures: [],
+};
+const amount = { measure: sum('Total_Amount') };
+
+test('a trend over dates groups by a period instead of listing days', () => {
+  const { spec } = buildChartSpec({ type: 'line', dims: { dimension: 'Order_Date' }, vals: amount }, dated);
+  assert.match(spec.sql, /SUBSTRING\(\[Order_Date\], 1, 4\) AS \[Year\]/);
+  assert.match(spec.sql, /GROUP BY SUBSTRING\(\[Order_Date\], 1, 4\)/);
+});
+
+test('a bucketed trend is the whole series, never a top ten', () => {
+  for (const bucket of ['auto', 'month', 'year', 'day']) {
+    const { spec } = buildChartSpec(
+      { type: 'line', dims: { dimension: 'Order_Date' }, vals: amount, bucket },
+      dated
+    );
+    assert.doesNotMatch(spec.sql, /LIMIT/, `${bucket} keeps every period`);
+  }
+});
+
+test('a chosen period wins over the automatic one', () => {
+  const month = buildChartSpec(
+    { type: 'area', dims: { dimension: 'Order_Date' }, vals: amount, bucket: 'month' },
+    dated
+  ).spec;
+  assert.match(month.sql, /SUBSTRING\(\[Order_Date\], 1, 7\) AS \[Month\]/);
+
+  const day = buildChartSpec(
+    { type: 'area', dims: { dimension: 'Order_Date' }, vals: amount, bucket: 'day' },
+    dated
+  ).spec;
+  assert.match(day.sql, /GROUP BY \[Order_Date\]/);
+  assert.doesNotMatch(day.sql, /SUBSTRING/);
+});
+
+test('a column that is not a date is never bucketed', () => {
+  const { spec } = buildChartSpec(
+    { type: 'line', dims: { dimension: 'Category' }, vals: amount, bucket: 'month' },
+    dated
+  );
+  assert.doesNotMatch(spec.sql, /SUBSTRING/);
+});
+
+test('a ranking can be ordered four ways', () => {
+  const sql = (sort) =>
+    buildChartSpec({ type: 'bar', dims: { dimension: 'Category' }, vals: amount, sort }, dated).spec.sql;
+  assert.match(sql('value-desc'), /ORDER BY \[Total Amount\] DESC/);
+  assert.match(sql('value-asc'), /ORDER BY \[Total Amount\] ASC/);
+  assert.match(sql('category-asc'), /ORDER BY \[Category\] ASC/);
+  assert.match(sql('category-desc'), /ORDER BY \[Category\] DESC/);
+});
+
+test('an unknown sort falls back to largest first rather than breaking the query', () => {
+  const { spec } = buildChartSpec(
+    { type: 'bar', dims: { dimension: 'Category' }, vals: amount, sort: 'nonsense' },
+    dated
+  );
+  assert.match(spec.sql, /ORDER BY \[Total Amount\] DESC/);
+});
+
+test('a sort cannot override an axis that carries its own order', () => {
+  const { spec } = buildChartSpec(
+    { type: 'line', dims: { dimension: 'Order_Date' }, vals: amount, sort: 'value-desc' },
+    dated
+  );
+  assert.match(spec.sql, /ORDER BY \[Year\] ASC/);
+});
+
+test('only the ranked types offer a sort', () => {
+  assert.equal(chartRequirement('bar').sortable, true);
+  assert.equal(chartRequirement('funnel').sortable, true);
+  assert.equal(chartRequirement('line').sortable, false);
+  assert.equal(chartRequirement('waterfall').sortable, false);
+});
+
+test('the funnel does not claim an order it does not apply', () => {
+  const blurb = chartRequirement('funnel').blurb;
+  assert.doesNotMatch(blurb, /the way the process runs\./);
+  assert.match(blurb, /sort by category/i);
+});

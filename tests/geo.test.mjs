@@ -74,3 +74,52 @@ test('latitude and longitude columns are recognised, or reported absent', () => 
   assert.deepEqual(findLatLon(['lat', 'lng']), { lat: 'lat', lon: 'lng' });
   assert.equal(findLatLon(['region', 'sales']), null);
 });
+
+// ---------------------------------------------------------------------------
+// Asking whether a map can place a column, before one is drawn
+// ---------------------------------------------------------------------------
+
+test('a region column of compass directions places nothing', async () => {
+  // The reported case: `looksGeographic('region')` is true, so the builder
+  // offered a filled map for a column holding North/South/East/West and drew an
+  // empty world. The values are what decide it, not the name.
+  const { placeableRegions } = await import('../lib/geo.js');
+  const features = ['United States of America', 'India', 'Germany', 'Brazil'];
+  const out = placeableRegions(['East', 'North', 'West', 'South'], features);
+
+  assert.equal(out.matched.length, 0);
+  assert.equal(out.total, 4);
+  assert.equal(out.share, 0);
+  assert.deepEqual(out.unmatched, ['East', 'North', 'West', 'South']);
+});
+
+test('country names place, including the short forms people type', async () => {
+  const { placeableRegions } = await import('../lib/geo.js');
+  const features = ['United States of America', 'India', 'Germany', 'Brazil'];
+  const out = placeableRegions(['India', 'U.S.A.', 'Germany', 'Atlantis'], features);
+
+  assert.equal(out.matched.length, 3);
+  assert.deepEqual(out.unmatched, ['Atlantis']);
+  assert.ok(out.share > 0.7);
+});
+
+test('duplicates and blanks do not distort the share', async () => {
+  const { placeableRegions } = await import('../lib/geo.js');
+  const out = placeableRegions(['India', 'India', '', null, 'Atlantis'], ['India']);
+  assert.equal(out.total, 2, 'each distinct value counts once');
+  assert.equal(out.matched.length, 1);
+});
+
+test('it agrees with the real boundary file', async () => {
+  const [{ placeableRegions }, topoMod, topojson] = await Promise.all([
+    import('../lib/geo.js'),
+    import('world-atlas/countries-110m.json', { with: { type: 'json' } }).catch(() => null),
+    import('topojson-client'),
+  ]);
+  if (!topoMod) return; // the atlas is a browser-side import in some setups
+  const topo = topoMod.default || topoMod;
+  const names = topojson.feature(topo, topo.objects.countries).features.map((f) => f.properties.name);
+
+  assert.equal(placeableRegions(['East', 'North', 'West', 'South'], names).matched.length, 0);
+  assert.ok(placeableRegions(['India', 'Germany', 'Brazil'], names).matched.length >= 3);
+});
