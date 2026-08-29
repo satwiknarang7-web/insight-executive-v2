@@ -17,7 +17,7 @@
  * engine was 95% sure of that matched 4% of rows is wrong, and the second
  * number is the one that says so.
  */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
@@ -28,6 +28,7 @@ import {
   Info,
   Loader2,
   RotateCcw,
+  Plus,
   Table2,
   Unlink,
 } from 'lucide-react';
@@ -37,7 +38,7 @@ import RelationshipGraph from './RelationshipGraph';
 
 export default function DataModelReview() {
   const { dataset } = useDataset();
-  const { setModel, analyze } = useActions();
+  const { setModel, analyze, testRelationship } = useActions();
   const router = useRouter();
 
   const model = dataset?.model;
@@ -46,6 +47,9 @@ export default function DataModelReview() {
 
   const [factTable, setFactTable] = useState(model?.factTable || null);
   const [disabled, setDisabled] = useState(() => new Set());
+  // Relationships the user wrote themselves, held here until they are applied
+  // along with everything else on this page.
+  const [added, setAdded] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -60,10 +64,12 @@ export default function DataModelReview() {
     [joins]
   );
 
-  const relationships = model?.relationships || [];
+  const relationships = useMemo(
+    () => [...(model?.relationships || []), ...added],
+    [model, added]
+  );
 
-  const dirty =
-    factTable !== model?.factTable || disabled.size > 0;
+  const dirty = factTable !== model?.factTable || disabled.size > 0 || added.length > 0;
 
   // Shared with the dashboard prompt so the two can never disagree about what
   // counts as a problem.
@@ -71,6 +77,10 @@ export default function DataModelReview() {
     () => modelConcerns({ model, tables, joins }),
     [model, tables, joins]
   );
+
+  const removeAdded = useCallback((id) => {
+    setAdded((prev) => prev.filter((r) => r.id !== id));
+  }, []);
 
   const toggle = useCallback((id) => {
     setDisabled((prev) => {
@@ -91,6 +101,7 @@ export default function DataModelReview() {
           relationships: relationships.filter((r) => !disabled.has(r.id)),
         });
         setDisabled(new Set());
+        setAdded([]);
         if (thenAnalyse) {
           await analyze();
           router.push('/dashboard');
@@ -222,11 +233,20 @@ export default function DataModelReview() {
                 rel={rel}
                 matchRate={matchRateFor(rel)}
                 off={disabled.has(rel.id)}
-                onToggle={() => toggle(rel.id)}
+                onToggle={
+                  rel.source === 'manual' ? () => removeAdded(rel.id) : () => toggle(rel.id)
+                }
               />
             ))}
           </div>
         )}
+
+        <AddRelationship
+          tables={tables}
+          existing={relationships}
+          onTest={testRelationship}
+          onAdd={(rel) => setAdded((prev) => [...prev, rel])}
+        />
 
         {model.alternatives?.length > 0 && (
           <details className="card p-4">
@@ -279,6 +299,7 @@ export default function DataModelReview() {
               onClick={() => {
                 setFactTable(model.factTable);
                 setDisabled(new Set());
+                setAdded([]);
               }}
               className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
             >
@@ -292,6 +313,216 @@ export default function DataModelReview() {
             <Info size={12} /> Changing the model discards the current analysis
           </span>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Write a relationship the inference did not offer.
+ *
+ * Inference declines a pairing for reasons that are usually right and sometimes
+ * not — a key column named nothing like its parent, values that overlap only
+ * partly because the file is a slice of a bigger one. Before this, being right
+ * where the inference was wrong left you with no way to say so.
+ *
+ * Nothing is taken on trust. The pairing is measured against the real rows the
+ * moment both sides are chosen, and what comes back is shown: how much of the
+ * left column is found on the right, and whether the right column identifies a
+ * row at all. A pairing that would multiply the fact rows is refused outright —
+ * that is the fan trap, and arriving at it deliberately is no better than
+ * arriving at it by accident.
+ */
+function AddRelationship({ tables, existing, onTest, onAdd }) {
+  const [open, setOpen] = useState(false);
+  const [from, setFrom] = useState({ table: '', column: '' });
+  const [to, setTo] = useState({ table: '', column: '' });
+  const [result, setResult] = useState(null);
+  const [testing, setTesting] = useState(false);
+
+  const columnsOf = useCallback(
+    (name) => tables.find((t) => t.name === name)?.columns || [],
+    [tables]
+  );
+
+  const complete = Boolean(from.table && from.column && to.table && to.column);
+  const duplicate =
+    complete &&
+    existing.some(
+      (r) =>
+        r.from.table === from.table &&
+        r.from.column === from.column &&
+        r.to.table === to.table &&
+        r.to.column === to.column
+    );
+
+  // Measured whenever a complete pairing changes, so the answer is on screen
+  // before the button is reached for rather than after it is pressed.
+  useEffect(() => {
+    if (!complete || duplicate) {
+      setResult(null);
+      return undefined;
+    }
+    let cancelled = false;
+    setTesting(true);
+    onTest({ from, to })
+      .then((r) => {
+        if (!cancelled) setResult(r);
+      })
+      .catch((e) => {
+        if (!cancelled) setResult({ ok: false, problems: [e.message], warnings: [] });
+      })
+      .finally(() => {
+        if (!cancelled) setTesting(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [complete, duplicate, from, to, onTest]);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-2 self-start rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+      >
+        <Plus size={13} /> Add a relationship
+      </button>
+    );
+  }
+
+  return (
+    <div className="card flex flex-col gap-4 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="label">Add a relationship</span>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="text-[10px] font-black uppercase tracking-[0.16em] text-white/35 hover:text-white"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <p className="text-[12px] leading-relaxed text-white/40">
+        The column on the left holds the reference; the column on the right has to identify a row, the way
+        an id column does.
+      </p>
+
+      <div className="flex flex-wrap items-end gap-2">
+        <Picker
+          label="Many"
+          table={from.table}
+          column={from.column}
+          tables={tables}
+          columns={columnsOf(from.table)}
+          onTable={(v) => setFrom({ table: v, column: '' })}
+          onColumn={(v) => setFrom((f) => ({ ...f, column: v }))}
+        />
+        <ArrowRight size={14} className="mb-2.5 shrink-0 text-white/25" />
+        <Picker
+          label="One"
+          table={to.table}
+          column={to.column}
+          tables={tables}
+          columns={columnsOf(to.table)}
+          onTable={(v) => setTo({ table: v, column: '' })}
+          onColumn={(v) => setTo((t) => ({ ...t, column: v }))}
+        />
+      </div>
+
+      {duplicate && (
+        <p className="text-[12px] text-amber-300/80">That relationship is already in the model.</p>
+      )}
+
+      {testing && (
+        <p className="flex items-center gap-2 text-[12px] text-white/35">
+          <Loader2 size={12} className="animate-spin" /> Checking the values…
+        </p>
+      )}
+
+      {result && !testing && (
+        <div className="flex flex-col gap-1.5 rounded-lg border border-white/8 bg-white/[0.02] p-3">
+          {result.ok && (
+            <p className="flex items-center gap-2 text-[12px] text-emerald-300/85">
+              <Check size={12} />
+              {result.matched} of {result.distinct} values match — {Math.round(result.overlap * 100)}%,{' '}
+              {result.cardinality}.
+            </p>
+          )}
+          {result.problems?.map((p) => (
+            <p key={p} className="flex items-start gap-2 text-[12px] leading-snug text-rose-300/85">
+              <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+              {p}
+            </p>
+          ))}
+          {result.warnings?.map((w) => (
+            <p key={w} className="flex items-start gap-2 text-[12px] leading-snug text-amber-300/80">
+              <Info size={12} className="mt-0.5 shrink-0" />
+              {w}
+            </p>
+          ))}
+        </div>
+      )}
+
+      <button
+        type="button"
+        disabled={!result?.ok || testing || duplicate}
+        onClick={() => {
+          onAdd(result.relationship);
+          setFrom({ table: '', column: '' });
+          setTo({ table: '', column: '' });
+          setResult(null);
+          setOpen(false);
+        }}
+        className="flex items-center gap-2 self-start rounded-lg bg-accent-500 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:bg-white/10 disabled:text-white/30"
+      >
+        <Plus size={13} /> Add relationship
+      </button>
+    </div>
+  );
+}
+
+/** One side of a proposed relationship: a table, and a column within it. */
+function Picker({ label, table, column, tables, columns, onTable, onColumn }) {
+  const select =
+    'min-w-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-[11px] font-bold text-white/75 outline-none focus:border-accent-500/50';
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/30">{label}</span>
+      <div className="flex items-center gap-1">
+        <select
+          value={table}
+          onChange={(e) => onTable(e.target.value)}
+          aria-label={`${label} table`}
+          className={select}
+        >
+          <option value="" className="bg-surface">
+            Table…
+          </option>
+          {tables.map((t) => (
+            <option key={t.name} value={t.name} className="bg-surface">
+              {t.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={column}
+          onChange={(e) => onColumn(e.target.value)}
+          disabled={!table}
+          aria-label={`${label} column`}
+          className={`${select} disabled:opacity-30`}
+        >
+          <option value="" className="bg-surface">
+            Column…
+          </option>
+          {columns.map((c) => (
+            <option key={c} value={c} className="bg-surface">
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

@@ -41,6 +41,8 @@ import {
   buildAnalysisView,
   normalizeTableName,
   describeModel,
+  testRelationship as measureRelationship,
+  manualRelationship,
 } from '../../lib/dataModel.js';
 import { readWorkbook, isWorkbookFile } from '../../lib/workbook.js';
 import { idbDel, KEYS } from '../../lib/store/idb.js';
@@ -638,8 +640,14 @@ function setModel(id, { factTable = null, relationships = null }) {
     return;
   }
   const tables = state.order.map((n) => state.tables[n]);
-  const rebuilt = buildDataModel(tables, { factTable: factTable ?? state.model.factTable });
-  if (relationships) rebuilt.relationships = relationships;
+  // The supplied list goes in rather than being pasted over the result, so the
+  // table roles and the fact-table choice are derived from the model the user
+  // actually asked for — a hand-added relationship joins its table *and* marks
+  // it a dimension.
+  const rebuilt = buildDataModel(tables, {
+    factTable: factTable ?? state.model.factTable,
+    relationships,
+  });
 
   const view = buildAnalysisView(state.tables, rebuilt);
   const metrics = rollUpMetrics(state.tables, view);
@@ -651,6 +659,27 @@ function setModel(id, { factTable = null, relationships = null }) {
   invalidateSearchIndex();
 
   reply(id, 'model', summary());
+}
+
+/**
+ * Measure a relationship the user is proposing, without applying it.
+ *
+ * The rows only exist in here, so the check has to happen in here. Returns the
+ * measurement and, when it passes, the relationship record ready to be added —
+ * so the page never has to construct one itself and the shape stays in one
+ * place.
+ */
+function testRelationship(id, { from, to } = {}) {
+  if (!state) {
+    reply(id, 'error', { message: 'No dataset loaded.' });
+    return;
+  }
+  const tables = state.order.map((n) => state.tables[n]);
+  const measured = measureRelationship(tables, { from, to });
+  reply(id, 'relationshipTest', {
+    ...measured,
+    relationship: measured.ok ? manualRelationship({ from, to }, measured) : null,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -948,6 +977,8 @@ self.onmessage = async (e) => {
         return restore(id);
       case 'setModel':
         return setModel(id, payload);
+      case 'testRelationship':
+        return testRelationship(id, payload);
       case 'analyze':
         return analyze(id, payload);
       case 'ask':
