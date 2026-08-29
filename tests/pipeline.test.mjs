@@ -118,9 +118,13 @@ test('ISO year-month labels are still recognised as a real trend', () => {
 test('histogram buckets are ordered low to high, whatever order SQL returns', () => {
   // AlaSQL ignores ORDER BY over an aggregate of an unselected column, so the
   // planner's intended bucket order has to be reapplied after execution.
+  // Skewed rather than evenly spread. A uniform column has no shape to show, so
+  // it no longer earns a histogram at all — and this test is about the order of
+  // the buckets, not about which columns deserve one.
   const rows = [];
   for (let i = 0; i < 300; i++) {
-    rows.push({ channel: ['A', 'B', 'C'][i % 3], impressions: 45000 + ((i * 7919) % 600000) });
+    const tail = i > 270 ? 5 : i > 240 ? 2.5 : 1;
+    rows.push({ channel: ['A', 'B', 'C'][i % 3], impressions: (45000 + ((i * 7919) % 90000)) * tail });
   }
   const { charts } = runAnalysis(rows);
   const hist = charts.find((c) => /Distribution/.test(c.title));

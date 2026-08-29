@@ -424,6 +424,26 @@ function SummarySlide({ slideZero, kpis }) {
  * Titles only, no narrative: every word has already been said, and repeating it
  * in six-point type beside a thumbnail helps nobody.
  */
+/**
+ * The grid shape that leaves the fewest empty cells.
+ *
+ * A fixed three columns put four findings as three and then one, with a quarter
+ * of the slide blank beside the orphan. The shape is chosen by how completely
+ * it fills instead — four becomes two by two — and ties go to the wider grid,
+ * because a slide is wider than it is tall.
+ */
+function gridFor(count) {
+  if (count <= 1) return { cols: 1, rows: 1 };
+  // Four is the case that was wrong: three columns put three findings in a row
+  // and the fourth alone underneath, with a quarter of the slide blank beside
+  // it. Two by two fills. Minimising empty cells on its own is not enough —
+  // it would lay four out in a single row of tall slivers and ten as five rows
+  // of two — so the shape is chosen from what a dashboard of that size actually
+  // wants, and only then filled.
+  const cols = count <= 3 ? count : count === 4 ? 2 : count <= 6 ? 3 : count <= 9 ? 3 : 4;
+  return { cols, rows: Math.ceil(count / cols) };
+}
+
 function DashboardSlide({ analysis, fileName }) {
   const board = analysis.storyboard || [];
   const kpis = analysis.kpis || [];
@@ -438,8 +458,7 @@ function DashboardSlide({ analysis, fileName }) {
    * once, while presenting, where nobody can scroll for you. The shape is now
    * chosen from the count, and the rows divide whatever height is left.
    */
-  const cols = board.length <= 2 ? board.length || 1 : board.length <= 6 ? 3 : 4;
-  const rows = Math.max(1, Math.ceil(board.length / cols));
+  const { cols, rows } = gridFor(board.length);
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden py-2">

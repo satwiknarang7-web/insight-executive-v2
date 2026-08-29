@@ -362,7 +362,10 @@ test('a dead flat metric is not presented as a headline finding', () => {
     total_revenue: 100 + (i % 4) * 300,
   }));
   const charts = planCharts(rows, { max: 6 });
-  const flat = charts.find((c) => /satisfaction/i.test(c.title) && /AVG/i.test(c.sql));
+  // A chart whose *subject* is the flat average — matching the title alone also
+  // catches a combo chart that plots revenue against it, whose signal comes
+  // from the revenue side and is not the thing under test.
+  const flat = charts.find((c) => /satisfaction/i.test(String(c.yAxisKey)));
   if (flat) {
     assert.ok(flat.signalScore < 0.2, `a flat average scored ${flat.signalScore}`);
     assert.notEqual(charts[0].title, flat.title, 'and it never opens the deck');

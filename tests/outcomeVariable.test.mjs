@@ -132,16 +132,80 @@ test('the risk card is about the outcome, not about who is biggest', () => {
   }
 });
 
-test('two aggregates of one column on one dimension are one fact', () => {
+test('a total and its own share are one fact, an average is another', () => {
+  // "Total Revenue by Category" and "Total Revenue Share by Category" rank the
+  // same categories on the same number and may not both appear. An average is a
+  // different question — how big each one is, against how big each is per
+  // record — and blocking that too collapsed a deck of eight viable candidates
+  // into three, which is how this deck came to be all bar charts.
   const charts = planCharts(churnRows(), { max: 9 });
   const pairs = new Set();
   for (const c of charts) {
     const measure = String(c.yAxisKey || '')
-      .replace(/^(total|average|avg|sum|count|median|min|max|share of)\s+/i, '')
-      .replace(/\s+share$/i, '')
-      .toLowerCase();
-    const key = `${c.dimension || c.xAxisKey}|${measure}`;
+      .toLowerCase()
+      .replace(/\s+share$/, '')
+      .replace(/^share of\s+/, '')
+      .trim();
+    const key = `${c.dimension || c.xAxisKey}|${c.chart_type === 'composed' ? 'composed' : ''}|${measure}`;
     assert.ok(!pairs.has(key), `the same fact twice: ${key}`);
     pairs.add(key);
   }
+
+  // And the deck is not one shape repeated.
+  const types = new Set(charts.map((c) => c.chart_type));
+  assert.ok(types.size >= 3, `only ${types.size} chart types: ${[...types].join(', ')}`);
+});
+
+test('a past participle is not a noun: "Churn Rate", never "Churned Rate"', () => {
+  // The column name went straight into the card, the chart title and the axis.
+  for (const [column, expected] of [
+    ['Churned', 'Churn Rate'],
+    ['Churn', 'Churn Rate'],
+    ['Exited', 'Exit Rate'],
+    ['Cancelled', 'Cancellation Rate'],
+    ['Converted', 'Conversion Rate'],
+    ['Retained', 'Retention Rate'],
+    ['Attrition', 'Attrition Rate'],
+    ['Active', 'Active Rate'],
+  ]) {
+    assert.equal(outcomeRateName({ column }), expected);
+  }
+});
+
+test('the outcome is crossed with a continuous measure, not only with categories', () => {
+  // Churn against tenure, banded — the chart a retention review opens with, and
+  // the one the deck could not build at all while outcome charts split only by
+  // categorical columns.
+  let seed = 5;
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  const rows = Array.from({ length: 900 }, (_, i) => {
+    const tenure = Math.round(1 + rnd() * 60);
+    // Early tenure leaves; late tenure stays.
+    const risk = tenure < 12 ? 0.55 : tenure < 30 ? 0.25 : 0.06;
+    return {
+      Contract_Type: ['Month-to-month', 'One year', 'Two year'][i % 3],
+      Tenure_Months: tenure,
+      Monthly_Charge: 40 + (i % 60),
+      Churned: rnd() < risk ? 'Yes' : 'No',
+    };
+  });
+
+  const charts = planCharts(rows, { max: 9 });
+  const banded = charts.find((c) => c.outcomeRate && /Tenure/i.test(c.title));
+  assert.ok(banded, `no churn-by-tenure chart: ${charts.map((c) => c.title).join(' | ')}`);
+  assert.match(banded.title, /^Churn Rate by /);
+  assert.match(banded.sql, /CASE WHEN/, 'the continuous column is banded');
+  assert.match(banded.sql, /ORDER BY MIN\(/, 'and the bands run low to high');
+});
+
+test('a segment count is never a date, and never the first thing said', () => {
+  const rows = Array.from({ length: 720 }, (_, i) => ({
+    Order_Date: `2025-${String(1 + (i % 12)).padStart(2, '0')}-${String(1 + (i % 28)).padStart(2, '0')}`,
+    Product_Category: ['A', 'B', 'C', 'D', 'E', 'F'][i % 6],
+    Units_Sold: 1 + (i % 8),
+    Revenue: 100 + (i % 400),
+  }));
+  const labels = planKpis(rows).map((k) => k.label);
+  // "Order Date Segments: 240" is the number of days the file covers.
+  assert.ok(!labels.some((l) => /order date segments/i.test(l)), labels.join(', '));
 });
