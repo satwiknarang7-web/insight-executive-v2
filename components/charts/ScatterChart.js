@@ -46,6 +46,16 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
+/**
+ * A scatter, drawn in one colour.
+ *
+ * Every point used to take its own palette slot, which reads as though the
+ * colours mean something — and past the eighth point they were all the same
+ * neutral anyway, so a scatter of sixty groups came out as a field of grey with
+ * a handful of coloured dots in it. There is no series here for colour to
+ * encode: position is the whole message, and the only mark that earns a
+ * different colour is an anomaly.
+ */
 export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
   const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
@@ -147,14 +157,7 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
             />
           </>
         ) : (
-          <Scatter name="Actual Baseline" data={normalData} fill={CHART_COLORS[4]}>
-            {normalData.length <= 1000 && normalData.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={seriesColor(index)} 
-                opacity={0.7}
-              />
-            ))}
+          <Scatter name="Actual Baseline" data={normalData} fill={CHART_COLORS[0]} opacity={0.75}>
             {anomalyData.map((entry, index) => (
               <Cell 
                 key={`anomaly-${index}`} 

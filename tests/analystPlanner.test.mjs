@@ -4,23 +4,38 @@ import { planCharts, planKpis, pretty, recommendedChartCount } from '../lib/anal
 import { isAggregatedSql } from '../lib/chartResolver.js';
 import { mountTable, runSql, unmountTable } from '../lib/pipeline.js';
 
-// A telco-churn-like dataset (the one from the screenshots).
+/**
+ * A telco-churn-like dataset (the one from the screenshots).
+ *
+ * The segments deliberately differ from one another. They used to be perfectly
+ * uniform — `gender: genders[i % 2]` is exactly fifty-fifty, every payment
+ * method exactly a quarter — which made every chart of them a set of identical
+ * bars. That passed while the planner only asked what a chart *could* be drawn
+ * from; now that it also measures what one would show, a fixture with no
+ * differences in it is a fixture with no charts in it, and it was testing the
+ * wrong thing either way.
+ */
 function telco(n = 200) {
   const genders = ['Male', 'Female'];
   const yesno = ['Yes', 'No'];
   const payment = ['Electronic check', 'Mailed check', 'Bank transfer', 'Credit card'];
   const rows = [];
   for (let i = 0; i < n; i++) {
+    const method = payment[i % 4];
+    // Electronic check customers are the expensive, short-tenure ones — the
+    // pattern the real dataset is famous for.
+    const premium = method === 'Electronic check' ? 1.6 : method === 'Mailed check' ? 0.7 : 1;
+    const gender = genders[i % 2];
     rows.push({
       customerID: `C${1000 + i}`,
-      gender: genders[i % 2],
-      Partner: yesno[i % 2],
+      gender,
+      Partner: yesno[i % 3 === 0 ? 1 : 0],
       Dependents: yesno[(i + 1) % 2],
       PhoneService: yesno[i % 5 === 0 ? 1 : 0],
-      PaymentMethod: payment[i % 4],
-      tenure: i % 72,
-      MonthlyCharges: 20 + (i % 80),
-      TotalCharges: (20 + (i % 80)) * (i % 72 || 1),
+      PaymentMethod: method,
+      tenure: Math.round((i % 72) * (method === 'Electronic check' ? 0.4 : 1.1)),
+      MonthlyCharges: Math.round((20 + (i % 80)) * premium),
+      TotalCharges: Math.round((20 + (i % 80)) * premium * (i % 72 || 1)),
     });
   }
   return rows;
@@ -197,16 +212,44 @@ test('a "per capita" column is not summed despite matching gdp', () => {
   }
 });
 
-test('a wide dataset actually produces more than 7 slides', () => {
+test('the size of a deck follows what the data shows, not how many columns it has', () => {
+  // Each segment column genuinely separates the amounts, which is what makes
+  // this a wide dataset rather than ten copies of the same flat one.
   const wide = Array.from({ length: 80 }, (_, i) => {
     const r = {};
     for (let d = 0; d < 10; d++) r[`segment${d}`] = `g${(i + d) % 4}`;
-    for (let m = 0; m < 5; m++) r[`amount${m}`] = ((i * (m + 7) * 13) % 5000) + 0.25;
+    // One segment really drives the amounts, so every chart of them has
+    // something to show. Spreading the lift across all ten averaged it back to
+    // a constant, which is how the original fixture came to have no signal in
+    // it at all.
+    const lift = 1 + (i % 4) * 0.6;
+    for (let m = 0; m < 5; m++) {
+      r[`amount${m}`] = Math.round((((i * (m + 7) * 13) % 5000) + 200) * lift) + 0.25;
+    }
     return r;
   });
-  const charts = planCharts(wide, { max: recommendedChartCount(wide) });
-  assert.ok(charts.length > 7, `expected >7, got ${charts.length}`);
-  assert.ok(charts.length <= 10);
+  // The same shape with the lift removed: ten segment columns that separate
+  // nothing, which is what the fixture used to be.
+  const flat = wide.map((r, i) => {
+    const out = { ...r };
+    for (let m = 0; m < 5; m++) out[`amount${m}`] = ((i * (m + 7) * 13) % 5000) + 0.25;
+    return out;
+  });
+
+  const rich = planCharts(wide, { max: recommendedChartCount(wide) });
+  const bare = planCharts(flat, { max: recommendedChartCount(flat) });
+
+  assert.ok(rich.length >= 5, `a dataset with real differences earns a deck: got ${rich.length}`);
+  assert.ok(rich.length <= 10);
+  assert.ok(
+    rich.length > bare.length,
+    `signal should decide the size of a deck, not column count: ${rich.length} vs ${bare.length}`
+  );
+  // And every chart that made it says something.
+  for (const c of rich) {
+    if (c.signalScore === undefined) continue;
+    assert.ok(c.signalScore > 0.05, `${c.title} scored ${c.signalScore}`);
+  }
 });
 
 test('a unit price is never summed (it matches "unit" but is per-item)', () => {
