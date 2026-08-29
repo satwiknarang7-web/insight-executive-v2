@@ -48,6 +48,12 @@ export default function DashboardPage() {
   // One switch for the whole page. A pencil beside every field would put an
   // affordance next to every sentence on a dashboard whose job is to be read.
   const [editing, setEditing] = useState(false);
+  // The two long sections fold away. A dashboard with nine findings is several
+  // screens whatever else is done to it, and the summary and the grid are read
+  // at different moments — collapsing the one you are not reading is the
+  // difference between scrolling to find something and it being on screen.
+  const [showSummary, setShowSummary] = useState(true);
+  const [showFindings, setShowFindings] = useState(true);
 
   const run = useCallback(() => analyze().catch(() => {}), [analyze]);
 
@@ -237,7 +243,11 @@ export default function DashboardPage() {
             className="text-xs font-black uppercase tracking-[0.28em] text-white/45"
           />
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+          <Collapse open={showSummary} onToggle={() => setShowSummary((v) => !v)} label="executive summary" />
         </div>
+
+        {showSummary && (
+        <>
 
         {/* The opening line — what an analyst says before the bullets. */}
         {(summary.headline || editing) && (
@@ -341,17 +351,23 @@ export default function DashboardPage() {
             />
           </div>
         </div>
+        </>
+        )}
       </section>
 
       {/* Chart grid */}
       <section>
         <div className="mb-3 flex items-center gap-3">
           <BarChart3 size={14} className="text-accent-400" />
-          <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">Findings</h2>
+          <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">
+            Findings ({storyboard.length})
+          </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+          <Collapse open={showFindings} onToggle={() => setShowFindings((v) => !v)} label="findings" />
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
+        {showFindings && (
+        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {storyboard.map((slide, i) => (
             <FindingCard
               key={slide.id || i}
@@ -364,6 +380,7 @@ export default function DashboardPage() {
             />
           ))}
         </div>
+        )}
       </section>
 
       {saving && (
@@ -525,6 +542,22 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
   );
 }
 
+/** A section's fold control: a chevron that turns, and says what it folds. */
+function Collapse({ open, onToggle, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-label={`${open ? 'Hide' : 'Show'} ${label}`}
+      className="flex shrink-0 items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/35 transition-colors hover:bg-white/5 hover:text-white/70"
+    >
+      {open ? 'Hide' : 'Show'}
+      <ChevronRight size={12} className={`transition-transform ${open ? 'rotate-90' : ''}`} />
+    </button>
+  );
+}
+
 /**
  * One finding on the grid.
  *
@@ -597,7 +630,7 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
         </div>
       </div>
 
-      <div className="mt-4 h-56">
+      <div className="mt-4 h-48">
         <ChartBoundary resetKey={`${slide.id}-${slide.chart?.chart_type}`}>
           <LazyChart
             data={slide.chart?.resultData}

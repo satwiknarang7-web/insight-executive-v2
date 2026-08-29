@@ -429,12 +429,20 @@ function DashboardSlide({ analysis, fileName }) {
   const kpis = analysis.kpis || [];
   const card = analysis.slideZero?.strategicScorecard || {};
 
-  // Two columns up to four charts, three beyond that. Past nine, the grid stops
-  // being a dashboard and becomes a contact sheet, so it scrolls instead.
-  const columns = board.length <= 4 ? 'lg:grid-cols-2' : 'lg:grid-cols-3';
+  /**
+   * A grid that fits, rather than one that scrolls.
+   *
+   * This used to be a fixed two or three columns with 190px chart tiles and
+   * `overflow-y-auto`, so a deck of nine findings ran off the bottom of the
+   * slide — on the one slide whose entire purpose is showing everything at
+   * once, while presenting, where nobody can scroll for you. The shape is now
+   * chosen from the count, and the rows divide whatever height is left.
+   */
+  const cols = board.length <= 2 ? board.length || 1 : board.length <= 6 ? 3 : 4;
+  const rows = Math.max(1, Math.ceil(board.length / cols));
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-y-auto py-2">
+    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden py-2">
       <div className="mb-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <h1 className="text-2xl font-black tracking-tight md:text-3xl">
           {analysis.slideZero?.title || 'Everything together'}
@@ -456,13 +464,25 @@ function DashboardSlide({ analysis, fileName }) {
         </div>
       )}
 
-      <div className={`grid gap-3 ${columns}`}>
+      <div
+        className="grid min-h-0 flex-1 gap-3 overflow-y-auto"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          // A floor as well as a share. On a projector the rows divide the
+          // slide; in a small window they would divide it into slivers, and a
+          // chart forty pixels tall is not a smaller chart, it is no chart. At
+          // that point the grid scrolls rather than shrinking further.
+          gridTemplateRows: `repeat(${rows}, minmax(150px, 1fr))`,
+        }}
+      >
         {board.map((item) => (
-          <div key={item.id} className="card flex flex-col p-3">
+          <div key={item.id} className="card flex min-h-0 flex-col p-3">
             <div className="mb-2 truncate text-[13px] font-black text-white/85" title={item.pageTitle}>
               {item.pageTitle}
             </div>
-            <div className="h-[190px] w-full">
+            {/* `min-h-0` again: without it the tile refuses to shrink under the
+                chart's own size and the grid grows past the slide. */}
+            <div className="min-h-0 w-full flex-1">
               <ChartBoundary resetKey={`board-${item.id}-${item.chart?.chart_type}`}>
                 <LazyChart
                   data={item.chart?.resultData}

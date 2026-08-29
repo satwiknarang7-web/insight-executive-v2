@@ -47,6 +47,15 @@ const config = [
        * it catches hooks called conditionally, which is a crash rather than a
        * style question, and it found two real ones.
        */
+      /**
+       * A name that is used and never defined is a crash, not a style
+       * question. `ComposedDualChart` called `formatDateLabel` without
+       * importing it, so every combo chart in the app threw a ReferenceError
+       * and rendered "could not draw this chart" — and the linter had nothing
+       * to say about it, because eslint-config-next leaves this rule off.
+       */
+      'no-undef': 'error',
+
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/refs': 'warn',
       'react-hooks/purity': 'warn',

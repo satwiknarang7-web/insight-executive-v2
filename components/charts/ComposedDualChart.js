@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '../../lib/constants';
 import { usePalette } from './palette';
-import { formatNumber as yAxisFormatter } from '../../lib/format';
+import { formatDateLabel, formatNumber as yAxisFormatter } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin, clip, prettyLabel, legendProps } from './axis';
 
 const CustomXAxisTick = ({ x, y, payload, rotated }) => {
