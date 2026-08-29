@@ -370,35 +370,58 @@ export default function PresentPage() {
 }
 
 function SummarySlide({ slideZero, kpis }) {
+  /**
+   * A summary slide that fits on the screen it is presented from.
+   *
+   * It scrolled: six long takeaways under a headline and a card strip, in a
+   * centred column, so the title and the opening line were pushed off the top
+   * and the reader arrived halfway down a list. Nobody scrolls a slide in front
+   * of a room.
+   *
+   * Four takeaways, and the type steps down as they get longer — which is what
+   * a person does when they are given a fixed slide and too much to say, and is
+   * a better answer than a scrollbar. What is cut was the least of six, not the
+   * most of four.
+   */
+  const bullets = (slideZero.macroInsights || []).slice(0, 4);
+  const long = bullets.reduce((n, b) => n + String(b).length, 0) > 520;
+  const bulletText = long ? 'text-[15px] md:text-base' : 'text-lg md:text-xl';
+
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center overflow-y-auto py-4">
-      <div className="mb-6 flex items-center gap-3">
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center overflow-hidden py-4">
+      <div className={`flex items-center gap-3 ${long ? 'mb-3' : 'mb-6'}`}>
         <Sparkles size={18} className="text-accent-400" />
-        <h1 className="text-3xl font-black tracking-tight md:text-5xl">{slideZero.title}</h1>
+        <h1 className={`font-black tracking-tight ${long ? 'text-2xl md:text-4xl' : 'text-3xl md:text-5xl'}`}>
+          {slideZero.title}
+        </h1>
       </div>
 
       {slideZero.headline && (
-        <p className="mb-6 text-xl font-medium leading-relaxed text-white/85 md:text-2xl">
+        <p
+          className={`font-medium leading-relaxed text-white/85 ${
+            long ? 'mb-4 text-lg md:text-xl' : 'mb-6 text-xl md:text-2xl'
+          }`}
+        >
           {cleanFloatingPoints(slideZero.headline)}
         </p>
       )}
 
       {kpis?.length > 0 && (
-        <div className="mb-7 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${long ? 'mb-4' : 'mb-7'}`}>
           {kpis.map((k, i) => (
-            <div key={`${k.label}-${i}`} className="card p-4">
-              <div className="text-2xl font-black text-white">{k.value}</div>
+            <div key={`${k.label}-${i}`} className={long ? 'card p-3' : 'card p-4'}>
+              <div className={`font-black text-white ${long ? 'text-xl' : 'text-2xl'}`}>{k.value}</div>
               <div className="label mt-1 truncate">{k.label}</div>
             </div>
           ))}
         </div>
       )}
 
-      <ul className="mb-7 flex flex-col gap-4">
-        {slideZero.macroInsights.map((line, i) => (
+      <ul className={`flex flex-col ${long ? 'mb-4 gap-2.5' : 'mb-7 gap-4'}`}>
+        {bullets.map((line, i) => (
           <li key={i} className="flex gap-4">
             <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-accent-500" />
-            <p className="text-lg leading-relaxed text-white/80 md:text-xl">{cleanFloatingPoints(line)}</p>
+            <p className={`leading-relaxed text-white/80 ${bulletText}`}>{cleanFloatingPoints(line)}</p>
           </li>
         ))}
       </ul>

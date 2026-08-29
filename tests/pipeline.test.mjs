@@ -180,6 +180,16 @@ test('a long aggregated result is kept, not replaced with an average by category
  * pass walks the deck backwards and advances through the missing types one per
  * chart, so the chart under test goes last.
  */
+/**
+ * A deck monotonous enough that the diversity pass will run on it.
+ *
+ * It used to hold five distinct types with only the share types missing, which
+ * isolated the rule under test nicely — and stopped working when the pass was
+ * restricted to decks that are actually monotonous. Retyping a clear chart to
+ * chase variety is what turned a bar of seven categories into an unreadable
+ * radial, so a deck that already has three shapes is now left alone, and this
+ * fixture has two.
+ */
 function deckMissingOnlyShareTypes(subject) {
   const present = [
     { id: 'area', chart_type: 'area', xAxisKey: 'Month', yAxisKey: 'Total Revenue',
@@ -187,12 +197,6 @@ function deckMissingOnlyShareTypes(subject) {
         { Month: '2026-01', 'Total Revenue': 100 },
         { Month: '2026-02', 'Total Revenue': 140 },
       ] },
-    { id: 'scatter', chart_type: 'scatter', xAxisKey: 'Spend', yAxisKey: 'Total Revenue',
-      resultData: [{ Spend: 1, 'Total Revenue': 2 }, { Spend: 3, 'Total Revenue': 5 }] },
-    { id: 'radar', chart_type: 'radar', xAxisKey: 'Team', yAxisKey: 'Total Revenue',
-      resultData: [{ Team: 'A', 'Total Revenue': 2 }, { Team: 'B', 'Total Revenue': 5 }] },
-    { id: 'composed', chart_type: 'composed', xAxisKey: 'Team', yAxisKey: 'Total Revenue',
-      resultData: [{ Team: 'A', 'Total Revenue': 2 }, { Team: 'B', 'Total Revenue': 5 }] },
     // Two bars, so the pass is willing to retype one of them.
     { id: 'filler', title: 'Total Revenue by Channel', chart_type: 'bar', xAxisKey: 'Channel',
       yAxisKey: 'Total Revenue',
@@ -229,23 +233,32 @@ test('an average by category is never redrawn as a part-to-whole chart', () => {
   }
 });
 
-test('a summed measure is still free to be redrawn as a share', () => {
-  const out = deckMissingOnlyShareTypes({
-    id: 'subject',
-    title: 'Total Revenue by Category',
-    chart_type: 'bar',
-    xAxisKey: 'Category',
-    yAxisKey: 'Total Revenue',
-    resultData: [
-      { Category: 'Electronics', 'Total Revenue': 800 },
-      { Category: 'Home', 'Total Revenue': 210 },
-      { Category: 'Toys', 'Total Revenue': 160 },
-      { Category: 'Garden', 'Total Revenue': 110 },
-    ],
-  });
-  const subject = out.find((c) => c.id === 'subject');
-  assert.ok(
-    ['donut', 'treemap', 'radial'].includes(subject.chart_type),
-    `a real total should still be offered as a share, got ${subject.chart_type}`
+/*
+ * The test that stood here asserted that an additive total is still offered as
+ * a share when only the share types are missing from a deck. That situation can
+ * no longer arise: "only share types missing" means the four other advanced
+ * types are present, and the pass now leaves any deck with three or more shapes
+ * alone. The rule it protected — additive measures may become shares, averages
+ * may not — is still enforced in `allowedTarget` and still covered by the test
+ * above it, from the side that matters, which is the refusal.
+ */
+
+test('a deck that already has several shapes is left alone', () => {
+  // Retyping to chase variety is what turned a bar chart of seven categories,
+  // one of them 72% of the total, into concentric arcs nobody could read.
+  const varied = [
+    { id: 'a', chart_type: 'line', xAxisKey: 'Month', yAxisKey: 'Total Revenue',
+      resultData: [{ Month: '2026-01', 'Total Revenue': 100 }, { Month: '2026-02', 'Total Revenue': 140 }] },
+    { id: 'b', chart_type: 'bar', xAxisKey: 'Category', yAxisKey: 'Total Revenue',
+      resultData: [{ Category: 'A', 'Total Revenue': 800 }, { Category: 'B', 'Total Revenue': 210 }] },
+    { id: 'c', chart_type: 'bar', xAxisKey: 'Region', yAxisKey: 'Total Revenue',
+      resultData: [{ Region: 'N', 'Total Revenue': 500 }, { Region: 'S', 'Total Revenue': 400 }] },
+    { id: 'd', chart_type: 'treemap', xAxisKey: 'Channel', yAxisKey: 'Total Revenue',
+      resultData: [{ Channel: 'X', 'Total Revenue': 300 }, { Channel: 'Y', 'Total Revenue': 200 }] },
+  ];
+  const out = enforceChartDiversity(varied.map((c) => ({ ...c })));
+  assert.deepEqual(
+    out.map((c) => c.chart_type),
+    varied.map((c) => c.chart_type)
   );
 });
