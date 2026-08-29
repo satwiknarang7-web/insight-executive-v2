@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  SlidersHorizontal,
   Sparkles,
   Activity,
   HelpCircle,
@@ -31,6 +33,11 @@ export default function InsightPage() {
   // made. Save is what commits it to the dashboard, the deck and the report.
   const [preview, setPreview] = useState(null);
   const onPreview = useCallback((next) => setPreview(next), []);
+  // The editing drawer, and which of the panes under the chart is open. The
+  // key finding opens by default because it is the one sentence the page
+  // exists to deliver; everything else is a click away.
+  const [editing, setEditing] = useState(false);
+  const [openPane, setOpenPane] = useState('finding');
 
   const { slide, index, prev, next } = useMemo(() => {
     const board = analysis?.storyboard || [];
@@ -73,12 +80,101 @@ export default function InsightPage() {
   const shownXLabel = (draft ? draft.xAxisLabel : chart.xAxisLabel) || null;
   const shownYLabel = (draft ? draft.yAxisLabel : chart.yAxisLabel) || null;
 
+  /**
+   * Everything the page says about the chart, as one strip of panes.
+   *
+   * A pane that has nothing to show is not offered, so the strip never has a
+   * heading that opens onto an empty box.
+   */
+  const panes = [
+    slide.insight_anchor && {
+      key: 'finding',
+      label: 'Key finding',
+      icon: Sparkles,
+      render: () => <Prose text={slide.insight_anchor} accent />,
+    },
+    slide.insight_implication && {
+      key: 'means',
+      label: 'What it means',
+      icon: Activity,
+      render: () => <Prose text={slide.insight_implication} />,
+    },
+    slide.insight_question && {
+      key: 'next',
+      label: 'What to ask next',
+      icon: HelpCircle,
+      render: () => <Prose text={slide.insight_question} />,
+    },
+    slide.analystNotes && {
+      key: 'notes',
+      label: 'Your notes',
+      icon: StickyNote,
+      render: () => (
+        <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-white/80">{slide.analystNotes}</p>
+      ),
+    },
+    facts.length > 0 && {
+      key: 'metrics',
+      label: `Metrics (${facts.length})`,
+      icon: ShieldCheck,
+      render: () => (
+        <>
+          <ul className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
+            {facts.map((f, i) => (
+              <li key={i} className="rounded-lg bg-white/[0.03] px-3 py-1.5 font-mono text-[11px] text-white/60">
+                {f}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/30">
+            Computed directly from this chart&apos;s query results, before any language model saw them.
+          </p>
+        </>
+      ),
+    },
+    chart.sql && {
+      key: 'query',
+      label: 'Query',
+      icon: Code2,
+      render: () => (
+        <pre className="code-surface whitespace-pre-wrap break-words rounded-lg border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
+          {formatSql(chart.sql)}
+        </pre>
+      ),
+    },
+  ].filter(Boolean);
+
   return (
-    <PageFrame
-      title={slide.pageTitle}
-      subtitle={`Finding ${index + 1} of ${analysis.storyboard.length}`}
-      action={
-        <div className="flex items-center gap-2">
+    /*
+      One screen, and nothing that scrolls unless it is asked to.
+
+      The previous version put the chart, three narrative columns, a metrics
+      list, a query block and the whole editing panel on the page at once. That
+      is three scrollbars — the window, the sticky rail, and the label list
+      inside it — and a reader who has to hunt for the sentence they wanted.
+
+      So the page owns the viewport instead: a compact header, the chart taking
+      whatever height is left, and everything written about the chart folded
+      into one strip of tabs beneath it. The editing panel is a drawer that is
+      shut until it is wanted, because it is a tool and not part of the finding.
+      Below the large breakpoint this relaxes back into ordinary page flow —
+      a fixed-height layout on a phone is a worse answer than scrolling.
+    */
+    <div className="flex h-auto flex-col px-4 py-4 md:px-6 lg:h-[100dvh] lg:overflow-hidden">
+      {/* Header: title, position, navigation, and the drawer switch. */}
+      <header className="mb-3 flex shrink-0 flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1 basis-full lg:basis-auto">
+          <h1 className="truncate text-xl font-black tracking-tight md:text-2xl">{slide.pageTitle}</h1>
+          <p className="mt-0.5 text-[12px] text-white/40">
+            Finding {index + 1} of {analysis.storyboard.length}
+            {chart.resultData?.length ? ` · ${chart.resultData.length} data points` : ''}
+            {chart.healed ? ' · fallback query' : ''}
+            {slide.custom ? ' · built by you' : ''}
+            {slide.edits?.length > 0 ? ' · edited' : ''}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/dashboard"
             className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
@@ -87,55 +183,35 @@ export default function InsightPage() {
           </Link>
           <NavButton slide={prev} dir="prev" />
           <NavButton slide={next} dir="next" />
+          <button
+            type="button"
+            onClick={() => setEditing((v) => !v)}
+            aria-expanded={editing}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+              editing
+                ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            <SlidersHorizontal size={13} /> Edit
+          </button>
         </div>
-      }
-    >
-      {/*
-        The chart is the subject of the page, and the editing panel is a tool
-        for changing it. They were previously equal columns, which meant the
-        panel — title, axis names, chart type, colours, a row per value label,
-        notes — set the height of the page while the chart sat in a fixed box
-        with the whole left half empty underneath it and three screens of
-        scrolling to its right.
+      </header>
 
-        So the chart now takes the width it was wasting, the narrative sits
-        under it where there was nothing, and the panel is a sticky rail that
-        scrolls inside itself rather than dragging the page down with it.
-      */}
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-        {/* Chart and what it says */}
-        <div className="flex min-w-0 flex-col gap-4">
-        <div className="card flex flex-col p-5">
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-accent-500/10 px-3 py-1.5 text-[11px] font-bold text-accent-300">
-              {chart.resultData?.length || 0} data points
-            </span>
-            {chart.healed && (
-              <span
-                className="rounded-full border border-amber-500/25 bg-amber-500/8 px-3 py-1.5 text-[11px] font-bold text-amber-300"
-                title="The planned query was unusable, so a simpler one was substituted."
-              >
-                Fallback query
-              </span>
-            )}
-            {slide.custom && (
-              <span className="rounded-full border border-accent-500/25 bg-accent-500/8 px-3 py-1.5 text-[11px] font-bold text-accent-300">
-                Built by you
-              </span>
-            )}
-            {slide.edits?.length > 0 && (
-              <span className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-bold text-white/40">
-                Edited
-              </span>
-            )}
-          </div>
-
-          {/* Sized to the chart, not to a round number. 520px was chosen when the
-              axis gutter was double-counted and ~110px of it went unused; the
-              chart now fills what it is given, so this is smaller and the page
-              no longer opens with a band of empty space under the plot. */}
-          <div className="h-[360px] w-full md:h-[460px] xl:h-[520px]">
-            <ChartBoundary resetKey={`${slide.id}-${shownType}-${shownColorBy}-${(shownColors || []).join()}`}>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+        {/* The chart, and one strip of tabs for everything said about it. */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+          <div className="card flex flex-col p-4 lg:min-h-[320px] lg:flex-1">
+            {/* Two different jobs. On a viewport-height page `min-h-0` is what
+                lets the chart give height back — without it a flex child
+                refuses to shrink below its content, so opening a taller pane
+                below shrank the card and left the chart drawing over the top of
+                it. Below that breakpoint the page is ordinary flow, nothing
+                hands the card a height, and a flex child of nothing is nothing:
+                the chart measured zero and drew a blank box. So it takes a real
+                height there and only flexes where flexing means something. */}
+            <div className="flex h-[340px] flex-col md:h-[420px] lg:h-auto lg:min-h-0 lg:flex-1">
+              <ChartBoundary resetKey={`${slide.id}-${shownType}-${shownColorBy}-${(shownColors || []).join()}`}>
               <LazyChart
                 data={chart.resultData}
                 type={shownType}
@@ -152,101 +228,98 @@ export default function InsightPage() {
                 eager
               />
             </ChartBoundary>
-          </div>
-        </div>
-
-          {slide.analystNotes && (
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-5">
-              <div className="mb-2 flex items-center gap-2">
-                <StickyNote size={13} className="text-amber-400" />
-                <span className="label !text-amber-400/80">Analyst notes</span>
-              </div>
-              <p className="whitespace-pre-wrap text-[14px] leading-[1.7] text-white/80">{slide.analystNotes}</p>
             </div>
-          )}
-
-          {/* Three short paragraphs, read across rather than down. Stacked they
-              were most of the scrolling and none of the content. */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Block icon={Sparkles} tone="accent" label="Key finding" text={slide.insight_anchor} />
-            <Block icon={Activity} tone="plain" label="What it means" text={slide.insight_implication} />
-            <Block icon={HelpCircle} tone="plain" label="What to ask next" text={slide.insight_question} />
           </div>
 
-          {facts.length > 0 && (
-            <div className="card p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <ShieldCheck size={13} className="text-emerald-400" />
-                <span className="label !text-emerald-400/70">Verified metrics</span>
-              </div>
-              {/* Sixteen one-line facts were sixteen rows of a list, most of the
-                  width blank. They are short enough to sit several to a row. */}
-              <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {facts.map((f, i) => (
-                  <li key={i} className="rounded-lg bg-white/[0.03] px-3 py-2 font-mono text-[11px] text-white/60">
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 text-[11px] leading-relaxed text-white/30">
-                Computed directly from this chart&apos;s query results, before any language model saw them.
-              </p>
-            </div>
-          )}
-
-          {chart.sql && (
-            <details className="card group p-5">
-              <summary className="flex cursor-pointer list-none items-center gap-2">
-                <Code2 size={13} className="text-white/40" />
-                <span className="label">Query</span>
-                <ChevronRight size={14} className="ml-auto text-white/25 transition-transform group-open:rotate-90" />
-              </summary>
-              <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
-                {formatSql(chart.sql)}
-              </pre>
-            </details>
-          )}
-        </div>
-
-        {/* The editing rail: pinned, and scrolling inside itself. */}
-        <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1">
-          <ChartStudio
-            slide={slide}
-            onPreview={onPreview}
-            onSave={(patch) => editSlide(slide.id, patch)}
-            onRebuild={(spec) => rebuildSlide(slide.id, spec)}
-            onDelete={() => {
-              deleteSlide(slide.id);
-              router.push('/dashboard');
-            }}
+          <Panes
+            panes={panes}
+            open={openPane}
+            onToggle={(key) => setOpenPane((cur) => (cur === key ? null : key))}
           />
         </div>
-      </div>
 
-      {/* Prev / next footer */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <FooterLink slide={prev} dir="prev" />
-        <FooterLink slide={next} dir="next" />
+        {/* The editing drawer. Shut by default; it is a tool, not a finding. */}
+        {editing && (
+          <div className="flex min-h-0 shrink-0 flex-col lg:w-[380px]">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <ChartStudio
+                slide={slide}
+                onPreview={onPreview}
+                onSave={(patch) => editSlide(slide.id, patch)}
+                onRebuild={(spec) => rebuildSlide(slide.id, spec)}
+                onDelete={() => {
+                  deleteSlide(slide.id);
+                  router.push('/dashboard');
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
-    </PageFrame>
+    </div>
   );
 }
 
-function Block({ icon: Icon, tone, label, text }) {
-  if (!text) return null;
-  const accent = tone === 'accent';
+/**
+ * The strip under the chart: one row of headings, one of them open.
+ *
+ * Everything here used to be on screen at once, stacked, which is what made the
+ * page three screens tall. Only one of these is ever being read, so only one is
+ * ever shown — and clicking the open one closes it, which gives the chart the
+ * whole height back when the reader wants to look at it rather than read about
+ * it.
+ */
+function Panes({ panes, open, onToggle }) {
+  const shown = panes.find((p) => p.key === open);
+
   return (
-    <div
-      className={`rounded-2xl border p-5 ${
-        accent ? 'border-accent-500/20 bg-accent-500/[0.06]' : 'border-white/8 bg-white/[0.02]'
-      }`}
-    >
-      <div className="mb-2 flex items-center gap-2">
-        <Icon size={13} className={accent ? 'text-accent-400' : 'text-white/40'} />
-        <span className={`label ${accent ? '!text-accent-400/80' : ''}`}>{label}</span>
+    <div className="flex shrink-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-white/[0.02]">
+      <div className="flex flex-wrap items-center gap-1 p-1.5">
+        {panes.map((pane) => {
+          const isOpen = pane.key === open;
+          return (
+            <button
+              key={pane.key}
+              type="button"
+              onClick={() => onToggle(pane.key)}
+              aria-expanded={isOpen}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${
+                isOpen ? 'bg-white/[0.07] text-white' : 'text-white/40 hover:bg-white/[0.04] hover:text-white/70'
+              }`}
+            >
+              <pane.icon size={12} className={isOpen ? 'text-accent-400' : ''} />
+              {pane.label}
+            </button>
+          );
+        })}
+        {shown && (
+          <button
+            type="button"
+            onClick={() => onToggle(shown.key)}
+            aria-label="Collapse"
+            className="ml-auto rounded-lg p-2 text-white/30 transition-colors hover:bg-white/5 hover:text-white/70"
+          >
+            <ChevronDown size={14} />
+          </button>
+        )}
       </div>
-      <p className="text-[14px] leading-[1.7] text-white/80">{cleanFloatingPoints(text)}</p>
+
+      {shown && (
+        <div className="max-h-[34vh] overflow-y-auto border-t border-white/8 px-4 py-3 lg:h-[22vh] lg:max-h-none">
+          {shown.render()}
+        </div>
+      )}
     </div>
+  );
+}
+
+/** One pane's text. The heading is the tab above it, so this is only prose. */
+function Prose({ text, accent = false }) {
+  if (!text) return null;
+  return (
+    <p className={`text-[13px] leading-[1.75] ${accent ? 'text-white/90' : 'text-white/75'}`}>
+      {cleanFloatingPoints(text)}
+    </p>
   );
 }
 
@@ -266,31 +339,6 @@ function NavButton({ slide, dir }) {
       className="rounded-lg border border-white/10 p-2 text-white/50 transition-colors hover:bg-white/5 hover:text-white"
     >
       <Icon size={15} />
-    </Link>
-  );
-}
-
-function FooterLink({ slide, dir }) {
-  if (!slide) return <div className="hidden sm:block" />;
-  const isPrev = dir === 'prev';
-  return (
-    <Link
-      href={`/insight/${slide.id}`}
-      className={`group card flex items-center gap-3 p-4 transition-colors hover:border-accent-500/30 hover:bg-white/[0.04] ${
-        isPrev ? '' : 'sm:flex-row-reverse sm:text-right'
-      }`}
-    >
-      {isPrev ? (
-        <ChevronLeft size={16} className="shrink-0 text-white/25 group-hover:text-accent-400" />
-      ) : (
-        <ChevronRight size={16} className="shrink-0 text-white/25 group-hover:text-accent-400" />
-      )}
-      <div className="min-w-0">
-        <div className="label">{isPrev ? 'Previous' : 'Next'}</div>
-        <div className="mt-0.5 truncate text-sm font-bold text-white/80 group-hover:text-accent-300">
-          {slide.pageTitle}
-        </div>
-      </div>
     </Link>
   );
 }
