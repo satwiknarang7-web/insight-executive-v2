@@ -491,7 +491,7 @@ function DashboardSlide({ analysis, fileName }) {
           // slide; in a small window they would divide it into slivers, and a
           // chart forty pixels tall is not a smaller chart, it is no chart. At
           // that point the grid scrolls rather than shrinking further.
-          gridTemplateRows: `repeat(${rows}, minmax(150px, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(190px, 1fr))`,
         }}
       >
         {board.map((item) => (

@@ -79,10 +79,19 @@ export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false, titl
   const shown = longest > HARD_MAX ? HARD_MAX : longest;
   // A rotated label projects cos(35°)≈0.82 of its width onto the vertical axis.
   const projected = crowded ? Math.ceil(textWidth(''.padEnd(shown, 'M'), fontSize) * 0.6) : fontSize + 6;
-  const titleProps = axisTitleProps(title, { axis: 'x' });
-  // The title sits below the ticks, so the gutter has to grow to hold both.
+  /**
+   * No axis titles on a thumbnail, and a tighter gutter.
+   *
+   * On the closing slide of a deck a chart gets a third of a row. The gutter
+   * could take 92 pixels of it and an axis title another 22, so a tile of 180
+   * had 40 left to draw in — which is how nine charts came out as nine sets of
+   * axis labels with nothing between them. The axis title is the duplication to
+   * cut first: the card above it already says "Total Amount by Category", so
+   * repeating "Category" underneath buys nothing at any size.
+   */
+  const titleProps = compact ? null : axisTitleProps(title, { axis: 'x' });
   const height =
-    Math.min(compact ? 92 : 130, Math.max(fontSize + 14, projected + 14)) +
+    Math.min(compact ? 54 : 130, Math.max(fontSize + 14, projected + 14)) +
     (titleProps ? AXIS_TITLE_SPACE : 0);
 
   return {
@@ -121,7 +130,9 @@ export function yAxisGeometry(
     .flatMap((row) => keys.map((key) => row?.[key]))
     .filter((v) => typeof v === 'number');
   const widest = values.reduce((max, v) => Math.max(max, String(formatter(v) ?? '').length), 3);
-  const titleProps = axisTitleProps(title, { axis: 'y' });
+  // Same on the vertical: a rotated title is what "Coupon Discou" was, clipped
+  // against the edge of a tile too small to hold it.
+  const titleProps = compact ? null : axisTitleProps(title, { axis: 'y' });
   // A rotated title needs its own column beside the ticks.
   const width =
     Math.min(96, Math.max(40, Math.ceil(textWidth(''.padEnd(widest, '0'), fontSize)) + 14)) +
