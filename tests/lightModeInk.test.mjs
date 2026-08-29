@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Light mode's muted text is navy, and stays readable.
@@ -20,7 +21,9 @@ import { join } from 'node:path';
  */
 
 const CSS = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-const ROOT = new URL('..', import.meta.url).pathname;
+// `.pathname` on a file URL is a URL path, not a filesystem path: on Windows it
+// comes back as "/C:/dev/Insight/", and joining that produced "C:\C:\dev\...".
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 // ---------------------------------------------------------------------------
 // Contrast
