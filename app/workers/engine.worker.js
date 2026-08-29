@@ -31,7 +31,6 @@ import {
   executeCharts,
   TABLE,
 } from '../../lib/pipeline.js';
-import { planCharts } from '../../lib/analystPlanner.js';
 import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
@@ -733,56 +732,6 @@ function askExecute(id, { spec }) {
 }
 
 /**
- * Offline fallback for the Ask page: score the deterministic planner's own
- * candidates against the words in the question and run the best one. Keeps
- * natural-language questions working with no API key configured at all.
- */
-function suggest(id, { question }) {
-  if (!state) {
-    reply(id, 'error', { message: 'No dataset loaded.' });
-    return;
-  }
-  const words = String(question || '')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
-
-  const candidates = planCharts(state.view.rows, { max: 12 });
-  let best = candidates[0] || null;
-  let bestScore = -1;
-
-  for (const c of candidates) {
-    const haystack = `${c.title} ${c.xAxisKey} ${c.yAxisKey} ${c.dimension || ''}`.toLowerCase();
-    let score = 0;
-    for (const w of words) if (haystack.includes(w)) score += 1;
-    // Nudge toward the chart shape the question implies.
-    if (/trend|over time|growth|month|year/.test(question) && /line|area/.test(c.chart_type)) score += 1.5;
-    if (/share|proportion|percent|split|composition/.test(question) && /donut|treemap/.test(c.chart_type)) score += 1.5;
-    if (/compare|top|highest|lowest|rank|best|worst/.test(question) && c.chart_type === 'bar') score += 1;
-    if (/correlat|relationship|versus|vs\b/.test(question) && c.chart_type === 'scatter') score += 1.5;
-    if (score > bestScore) {
-      bestScore = score;
-      best = c;
-    }
-  }
-
-  if (!best) {
-    reply(id, 'suggested', { spec: null });
-    return;
-  }
-  reply(id, 'suggested', {
-    spec: { ...best, id: 'ask_1' },
-    matched: bestScore > 0,
-  });
-}
-
-const STOPWORDS = new Set([
-  'the', 'and', 'for', 'what', 'which', 'how', 'many', 'much', 'show', 'give',
-  'tell', 'about', 'with', 'from', 'that', 'this', 'are', 'was', 'were', 'does',
-  'did', 'our', 'their', 'have', 'has', 'per', 'all', 'any', 'across', 'into',
-]);
-
-/**
  * Raw SQL escape hatch, used by the SQL console.
  *
  * Every source table is mounted under its own name alongside the joined view,
@@ -983,8 +932,6 @@ self.onmessage = async (e) => {
         return analyze(id, payload);
       case 'ask':
         return askExecute(id, payload);
-      case 'suggest':
-        return suggest(id, payload);
       case 'sql':
         return sql(id, payload);
       case 'page':

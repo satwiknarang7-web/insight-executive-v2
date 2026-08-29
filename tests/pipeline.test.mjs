@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeChart, analyzeStoryboard } from '../lib/insightEngine.js';
-import { enforceChartDiversity, runAnalysis } from '../lib/pipeline.js';
+import { enforceChartDiversity, executeCharts, mountTable, runAnalysis, unmountTable } from '../lib/pipeline.js';
 
 // A histogram: the x labels are value ranges, not named segments.
 const histogram = {
@@ -135,4 +135,37 @@ test('histogram buckets are ordered low to high, whatever order SQL returns', ()
   for (let i = 1; i < labels.length; i++) {
     assert.ok(lead(labels[i]) >= lead(labels[i - 1]), `buckets out of order: ${labels.join(' | ')}`);
   }
+});
+
+test('a long aggregated result is kept, not replaced with an average by category', () => {
+  // Thirty-six months of a trend. This is a correct, deliberate, aggregated
+  // query — and it used to be thrown away for being over thirty rows and
+  // answered with "average by the first string column" under the same title.
+  const rows = [];
+  for (let m = 0; m < 36; m++) {
+    const month = `20${23 + Math.floor(m / 12)}-${String((m % 12) + 1).padStart(2, '0')}`;
+    for (let i = 0; i < 3; i++) {
+      rows.push({ Order_Date: `${month}-1${i}`, Channel: ['A', 'B', 'C'][i], Revenue: 100 + m * 10 + i });
+    }
+  }
+
+  const spec = {
+    id: 'trend',
+    title: 'Revenue by month',
+    chart_type: 'line',
+    xAxisKey: 'Month',
+    yAxisKey: 'Revenue',
+    sql:
+      'SELECT SUBSTRING([Order_Date], 1, 7) AS [Month], SUM([Revenue]) AS [Revenue] ' +
+      'FROM SalesData GROUP BY SUBSTRING([Order_Date], 1, 7) ORDER BY [Month] ASC',
+  };
+
+  mountTable(rows);
+  const [chart] = executeCharts([spec], rows);
+  unmountTable();
+
+  assert.ok(!chart.healed, 'a correct aggregate is not "healed"');
+  assert.equal(chart.xAxisKey, 'Month');
+  assert.equal(chart.resultData.length, 36, 'all thirty-six months survive');
+  assert.equal(chart.resultData[0].Month, '2023-01');
 });

@@ -2,14 +2,14 @@
 
 import { useCallback, useState } from 'react';
 import { Send, Loader2, Sparkles, Code2, ChevronRight, Terminal, Info, ShieldCheck } from 'lucide-react';
-import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
-import { call } from '../../../lib/store/engineClient';
+import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import { formatNumber } from '../../../lib/format';
 import { formatSql } from '../../../lib/sqlFormat';
 import { questionRelevance } from '../../../lib/askIntent';
+import { planQuestion } from '../../../lib/questionPlanner';
 
 const EXAMPLES = [
   'Which category brings in the most revenue?',
@@ -21,6 +21,7 @@ const EXAMPLES = [
 export default function AskPage() {
   const { dataset } = useDataset();
   const { askEngine } = useActions();
+  const measures = useMeasures();
 
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
@@ -63,27 +64,37 @@ export default function AskPage() {
           /* fall through to the offline path */
         }
 
-        // 2. No model (or it failed): fall back to the deterministic planner,
-        //    picking whichever of its own candidates best matches the question.
+        // 2. No model (or it failed): read the question ourselves and compose
+        //    the chart it describes. This is the path that can actually build
+        //    the shape that was asked for — a matrix, a map, a funnel — rather
+        //    than returning the nearest pre-built candidate, which was always a
+        //    bar chart because that is most of what the storyboard contains.
+        let declined = null;
         if (!spec) {
-          const suggested = await call('suggest', { question: q });
-          if (!suggested?.spec) throw new Error('Could not build a chart for that question.');
-          // `matched` means at least one word of the question landed on one of
-          // the planner's candidates. Without that, its "best" candidate is
-          // simply its first, and showing it as an answer is the bug this
-          // page had: a chart labelled "closest available" that is closest to
-          // nothing.
-          if (!suggested.matched) {
-            throw new Error(
-              'No language model is configured, and nothing in that question matches a column here — ' +
-                'so there is no chart that would honestly answer it. Try naming a column, or open the Dashboard for the charts already built.'
-            );
+          const read = planQuestion(q, {
+            columns: dataset.columns || [],
+            profile: dataset.profile,
+            sample: dataset.preview || [],
+            measures,
+          });
+          if (read.spec) {
+            spec = read.spec;
+            source = 'planner';
+          } else {
+            declined = read.error;
           }
-          spec = suggested.spec;
-          source = 'planner';
         }
 
-        // 3. Execute locally and compute verified statistics.
+        // 3. The reader could not place some part of the question. Its reason
+        //    names that part, which is worth more than a chart: the page used
+        //    to fall back to whichever storyboard candidate shared the most
+        //    words with the question, and a single incidental word was enough
+        //    to qualify. That is how "a matrix of average monthly tenure, with
+        //    row: category and column: Gender" came back as average spend by
+        //    category — the word "category" and nothing else.
+        if (!spec) throw new Error(declined || 'Could not build a chart for that question.');
+
+        // 4. Execute locally and compute verified statistics.
         const { chart, finding } = await askEngine(spec);
         if (!chart || !chart.resultData?.length) {
           throw new Error('That query returned no rows. Try rephrasing, or check the column names in Explore.');
@@ -97,7 +108,7 @@ export default function AskPage() {
         setBusy(false);
       }
     },
-    [question, busy, dataset, askEngine]
+    [question, busy, dataset, measures, askEngine]
   );
 
   if (!dataset) return null;
@@ -169,9 +180,10 @@ export default function AskPage() {
               computed from the real results — not written by the model.
             </p>
             <p className="mt-3 text-[12px] leading-relaxed text-white/35">
-              With no model configured, a deterministic planner matches your question against the charts it
-              can build from these columns, so the page still works offline. When nothing matches it says so
-              rather than showing you an unrelated chart.
+              With no model configured, your question is read here instead — the shape you asked for, what is
+              being measured, and what to break it down by — and the same query is composed from your
+              columns, so the page still works offline. When part of the question names nothing in this data,
+              it says which part rather than showing you a chart that answers something else.
             </p>
           </div>
 
