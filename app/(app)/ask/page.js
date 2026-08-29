@@ -11,6 +11,48 @@ import { formatSql } from '../../../lib/sqlFormat';
 import { questionRelevance } from '../../../lib/askIntent';
 import { planQuestion } from '../../../lib/questionPlanner';
 
+const MAP_TYPES = new Set(['filledmap', 'bubblemap', 'shapemap']);
+
+/**
+ * Would this map come out blank?
+ *
+ * The boundary file holds country names. A column called `Region` passes every
+ * name test and holds "North", "South", "East", "West" often enough that the
+ * only honest check is against the values themselves. The atlas is imported
+ * only when a map was actually asked for, so nothing extra is downloaded by
+ * anyone asking an ordinary question.
+ *
+ * @returns {Promise<string|null>} why not, or null when the map will draw.
+ */
+async function mapProblem(spec, sample) {
+  if (!spec || !MAP_TYPES.has(spec.chart_type) || !spec.xAxisKey) return null;
+  try {
+    const [topoMod, topojson, geo] = await Promise.all([
+      import('world-atlas/countries-110m.json'),
+      import('topojson-client'),
+      import('../../../lib/geo'),
+    ]);
+    const topo = topoMod.default || topoMod;
+    const names = topojson.feature(topo, topo.objects.countries).features.map((f) => f.properties.name);
+    const column = spec.dimension || spec.xAxisKey;
+    const { matched, unmatched, total } = geo.placeableRegions(
+      (sample || []).map((row) => row?.[column]),
+      names
+    );
+    if (total > 0 && matched.length === 0) {
+      return (
+        `A map can only shade places it can match to a country, and none of the values in “${column}” ` +
+        `match one (${unmatched.slice(0, 4).join(', ')}${unmatched.length > 4 ? '…' : ''}). ` +
+        'Ask for a bar chart of the same thing instead.'
+      );
+    }
+    return null;
+  } catch {
+    // The atlas failed to load. Not a reason to refuse the chart.
+    return null;
+  }
+}
+
 const EXAMPLES = [
   'Which category brings in the most revenue?',
   'How has volume changed over time?',
@@ -94,7 +136,15 @@ export default function AskPage() {
         //    category — the word "category" and nothing else.
         if (!spec) throw new Error(declined || 'Could not build a chart for that question.');
 
-        // 4. Execute locally and compute verified statistics.
+        // 4. A map can only shade names it can match to a country. Asking for
+        //    one over a column holding "North", "South", "East", "West" draws
+        //    an empty world and says nothing about it — the New Chart dialog
+        //    checks the values against the boundary file, and there is no
+        //    reason this path should be the one that stays quiet.
+        const unplaceable = await mapProblem(spec, dataset.preview || []);
+        if (unplaceable) throw new Error(unplaceable);
+
+        // 5. Execute locally and compute verified statistics.
         const { chart, finding } = await askEngine(spec);
         if (!chart || !chart.resultData?.length) {
           throw new Error('That query returned no rows. Try rephrasing, or check the column names in Explore.');

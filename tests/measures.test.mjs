@@ -358,3 +358,50 @@ test('a label somebody typed is not renamed by a later measure', () => {
   const pinned = addKpi([], { label: 'Margin', value: '38.0%', source: { measureId: 'm1' } });
   assert.equal(pinned[0].autoLabel, undefined);
 });
+
+/* "of total" is a share in one phrase and part of a column name in another.
+
+   Found by running the parser over a dataset whose revenue column is called
+   `Total_Amount`, which is what half of them are called. */
+
+const TOTALS = {
+  columns: ['Total_Amount', 'Shipping_Cost', 'Quantity', 'Region'],
+  profile: {
+    measures: ['Total_Amount', 'Shipping_Cost', 'Quantity'],
+    dimensions: ['Region'],
+  },
+  measures: [],
+};
+
+test('an aggregate of a column whose name starts with "total" is not a share of itself', () => {
+  // Each of these split on " of total " and came back as a ratio. "sum of
+  // total amount" was declined outright because "sum" is not a column, and
+  // "total of total amount" produced SUM([Total_Amount]) / SUM([Total_Amount])
+  // — a measure that reads 100%, is perfectly true, and answers nothing.
+  for (const [phrase, expr] of [
+    ['sum of total amount', 'SUM([Total_Amount])'],
+    ['total of total amount', 'SUM([Total_Amount])'],
+    ['average of total amount', 'AVG([Total_Amount])'],
+    ['maximum of total amount', 'MAX([Total_Amount])'],
+  ]) {
+    const result = parseMeasurePhrase(phrase, TOTALS);
+    assert.ok(result.ok, `"${phrase}": ${result.error}`);
+    assert.equal(result.measure.expr, expr, phrase);
+    assert.notEqual(result.measure.format, 'percent', `${phrase} is not a percentage`);
+  }
+});
+
+test('a genuine share of a total is still a share', () => {
+  for (const phrase of [
+    'shipping cost as a percent of total amount',
+    'shipping cost as a percentage of total amount',
+    'shipping cost as a share of total amount',
+    'shipping cost as a proportion of total amount',
+    'shipping cost out of total amount',
+  ]) {
+    const result = parseMeasurePhrase(phrase, TOTALS);
+    assert.ok(result.ok, `"${phrase}": ${result.error}`);
+    assert.equal(result.measure.expr, '(SUM([Shipping_Cost]) / SUM([Total_Amount])) * 100', phrase);
+    assert.equal(result.measure.format, 'percent', phrase);
+  }
+});
