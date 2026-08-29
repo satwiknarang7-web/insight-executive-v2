@@ -117,11 +117,27 @@ test('temporal data yields a trend chart', () => {
   assert.equal(trend.xAxisKey, 'month');
 });
 
-test('planKpis returns labelled KPI cards', () => {
+test('planKpis returns labelled KPI cards, business numbers first', () => {
   const kpis = planKpis(telco());
   assert.ok(kpis.length >= 1 && kpis.length <= 4);
   assert.ok(kpis.every((k) => k.label && k.value !== undefined));
-  assert.equal(kpis[0].label, 'Records Analyzed');
+
+  // "Records Analyzed" is how many rows were read — provenance, not a finding.
+  // It used to open the strip; it now closes it.
+  assert.notEqual(kpis[0].label, 'Records Analyzed');
+  assert.equal(kpis[kpis.length - 1].label, 'Records Analyzed');
+});
+
+test('an outcome rate is the first thing the cards say', () => {
+  // The same telco rows with the column the file is named after.
+  const rows = telco(300).map((r, i) => ({
+    ...r,
+    Churn: r.PaymentMethod === 'Electronic check' ? (i % 3 ? 'Yes' : 'No') : i % 7 ? 'No' : 'Yes',
+  }));
+  const kpis = planKpis(rows);
+  assert.equal(kpis[0].label, 'Churn Rate', `got ${kpis.map((k) => k.label).join(', ')}`);
+  assert.match(kpis[0].value, /^\d+\.\d%$/);
+  assert.equal(kpis[0].trend, 'down', 'a rising churn rate is not good news');
 });
 
 test('pretty title-cases identifiers', () => {
