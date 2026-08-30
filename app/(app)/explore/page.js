@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
-import { formatNumber } from '../../../lib/format';
+import { formatExact, formatNumber } from '../../../lib/format';
 import { formatMeasureValue } from '../../../lib/measures';
 
 const PAGE_SIZE = 50;
@@ -325,7 +325,7 @@ export default function ExplorePage() {
                 >
                   {columns.map((col) => (
                     <td key={col} className="max-w-[240px] truncate px-3 py-2 text-white/65" title={String(row[col] ?? '')}>
-                      {renderCell(row[col])}
+                      {renderCell(row[col], col)}
                     </td>
                   ))}
                 </tr>
@@ -350,11 +350,14 @@ export default function ExplorePage() {
   );
 }
 
-function renderCell(v) {
+function renderCell(v, column) {
   if (v === null || v === undefined || v === '') {
     return <span className="text-white/15">—</span>;
   }
-  if (typeof v === 'number') return <span className="font-mono">{formatNumber(v)}</span>;
+  // Exact, not abbreviated. This is a table of rows: a PIN code of 505800 is
+  // not usefully "505.8K", and neither is an order value the reader came here
+  // to check against their own records.
+  if (typeof v === 'number') return <span className="font-mono">{formatExact(v, column)}</span>;
   const s = String(v);
   if (s.startsWith('[REDACTED')) {
     return <span className="rounded bg-accent-500/10 px-1.5 py-0.5 font-mono text-[10px] text-accent-300/70">{s}</span>;
