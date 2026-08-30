@@ -457,14 +457,47 @@ function SummarySlide({ slideZero, kpis }) {
  */
 function gridFor(count) {
   if (count <= 1) return { cols: 1, rows: 1 };
-  // Four is the case that was wrong: three columns put three findings in a row
-  // and the fourth alone underneath, with a quarter of the slide blank beside
-  // it. Two by two fills. Minimising empty cells on its own is not enough —
-  // it would lay four out in a single row of tall slivers and ten as five rows
-  // of two — so the shape is chosen from what a dashboard of that size actually
-  // wants, and only then filled.
-  const cols = count <= 3 ? count : count === 4 ? 2 : count <= 6 ? 3 : count <= 9 ? 3 : 4;
-  return { cols, rows: Math.ceil(count / cols) };
+
+  /**
+   * The shape that gives each chart the most usable box.
+   *
+   * Height is the scarce dimension. A slide is far wider than it is tall, so a
+   * grid with one more row costs every tile a third of its height while a grid
+   * with one more column costs a fifth of its width — and it is height that
+   * decides whether a chart draws a plot or just its own axis labels. Seven
+   * findings laid out three across and three down put one chart alone on the
+   * last row and squeezed the other six into a third of the slide each; four
+   * across and two down gives every one of them half.
+   *
+   * Scored on the tile a shape would produce rather than on the shape itself:
+   * height counts more than linearly, because the difference between 320 pixels
+   * and 220 is the difference between a chart and a label, while the difference
+   * between 320 and 420 is barely visible. Width stops helping past the point
+   * where a chart is comfortable. Empty cells are penalised, so a grid does not
+   * gain a hole to win a few pixels.
+   */
+  const BAND = 2.5;        // the grid area is roughly 16:6
+  const HEIGHT_CAP = 320;  // more than this adds little
+  const WIDTH_CAP = 640;
+
+  let best = null;
+  for (let cols = 1; cols <= 5; cols++) {
+    const rows = Math.ceil(count / cols);
+    if (rows > 3) continue;
+    // Tile proportions in arbitrary units; only their ratio matters.
+    const width = Math.min((BAND * 1000) / cols, WIDTH_CAP);
+    const height = Math.min(1000 / rows, HEIGHT_CAP);
+    const empty = cols * rows - count;
+    const score = height ** 1.5 * width * (1 - 0.2 * empty);
+    // On a tie, the wider layout. Two charts both score the same laid out side
+    // by side or stacked, because each caps out on width and height either way
+    // — and on a slide that is wider than it is tall, side by side is the one a
+    // person would draw.
+    if (!best || score > best.score || (score === best.score && rows < best.rows)) {
+      best = { cols, rows, score };
+    }
+  }
+  return best ? { cols: best.cols, rows: best.rows } : { cols: count, rows: 1 };
 }
 
 function DashboardSlide({ analysis, fileName }) {

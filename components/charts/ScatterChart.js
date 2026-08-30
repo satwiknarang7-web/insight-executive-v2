@@ -56,7 +56,7 @@ const CustomTooltip = ({ active, payload }) => {
  * encode: position is the whole message, and the only mark that earns a
  * different colour is an anomaly.
  */
-export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
+export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact = false, dense = false }) {
   const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
@@ -100,27 +100,31 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
   const xTitle = axisTitleProps(xLabel ?? prettyLabel(xKeyToUse), { axis: 'x' });
   const xGeo = xIsNumber
     ? { props: {}, bottom: xTitle ? 66 : 44, title: xTitle }
-    : { ...xAxisGeometry(rows, xKeyToUse, { compact, title: xLabel ?? prettyLabel(xKeyToUse) }) };
-  const yGeo = yAxisGeometry(rows, yKeyToUse, { compact, title: yLabel ?? prettyLabel(yKeyToUse) });
+    : { ...xAxisGeometry(rows, xKeyToUse, { compact, dense, title: xLabel ?? prettyLabel(xKeyToUse) }) };
+  const yGeo = yAxisGeometry(rows, yKeyToUse, {
+    compact,
+    dense, title: yLabel ?? prettyLabel(yKeyToUse) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsScatterChart margin={chartMargin({ legend: true })}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis
-          {...xGeo.props}
-          type={xIsNumber ? 'number' : 'category'}
-          dataKey={xKeyToUse}
-          name={xKeyToUse}
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }}
-          tickFormatter={xIsNumber ? yAxisFormatter : xGeo.props.tickFormatter}
-          domain={xIsNumber ? ['auto', 'auto'] : undefined}
-          height={xGeo.bottom}
-        >
-          {xGeo.title && <Label {...xGeo.title} />}
-        </XAxis>
+        {!xGeo.hidden && (
+          <XAxis
+            {...xGeo.props}
+            type={xIsNumber ? 'number' : 'category'}
+            dataKey={xKeyToUse}
+            name={xKeyToUse}
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: 'var(--chart-axis)', fontSize: 12, fontWeight: 700 }}
+            tickFormatter={xIsNumber ? yAxisFormatter : xGeo.props.tickFormatter}
+            domain={xIsNumber ? ['auto', 'auto'] : undefined}
+            height={xGeo.bottom}
+          >
+            {xGeo.title && <Label {...xGeo.title} />}
+          </XAxis>
+        )}
         <YAxis
           {...yGeo.props}
           type={yIsNumber ? 'number' : 'category'}

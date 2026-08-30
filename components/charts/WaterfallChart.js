@@ -49,13 +49,15 @@ const TONE = {
   loss: 'var(--color-rose-400)',
 };
 
-export default function WaterfallChart({ data, xKey, yKey, xLabel, yLabel, compact = false }) {
+export default function WaterfallChart({ data, xKey, yKey, xLabel, yLabel, compact = false, dense = false }) {
   const CHART_COLORS = usePalette();
   if (!data?.length) return null;
 
   const rows = buildWaterfall(data, xKey, yKey);
-  const x = xAxisGeometry(rows, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
-  const y = yAxisGeometry(rows, 'cumulative', { compact, title: yLabel ?? prettyLabel(yKey) });
+  const x = xAxisGeometry(rows, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) });
+  const y = yAxisGeometry(rows, 'cumulative', {
+    compact,
+    dense, title: yLabel ?? prettyLabel(yKey) });
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
@@ -66,7 +68,11 @@ export default function WaterfallChart({ data, xKey, yKey, xLabel, yLabel, compa
           strokeOpacity="var(--chart-grid-opacity)"
           vertical={false}
         />
-        <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+        {!x.hidden && (
+
+          <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+
+        )}
         <YAxis {...y.props}>{y.title && <Label {...y.title} />}</YAxis>
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--veil)' }} />
         {/* The pedestal. Present only to lift the bar above it. */}

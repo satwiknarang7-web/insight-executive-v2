@@ -66,7 +66,11 @@ export const AXIS_TITLE_SPACE = 22;
  * reserve so rotated labels have somewhere to go, and the props for an optional
  * axis title.
  */
-export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false, title = null } = {}) {
+export function xAxisGeometry(
+  data,
+  xKey,
+  { fontSize = 12, compact = false, title = null, dense = false } = {}
+) {
   const labels = (data || []).map((row) => String(formatDateLabel(row?.[xKey]) ?? ''));
   const longest = labels.reduce((max, l) => Math.max(max, l.length), 0);
   const count = labels.length;
@@ -89,13 +93,28 @@ export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false, titl
    * cut first: the card above it already says "Total Amount by Category", so
    * repeating "Category" underneath buys nothing at any size.
    */
-  const titleProps = compact ? null : axisTitleProps(title, { axis: 'x' });
-  const height =
-    Math.min(compact ? 54 : 130, Math.max(fontSize + 14, projected + 14)) +
-    (titleProps ? AXIS_TITLE_SPACE : 0);
+  const titleProps = compact || dense ? null : axisTitleProps(title, { axis: 'x' });
+  /**
+   * A tile too short to hold both an axis and a plot keeps the plot.
+   *
+   * On the closing slide a chart can end up with 140 pixels. Fifty-four of them
+   * went to the category labels and the rest to the card's own title, leaving a
+   * plot area of nothing — which is how a board of seven charts came out as
+   * seven sets of rotated labels with empty space where the data should be. The
+   * labels are the part that can go: the card is titled "Total Amount by
+   * Category" directly above them, so their names are already on screen, and
+   * the shape of the bars is what a thumbnail is for.
+   */
+  const height = dense
+    ? 0
+    : Math.min(compact ? 54 : 130, Math.max(fontSize + 14, projected + 14)) +
+      (titleProps ? AXIS_TITLE_SPACE : 0);
 
   return {
     title: titleProps,
+    // Recharts' own `hide` leaves the axis in the layout, so the caller skips
+    // rendering it altogether rather than asking the library to pretend.
+    hidden: dense,
     props: {
       dataKey: xKey,
       axisLine: false,
@@ -121,7 +140,7 @@ export function xAxisGeometry(data, xKey, { fontSize = 12, compact = false, titl
 export function yAxisGeometry(
   data,
   yKey,
-  { fontSize = 12, formatter = formatNumber, title = null, compact = false } = {}
+  { fontSize = 12, formatter = formatNumber, title = null, compact = false, dense = false } = {}
 ) {
   // A split chart has one key per series rather than one y column, and the
   // gutter has to fit the widest number across all of them.
@@ -131,8 +150,10 @@ export function yAxisGeometry(
     .filter((v) => typeof v === 'number');
   const widest = values.reduce((max, v) => Math.max(max, String(formatter(v) ?? '').length), 3);
   // Same on the vertical: a rotated title is what "Coupon Discou" was, clipped
-  // against the edge of a tile too small to hold it.
-  const titleProps = compact ? null : axisTitleProps(title, { axis: 'y' });
+  // against the edge of a tile too small to hold it. The ticks themselves stay
+  // where the x labels go — a chart with no scale at all is a decoration, and
+  // the numbers up the side are what keep a thumbnail readable as data.
+  const titleProps = compact || dense ? null : axisTitleProps(title, { axis: 'y' });
   // A rotated title needs its own column beside the ticks.
   const width =
     Math.min(96, Math.max(40, Math.ceil(textWidth(''.padEnd(widest, '0'), fontSize)) + 14)) +

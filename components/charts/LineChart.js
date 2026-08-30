@@ -50,6 +50,8 @@ export default function LineChart({
   xLabel,
   yLabel,
   compact = false,
+  // Set when the tile is too short for a full axis; see xAxisGeometry.
+  dense = false,
   // One line per legend value, when a legend column was chosen.
   seriesKeys = null,
 }) {
@@ -75,9 +77,10 @@ export default function LineChart({
   // Adaptive dot size
   const dotSize = data.length <= 5 ? 5 : data.length <= 15 ? 4 : 3;
 
-  const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
+  const x = xAxisGeometry(data, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) });
   const y = yAxisGeometry(data, split ? seriesKeys : yKey, {
     compact,
+    dense,
     title: yLabel ?? prettyLabel(yKey),
   });
 
@@ -85,7 +88,11 @@ export default function LineChart({
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsLineChart data={data} margin={chartMargin()}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+        {!x.hidden && (
+
+          <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+
+        )}
         <YAxis
           {...y.props}
           domain={yDomain}

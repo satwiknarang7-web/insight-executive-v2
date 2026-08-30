@@ -35,6 +35,8 @@ export default function AreaChart({
   xLabel,
   yLabel,
   compact = false,
+  // Set when the tile is too short for a full axis; see xAxisGeometry.
+  dense = false,
   // Split by a legend the areas stack, because the thing worth reading off a
   // split area chart is the total and how its mix changes underneath.
   seriesKeys = null,
@@ -48,10 +50,11 @@ export default function AreaChart({
   const glowId = `area-glow-${id}`;
   if (!data || data.length === 0) return null;
 
-  const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
+  const x = xAxisGeometry(data, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) });
   const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
   const y = yAxisGeometry(data, split ? seriesKeys : yKey, {
     compact,
+    dense,
     title: yLabel ?? prettyLabel(yKey),
   });
 
@@ -77,7 +80,11 @@ export default function AreaChart({
           </filter>
         </defs>
         <CartesianGrid strokeDasharray="4 6" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis {...x.props} tickMargin={10}>{x.title && <Label {...x.title} />}</XAxis>
+        {!x.hidden && (
+
+          <XAxis {...x.props} tickMargin={10}>{x.title && <Label {...x.title} />}</XAxis>
+
+        )}
         <YAxis {...y.props} domain={['auto', 'auto']} tickMargin={8}>{y.title && <Label {...y.title} />}</YAxis>
         <Tooltip content={<CustomTooltip />} cursor={{ stroke: CHART_COLORS[0], strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.4 }} />
         {split && <Legend {...legendProps({ seriesCount: seriesKeys.length, compact })} />}

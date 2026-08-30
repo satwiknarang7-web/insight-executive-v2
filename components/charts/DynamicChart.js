@@ -39,6 +39,9 @@ export default function DynamicChart({
   xLabel,
   yLabel,
   compact = false,
+  // True when the tile is too short for a full axis; the charts drop the
+  // category labels rather than the plot.
+  dense = false,
   // Extra keys some visuals need: a third measure for a bubble's size, a second
   // dimension for a ribbon's series or a matrix's columns, and an explicit
   // target for a gauge or KPI.
@@ -56,7 +59,11 @@ export default function DynamicChart({
     secondaryYKey,
   });
 
-  const axes = { xLabel, yLabel, compact };
+  // Every chart gets the same bundle. Several branches used to spell these out
+  // one by one, so a prop added to the bundle reached some charts and not
+  // others — `dense` was computed correctly, threaded correctly, and silently
+  // dropped by the branch that draws an ordinary bar chart.
+  const axes = { xLabel, yLabel, compact, dense };
 
   /**
    * A share-of-a-whole chart gets at most as many slices as there are colours.
@@ -139,7 +146,7 @@ export default function DynamicChart({
     case 'radial':
       return <RadialBarChart data={rows} nameKey={x} valueKey={y} compact={compact} />;
     case 'scatter':
-      return <ScatterChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
+      return <ScatterChart data={data} xKey={x} yKey={y} {...axes} />;
     case 'composed':
       return (
         <ComposedDualChart
@@ -157,13 +164,13 @@ export default function DynamicChart({
     case 'treemap':
       return <TreemapChart data={rows} nameKey={x} dataKey={y} />;
     case 'line':
-      return <LineChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
+      return <LineChart data={data} xKey={x} yKey={y} {...axes} />;
     case 'area':
-      return <AreaChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
+      return <AreaChart data={data} xKey={x} yKey={y} {...axes} />;
     case 'donut':
       return <DonutChart data={rows} nameKey={x} valueKey={y} compact={compact} />;
     case 'bar':
     default:
-      return <BarChart data={data} xKey={x} yKey={y} xLabel={xLabel} yLabel={yLabel} compact={compact} />;
+      return <BarChart data={data} xKey={x} yKey={y} {...axes} />;
   }
 }

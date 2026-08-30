@@ -51,6 +51,8 @@ export default function BarChart({
   xLabel,
   yLabel,
   compact = false,
+  // Set when the tile is too short for a full axis; see xAxisGeometry.
+  dense = false,
   // When a legend column was chosen, the rows arrive already folded into one
   // row per category with one key per series, and each series gets its own bar
   // grouped alongside the others.
@@ -67,10 +69,11 @@ export default function BarChart({
 
   // Gutters sized to the labels actually being drawn, so long category names
   // rotate into space that exists instead of being cut off.
-  const x = xAxisGeometry(data, xKey, { compact, title: xLabel ?? prettyLabel(xKey) });
+  const x = xAxisGeometry(data, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) });
   const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
   const y = yAxisGeometry(data, split ? seriesKeys : yKey, {
     compact,
+    dense,
     title: yLabel ?? prettyLabel(yKey),
   });
 
@@ -84,7 +87,11 @@ export default function BarChart({
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+        {!x.hidden && (
+
+          <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
+
+        )}
         <YAxis {...y.props} domain={[0, 'auto']}>{y.title && <Label {...y.title} />}</YAxis>
         <Tooltip 
           content={<CustomTooltip />} 

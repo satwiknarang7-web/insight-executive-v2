@@ -72,7 +72,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, yLabel, compact = false }) {
+export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, yLabel, compact = false, dense = false }) {
   const legend = legendProps({ seriesCount: 2, compact });
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
@@ -94,16 +94,16 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, y
   const processedData = rows;
 
   const xGeo = useMemo(
-    () => xAxisGeometry(processedData, xKey, { compact, title: xLabel ?? prettyLabel(xKey) }),
-    [processedData, xKey, xLabel, compact]
+    () => xAxisGeometry(processedData, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) }),
+    [processedData, xKey, xLabel, compact, dense]
   );
   const yLeft = useMemo(
-    () => yAxisGeometry(processedData, yKey, { compact, title: yLabel ?? prettyLabel(yKey) }),
-    [processedData, yKey, yLabel, compact]
+    () => yAxisGeometry(processedData, yKey, { compact, dense, title: yLabel ?? prettyLabel(yKey) }),
+    [processedData, yKey, yLabel, compact, dense]
   );
   const yRight = useMemo(
-    () => yAxisGeometry(processedData, actualLineKey, { compact, title: prettyLabel(actualLineKey) }),
-    [processedData, actualLineKey, compact]
+    () => yAxisGeometry(processedData, actualLineKey, { compact, dense, title: prettyLabel(actualLineKey) }),
+    [processedData, actualLineKey, compact, dense]
   );
 
   // Every hook has now run. Past this point it is safe to leave early.
@@ -119,16 +119,18 @@ export default function ComposedDualChart({ data, xKey, yKey, lineKey, xLabel, y
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
-        <XAxis
-          dataKey={xKey}
-          axisLine={false}
-          tickLine={false}
-          tick={<CustomXAxisTick rotated={xGeo.rotated} />}
-          interval={xGeo.props.interval}
-          height={xGeo.bottom}
-        >
-          {xGeo.title && <Label {...xGeo.title} />}
-        </XAxis>
+        {!xGeo.hidden && (
+          <XAxis
+            dataKey={xKey}
+            axisLine={false}
+            tickLine={false}
+            tick={<CustomXAxisTick rotated={xGeo.rotated} />}
+            interval={xGeo.props.interval}
+            height={xGeo.bottom}
+          >
+            {xGeo.title && <Label {...xGeo.title} />}
+          </XAxis>
+        )}
         <YAxis 
           yAxisId="left"
           axisLine={false} 

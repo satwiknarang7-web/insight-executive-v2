@@ -28,6 +28,15 @@ function ChartSkeleton() {
  * eight charts otherwise builds eight full SVG trees on first paint, which is
  * the single most expensive thing on the page.
  */
+/**
+ * The height below which a chart drops its category axis to keep its plot.
+ *
+ * Two hundred pixels is roughly a card title, an axis gutter and enough plot to
+ * read a shape from. Below it something has to give, and the labels are the
+ * part already written above the chart.
+ */
+const DENSE_BELOW = 200;
+
 export default function LazyChart({
   data,
   type,
@@ -46,6 +55,30 @@ export default function LazyChart({
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
+
+  /**
+   * How much room this chart actually got.
+   *
+   * The slide cannot know: it lays out a grid and the tile is whatever is left
+   * after the header, the cards and the scorecard have taken theirs. So the
+   * chart measures its own box and drops what will not fit — below about two
+   * hundred pixels the category labels go, because a plot with no area is not a
+   * chart and a card titled "Total Amount by Category" has already named them.
+   *
+   * Measured rather than passed down, so every caller gets it: the dashboard
+   * grid, the report page, a thumbnail in a list, and any future one.
+   */
+  const [dense, setDense] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const measure = () => setDense(el.clientHeight > 0 && el.clientHeight < DENSE_BELOW);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Renaming happens here rather than at each call site so the axis, the legend
   // and the tooltip all show the user's wording from one place.
@@ -90,6 +123,7 @@ export default function LazyChart({
             xKey={xKey}
             yKey={yKey}
             secondaryYKey={secondaryYKey}
+            dense={dense}
             seriesKey={seriesKey}
             seriesSort={seriesSort}
             xLabel={xLabel}
