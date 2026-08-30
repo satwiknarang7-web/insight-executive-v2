@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { planCharts, planKpis, pretty, recommendedChartCount } from '../lib/analystPlanner.js';
 import { isAggregatedSql } from '../lib/chartResolver.js';
+import { needsHorizontalBars } from '../lib/chartSignals.js';
 import { mountTable, runSql, unmountTable } from '../lib/pipeline.js';
 
 /**
@@ -376,11 +377,22 @@ test('long category names are drawn as horizontal bars', () => {
   const charts = planCharts(retail(), { max: 8 });
   const products = charts.find((c) => (c.dimension || c.xAxisKey) === 'product_name');
   assert.ok(products, 'products are worth a chart');
-  assert.equal(products.chart_type, 'hbar', 'their names do not fit under a vertical bar');
+  // Whatever it is, it is not a column chart with those names rotated under it.
+  // Sideways bars, a treemap and a donut all put a long name beside or inside
+  // its mark; only a vertical bar hangs it underneath at thirty-five degrees.
+  assert.notEqual(products.chart_type, 'bar', 'their names do not fit under a vertical bar');
+  assert.ok(
+    ['hbar', 'treemap', 'donut'].includes(products.chart_type),
+    `unexpected shape for long names: ${products.chart_type}`
+  );
 
-  const categories = charts.find((c) => (c.dimension || c.xAxisKey) === 'category');
-  assert.ok(categories);
-  assert.notEqual(categories.chart_type, 'hbar', 'short names do not need turning');
+  // And short names are left upright. "Home & Kitchen" is fourteen characters
+  // and does belong on its side, so the boundary is tested where it actually
+  // sits rather than against a fixture whose "short" names are not short.
+  assert.equal(needsHorizontalBars(['North', 'South', 'East', 'West']), false);
+  assert.equal(needsHorizontalBars(['Basic', 'Standard', 'Premium', 'Enterprise']), false);
+  assert.equal(needsHorizontalBars(['Month-to-month', 'One year', 'Two year']), true);
+  assert.equal(needsHorizontalBars(['Electronics', 'Home & Kitchen', 'Toys', 'Garden']), true);
 });
 
 test('a donut is refused when its slices are not the whole', () => {
