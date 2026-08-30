@@ -483,10 +483,20 @@ function DashboardSlide({ analysis, fileName }) {
    */
   const { cols, rows } = gridFor(board.length);
 
+  /**
+   * The chrome gives way before the charts do.
+   *
+   * Everything else on this slide — the title, the card strip, the scorecard —
+   * is there to frame the grid, and on a slide with two rows of charts it was
+   * taking enough height that the grid could not fit at its own minimum. Framing
+   * shrinks first; the charts are the slide.
+   */
+  const tight = rows >= 2;
+
   return (
     <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden py-2">
-      <div className="mb-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <h1 className="text-2xl font-black tracking-tight md:text-3xl">
+      <div className={`flex flex-wrap items-baseline gap-x-4 gap-y-1 ${tight ? 'mb-2' : 'mb-4'}`}>
+        <h1 className={`font-black tracking-tight ${tight ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'}`}>
           {analysis.slideZero?.title || 'Everything together'}
         </h1>
         <span className="text-[13px] text-white/40">
@@ -496,10 +506,12 @@ function DashboardSlide({ analysis, fileName }) {
       </div>
 
       {kpis.length > 0 && (
-        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${tight ? 'mb-2' : 'mb-4'}`}>
           {kpis.map((k, i) => (
-            <div key={`${k.label}-${i}`} className="card p-3">
-              <div className="text-xl font-black text-white md:text-2xl">{k.value}</div>
+            <div key={`${k.label}-${i}`} className={`card ${tight ? 'px-3 py-2' : 'p-3'}`}>
+              <div className={`font-black text-white ${tight ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'}`}>
+                {k.value}
+              </div>
               <div className="label mt-0.5 truncate">{k.label}</div>
             </div>
           ))}
@@ -507,14 +519,18 @@ function DashboardSlide({ analysis, fileName }) {
       )}
 
       <div
-        className="grid min-h-0 flex-1 gap-3 overflow-y-auto"
+        className="grid min-h-0 flex-1 gap-3 overflow-hidden"
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          // A floor as well as a share. On a projector the rows divide the
-          // slide; in a small window they would divide it into slivers, and a
-          // chart forty pixels tall is not a smaller chart, it is no chart. At
-          // that point the grid scrolls rather than shrinking further.
-          gridTemplateRows: `repeat(${rows}, minmax(190px, 1fr))`,
+          // The rows divide whatever is left, and never ask for more than that.
+          //
+          // A minimum here is what put a scrollbar back on the closing slide: a
+          // floor of 190 per row means two rows demand 392 whether the slide has
+          // it or not, and where it does not the grid overflows the one surface
+          // in the product nobody can scroll — a slide being projected. The
+          // chrome around it gives way instead, below, so the tiles keep a
+          // usable size without the grid ever asking for space it has not got.
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
         }}
       >
         {board.map((item) => (
@@ -548,10 +564,10 @@ function DashboardSlide({ analysis, fileName }) {
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
-        <Pill icon={Target} tone="accent" label="Focus" text={card.focus} />
-        <Pill icon={AlertTriangle} tone="rose" label="Risk" text={card.risk} />
-        <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={card.opportunity} />
+      <div className={`grid gap-3 md:grid-cols-3 ${tight ? 'mt-2' : 'mt-4'}`}>
+        <Pill icon={Target} tone="accent" label="Focus" text={card.focus} compact={tight} />
+        <Pill icon={AlertTriangle} tone="rose" label="Risk" text={card.risk} compact={tight} />
+        <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={card.opportunity} compact={tight} />
       </div>
     </div>
   );
@@ -614,7 +630,7 @@ function ChartSlide({ slide }) {
   );
 }
 
-function Pill({ icon: Icon, tone, label, text }) {
+function Pill({ icon: Icon, tone, label, text, compact = false }) {
   // A card the engine left empty had nothing to report; it is dropped rather
   // than presented as a dash on a slide.
   if (!String(text || '').trim()) return null;
@@ -625,12 +641,14 @@ function Pill({ icon: Icon, tone, label, text }) {
     emerald: 'border-emerald-500/20 bg-emerald-500/6 text-emerald-400',
   };
   return (
-    <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
+    <div className={`rounded-2xl border ${compact ? 'px-4 py-2.5' : 'p-4'} ${tones[tone]}`}>
       <div className="flex items-center gap-2">
         <Icon size={13} />
         <span className="text-[9px] font-black uppercase tracking-[0.25em]">{label}</span>
       </div>
-      <p className="mt-2 text-[13px] leading-relaxed text-white/80">{cleanFloatingPoints(text) || '—'}</p>
+      <p className={`leading-relaxed text-white/80 ${compact ? 'mt-1 line-clamp-3 text-[12px]' : 'mt-2 text-[13px]'}`}>
+        {cleanFloatingPoints(text) || '—'}
+      </p>
     </div>
   );
 }
