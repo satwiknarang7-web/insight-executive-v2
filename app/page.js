@@ -152,39 +152,114 @@ export default function LandingPage() {
 
         <div className="grid items-start gap-10 py-12 lg:grid-cols-[1fr_minmax(0,470px)] lg:gap-14">
           {/* Left: pitch */}
-          <div className="flex flex-col lg:pt-6">
-            <h1 className="text-4xl font-black leading-[1.05] tracking-tight md:text-5xl">
-              Upload a spreadsheet.
-              <br />
-              <span className="text-white/45">Get an analysis you can defend.</span>
+          <div className="flex flex-col lg:pt-4">
+            {/*
+              * The promise carries the emphasis, not the setup.
+              *
+              * Both halves were the same size and the second one was the greyer
+              * of the two, which put the least contrast on the only sentence
+              * that says what the product is for. Recessing the mundane half
+              * keeps the two-beat rhythm and lets the payoff land.
+              */}
+            {/*
+              * The size steps down when the grid splits, and the wrap is balanced.
+              *
+              * `md` is still one column, so the headline has the full width and
+              * can afford 5xl. At `lg` the upload panel takes 470px and the
+              * pitch column is left with about 450 — narrower than that
+              * sentence at any size worth setting a headline in, so it wraps.
+              * The default break stranded "defend." alone on a third line;
+              * `text-balance` splits it evenly instead, which is the difference
+              * between a two-line headline and a typo.
+              */}
+            <h1 className="text-4xl font-black leading-[1.04] tracking-tight md:text-5xl lg:text-[2.5rem]">
+              <span className="block text-white/40">Upload a spreadsheet.</span>
+              <span className="block text-balance">
+                Get an analysis you can{' '}
+                {/*
+                  * Underlined rather than coloured.
+                  *
+                  * `text-accent-400` looked right in the dark and vanished in
+                  * the light: light mode deliberately remaps the whole accent
+                  * ramp to navy, so the accent and the ink around it came out
+                  * #123a63 against #0b2545 — the same word, no emphasis. A rule
+                  * under the word is drawn in the accent of whichever theme is
+                  * on and reads in both.
+                  */}
+                <span className="underline decoration-accent-400 decoration-[3px] underline-offset-[7px]">
+                  defend
+                </span>
+                .
+              </span>
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/50">
-              Transform raw data into findings you can stand behind. Insight profiles your data, builds the
-              charts an analyst would build, and computes every statistic itself — so each claim on screen
-              traces back to a query you can read.
+            <p className="mt-5 max-w-[46ch] text-[15px] leading-relaxed text-white/55">
+              Insight profiles your data, builds the charts an analyst would build, and computes every
+              statistic itself — so each claim on screen traces back to a query you can read.
             </p>
 
-            <div className="mt-8">
-              <span className="text-[9px] font-black uppercase tracking-[0.28em] text-white/30">
-                Works with
-              </span>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {['CSV & Excel', 'PostgreSQL', 'Neon', 'MySQL', 'SQL Server', 'Snowflake', 'Oracle', 'Fabric', 'Tableau'].map(
-                  (name) => (
-                    <span
-                      key={name}
-                      className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[11px] font-bold text-white/55"
-                    >
-                      {name}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+            {/*
+              * What you get, which the page never actually said.
+              *
+              * The three cards further down argue that the output can be
+              * trusted; none of them says what the output *is*. These are the
+              * three surfaces the app really has — the cleaning report, the
+              * dashboard, the deck — in the order they arrive.
+              */}
+            <ol className="mt-8 max-w-md divide-y divide-white/6 border-y border-white/6">
+              {[
+                ['Cleaned', 'Types coerced, blanks counted, personal fields redacted — in your browser.'],
+                ['Analysed', 'A dashboard of charts the data chose, under an executive summary.'],
+                ['Presented', 'The findings as a slide deck, each one traceable to its query.'],
+              ].map(([step, body], index) => (
+                <li key={step} className="flex gap-4 py-3.5">
+                  <span className="mt-px w-4 shrink-0 text-[11px] font-black tabular-nums text-accent-400/70">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-bold text-white/85">{step}</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            {/*
+              * Read from the registry rather than retyped.
+              *
+              * The hand-written list here had already drifted: it omitted
+              * Supabase entirely and renamed three of the others, so the page
+              * was advertising something different from what the dropdown on
+              * the right offers. Nine equal-weight pills also wrapped 7-and-2
+              * and made a file look like the same kind of thing as a warehouse.
+              */}
+            <dl className="mt-7 max-w-md space-y-2 text-[12px]">
+              {[
+                ['Files', 'CSV, Excel'],
+                ['Live sources', CONNECTORS.map((c) => c.label).join(' · ')],
+              ].map(([term, list]) => (
+                <div key={term} className="flex gap-4">
+                  <dt className="w-24 shrink-0 pt-px text-[9px] font-black uppercase tracking-[0.18em] text-white/30">
+                    {term}
+                  </dt>
+                  <dd className="leading-relaxed text-white/45">{list}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
 
-          {/* Right: the actual workflow */}
-          <div className="flex flex-col gap-4">
+          {/*
+            * Right: the actual workflow.
+            *
+            * `min-w-0` is load-bearing. The sample buttons truncate their
+            * description with `white-space: nowrap`, and a nowrap string still
+            * contributes its full width to min-content — which, as a grid
+            * item's automatic minimum, propagated all the way out and made the
+            * page 491px wide inside a 375px viewport. Every phone got a
+            * horizontal scrollbar and a headline running off the edge. Letting
+            * the track shrink below min-content is what lets `truncate` do the
+            * job it was already asked to do.
+            */}
+          <div className="flex min-w-0 flex-col gap-4">
             {busy && <ProgressPanel />}
 
             {!busy && dataset && (

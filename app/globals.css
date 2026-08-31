@@ -91,7 +91,17 @@
  * blocking script before first paint, and anything decided after hydration
  * would show the wrong logo for a frame on every single load.
  * --------------------------------------------------------------------------- */
-.logo-light { display: none; }
+/*
+ * Scoped to `:root` for specificity, not for reach.
+ *
+ * The elements carrying these classes also carry Tailwind's `block`, and a
+ * lone class selector ties with a lone utility class — so source order decided
+ * it, the utility came later, and `display: none` lost. Both logos rendered
+ * side by side on every dark-theme page. The light rules below already had two
+ * selectors' worth of specificity, which is why the bug only ever showed in the
+ * dark, and why it was easy to miss.
+ */
+:root .logo-light { display: none; }
 :root[data-theme='light'] .logo-dark { display: none; }
 :root[data-theme='light'] .logo-light { display: block; }
 
