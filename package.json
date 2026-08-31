@@ -10,7 +10,10 @@
     "db:apply": "node --env-file=.env.local scripts/apply-sql.mjs",
     "mail:check": "node --env-file=.env.local scripts/check-mail.mjs",
     "lint": "eslint .",
-    "pretest": "node scripts/preflight.mjs"
+    "pretest": "node scripts/preflight.mjs",
+    "root:setup": "node scripts/root-setup.mjs",
+    "root:status": "node --env-file-if-exists=.env.local scripts/root-status.mjs",
+    "postbuild": "node --env-file-if-exists=.env.local scripts/root-status.mjs"
   },
   "keywords": [],
   "author": "",
