@@ -217,6 +217,16 @@ function SignIn({ email, password, busy, error, onEmail, onPassword, onSubmit })
       >
         {busy && <Loader2 size={14} className="animate-spin" />} Continue
       </button>
+
+      {/* The way back. These are two different credentials against two
+          different doors, and someone who arrives here with the product's is
+          otherwise stuck on a form that will never accept them. */}
+      <a
+        href="/sign-in"
+        className="border-t border-white/6 pt-3 text-center text-[11px] text-white/30 transition-colors hover:text-white/60"
+      >
+        Looking for your Insight Executive account? Sign in here
+      </a>
     </form>
   );
 }

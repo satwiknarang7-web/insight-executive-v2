@@ -51,9 +51,30 @@ function SignInForm() {
   // Revealing the password is a deliberate, momentary act, so it resets
   // whenever the form changes purpose rather than staying on across modes.
   const [showPassword, setShowPassword] = useState(false);
+  // Whether this deployment has an operator portal, so the way in can be shown
+  // to the person who has its credentials. Without this the portal existed at a
+  // URL nothing linked to: someone holding the root email and password put them
+  // into *this* form instead, and either landed in the product or was refused,
+  // with nothing anywhere saying there was another door.
+  //
+  // Asking discloses nothing new — the portal's own routes already answer 404
+  // when it is not configured and 401 when it is, so its existence is visible
+  // to anyone who looks. This only makes it visible to the right person.
+  const [rootPortal, setRootPortal] = useState(false);
   const codeRef = useRef(null);
 
   const available = vaultAvailable();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/root/session')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => !cancelled && setRootPortal(!!d?.configured))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Already signed in? Nothing to do here.
   useEffect(() => {
@@ -354,6 +375,20 @@ function SignInForm() {
             >
               {mode === 'sign-up' ? 'I already have an account' : 'Create an account instead'}
             </button>
+
+            {/* The operator door, named as one. It is a different credential
+                and a different portal, and the whole reason it is here is that
+                a person holding those credentials was otherwise left typing
+                them into the form above. */}
+            {rootPortal && (
+              <a
+                href="/root"
+                className="flex items-center justify-center gap-1.5 border-t border-white/6 pt-3 text-center text-[11px] text-white/30 transition-colors hover:text-white/60"
+              >
+                <ShieldCheck size={11} />
+                Operator sign-in
+              </a>
+            )}
           </form>
         ) : (
           <form onSubmit={submitCode} className="card mt-6 flex flex-col gap-4 p-5">
