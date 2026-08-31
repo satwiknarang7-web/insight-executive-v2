@@ -132,7 +132,7 @@ export default function LandingPage() {
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 md:px-10">
         <header className="flex items-center gap-3">
-          <Logo size="lg" />
+          <Logo size="xl" />
           <div className="ml-auto flex items-center gap-2">
             {/* No Connections button: a connection is made in the dropdown
                 below, at the moment you actually want data out of it. What was
@@ -165,17 +165,16 @@ export default function LandingPage() {
               * The size steps down when the grid splits, and the wrap is balanced.
               *
               * `md` is still one column, so the headline has the full width and
-              * can afford 5xl. At `lg` the upload panel takes 470px and the
-              * pitch column is left with about 450 — narrower than that
-              * sentence at any size worth setting a headline in, so it wraps.
-              * The default break stranded "defend." alone on a third line;
-              * `text-balance` splits it evenly instead, which is the difference
-              * between a two-line headline and a typo.
+              * can afford 5xl. At `lg` the upload panel takes 470px and leaves
+              * the pitch column about 450, where 5xl wrapped badly — so it
+              * steps down and `text-balance` splits whatever still has to wrap
+              * evenly, rather than leaving "defend." stranded on a line of its
+              * own. On a wide screen the second line now fits whole.
               */}
             <h1 className="text-4xl font-black leading-[1.04] tracking-tight md:text-5xl lg:text-[2.5rem]">
-              <span className="block text-white/40">Upload a spreadsheet.</span>
+              <span className="block text-white/40">Analyse your data.</span>
               <span className="block text-balance">
-                Get an analysis you can{' '}
+                Get insights you can{' '}
                 {/*
                   * Underlined rather than coloured.
                   *

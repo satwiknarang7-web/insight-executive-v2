@@ -37,6 +37,21 @@ export const PRODUCT_NAME = 'Insight Executive';
 const HEIGHTS = { sm: 24, md: 32, lg: 40, xl: 56 };
 
 /**
+ * The wordmark's type, per size.
+ *
+ * `size` used to move the hexagon and nothing else, so asking for a bigger logo
+ * gave you a 56px mark standing next to 16px type — the lockup came apart
+ * rather than growing. The name and the rule under it scale with the artwork
+ * now, and the gap with them.
+ */
+const TYPE = {
+  sm: { name: 'text-sm', sub: 'text-[7px] tracking-[0.3em]', gap: 'gap-2' },
+  md: { name: 'text-base', sub: 'text-[8px] tracking-[0.35em]', gap: 'gap-2.5' },
+  lg: { name: 'text-lg', sub: 'text-[9px] tracking-[0.35em]', gap: 'gap-3' },
+  xl: { name: 'text-2xl', sub: 'text-[11px] tracking-[0.38em]', gap: 'gap-3.5' },
+};
+
+/**
  * Where the hexagon sits inside the 1080×1080 artwork.
  *
  * Measured off the file rather than guessed: the mark's outer dots run from
@@ -115,12 +130,14 @@ export default function Logo({ variant = 'lockup', size = 'md', className = '', 
     );
   }
 
+  const type = TYPE[size] || TYPE.md;
+
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`} title={title}>
+    <span className={`inline-flex items-center ${type.gap} ${className}`} title={title}>
       {mark}
       <span className="flex flex-col leading-none">
-        <span className="text-base font-black tracking-tight">Insight</span>
-        <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Executive</span>
+        <span className={`${type.name} font-black tracking-tight`}>Insight</span>
+        <span className={`${type.sub} font-black uppercase text-accent-500`}>Executive</span>
       </span>
     </span>
   );

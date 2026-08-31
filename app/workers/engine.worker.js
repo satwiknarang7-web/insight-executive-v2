@@ -16,6 +16,7 @@
  * messages may be emitted any number of times before the terminal reply.
  */
 import Papa from 'papaparse';
+import { ANALYZE, INGEST_FILES, INGEST_REMOTE } from '../../lib/progressSteps.js';
 import {
   createMetrics,
   sanitizeChunk,
@@ -65,6 +66,15 @@ let state = null;
 const reply = (id, type, payload) => self.postMessage({ id, type, payload });
 const progress = (id, stage, percent, log) =>
   self.postMessage({ id, type: 'progress', payload: { stage, percent, log } });
+
+/**
+ * Announce the steps this job will work through, before doing any of them.
+ *
+ * The panel is told the plan rather than left to infer one from whatever stage
+ * happens to arrive first, so it can show the whole sequence — including the
+ * steps still to come — from the very first frame.
+ */
+const plan = (id, steps) => self.postMessage({ id, type: 'progress', payload: { steps } });
 
 // ---------------------------------------------------------------------------
 // Summaries
@@ -305,6 +315,8 @@ function parseDelimited(source, { fileName, totalBytes = 0, onProgress }) {
  * workbook becomes one table. Relationships are inferred across all of them.
  */
 async function ingest(id, { files, file, text, fileName, factTable = null }) {
+  plan(id, INGEST_FILES);
+
   const inputs = files && files.length ? files : file ? [file] : [];
   const notices = [];
   const taken = new Set();
@@ -470,6 +482,7 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
 async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
   if (!tables?.length) throw new Error('No tables were returned.');
 
+  plan(id, INGEST_REMOTE);
   progress(id, 'Cleaning rows', 20, `${tables.length} table(s) received`);
 
   const taken = new Set();
@@ -697,6 +710,7 @@ function analyze(id, { focus, maxCharts }) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
   }
+  plan(id, ANALYZE);
   const result = runAnalysis(state.view.rows, {
     focus,
     maxCharts,
