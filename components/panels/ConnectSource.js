@@ -27,6 +27,8 @@ import {
 } from '../../lib/connectors/registry';
 import { CONNECTION_STRING_EXAMPLES, parseConnectionString } from '../../lib/connectors/connectionString';
 import ImportFromConnection from './ImportFromConnection';
+import FabricTarget from './FabricTarget';
+import { hasTarget } from '../../lib/connectors/fabricApi';
 
 export default function ConnectSource({ source, organization, onNeedsAccount }) {
   const connector = getConnector(source);
@@ -46,6 +48,9 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
   const [pasting, setPasting] = useState(false);
   const [pasted, setPasted] = useState('');
   const [pasteNote, setPasteNote] = useState(null);
+  // A connection whose credentials are saved but which has not been pointed at
+  // anything yet. Fabric is the only source with this state.
+  const [needsTarget, setNeedsTarget] = useState(null);
 
   // A new source is a fresh form; carrying the previous one's values across
   // would silently send a Postgres port to MySQL.
@@ -153,6 +158,17 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
       if (!res.ok) throw new Error(body.error || 'Could not save that connection.');
 
       await refresh();
+
+      // A source that discovers its own target is not finished yet: the
+      // credentials are stored, but nothing has been chosen for them to point
+      // at. Sending the user to "choose tables" here would show an error from a
+      // driver that has no hostname to dial.
+      if (connector.discovers && !hasTarget(body.connection?.config)) {
+        setNeedsTarget(body.connection || null);
+        setMode('list');
+        return;
+      }
+
       // Straight into choosing tables — saving a connection was never the goal.
       if (body.connection?.id) setImporting(body.connection.id);
       setMode('list');
@@ -185,7 +201,7 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
             <button
               key={c.id}
               type="button"
-              onClick={() => setImporting(c.id)}
+              onClick={() => (connector.discovers && !hasTarget(c.config) ? setNeedsTarget(c) : setImporting(c.id))}
               className="group flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.05]"
             >
               <div className="min-w-0">
@@ -195,7 +211,7 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
                 </div>
               </div>
               <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.15em] text-white/30 group-hover:text-accent-400">
-                Choose tables
+                {connector.discovers && !hasTarget(c.config) ? 'Finish setup' : 'Choose tables'}
               </span>
             </button>
           ))}
@@ -339,6 +355,18 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
             </span>
           </div>
         </div>
+      )}
+
+      {needsTarget && (
+        <FabricTarget
+          organization={organization}
+          connection={needsTarget}
+          onChosen={async (updated) => {
+            setNeedsTarget(null);
+            await refresh();
+            if (updated?.id) setImporting(updated.id);
+          }}
+        />
       )}
 
       {importing && (

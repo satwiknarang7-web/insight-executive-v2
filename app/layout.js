@@ -3,7 +3,7 @@ import { DatasetProvider } from '../lib/store/DatasetProvider';
 import { ThemeScript } from '../components/shell/ThemeToggle';
 
 export const metadata = {
-  title: 'Insight Analytics',
+  title: 'Insight Executive',
   description: 'Upload a CSV and get a verified, explainable analysis of it.',
 };
 

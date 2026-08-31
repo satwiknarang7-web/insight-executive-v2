@@ -11,7 +11,7 @@ import ChartBoundary from "../../../components/charts/ChartBoundary";
 import { ChartPalette } from "../../../components/charts/palette";
 import { renameCategories } from "../../../lib/chartLabels";
 import { boldSegments } from "../../../lib/richText";
-import { Zap, Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
+import { Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
 
 /**
  * Trim a finding's write-up to what an A4 page can hold.
@@ -141,13 +141,12 @@ export default function PrintReport() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent-500/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-accent-500 rounded-xl flex items-center justify-center text-on-accent shadow-[0_0_20px_rgba(20,184,166,0.4)]">
-            <Zap size={24} fill="currentColor" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-black text-2xl tracking-tight leading-none">Insight</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accent-500">Executive Intelligence</span>
-          </div>
+          {/* The light artwork, unconditionally: the report is printed on white
+              whatever theme the app is in, and the CSS swap would follow the
+              screen rather than the page. Not next/image — this is rendered by
+              a headless browser, where lazy loading leaves a hole in the PDF. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-light.png" alt="Insight Executive" className="h-14 w-auto" />
         </div>
 
         <div className="space-y-8 relative z-10">

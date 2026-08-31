@@ -35,6 +35,13 @@ function isPublic(pathname) {
     pathname === '/sign-in' ||
     pathname.startsWith('/api/auth/') ||
     pathname.startsWith('/_next/') ||
+    // The root portal authenticates itself, against ROOT_EMAIL / ROOT_PASSWORD
+    // rather than against an account. Letting this middleware guard it would be
+    // wrong in both directions: an operator has no product session to offer,
+    // and a signed-in customer must not be waved through to it. Its own routes
+    // check a signed cookie and answer 404 when the portal is not configured.
+    pathname === '/root' ||
+    pathname.startsWith('/api/root/') ||
     pathname === '/favicon.ico'
   );
 }
@@ -118,9 +125,11 @@ export const config = {
    * cannot accidentally resemble.
    *
    * This fails closed. A static file added to `public/` that a signed-out
-   * visitor must load — something on the sign-in page — has to be added here
-   * deliberately. Nothing needs it today: neither `/sign-in` nor the root
-   * layout references an image or a font file.
+   * visitor must load has to be added here deliberately — and `brand/` is that
+   * case: the sign-in page carries the logo, so its two files have to be
+   * reachable without a session. They live in a directory of their own
+   * precisely so this list can keep naming locations, which a route cannot
+   * accidentally resemble, rather than going back to matching how a path ends.
    */
-  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|avatars/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|avatars/|brand/).*)'],
 };

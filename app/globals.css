@@ -82,6 +82,19 @@
  * is unreadable. Only --color-accent-50 stays pale, since it is only ever a
  * background.
  */
+/* ---------------------------------------------------------------------------
+ * The logo, per theme.
+ *
+ * The artwork ships as two files with solid backgrounds — black for dark, white
+ * for light — so neither works on the other theme. Both are rendered and one is
+ * hidden here rather than chosen in JavaScript: the theme is applied by a
+ * blocking script before first paint, and anything decided after hydration
+ * would show the wrong logo for a frame on every single load.
+ * --------------------------------------------------------------------------- */
+.logo-light { display: none; }
+:root[data-theme='light'] .logo-dark { display: none; }
+:root[data-theme='light'] .logo-light { display: block; }
+
 :root[data-theme='light'] {
   --color-accent-50: #eef3fa;
   --color-accent-100: #1b4f8a;

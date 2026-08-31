@@ -10,7 +10,6 @@ import {
   Sigma,
   ShieldCheck,
   Presentation,
-  Zap,
   Download,
   RotateCcw,
   Menu,
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import ThemeToggle from './ThemeToggle';
+import Logo, { PRODUCT_NAME } from './Logo';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
@@ -135,16 +135,9 @@ export default function AppShell({ children }) {
   const renderSidebar = (rail = false) => (
     <div className={`flex h-full flex-col gap-6 overflow-y-auto overflow-x-hidden ${rail ? 'p-3' : 'p-5'}`}>
       <div className={`flex items-center ${rail ? 'flex-col gap-3' : 'gap-3'}`}>
-        <Link href="/" className="flex items-center gap-3" title="Insight Analytics">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
-            <Zap size={18} fill="currentColor" />
-          </div>
-          {!rail && (
-            <div className="flex flex-col leading-none">
-              <span className="text-base font-black tracking-tight">Insight</span>
-              <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
-            </div>
-          )}
+        {/* The rail has no room for the wordmark, so it gets the mark alone. */}
+        <Link href="/" className="flex items-center gap-3" title={PRODUCT_NAME}>
+          <Logo variant={rail ? 'mark' : 'lockup'} size="md" />
         </Link>
 
         {/* Desktop only: the drawer is dismissed, not collapsed. */}
@@ -256,10 +249,7 @@ export default function AppShell({ children }) {
       {/* Mobile top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-white/7 bg-canvas-raised/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-500 text-on-accent">
-            <Zap size={14} fill="currentColor" />
-          </div>
-          <span className="text-sm font-black tracking-tight">Insight</span>
+          <Logo size="sm" />
         </Link>
         <button
           onClick={() => setMenuOpen((o) => !o)}

@@ -72,6 +72,23 @@ export async function POST(request) {
       case 'tables':
         return NextResponse.json({ tables: await driver.listTables(credentials) });
 
+      /**
+       * What this connection could be pointed at.
+       *
+       * Only Fabric has this today, and only because its target cannot be
+       * typed: a SQL analytics endpoint is generated per item and has to be
+       * discovered with the credentials rather than asked for alongside them.
+       */
+      case 'catalog': {
+        if (typeof driver.listItems !== 'function') {
+          return NextResponse.json(
+            { error: `${credentials.__source} has nothing to choose from.` },
+            { status: 400 }
+          );
+        }
+        return NextResponse.json({ items: await driver.listItems(credentials) });
+      }
+
       case 'preview': {
         const { schema, table, ref } = body;
         // A non-SQL source addresses its data by an opaque reference rather

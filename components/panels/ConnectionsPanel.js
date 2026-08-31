@@ -30,6 +30,8 @@ import {
   validateConfig,
 } from '../../lib/connectors/registry';
 import { CONNECTION_STRING_EXAMPLES, parseConnectionString } from '../../lib/connectors/connectionString';
+import { hasTarget } from '../../lib/connectors/fabricApi';
+import FabricTarget from './FabricTarget';
 import ImportFromConnection from './ImportFromConnection';
 
 const PHASE_LABEL = {
@@ -47,6 +49,9 @@ export default function ConnectionsPanel({ organization }) {
   const [error, setError] = useState(null);
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
+  // Saved credentials that have not been pointed at anything yet. Fabric alone
+  // has this state: its target is discovered rather than typed.
+  const [targeting, setTargeting] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -143,7 +148,12 @@ export default function ConnectionsPanel({ organization }) {
       ) : (
         <div className="flex flex-col gap-3">
           {live.map((c) => (
-            <ConnectionRow key={c.id} connection={c} onRevoke={() => revoke(c)} />
+            <ConnectionRow
+              key={c.id}
+              connection={c}
+              onRevoke={() => revoke(c)}
+              onFinish={getConnector(c.source)?.discovers && !hasTarget(c.config) ? () => setTargeting(c) : null}
+            />
           ))}
         </div>
       )}
@@ -179,13 +189,53 @@ export default function ConnectionsPanel({ organization }) {
         />
       )}
 
+      {targeting && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
+          onClick={() => setTargeting(null)}
+          role="presentation"
+        >
+          <div
+            className="panel slide-in my-auto w-full max-w-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Finish setting up this connection"
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <Database size={16} className="text-accent-400" />
+              <h2 className="text-base font-black">{targeting.name}</h2>
+              <button
+                onClick={() => setTargeting(null)}
+                aria-label="Close"
+                className="ml-auto rounded-lg border border-white/10 p-1.5 text-white/40 hover:bg-white/5 hover:text-white"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <FabricTarget
+              organization={organization}
+              connection={targeting}
+              onChosen={() => {
+                setTargeting(null);
+                load();
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {adding && (
         <AddConnection
           organization={organization}
           onClose={() => setAdding(false)}
-          onSaved={() => {
+          onSaved={(saved) => {
             setAdding(false);
             load();
+            // Credentials stored, but nothing chosen for them to point at yet.
+            if (saved?.config && !hasTarget(saved.config) && getConnector(saved.source)?.discovers) {
+              setTargeting(saved);
+            }
           }}
         />
       )}
@@ -193,7 +243,7 @@ export default function ConnectionsPanel({ organization }) {
   );
 }
 
-function ConnectionRow({ connection, onRevoke }) {
+function ConnectionRow({ connection, onRevoke, onFinish }) {
   const [confirming, setConfirming] = useState(false);
   // The flavour it was set up as, not just the driver behind it: a Neon
   // connection stores as `postgres` and would otherwise read as PostgreSQL.
@@ -214,7 +264,20 @@ function ConnectionRow({ connection, onRevoke }) {
         </div>
       </div>
 
-      {connection.last_used_at && (
+      {/* Credentials stored, but nothing chosen for them to point at. Saying so
+          on the row matters: the connection looks finished otherwise, and the
+          first sign that it is not would be a failed import. */}
+      {onFinish && (
+        <button
+          type="button"
+          onClick={onFinish}
+          className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-amber-300 transition-colors hover:bg-amber-500/20"
+        >
+          Finish setup
+        </button>
+      )}
+
+      {connection.last_used_at && !onFinish && (
         <span className="hidden font-mono text-[10px] text-white/25 sm:block">
           used {new Date(connection.last_used_at).toLocaleDateString()}
         </span>
@@ -324,7 +387,7 @@ function AddConnection({ organization, onClose, onSaved }) {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Could not save that connection.');
-      onSaved();
+      onSaved(body.connection);
     } catch (e) {
       setProblems([e.message]);
     } finally {

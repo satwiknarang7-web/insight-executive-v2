@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Zap,
   UserRound,
   UploadCloud,
   FileSpreadsheet,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset } from '../lib/store/DatasetProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
+import Logo from '../components/shell/Logo';
 import { vaultAvailable } from '../lib/vault/supabase.client';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
@@ -132,13 +132,7 @@ export default function LandingPage() {
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 md:px-10">
         <header className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
-            <Zap size={20} fill="currentColor" />
-          </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-lg font-black tracking-tight">Insight</span>
-            <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
-          </div>
+          <Logo size="lg" />
           <div className="ml-auto flex items-center gap-2">
             {/* No Connections button: a connection is made in the dropdown
                 below, at the moment you actually want data out of it. What was

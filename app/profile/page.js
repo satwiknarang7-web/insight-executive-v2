@@ -19,7 +19,7 @@
 
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import {
   currentUser,
   ensureOrganization,
@@ -32,6 +32,7 @@ import ConnectionsPanel from '../../components/panels/ConnectionsPanel';
 import AccountPanel from '../../components/panels/AccountPanel';
 import ProfilePanel from '../../components/panels/ProfilePanel';
 import ThemeToggle from '../../components/shell/ThemeToggle';
+import Logo from '../../components/shell/Logo';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,13 +127,7 @@ function Shell({ children }) {
 
       <header className="relative z-10 flex items-center gap-3 px-6 py-5">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
-            <Zap size={18} fill="currentColor" />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-base font-black tracking-tight">Insight</span>
-            <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
-          </span>
+          <Logo size="md" />
         </Link>
         <div className="ml-auto flex items-center gap-2">
           <Link

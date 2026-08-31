@@ -16,11 +16,12 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck, Zap } from 'lucide-react';
+import { Eye, EyeOff, Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck } from 'lucide-react';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
 import { MIN_PASSWORD } from '../../lib/auth/otp';
 import ThemeToggle from '../../components/shell/ThemeToggle';
+import Logo, { PRODUCT_NAME } from '../../components/shell/Logo';
 
 function SignInForm() {
   const router = useRouter();
@@ -217,13 +218,7 @@ function SignInForm() {
       <section className="relative flex flex-col overflow-hidden bg-canvas-raised px-7 py-8 lg:px-12 lg:py-12">
         <div className="ambient-wash" />
         <Link href="/sign-in" className="relative z-10 flex w-fit items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-on-accent">
-            <Zap size={18} fill="currentColor" />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-base font-black tracking-tight">Insight</span>
-            <span className="text-[8px] font-black uppercase tracking-[0.35em] text-accent-500">Analytics</span>
-          </span>
+          <Logo size="md" />
         </Link>
         <Pitch />
       </section>
@@ -240,7 +235,7 @@ function SignInForm() {
               ? 'Check your email'
               : mode === 'sign-up'
               ? 'Create your account'
-              : 'Sign in to Insight Analytics'}
+              : `Sign in to ${PRODUCT_NAME}`}
           </h1>
           {step === 'code' ? (
             <p className="mt-2 text-[13px] leading-relaxed text-white/50">

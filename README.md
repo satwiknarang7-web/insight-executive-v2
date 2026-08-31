@@ -1,4 +1,4 @@
-# Insight Analytics
+# Insight Executive
 
 Upload a CSV, get an analysis you can defend. Insight profiles your data, builds
 the charts an analyst would build, computes every statistic itself, and shows you
