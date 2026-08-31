@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {
   CONNECTORS,
+  availableConnectors,
+  isAvailable,
   connectionIsFor,
   connectorFor,
   getConnector,
@@ -267,4 +269,51 @@ test('the Oracle connect string is not treated as a secret', () => {
   assert.ok('connectString' in stripSecrets(config));
   assert.ok(!('connectString' in extractSecrets(config)));
   assert.ok('password' in extractSecrets(config));
+});
+
+/* The public source lists, and where they are allowed to come from.
+ *
+ * The landing page and the sign-in page each make a claim about which
+ * databases the product supports. Both used to make it from a hand-typed
+ * array, and both had drifted: each had lost Supabase entirely and renamed
+ * three of the others, so each page named a different set of databases from
+ * the connection form sitting beside it. Nothing failed; the pages were just
+ * quietly wrong, in a place nobody re-reads. */
+
+test('the pages name the sources by reading the registry, not by retyping them', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const read = (rel) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+
+  for (const page of ['../app/page.js', '../app/sign-in/page.js']) {
+    const src = read(page);
+    assert.match(src, /availableConnectors\(\)/, `${page} does not read the registry`);
+    // A label typed into the page is the drift starting again. "CSV & Excel"
+    // is exempt: files are the one source with no connector behind them.
+    for (const label of CONNECTORS.map((c) => c.label)) {
+      assert.ok(
+        !src.includes(`'${label}'`),
+        `${page} still names "${label}" as a literal`
+      );
+    }
+  }
+});
+
+test('availability is decided in one place, and every shipped connector passes it', () => {
+  // The gate is what earns the right to derive the list: a connector added at
+  // a phase that has not shipped must be absent from a public claim.
+  assert.equal(availableConnectors().length, CONNECTORS.length);
+  assert.ok(CONNECTORS.every(isAvailable));
+  assert.equal(isAvailable({ phase: 99 }), false);
+  assert.equal(isAvailable({}), false);
+  assert.equal(isAvailable(undefined), false);
+  // Registry order is preserved; the pages render it as written.
+  assert.deepEqual(
+    availableConnectors().map((c) => c.id),
+    CONNECTORS.map((c) => c.id)
+  );
+});
+
+test('Supabase — the one that went missing from both lists — is in the derived list', () => {
+  assert.ok(availableConnectors().some((c) => c.label === 'Supabase'));
 });

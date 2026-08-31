@@ -23,7 +23,7 @@ import Logo from '../components/shell/Logo';
 import { vaultAvailable } from '../lib/vault/supabase.client';
 import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
-import { CONNECTORS } from '../lib/connectors/registry';
+import { availableConnectors } from '../lib/connectors/registry';
 import ConnectSource from '../components/panels/ConnectSource';
 
 const FEATURES = [
@@ -234,7 +234,7 @@ export default function LandingPage() {
             <dl className="mt-7 max-w-md space-y-2 text-[12px]">
               {[
                 ['Files', 'CSV, Excel'],
-                ['Live sources', CONNECTORS.map((c) => c.label).join(' · ')],
+                ['Live sources', availableConnectors().map((c) => c.label).join(' · ')],
               ].map(([term, list]) => (
                 <div key={term} className="flex gap-4">
                   <dt className="w-24 shrink-0 pt-px text-[9px] font-black uppercase tracking-[0.18em] text-white/30">
@@ -364,7 +364,7 @@ export default function LandingPage() {
                       <option value="file" className="bg-surface">
                         CSV or Excel file
                       </option>
-                      {CONNECTORS.map((c) => (
+                      {availableConnectors().map((c) => (
                         <option key={c.id} value={c.id} className="bg-surface">
                           {c.label}
                         </option>

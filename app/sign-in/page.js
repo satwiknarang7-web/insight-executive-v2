@@ -17,6 +17,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck } from 'lucide-react';
+import { availableConnectors } from '../../lib/connectors/registry';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
 import { MIN_PASSWORD } from '../../lib/auth/otp';
@@ -471,7 +472,18 @@ function Pitch() {
     <div className="relative z-10 mt-12 flex flex-1 flex-col justify-center lg:mt-0">
       <h2 className="max-w-md text-[2rem] font-black leading-[1.12] tracking-tight lg:text-[2.6rem]">
         Every number on the dashboard traces back to a{' '}
-        <span className="text-accent-400">query you can read.</span>
+        {/*
+          * Underlined rather than coloured, as on the landing page.
+          *
+          * `text-accent-400` reads as teal in the dark and disappears in the
+          * light, where the accent ramp is deliberately remapped to navy: the
+          * emphasis came out #123a63 against #0b2545 ink, which is the same
+          * word twice. The rule takes whichever accent is on and shows in both.
+          */}
+        <span className="underline decoration-accent-400 decoration-[3px] underline-offset-[7px]">
+          query you can read
+        </span>
+        .
       </h2>
 
       <p className="mt-4 text-sm font-bold text-white/55">Analysis you can defend.</p>
@@ -509,20 +521,21 @@ function Pitch() {
   );
 }
 
-/** Named rather than pulled from the connector registry: this is a claim about
- *  what the product supports, and it should not silently change if a driver is
- *  added behind a feature flag. */
-const SOURCES = [
-  'PostgreSQL',
-  'Neon',
-  'MySQL',
-  'SQL Server',
-  'Snowflake',
-  'Oracle',
-  'Microsoft Fabric',
-  'Tableau',
-  'CSV & Excel',
-];
+/**
+ * Read from the registry, filtered to what has actually shipped.
+ *
+ * This was typed out by hand, on the reasoning that a claim about what the
+ * product supports should not change silently because a driver appeared behind
+ * a feature flag. The concern was right and the remedy was not: the list
+ * drifted anyway — it had lost Supabase entirely and renamed three of the
+ * others — so this page named a different set of databases from the one the
+ * connection form offers. `availableConnectors` keeps the guarantee, since a
+ * connector at an unshipped phase is excluded there rather than here.
+ *
+ * Files come last and are named separately: they are the one source that needs
+ * no connection at all.
+ */
+const SOURCES = [...availableConnectors().map((c) => c.label), 'CSV & Excel'];
 
 const HIGHLIGHTS = [
   {

@@ -27,6 +27,7 @@ import {
   connectorFor,
   defaultConfig,
   getConnector,
+  isAvailable,
   validateConfig,
 } from '../../lib/connectors/registry';
 import { CONNECTION_STRING_EXAMPLES, parseConnectionString } from '../../lib/connectors/connectionString';
@@ -34,14 +35,7 @@ import { hasTarget } from '../../lib/connectors/fabricApi';
 import FabricTarget from './FabricTarget';
 import ImportFromConnection from './ImportFromConnection';
 
-const PHASE_LABEL = {
-  1: 'Available',
-  2: 'Available',
-  3: 'Available',
-  4: 'Available',
-  5: 'Available',
-  6: 'Available',
-};
+
 
 export default function ConnectionsPanel({ organization }) {
   const [connections, setConnections] = useState([]);
@@ -434,7 +428,7 @@ function AddConnection({ organization, onClose, onSaved }) {
             >
               <span className="block text-[12px] font-black text-white/85">{c.label}</span>
               <span className="block text-[9px] font-black uppercase tracking-[0.15em] text-white/30">
-                {PHASE_LABEL[c.phase] || 'Planned'}
+                {isAvailable(c) ? 'Available' : 'Planned'}
               </span>
             </button>
           ))}
