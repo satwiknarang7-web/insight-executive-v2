@@ -16,8 +16,9 @@ import {
   Table2,
   Trash2,
   X,
+  LayoutDashboard,
 } from 'lucide-react';
-import { useActions, useDataset } from '../lib/store/DatasetProvider';
+import { useActions, useAnalysis, useDataset } from '../lib/store/DatasetProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import Logo from '../components/shell/Logo';
 import { vaultAvailable } from '../lib/vault/supabase.client';
@@ -47,6 +48,7 @@ const FEATURES = [
 export default function LandingPage() {
   const router = useRouter();
   const { dataset, status, error } = useDataset();
+  const { analysis } = useAnalysis();
   const { ingestFile, ingestText, analyze, setError, reset } = useActions();
   const [dragging, setDragging] = useState(false);
   // Two-step, because discarding a loaded dataset also discards any analysis of
@@ -59,6 +61,10 @@ export default function LandingPage() {
   const inputRef = useRef(null);
 
   const busy = status === 'ingesting' || status === 'analyzing';
+  // The logo in the app shell points here, so anyone who taps it lands back on
+  // the upload screen with a finished analysis still in memory. Without a way
+  // back, the only route in was to run the whole thing again.
+  const hasAnalysis = analysis?.storyboard?.length > 0;
 
   // Several files are one session, not one upload each: the engine relates them
   // to each other exactly as it relates the tabs of a single workbook.
@@ -265,8 +271,12 @@ export default function LandingPage() {
               <div className="card p-6">
                 <div className="mb-4 flex items-center gap-2">
                   <span className="label">Data integrity report</span>
+                  {/* "Verified" appeared the moment a file was parsed, before a
+                      single query had run — a claim about an analysis that did
+                      not exist yet. Cleaning is what has actually happened at
+                      this point, so that is what the badge says. */}
                   <span className="ml-auto flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-emerald-400">
-                    <ShieldCheck size={10} /> Verified
+                    <ShieldCheck size={10} /> Cleaned
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
@@ -318,11 +328,24 @@ export default function LandingPage() {
                   <Stat label="Outliers flagged" value={dataset.metrics.outliersCount} tone="plain" />
                 </div>
 
+                {hasAnalysis && (
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]"
+                  >
+                    <LayoutDashboard size={16} /> Back to the dashboard
+                  </button>
+                )}
                 <button
                   onClick={runAnalysis}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]"
+                  className={
+                    hasAnalysis
+                      ? 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white'
+                      : 'mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]'
+                  }
                 >
-                  Analyse dataset <ArrowRight size={16} />
+                  {hasAnalysis ? 'Re-run the analysis' : 'Analyse dataset'}{' '}
+                  <ArrowRight size={hasAnalysis ? 14 : 16} />
                 </button>
                 <button
                   onClick={() => router.push('/explore')}
@@ -371,6 +394,18 @@ export default function LandingPage() {
                       ))}
                     </select>
                   </label>
+
+                  {/* The dropzone's "nothing leaves your browser" is true of a
+                      file and false of a warehouse: a connector's rows are
+                      fetched by the server by design. The claim is scoped to
+                      the source that is actually selected. */}
+                  {source !== 'file' && (
+                    <p className="mt-3 text-xs leading-relaxed text-white/35">
+                      Rows from a connected database are fetched by this app&apos;s server and passed
+                      straight through to your browser, where they are cleaned and analysed. Unlike a file,
+                      they do travel over the network.
+                    </p>
+                  )}
 
                   {source !== 'file' && (
                     <div className="mt-4">
@@ -473,8 +508,10 @@ export default function LandingPage() {
         </section>
 
         <footer className="border-t border-white/6 pt-6 text-[11px] text-white/25">
-          Files are parsed, cleaned and queried entirely in your browser. Only anonymous summary statistics
-          are sent to a language model, and only to phrase them — never your rows.
+          Files are parsed, cleaned and queried entirely in your browser. Rows from a connected database
+          reach it through this app&apos;s server, and are cleaned and queried in the browser too. Only
+          anonymous summary statistics are sent to a language model, and only to phrase them — never your
+          rows.
         </footer>
       </div>
     </div>

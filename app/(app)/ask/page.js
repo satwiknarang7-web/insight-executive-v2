@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Send, Loader2, Sparkles, Code2, ChevronRight, Terminal, Info, ShieldCheck } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
@@ -53,12 +53,38 @@ async function mapProblem(spec, sample) {
   }
 }
 
-const EXAMPLES = [
+const GENERIC_EXAMPLES = [
   'Which category brings in the most revenue?',
   'How has volume changed over time?',
   'What is the share of each region?',
   'Is there a relationship between price and units sold?',
 ];
+
+/**
+ * Starter questions this dataset can actually answer.
+ *
+ * These were four fixed retail questions, shown over every file — so the churn
+ * and campaigns samples the app ships with were offered a question about
+ * revenue and unit price, columns neither of them has. A suggestion that fails
+ * on the app's own sample data is worse than no suggestion.
+ */
+function starterQuestions(profile) {
+  const measures = profile?.measures || [];
+  const temporal = profile?.temporal || [];
+  // A date column is listed as a dimension as well as a temporal one, and
+  // "Which order_date has the highest revenue?" is not a question anybody asks.
+  const dimensions = (profile?.dimensions || []).filter((d) => !temporal.includes(d));
+  const out = [];
+
+  if (measures[0] && dimensions[0]) out.push(`Which ${dimensions[0]} has the highest ${measures[0]}?`);
+  if (measures[0] && temporal[0]) out.push(`How has ${measures[0]} changed over ${temporal[0]}?`);
+  if (measures[0] && dimensions[1]) out.push(`What is the share of ${measures[0]} by ${dimensions[1]}?`);
+  else if (measures[1] && dimensions[0]) out.push(`What is the share of ${measures[1]} by ${dimensions[0]}?`);
+  if (measures[0] && measures[1]) out.push(`Is there a relationship between ${measures[0]} and ${measures[1]}?`);
+  if (out.length === 0 && dimensions[0]) out.push(`How many rows are there for each ${dimensions[0]}?`);
+
+  return out.length > 0 ? out.slice(0, 4) : GENERIC_EXAMPLES;
+}
 
 export default function AskPage() {
   const { dataset } = useDataset();
@@ -69,6 +95,8 @@ export default function AskPage() {
   const [busy, setBusy] = useState(false);
   const [answers, setAnswers] = useState([]);
   const [error, setError] = useState(null);
+
+  const examples = useMemo(() => starterQuestions(dataset?.profile), [dataset?.profile]);
 
   const ask = useCallback(
     async (text) => {
@@ -176,12 +204,12 @@ export default function AskPage() {
                 onKeyDown={(e) => e.key === 'Enter' && ask()}
                 placeholder="e.g. which region has the highest average order value?"
                 disabled={busy}
-                className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-white/25 disabled:opacity-50"
+                className="min-h-11 min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-white/25 disabled:opacity-50 sm:min-h-0"
               />
               <button
                 onClick={() => ask()}
                 disabled={busy || !question.trim()}
-                className="flex shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors enabled:hover:bg-accent-400 disabled:opacity-30"
+                className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors enabled:hover:bg-accent-400 disabled:opacity-30 sm:min-h-0"
               >
                 {busy ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
                 Ask
@@ -199,7 +227,7 @@ export default function AskPage() {
             <div className="card p-6">
               <div className="label mb-3">Try one of these</div>
               <div className="flex flex-col gap-2">
-                {EXAMPLES.map((ex) => (
+                {examples.map((ex) => (
                   <button
                     key={ex}
                     onClick={() => ask(ex)}

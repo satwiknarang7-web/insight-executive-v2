@@ -16,6 +16,7 @@ import {
   Volume2,
   VolumeX,
   Users,
+  Info,
 } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import LazyChart from '../../components/charts/LazyChart';
@@ -387,8 +388,12 @@ function SummarySlide({ slideZero, kpis }) {
   const long = bullets.reduce((n, b) => n + String(b).length, 0) > 520;
   const bulletText = long ? 'text-[15px] md:text-base' : 'text-lg md:text-xl';
 
+  // A slide is a fixed box, and on a phone the summary does not fit in one: at
+  // 375x812 the content ran 806px inside a 648px box and the scorecards were
+  // simply cut off. A deck read from a phone is read, not projected, so below
+  // the tablet breakpoint it scrolls instead.
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center overflow-hidden py-4">
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-start overflow-y-auto py-4 md:justify-center md:overflow-hidden">
       <div className={`flex items-center gap-3 ${long ? 'mb-3' : 'mb-6'}`}>
         <Sparkles size={18} className="text-accent-400" />
         <h1 className={`font-black tracking-tight ${long ? 'text-2xl md:text-4xl' : 'text-3xl md:text-5xl'}`}>
@@ -431,6 +436,20 @@ function SummarySlide({ slideZero, kpis }) {
         <Pill icon={AlertTriangle} tone="rose" label="Risk" text={slideZero.strategicScorecard.risk} />
         <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={slideZero.strategicScorecard.opportunity} />
       </div>
+
+      {/* How to read the numbers above. A deck is what gets forwarded, so the
+          caveat has to travel with it — two at most, because the slide has to
+          stay a slide. */}
+      {slideZero.caveats?.length > 0 && (
+        <ul className={`flex flex-col gap-1 ${long ? 'mt-3' : 'mt-5'}`}>
+          {slideZero.caveats.slice(0, 2).map((line, i) => (
+            <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/45 md:text-[13px]">
+              <Info size={12} className="mt-1 shrink-0 text-amber-400/70" />
+              {line}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -500,6 +519,24 @@ function gridFor(count) {
   return best ? { cols: best.cols, rows: best.rows } : { cols: count, rows: 1 };
 }
 
+/**
+ * Whether the deck is being read on a phone rather than projected.
+ *
+ * Read after mount, not during render: matchMedia does not exist on the server,
+ * and a value guessed during render is a hydration mismatch waiting to happen.
+ */
+function useNarrowViewport(query = '(max-width: 767px)') {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [query]);
+  return narrow;
+}
+
 function DashboardSlide({ analysis, fileName }) {
   const board = analysis.storyboard || [];
   const kpis = analysis.kpis || [];
@@ -515,6 +552,18 @@ function DashboardSlide({ analysis, fileName }) {
    * chosen from the count, and the rows divide whatever height is left.
    */
   const { cols, rows } = gridFor(board.length);
+
+  /**
+   * A phone is not a projector.
+   *
+   * The shape above divides one wide slide between every finding, which on a
+   * 375px screen made five charts 75px across and 57px tall — the axis labels
+   * and nothing else. Nobody is projecting from a phone, so the one rule the
+   * board slide holds to on a big screen — never scroll — is the one to give up
+   * here: a single column of readable tiles that scrolls beats five that don't
+   * draw.
+   */
+  const narrow = useNarrowViewport();
 
   /**
    * The chrome gives way before the charts do.
@@ -552,8 +601,11 @@ function DashboardSlide({ analysis, fileName }) {
       )}
 
       <div
-        className="grid min-h-0 flex-1 gap-3 overflow-hidden"
-        style={{
+        className={`grid min-h-0 flex-1 gap-3 ${narrow ? 'overflow-y-auto' : 'overflow-hidden'}`}
+        style={narrow ? {
+          gridTemplateColumns: 'minmax(0, 1fr)',
+          gridAutoRows: 'minmax(210px, auto)',
+        } : {
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           // The rows divide whatever is left, and never ask for more than that.
           //
@@ -609,7 +661,11 @@ function DashboardSlide({ analysis, fileName }) {
 function ChartSlide({ slide }) {
   const chart = slide.chart || {};
   return (
-    <div className="grid h-full min-h-0 gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
+    // Stacked, the two rows both size to their content, and the prose wins:
+    // the chart card was left with about 20px of a phone-sized slide. Naming
+    // the rows gives the chart a floor and hands the remainder — which the
+    // column below already knows how to scroll — to the text.
+    <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_minmax(190px,45%)] gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:grid-rows-1">
       <div className="flex min-h-0 flex-col overflow-y-auto">
         <h2 className="text-2xl font-black leading-tight tracking-tight md:text-3xl">{slide.pageTitle}</h2>
 

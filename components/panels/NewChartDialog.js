@@ -460,7 +460,7 @@ function Shell({ children, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="ml-auto rounded-lg border border-white/10 p-1.5 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+            className="ml-auto flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/40 transition-colors hover:bg-white/5 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
           >
             <X size={14} />
           </button>
@@ -482,7 +482,7 @@ function Field({ label, help, children }) {
 }
 
 const selectClass =
-  'rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50';
+  'min-h-11 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50 sm:min-h-0';
 
 function Select({ value, onChange, options, format = (v) => v }) {
   return (

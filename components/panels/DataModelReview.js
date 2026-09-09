@@ -280,7 +280,7 @@ export default function DataModelReview() {
         <button
           onClick={() => apply({ thenAnalyse: true })}
           disabled={busy}
-          className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:bg-white/10 disabled:text-white/30"
+          className="flex items-center gap-2 rounded-lg bg-accent-500 min-h-11 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-on-accent transition-colors hover:bg-accent-400 disabled:bg-white/10 disabled:text-white/30"
         >
           {busy ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
           {dirty ? 'Apply and analyse' : 'Looks right — analyse'}
@@ -291,7 +291,7 @@ export default function DataModelReview() {
             <button
               onClick={() => apply()}
               disabled={busy}
-              className="rounded-lg border border-white/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+              className="rounded-lg border border-white/10 min-h-11 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
             >
               Apply without analysing
             </button>
@@ -301,7 +301,7 @@ export default function DataModelReview() {
                 setDisabled(new Set());
                 setAdded([]);
               }}
-              className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
             >
               <RotateCcw size={13} /> Reset
             </button>
@@ -385,7 +385,7 @@ function AddRelationship({ tables, existing, onTest, onAdd }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 self-start rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+        className="flex items-center gap-2 self-start rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
       >
         <Plus size={13} /> Add a relationship
       </button>

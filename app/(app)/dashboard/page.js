@@ -32,7 +32,11 @@ import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 import { KPI_METRICS, metricNeedsColumn } from '../../../lib/kpiMetrics';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
 import SaveAnalysisDialog from '../../../components/panels/SaveAnalysisDialog';
+import DatasetNotices from '../../../components/panels/DatasetNotices';
+import NarrationNote from '../../../components/panels/NarrationNote';
+import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
+import { chartTypeLabel } from '../../../lib/chartSpecs';
 
 export default function DashboardPage() {
   const { dataset, status } = useDataset();
@@ -111,6 +115,7 @@ export default function DashboardPage() {
   if (!analysis) {
     return (
       <PageFrame title="Dashboard" subtitle={dataset?.fileName}>
+        <DatasetNotices notices={dataset?.notices} />
         {joinNotice && <JoinNotice notice={joinNotice} />}
         <div className="card flex max-w-xl flex-col items-start gap-4 p-8">
           <BarChart3 size={28} className="text-accent-400" />
@@ -139,7 +144,7 @@ export default function DashboardPage() {
       title="Dashboard"
       subtitle={`${storyboard.length} findings from ${dataset.rowCount.toLocaleString()} rows`}
       action={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {narrating && (
             <span className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
               <Loader2 size={11} className="animate-spin" /> Writing narrative
@@ -148,7 +153,7 @@ export default function DashboardPage() {
           <button
             onClick={() => setEditing((v) => !v)}
             aria-pressed={editing}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+            className={`flex items-center gap-2 rounded-lg border min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 transition-colors ${
               editing
                 ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
                 : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
@@ -158,31 +163,32 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setBuilding(true)}
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
           >
             <Plus size={13} /> New chart
           </button>
           <button
             onClick={() => setSaving(true)}
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
           >
             <Bookmark size={13} /> Save
           </button>
           <button
             onClick={() => router.push('/present')}
-            className="flex items-center gap-2 rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-300 transition-colors hover:bg-accent-500/15"
+            className="flex items-center gap-2 rounded-lg border border-accent-500/25 bg-accent-500/8 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-accent-300 transition-colors hover:bg-accent-500/15"
           >
             <Presentation size={13} /> Present
           </button>
           <button
             onClick={run}
-            className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
           >
             Re-run
           </button>
         </div>
       }
     >
+      <DatasetNotices notices={dataset?.notices} />
       {joinNotice && <JoinNotice notice={joinNotice} />}
 
       {editing && (
@@ -302,7 +308,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={addInsight}
-                className="mt-4 flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+                className="mt-4 flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
               >
                 <Plus size={13} /> Add a takeaway
               </button>
@@ -382,6 +388,8 @@ export default function DashboardPage() {
         </div>
         )}
       </section>
+
+      <NarrationNote narrated={analysis.narrated} className="mt-8" />
 
       {saving && (
         <SaveAnalysisDialog
@@ -550,7 +558,7 @@ function Collapse({ open, onToggle, label }) {
       onClick={onToggle}
       aria-expanded={open}
       aria-label={`${open ? 'Hide' : 'Show'} ${label}`}
-      className="flex shrink-0 items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/35 transition-colors hover:bg-white/5 hover:text-white/70"
+      className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-white/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/35 transition-colors hover:bg-white/5 hover:text-white/70 sm:min-h-0 sm:px-2"
     >
       {open ? 'Hide' : 'Show'}
       <ChevronRight size={12} className={`transition-transform ${open ? 'rotate-90' : ''}`} />
@@ -579,13 +587,19 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
     <Wrapper {...wrapperProps}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="label flex items-center gap-2">
+          <div className="label flex flex-wrap items-center gap-2">
+            {/* The reader gets the chart's name, not its internal id: the card
+                used to read "hbar · 3 of 9". */}
             <span>
-              {String(slide.chart?.chart_type || 'chart')} · {index + 1} of {total}
+              {chartTypeLabel(slide.chart?.chart_type || 'bar')} · {index + 1} of {total}
             </span>
             {slide.custom && <span className="text-accent-400/70">· yours</span>}
             {!slide.custom && slide.edits?.length > 0 && <span className="text-accent-400/70">· edited</span>}
             {slide.analystNotes && <StickyNote size={10} className="text-amber-400/70" />}
+            <EvidenceBadge
+              tier={slide.findings?.metrics?.evidence}
+              notes={slide.findings?.metrics?.evidenceNotes}
+            />
           </div>
           <EditableText
             as="h3"
@@ -607,7 +621,7 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
               href={`/insight/${slide.id || `slide_${index + 1}`}`}
               aria-label={`Edit the chart for ${slide.pageTitle}`}
               title="Change what this chart measures"
-              className="rounded-lg p-1.5 text-white/15 transition-colors hover:bg-accent-500/10 hover:text-accent-300"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-white/15 sm:h-auto sm:w-auto sm:p-1.5 transition-colors hover:bg-accent-500/10 hover:text-accent-300"
             >
               <SlidersHorizontal size={14} />
             </Link>
@@ -622,7 +636,7 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
               e.stopPropagation();
               onDelete();
             }}
-            className="rounded-lg p-1.5 text-white/15 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-white/15 sm:h-auto sm:w-auto sm:p-1.5 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
           >
             <Trash2 size={14} />
           </button>
@@ -699,7 +713,7 @@ function JoinNotice({ notice }) {
           )}
         </div>
         {worrying && (
-          <div className="mt-1 text-[12px] leading-relaxed text-amber-300/80">
+          <div className="mt-1 text-[12px] leading-relaxed text-amber-300">
             {notice.concerns[0]}
             {notice.concerns.length > 1 && ` (+${notice.concerns.length - 1} more)`}
           </div>
@@ -707,7 +721,7 @@ function JoinNotice({ notice }) {
       </div>
       <Link
         href="/model"
-        className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/55 transition-colors hover:bg-white/5 hover:text-white"
+        className="shrink-0 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/55 transition-colors hover:bg-white/5 hover:text-white"
       >
         Review joins
       </Link>

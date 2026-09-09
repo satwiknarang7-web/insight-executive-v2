@@ -251,20 +251,26 @@ export default function AppShell({ children }) {
         <Link href="/" className="flex items-center gap-2">
           <Logo size="sm" />
         </Link>
+        {/* The only way to navigate on a phone, and it was a 34px square —
+            under the 44px a thumb can reliably hit. */}
         <button
           onClick={() => setMenuOpen((o) => !o)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          className="rounded-lg border border-white/10 p-2 text-white/60"
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/60"
         >
-          {menuOpen ? <X size={16} /> : <Menu size={16} />}
+          {menuOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 bg-canvas-raised md:hidden">
           <div className="flex justify-end p-3">
-            <button onClick={() => setMenuOpen(false)} aria-label="Close menu" className="rounded-lg border border-white/10 p-2 text-white/60">
-              <X size={16} />
+            <button
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/60"
+            >
+              <X size={18} />
             </button>
           </div>
           <div className="h-[calc(100vh-56px)]">{renderSidebar(false)}</div>

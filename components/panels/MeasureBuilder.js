@@ -155,7 +155,7 @@ export default function MeasureBuilder({ initial = null, onSaved, onCancel, phra
                     setPhrase(example);
                     if (!example.endsWith('…')) build(example);
                   }}
-                  className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] text-white/45 transition-colors hover:border-accent-500/40 hover:text-white/80"
+                  className="min-h-11 rounded-full border border-white/10 px-3 py-1.5 text-[11px] text-white/45 transition-colors hover:border-accent-500/40 hover:text-white/80 sm:min-h-0"
                 >
                   {example}
                 </button>

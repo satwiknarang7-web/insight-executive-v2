@@ -132,7 +132,7 @@ function Shell({ children }) {
         <div className="ml-auto flex items-center gap-2">
           <Link
             href="/"
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
           >
             <ArrowLeft size={13} /> Back
           </Link>

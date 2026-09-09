@@ -61,8 +61,8 @@ export default function ThemeToggle({ compact = false }) {
       title={label}
       className={
         compact
-          ? 'rounded-lg border border-white/10 p-2 text-white/45 transition-colors hover:bg-white/5 hover:text-white'
-          : 'flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white'
+          ? 'flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/45 transition-colors hover:bg-white/5 hover:text-white sm:h-auto sm:w-auto sm:p-2'
+          : 'flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white sm:min-h-0'
       }
     >
       {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}

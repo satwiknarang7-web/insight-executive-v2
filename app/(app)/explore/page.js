@@ -23,6 +23,11 @@ const PAGE_SIZE = 50;
 
 const ROLE_ICON = { measure: Hash, dimension: Type, time: Calendar, identifier: Fingerprint };
 
+/** Paging is the way through the rows on a phone, and 28px of it was a miss
+ *  waiting to happen. Full-size targets on touch, the compact pair on desktop. */
+const PAGER_BUTTON =
+  'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-25 md:h-7 md:w-7';
+
 export default function ExplorePage() {
   const { dataset } = useDataset();
   const { fetchPage, evaluateMeasuresOverView } = useActions();
@@ -130,7 +135,7 @@ export default function ExplorePage() {
               placeholder="Search all columns…"
               title={'Every word has to match somewhere in the row, in any column. Put "quotes" around a phrase to keep it together.'}
               aria-label="Search all columns"
-              className="w-56 rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-xs font-medium outline-none placeholder:text-white/25 focus:border-accent-500/50 md:w-72"
+              className="min-h-11 w-56 rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-xs font-medium outline-none placeholder:text-white/25 focus:border-accent-500/50 sm:min-h-0 md:w-72"
             />
           </div>
           <button
@@ -138,7 +143,7 @@ export default function ExplorePage() {
               setAnomaliesOnly((a) => !a);
               setOffset(0);
             }}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+            className={`flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors sm:min-h-0 ${
               anomaliesOnly
                 ? 'border-rose-500/35 bg-rose-500/12 text-rose-300'
                 : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
@@ -282,7 +287,7 @@ export default function ExplorePage() {
               onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
               disabled={offset === 0}
               aria-label="Previous page"
-              className="rounded-lg border border-white/10 p-1.5 text-white/50 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-25"
+              className={PAGER_BUTTON}
             >
               <ChevronLeft size={14} />
             </button>
@@ -290,7 +295,7 @@ export default function ExplorePage() {
               onClick={() => setOffset((o) => (o + PAGE_SIZE < total ? o + PAGE_SIZE : o))}
               disabled={offset + PAGE_SIZE >= total}
               aria-label="Next page"
-              className="rounded-lg border border-white/10 p-1.5 text-white/50 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-25"
+              className={PAGER_BUTTON}
             >
               <ChevronRight size={14} />
             </button>
@@ -302,10 +307,10 @@ export default function ExplorePage() {
             <thead className="sticky top-0 bg-canvas-raised">
               <tr>
                 {columns.map((col) => (
-                  <th key={col} className="whitespace-nowrap border-b border-white/7 px-3 py-2.5">
+                  <th key={col} className="whitespace-nowrap border-b border-white/7 px-3 py-0 sm:py-2.5">
                     <button
                       onClick={() => toggleSort(col)}
-                      className="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.15em] text-white/45 transition-colors hover:text-accent-300"
+                      className="flex min-h-11 items-center gap-1 text-[10px] font-black uppercase tracking-[0.15em] text-white/45 transition-colors hover:text-accent-300 sm:min-h-0"
                     >
                       {col}
                       {sortBy === col &&

@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Printer, FileDown, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Printer, FileDown, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck, Info } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
+import NarrationNote from '../../../components/panels/NarrationNote';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 
 export default function ReportPage() {
@@ -28,7 +29,18 @@ export default function ReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(analysis),
       });
-      if (!res.ok) throw new Error('The server could not render a PDF.');
+      if (!res.ok) {
+        // The rate limiter answers with a sentence that already names the wait,
+        // and throwing a fixed string discarded it — so someone who was thirty
+        // seconds from succeeding was told the host had no Chrome. A refusal is
+        // also not a reason to reach for Print, so it is reported on its own.
+        const body = await res.json().catch(() => null);
+        if (res.status === 429 && body?.error) {
+          setPdfError(body.error);
+          return;
+        }
+        throw new Error(body?.error || 'The server could not render a PDF.');
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -61,17 +73,19 @@ export default function ReportPage() {
       title="Report"
       subtitle={`${storyboard.length} findings · ${dataset.rowCount.toLocaleString()} rows`}
       action={
-        <div className="flex items-center gap-2 print:hidden">
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
+            title="Renders in this browser. Nothing is sent anywhere."
+            className="flex items-center gap-2 rounded-lg bg-accent-500 min-h-11 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-on-accent transition-colors hover:bg-accent-400"
           >
             <Printer size={13} /> Print / Save PDF
           </button>
           <button
             onClick={downloadPdf}
             disabled={pdfBusy}
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
+            title="Sends this report — the computed chart results and the wording, not your raw rows — to the host to be rendered. Print keeps everything in the browser."
+            className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
           >
             {pdfBusy ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />} Server PDF
           </button>
@@ -108,6 +122,20 @@ export default function ReportPage() {
               </li>
             ))}
           </ul>
+
+          {/* The sentences that stop a truncated share being read as a market
+              share. This is the copy that gets forwarded, so it is the copy
+              that most needs them. */}
+          {slideZero.caveats?.length > 0 && (
+            <ul className="mt-5 flex flex-col gap-1.5 border-t border-white/8 pt-4">
+              {slideZero.caveats.map((line, i) => (
+                <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/45">
+                  <Info size={12} className="mt-0.5 shrink-0 text-amber-400/70" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             <Card icon={Target} label="Focus" text={slideZero.strategicScorecard.focus} />
@@ -176,10 +204,12 @@ export default function ReportPage() {
           </section>
         ))}
 
-        <footer className="border-t border-white/8 pt-6 text-[11px] leading-relaxed text-white/30">
-          Every figure in this report was computed from SQL queries run over the cleaned dataset in the
-          browser. Where a language model was available it rephrased those computed findings; it never
-          produced a number.
+        <footer className="flex flex-col gap-2 border-t border-white/8 pt-6 text-[11px] leading-relaxed text-white/30">
+          <p>
+            Every figure in this report was computed from SQL queries run over the cleaned dataset in the
+            browser.
+          </p>
+          <NarrationNote narrated={analysis.narrated} />
         </footer>
       </article>
     </PageFrame>

@@ -123,7 +123,7 @@ export default function MeasureReference({ dataset, measures = [], onInsert }) {
         <button
           type="button"
           onClick={() => setTab('columns')}
-          className={`rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] transition-colors ${
+          className={`min-h-11 rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] transition-colors sm:min-h-0 ${
             tab === 'columns' ? 'bg-accent-500/12 text-accent-300' : 'text-white/40 hover:text-white/70'
           }`}
         >
@@ -132,7 +132,7 @@ export default function MeasureReference({ dataset, measures = [], onInsert }) {
         <button
           type="button"
           onClick={() => setTab('operations')}
-          className={`rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] transition-colors ${
+          className={`min-h-11 rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] transition-colors sm:min-h-0 ${
             tab === 'operations' ? 'bg-accent-500/12 text-accent-300' : 'text-white/40 hover:text-white/70'
           }`}
         >
@@ -164,7 +164,7 @@ export default function MeasureReference({ dataset, measures = [], onInsert }) {
                         type="button"
                         onClick={() => onInsert?.(name)}
                         title={dataset?.columnRoles?.[name]?.why || `Add “${name}” to what you are typing`}
-                        className="max-w-full truncate rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-bold text-white/70 transition-colors hover:border-accent-500/40 hover:bg-accent-500/10 hover:text-accent-200"
+                        className="min-h-11 max-w-full truncate rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-bold text-white/70 transition-colors hover:border-accent-500/40 hover:bg-accent-500/10 hover:text-accent-200 sm:min-h-0"
                       >
                         {name}
                       </button>

@@ -3,6 +3,7 @@
 import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Code2, ChevronRight, Database } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
+import DatasetNotices from '../../../components/panels/DatasetNotices';
 import { formatSql } from '../../../lib/sqlFormat';
 
 export default function QualityPage() {
@@ -23,8 +24,42 @@ export default function QualityPage() {
   const decimalComma = m.decimalCommaColumns || [];
   const ambiguousComma = m.ambiguousCommaColumns || [];
 
+  const notices = dataset.notices || [];
+
+  // `outliersCount` counts cells — it is incremented inside a per-column loop —
+  // so calling it a row count overstated how much of the table is unusual. The
+  // true row count is only present on datasets cleaned by a build that computes
+  // it, hence the fallback rather than an assumption.
+  const outlierRows = m.outlierRows ?? null;
+
+  // The fence moved onto a log scale for skewed columns, so the plain sentence
+  // about standard deviations from the mean is only true of the rest.
+  const outlierMethod = m.outlierMethod ?? null;
+
+  // A row Papa could not fit to the header. Counting it as a blank — which is
+  // all this page could do before — described a misaligned file and a sparse
+  // one with the same number, and only one of them is the reader's problem.
+  const malformedRows = m.malformedRows || 0;
+  const malformedSamples = m.malformedSamples || [];
+  const nullsFromShortRows = m.nullsFromShortRows || 0;
+
   return (
     <PageFrame title="Data Quality" subtitle={`Cleaning report for ${dataset.fileName}`}>
+      {/* What the ingest decided for you. This is the page that owes the reader
+          the full list, so it is shown here undismissed and in full. */}
+      {notices.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-3 flex items-center gap-3">
+            <AlertTriangle size={14} className="text-amber-400" />
+            <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">
+              Notices ({notices.length})
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+          </div>
+          <DatasetNotices notices={notices} dismissible={false} />
+        </section>
+      )}
+
       {/* Integrity headline */}
       <section className="card mb-6 p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -92,10 +127,26 @@ export default function QualityPage() {
             <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">-</code> became true blanks so
             they are excluded from averages instead of skewing them.
           </Bullet>
+          {malformedRows > 0 && (
+            <Bullet title="Rows that did not match the header">
+              {`${malformedRows.toLocaleString()} ${malformedRows === 1 ? 'row' : 'rows'} carried a different number of fields than the header`}
+              {malformedSamples.length > 0 ? ` — ${describeMalformed(malformedSamples, dataset.multiTable)}` : ''}.{' '}
+              {nullsFromShortRows > 0
+                ? `${nullsFromShortRows.toLocaleString()} of the blanks counted above come from those rows rather than from empty cells. `
+                : ''}
+              A stray unquoted comma is the usual cause.
+            </Bullet>
+          )}
           <Bullet title="Flagged outliers">
-            {m.outliersCount.toLocaleString()}{' '}
-            rows sit more than 2.5 standard deviations from a numeric
-            column&apos;s mean. They are kept, marked, and shown in red in Explore — never silently deleted.
+            {outlierRows === null
+              ? `${m.outliersCount.toLocaleString()} values sit more than 2.5 standard deviations from their column's mean.`
+              : `${m.outliersCount.toLocaleString()} extreme values across ${outlierRows.toLocaleString()} ${
+                  outlierRows === 1 ? 'row' : 'rows'
+                } sit more than 2.5 standard deviations from their column's mean.`}
+            {outlierMethod === 'log-z' || outlierMethod === 'mixed'
+              ? ' The skewed columns among them are measured on a log scale, so the fence is not dragged outward by the very values it exists to catch.'
+              : ''}{' '}
+            They are kept, marked, and shown in red in Explore — never silently deleted.
           </Bullet>
         </ul>
       </section>
@@ -215,6 +266,19 @@ function listColumns(names) {
   const rest = names.length - shown.length;
   if (rest > 0) return `${shown.join(', ')} and ${rest} more`;
   return shown.length === 2 ? `${shown[0]} and ${shown[1]}` : shown[0];
+}
+
+// Name the first few offending rows. A count alone tells a reader something is
+// wrong; a row number tells them where to look, which is the whole point of
+// counting these apart from blanks.
+function describeMalformed(samples, multiTable) {
+  const shown = samples.slice(0, 3).map((s) => {
+    // The table only earns a mention when there is more than one of them.
+    const where = multiTable && s.table ? `${s.table} row ${s.row}` : `row ${s.row}`;
+    return `${where} has ${s.kind === 'TooManyFields' ? 'more' : 'fewer'} fields than the header`;
+  });
+  const rest = samples.length > shown.length ? `, and ${samples.length - shown.length} more` : '';
+  return shown.join('; ') + rest;
 }
 
 function Bullet({ title, children }) {

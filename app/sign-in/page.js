@@ -3,11 +3,11 @@
 /**
  * Sign in, or create an account, in two steps.
  *
- * Everything the app already does — uploading a spreadsheet, analysing it,
- * presenting it — still works signed out, entirely in the browser. An account
- * exists only to hold database connection credentials, and the page says so,
- * because a login wall in front of a tool that never needed one is the fastest
- * way to lose someone.
+ * This is the front door. `middleware.js` sends every signed-out visitor here,
+ * so uploading, analysing and presenting all sit behind it — the account came
+ * first and the data source second. The one exception is a deployment with no
+ * Supabase keys, where the middleware stands down and the whole app is open;
+ * that is why nothing here may assume a session exists.
  *
  * Step one takes the password; step two takes a code emailed to the address.
  * The step is driven by what the server returns, not by local optimism: the

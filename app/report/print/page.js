@@ -293,6 +293,19 @@ export default function PrintReport() {
               );
             })}
           </div>
+
+          {/* The PDF is the copy that leaves the building. A share of the top
+              ten rows must not read as a share of the business because the
+              caveat stayed behind on the dashboard. */}
+          {data.slideZero.caveats?.length > 0 && (
+            <ul className="border-t border-white/10 pt-6 space-y-2">
+              {data.slideZero.caveats.map((line, i) => (
+                <li key={i} className="text-white/45 text-base leading-relaxed">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 

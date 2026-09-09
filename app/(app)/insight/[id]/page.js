@@ -22,6 +22,7 @@ import LazyChart from '../../../../components/charts/LazyChart';
 import ChartBoundary from '../../../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../../../lib/dataCleaner';
 import ChartStudio from '../../../../components/panels/ChartStudio';
+import { EvidenceRow } from '../../../../components/panels/EvidenceBadge';
 import { formatSql } from '../../../../lib/sqlFormat';
 
 export default function InsightPage() {
@@ -172,12 +173,20 @@ export default function InsightPage() {
             {slide.custom ? ' · built by you' : ''}
             {slide.edits?.length > 0 ? ' · edited' : ''}
           </p>
+          {/* How far this finding may be pushed. The engine has always graded
+              it; this is the first page that says so. */}
+          <div className="mt-1.5">
+            <EvidenceRow
+              tier={slide.findings?.metrics?.evidence}
+              notes={slide.findings?.metrics?.evidenceNotes}
+            />
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
           >
             <ArrowLeft size={13} /> All findings
           </Link>
@@ -187,7 +196,7 @@ export default function InsightPage() {
             type="button"
             onClick={() => setEditing((v) => !v)}
             aria-expanded={editing}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+            className={`flex items-center gap-1.5 rounded-lg border min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 transition-colors ${
               editing
                 ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
                 : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
@@ -283,7 +292,7 @@ function Panes({ panes, open, onToggle }) {
               type="button"
               onClick={() => onToggle(pane.key)}
               aria-expanded={isOpen}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${
+              className={`flex items-center gap-1.5 rounded-lg min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] sm:min-h-0 transition-colors ${
                 isOpen ? 'bg-white/[0.07] text-white' : 'text-white/40 hover:bg-white/[0.04] hover:text-white/70'
               }`}
             >
@@ -297,7 +306,7 @@ function Panes({ panes, open, onToggle }) {
             type="button"
             onClick={() => onToggle(shown.key)}
             aria-label="Collapse"
-            className="ml-auto rounded-lg p-2 text-white/30 transition-colors hover:bg-white/5 hover:text-white/70"
+            className="ml-auto flex h-11 w-11 items-center justify-center rounded-lg text-white/30 transition-colors hover:bg-white/5 hover:text-white/70 sm:h-auto sm:w-auto sm:p-2"
           >
             <ChevronDown size={14} />
           </button>
@@ -327,7 +336,7 @@ function NavButton({ slide, dir }) {
   const Icon = dir === 'prev' ? ChevronLeft : ChevronRight;
   if (!slide) {
     return (
-      <span className="cursor-not-allowed rounded-lg border border-white/6 p-2 text-white/12">
+      <span className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-lg border border-white/6 text-white/12 sm:h-auto sm:w-auto sm:p-2">
         <Icon size={15} />
       </span>
     );
@@ -336,7 +345,7 @@ function NavButton({ slide, dir }) {
     <Link
       href={`/insight/${slide.id}`}
       aria-label={dir === 'prev' ? 'Previous finding' : 'Next finding'}
-      className="rounded-lg border border-white/10 p-2 text-white/50 transition-colors hover:bg-white/5 hover:text-white"
+      className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-colors hover:bg-white/5 hover:text-white sm:h-auto sm:w-auto sm:p-2"
     >
       <Icon size={15} />
     </Link>
