@@ -60,6 +60,21 @@ test('ids match across sheets even when Excel typed them differently', () => {
   assert.equal(joinKey(null), null);
 });
 
+test('two long ids that differ stay two keys', () => {
+  // Canonicalising through Number cost anything past fifteen digits its tail,
+  // so two distinct twenty-digit ids collapsed to one key and the join matched
+  // rows that have nothing to do with each other. The cleaner keeps ids that
+  // long as text for exactly this reason; the key has to keep them apart too.
+  assert.notEqual(joinKey('12345678901234567890'), joinKey('12345678901234567891'));
+  assert.equal(joinKey('12345678901234567890'), '12345678901234567890');
+  // The tolerances that made it worth canonicalising still hold.
+  assert.equal(joinKey('0001'), joinKey(1));
+  assert.equal(joinKey('00012345678901234567890'), joinKey('12345678901234567890'));
+  assert.equal(joinKey('0'), '0');
+  assert.equal(joinKey('-0'), '0');
+  assert.equal(joinKey('-42'), joinKey(-42));
+});
+
 test('name affinity ranks a real foreign key above a coincidence', () => {
   assert.ok(nameAffinity('customer_id', 'Customers', 'id') >= 0.9);
   assert.ok(nameAffinity('customer_id', 'Customers', 'customer_id') === 1);

@@ -19,6 +19,7 @@ import Papa from 'papaparse';
 import { ANALYZE, INGEST_FILES, INGEST_REMOTE } from '../../lib/progressSteps.js';
 import {
   createMetrics,
+  noteMalformedRow,
   sanitizeChunk,
   finalizeMetrics,
   describeSchema,
@@ -44,7 +45,7 @@ import {
   testRelationship as measureRelationship,
   manualRelationship,
 } from '../../lib/dataModel.js';
-import { readWorkbook, isWorkbookFile } from '../../lib/workbook.js';
+import { readWorkbook, isWorkbookFile, sqlSafeName } from '../../lib/workbook.js';
 import { idbDel, KEYS } from '../../lib/store/idb.js';
 
 /**
@@ -268,8 +269,62 @@ function buildTable({ name, sheetName, sourceFile, columns, rows }) {
   };
 }
 
+/**
+ * Why a file could not be parsed at all, in a sentence that names it.
+ *
+ * The landing page shows this string in its red box, and it used to be whatever
+ * Papa said — "Unable to auto-detect delimiting character" on its own, with no
+ * hint of which of four dropped files it was about. The library text is kept,
+ * because it is the specific half, but it is now the parenthetical.
+ */
+export function parseFailureMessage(fileName, err) {
+  const detail = err?.message ? ` (${err.message})` : '';
+  return `${fileName} could not be read as a CSV. Check that it is a delimited text file and that its rows all have the same number of columns.${detail}`;
+}
+
+/**
+ * Rows Papa could not fit to the header, recorded against the metrics.
+ *
+ * Two independent traces of the same fault, deduplicated by row so a row is
+ * counted once: the FieldMismatch errors, and — for a row with more fields than
+ * the header — the `__parsed_extra` key Papa parks the overflow under. The
+ * second is what stops those values disappearing without a count if the error
+ * channel ever goes quiet, since `sanitizeChunk` iterates the header's columns
+ * and never looks at them.
+ *
+ * `err.row` is the absolute 0-based data row: Papa's row counter lives on the
+ * ParserHandle, and there is one handle per stream rather than one per chunk.
+ * `chunkStart` is passed anyway so a row number that arrived chunk-relative
+ * still lands in the right chunk instead of at the top of the file — a row
+ * number that is wrong is worse than no row number at all.
+ */
+function recordMalformed(results, metrics, chunkStart) {
+  const kinds = new Map();
+
+  for (const err of results.errors || []) {
+    if (err.type !== 'FieldMismatch') continue;
+    if (err.code !== 'TooManyFields' && err.code !== 'TooFewFields') continue;
+    const index = typeof err.row === 'number' ? err.row : null;
+    if (index === null) continue;
+    kinds.set(index >= chunkStart ? index : chunkStart + index, err.code);
+  }
+
+  for (let i = 0; i < results.data.length; i++) {
+    if (!results.data[i]?.__parsed_extra) continue;
+    if (!kinds.has(chunkStart + i)) kinds.set(chunkStart + i, 'TooManyFields');
+  }
+
+  // Ascending, so the samples the user is shown are the first faults in the
+  // file rather than whichever order the two traces happened to be read in.
+  for (const index of [...kinds.keys()].sort((a, b) => a - b)) {
+    // Reported 1-based and counting data rows, which is what the header row and
+    // any skipped blank lines make the only number this can honestly give.
+    noteMalformedRow(metrics, index + 1, kinds.get(index));
+  }
+}
+
 /** Stream one CSV/TSV file or text blob into a cleaned table. */
-function parseDelimited(source, { fileName, totalBytes = 0, onProgress }) {
+export function parseDelimited(source, { fileName, totalBytes = 0, onProgress, chunkSize } = {}) {
   return new Promise((resolve, reject) => {
     let columns = null;
     let metrics = null;
@@ -278,9 +333,15 @@ function parseDelimited(source, { fileName, totalBytes = 0, onProgress }) {
 
     Papa.parse(source, {
       header: true,
+      // An apostrophe or a bracket in a header has no escape in alasql, so a
+      // column called `Client's Name` made every generated query over it fail
+      // and the deck came back empty with nothing on screen to say why. Papa
+      // renames the row keys along with the header, so nothing downstream ever
+      // sees the raw form.
+      transformHeader: sqlSafeName,
       skipEmptyLines: 'greedy',
       dynamicTyping: false,
-      chunkSize: 1024 * 512,
+      chunkSize: chunkSize || 1024 * 512,
       chunk: (results, parser) => {
         if (!columns) {
           columns = (results.meta.fields || []).filter((f) => f && f.trim() !== '');
@@ -291,6 +352,7 @@ function parseDelimited(source, { fileName, totalBytes = 0, onProgress }) {
           }
           metrics = createMetrics(columns, 0);
         }
+        recordMalformed(results, metrics, rawRows);
         rawRows += results.data.length;
         sanitizeChunk(results.data, columns, metrics, cleaned);
         onProgress?.(totalBytes ? Math.min(1, results.meta.cursor / totalBytes) : 0.5, rawRows);
@@ -305,7 +367,7 @@ function parseDelimited(source, { fileName, totalBytes = 0, onProgress }) {
         finalizeMetrics(cleaned, columns, metrics);
         resolve({ columns, rows: cleaned, metrics });
       },
-      error: (err) => reject(new Error(err?.message || `Failed to parse ${fileName}`)),
+      error: (err) => reject(new Error(parseFailureMessage(fileName, err))),
     });
   });
 }
@@ -552,15 +614,21 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
  * Workbook-wide cleaning totals, plus per-column stats keyed by the *view's*
  * column names so the Explore and Quality pages can look them up directly.
  */
-function rollUpMetrics(tables, view) {
+export function rollUpMetrics(tables, view) {
   const out = {
     totalRows: 0,
     droppedRows: 0,
     anomalies: 0,
     redactedPII: 0,
     nullsFound: 0,
+    // A count carried up wrong is a count the user never sees. These three are
+    // the ones /quality reports as sentences rather than as a score.
+    nullsFromShortRows: 0,
+    malformedRows: 0,
+    malformedSamples: [],
     typesCoerced: 0,
     outliersCount: 0,
+    outlierRows: 0,
     totalAnomalies: 0,
     totalCells: 0,
     cleanRows: view.rows.length,
@@ -578,10 +646,20 @@ function rollUpMetrics(tables, view) {
     out.anomalies += m.anomalies || 0;
     out.redactedPII += m.redactedPII || 0;
     out.nullsFound += m.nullsFound || 0;
+    out.nullsFromShortRows += m.nullsFromShortRows || 0;
+    out.malformedRows += m.malformedRows || 0;
     out.typesCoerced += m.typesCoerced || 0;
     out.outliersCount += m.outliersCount || 0;
+    // Summed like every other counter, which is exact for the single-table case
+    // and an upper bound once a join has fanned rows out.
+    out.outlierRows += m.outlierRows || 0;
     out.totalAnomalies += m.totalAnomalies || 0;
     out.totalCells += m.totalCells || 0;
+    // Which table a row number belongs to matters as soon as there is more than
+    // one of them; "row 41" alone would name four different rows.
+    for (const s of m.malformedSamples || []) {
+      if (out.malformedSamples.length < 10) out.malformedSamples.push({ ...s, table: name });
+    }
   }
   for (const col of view.columns) {
     const p = view.provenance[col];
@@ -593,6 +671,14 @@ function rollUpMetrics(tables, view) {
     if (stat.commaConvention === 'decimal') out.decimalCommaColumns.push(col);
     else if (stat.commaConvention === 'mixed') out.ambiguousCommaColumns.push(col);
   }
+
+  // Which outlier fence the view's own columns were measured with, so /quality
+  // can name it rather than leaving the number unexplained.
+  const methods = new Set(
+    Object.values(out.columnStats).map((s) => s.outlierMethod).filter(Boolean)
+  );
+  out.outlierMethod = methods.size === 1 ? [...methods][0] : methods.size ? 'mixed' : null;
+
   return out;
 }
 

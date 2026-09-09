@@ -61,13 +61,69 @@ test('blank rows inside the body are dropped and counted', () => {
 });
 
 test('Excel dates are flattened to ISO strings', () => {
+  // SheetJS builds its Date objects from the cell's own calendar reading, in
+  // local time — this is the shape `gridToRows` actually receives.
   const grid = [
     ['Day', 'Value'],
-    [new Date(Date.UTC(2026, 0, 15)), 10],
+    [new Date(2026, 0, 15), 10],
   ];
   const { rows } = gridToRows(grid);
   assert.equal(typeof rows[0].Day, 'string');
   assert.match(rows[0].Day, /^2026-01-15T/);
+});
+
+test('an Excel date keeps its calendar day wherever the browser is', () => {
+  // The bug: `.toISOString()` on a local-midnight Date shifts the day west, so
+  // in India every date in every uploaded workbook came out one day early and
+  // every daily and monthly grouping was built on the wrong day.
+  const before = process.env.TZ;
+  try {
+    for (const tz of ['UTC', 'Asia/Kolkata', 'Pacific/Auckland', 'America/Los_Angeles']) {
+      process.env.TZ = tz;
+      const { rows } = gridToRows([
+        ['Day', 'Value'],
+        [new Date(2025, 1, 14), 10],
+        [new Date(2025, 1, 14, 9, 30), 20],
+      ]);
+      assert.equal(rows[0].Day, '2025-02-14T00:00:00.000Z', `date wrong in ${tz}`);
+      assert.equal(rows[1].Day, '2025-02-14T09:30:00.000Z', `time wrong in ${tz}`);
+    }
+  } finally {
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
+});
+
+test('a real workbook date survives the round trip on the right day', () => {
+  const before = process.env.TZ;
+  try {
+    process.env.TZ = 'Asia/Kolkata';
+    const ws = XLSX.utils.aoa_to_sheet([['Day', 'Value'], [null, 10]]);
+    ws.A2 = { t: 'n', v: 45702, z: 'yyyy-mm-dd' }; // Excel serial for 2025-02-14
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'S');
+    const { sheets } = readWorkbook(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }), {
+      fileName: 'd.xlsx',
+    });
+    assert.match(sheets[0].rows[0].Day, /^2025-02-14T/);
+  } finally {
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
+});
+
+test('a header a query cannot name is renamed to one it can', () => {
+  // AlaSQL has no escape for an apostrophe inside an identifier — not [x''y],
+  // not `x\'y`, nothing — and a `]` closes a bracketed name early. A column
+  // called "Client's Name" or "Price [USD]" therefore made every generated
+  // query over it a parse error, and the chart came back silently empty.
+  const names = headerNames(["Client's Name", 'Price [USD]', 'a`b', 'Plain (USD)']);
+  assert.deepEqual(names, ['Client’s Name', 'Price (USD)', 'a’b', 'Plain (USD)']);
+  for (const name of names) assert.ok(!/['`\][]/.test(name), `${name} still breaks alasql`);
+});
+
+test('renaming a header still leaves every column name distinct', () => {
+  assert.deepEqual(headerNames(["Client's", 'Client’s']), ['Client’s', 'Client’s_2']);
 });
 
 test('spillover columns to the right of the header are ignored', () => {

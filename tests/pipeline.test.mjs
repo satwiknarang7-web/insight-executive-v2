@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeChart, analyzeStoryboard } from '../lib/insightEngine.js';
-import { enforceChartDiversity, executeCharts, mountTable, runAnalysis, unmountTable } from '../lib/pipeline.js';
+import { enforceChartDiversity, executeCharts, mountTable, runAnalysis, runSql, unmountTable } from '../lib/pipeline.js';
 
 // A histogram: the x labels are value ranges, not named segments.
 const histogram = {
@@ -261,4 +261,54 @@ test('a deck that already has several shapes is left alone', () => {
     out.map((c) => c.chart_type),
     varied.map((c) => c.chart_type)
   );
+});
+
+// ---------------------------------------------------------------------------
+// Rewriting the view name must not reach inside quoted text
+// ---------------------------------------------------------------------------
+
+test('the view-name rewrite leaves string literals alone', () => {
+  // `SalesData` was replaced wherever it appeared, quotes included, so a filter
+  // comparing against that text silently matched nothing and a selected literal
+  // came back as "[SalesData]".
+  mountTable([{ note: 'SalesData', v: 1 }, { note: 'other', v: 2 }]);
+  try {
+    assert.deepEqual(runSql("SELECT v FROM SalesData WHERE note = 'SalesData'"), [{ v: 1 }]);
+    assert.deepEqual(runSql("SELECT 'SalesData' AS s FROM SalesData LIMIT 1"), [{ s: 'SalesData' }]);
+    // The rewrite itself still happens outside the quotes.
+    assert.deepEqual(runSql('SELECT COUNT(*) AS n FROM salesdata'), [{ n: 2 }]);
+  } finally {
+    unmountTable();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Self-healing a broken query
+// ---------------------------------------------------------------------------
+
+test('a chart still heals when the first row happens to be empty', () => {
+  // The fallback read its column types out of `rows[0]` alone. One null in the
+  // first record — an optional field, which is what optional fields do — and it
+  // found no category and no measure, so a query that returned nothing usable
+  // was left exactly as it was and the slide rendered the raw rows.
+  const rows = Array.from({ length: 60 }, (_, i) => ({
+    Region: i === 0 ? null : ['North', 'South', 'East', 'West'][i % 4],
+    Revenue: i === 0 ? null : 100 + (i % 17) * 7,
+  }));
+  mountTable(rows);
+  try {
+    const [healed] = executeCharts(
+      [{ id: 'a', title: 'Broken', chart_type: 'bar', sql: 'SELECT [Nope] FROM SalesData', xAxisKey: 'Nope', yAxisKey: 'Nope' }],
+      rows
+    );
+    assert.ok(healed.healed, 'the chart was rebuilt');
+    assert.equal(healed.xAxisKey, 'Region');
+    // Four regions plus the row whose region was blank.
+    assert.equal(healed.resultData.length, 5);
+    const named = healed.resultData.filter((r) => r.Region !== null);
+    assert.equal(named.length, 4);
+    assert.ok(named.every((r) => typeof r.Average === 'number'));
+  } finally {
+    unmountTable();
+  }
 });
