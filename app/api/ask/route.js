@@ -1,4 +1,4 @@
-import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
+import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { assertEngineSelect, UnsafeQuery } from '../../../lib/engineSql';
 
@@ -72,9 +72,12 @@ function validate(spec) {
 
 export async function POST(request) {
   try {
-    if (!hasAnyProvider()) {
+    // The viewer's own key counts as a provider, so a deployment configured
+    // with none of its own still answers for anyone who brought one.
+    if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
+    const geminiKey = callerGeminiKey(request);
 
     const refused = await enforceLimit(request, 'ask');
     if (refused) return refused;
@@ -84,7 +87,7 @@ export async function POST(request) {
       return Response.json({ error: 'question and schema are required' }, { status: 400 });
     }
 
-    const spec = await generateJson(`QUESTION: ${question}\n\nReturn the chart specification as JSON.`, SYSTEM(schema));
+    const spec = await generateJson(`QUESTION: ${question}\n\nReturn the chart specification as JSON.`, SYSTEM(schema), { geminiKey });
     if (!spec) return Response.json({ unavailable: true, reason: 'generation_failed' });
 
     const checked = validate(spec);

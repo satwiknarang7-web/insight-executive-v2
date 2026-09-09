@@ -1,4 +1,4 @@
-import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
+import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { validateExpression } from '../../../lib/measures';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 
@@ -65,9 +65,12 @@ const FORMATS = new Set(['number', 'currency', 'percent']);
 
 export async function POST(request) {
   try {
-    if (!hasAnyProvider()) {
+    // The viewer's own key counts as a provider, so a deployment configured
+    // with none of its own still answers for anyone who brought one.
+    if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
+    const geminiKey = callerGeminiKey(request);
 
     const refused = await enforceLimit(request, 'measure');
     if (refused) return refused;
@@ -83,7 +86,8 @@ export async function POST(request) {
 
     const spec = await generateJson(
       `REQUEST: ${question}\n\nReturn the measure definition as JSON.`,
-      SYSTEM(schema, known)
+      SYSTEM(schema, known),
+      { geminiKey }
     );
     if (!spec || typeof spec.expr !== 'string') {
       return Response.json({ unavailable: true, reason: 'generation_failed' });

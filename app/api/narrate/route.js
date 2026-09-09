@@ -1,4 +1,4 @@
-import { generateJson, hasAnyProvider } from '../../../lib/llm.server';
+import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 
 export const runtime = 'nodejs';
@@ -153,9 +153,12 @@ commentary before or after.
 
 export async function POST(request) {
   try {
-    if (!hasAnyProvider()) {
+    // The viewer's own key counts as a provider, so a deployment configured
+    // with none of its own still answers for anyone who brought one.
+    if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
+    const geminiKey = callerGeminiKey(request);
 
     const refused = await enforceLimit(request, 'narrate');
     if (refused) return refused;
@@ -187,7 +190,7 @@ Constraints you will be checked against:
 8. At least one takeaway comes from the synthesis 'connections' list when that
    list is not empty, and no two takeaways draw the same consequence.`;
 
-    const result = await generateJson(prompt, SYSTEM(findings, synthesis, focus));
+    const result = await generateJson(prompt, SYSTEM(findings, synthesis, focus), { geminiKey });
 
     if (!result || !Array.isArray(result.storyboard)) {
       return Response.json({ unavailable: true, reason: 'generation_failed' });

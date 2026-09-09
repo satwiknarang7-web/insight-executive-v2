@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { modelHeaders } from '../../../lib/geminiKey';
 import { Send, Loader2, Sparkles, Code2, ChevronRight, Terminal, Info, ShieldCheck } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
@@ -125,7 +126,7 @@ export default function AskPage() {
         try {
           const res = await fetch('/api/ask', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: modelHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ question: q, schema: dataset.schema }),
           });
           const json = await res.json();

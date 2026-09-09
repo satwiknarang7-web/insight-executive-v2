@@ -26,6 +26,7 @@ import ProgressPanel from '../components/panels/ProgressPanel';
 import { SAMPLES } from '../lib/samples';
 import { availableConnectors } from '../lib/connectors/registry';
 import ConnectSource from '../components/panels/ConnectSource';
+import GeminiKeyPanel from '../components/panels/GeminiKeyPanel';
 
 const FEATURES = [
   {
@@ -478,6 +479,17 @@ export default function LandingPage() {
                 </div>
               </>
             )}
+
+            {/*
+              * Outside the fragment above, so it is on the page in both states.
+              *
+              * That fragment is the empty state — drop zone and samples — and a
+              * key is just as worth connecting once a file is loaded, which is
+              * exactly when someone is about to press Analyse and find out what
+              * the writing reads like. It sits below the upload rather than
+              * above it because uploading is the task and this is a setting.
+              */}
+            <GeminiKeyPanel />
 
             {error && (
               <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 p-4">
