@@ -3,6 +3,7 @@ import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import { formatNumber as yAxisFormatter, formatAxisLabel } from '../../lib/format';
 import { xAxisGeometry, yAxisGeometry, chartMargin, prettyLabel, legendProps } from './axis';
 import { usePalette, useSeriesColor } from './palette';
+import { isAdditiveMeasure } from '../../lib/insightEngine';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -38,7 +39,8 @@ export default function AreaChart({
   // Set when the tile is too short for a full axis; see xAxisGeometry.
   dense = false,
   // Split by a legend the areas stack, because the thing worth reading off a
-  // split area chart is the total and how its mix changes underneath.
+  // split area chart is the total and how its mix changes underneath — but
+  // only where a total means anything. See `stack` below.
   seriesKeys = null,
 }) {
   // Palette for this chart: a per-slide override, or the default.
@@ -52,6 +54,14 @@ export default function AreaChart({
 
   const x = xAxisGeometry(data, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) });
   const split = Array.isArray(seriesKeys) && seriesKeys.length > 0;
+  // Stacking is addition drawn on a screen, so it is only legitimate when the
+  // measure adds up. "Average Price by Month, split by Region" stacked four
+  // averages into a band whose height is a quantity that does not exist — the
+  // same mistake `pipeline.enforceChartDiversity` already refuses to make when
+  // it gates share charts on `isAdditiveMeasure`. A non-additive split is drawn
+  // as overlapping bands instead, which compares the series without inventing
+  // a total.
+  const stack = split && isAdditiveMeasure(yKey);
   const y = yAxisGeometry(data, split ? seriesKeys : yKey, {
     compact,
     dense,
@@ -96,11 +106,11 @@ export default function AreaChart({
               type="monotone"
               dataKey={key}
               name={key}
-              stackId="series"
+              stackId={stack ? 'series' : undefined}
               stroke={seriesColor(index)}
               strokeWidth={2}
               fill={seriesColor(index)}
-              fillOpacity={0.35}
+              fillOpacity={stack ? 0.35 : 0.18}
               dot={false}
               animationDuration={450}
             />

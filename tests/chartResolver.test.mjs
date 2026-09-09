@@ -178,3 +178,54 @@ test('a genuinely mixed column stays a category', () => {
   assert.ok(!p.measures.includes('size'));
   assert.ok(p.dimensions.includes('size'));
 });
+
+test('a single row is a bar, whatever was asked for', () => {
+  // One group came back — a filtered query, or a GROUP BY where only one level
+  // survived. A waterfall and a funnel have always refused this shape; the rest
+  // did not, so a line drew an empty frame with nothing to join, and a donut
+  // drew a filled circle claiming 100% of a whole the query never returned.
+  const one = [{ Region: 'North', Revenue: 4200 }];
+  for (const requested of ['line', 'area', 'donut', 'pie', 'treemap', 'radial']) {
+    assert.equal(
+      resolveChart(one, { type: requested, xKey: 'Region', yKey: 'Revenue' }).type,
+      'bar',
+      `${requested} of one row`
+    );
+  }
+
+  // Two is enough for all of them again.
+  const two = [...one, { Region: 'South', Revenue: 3100 }];
+  for (const requested of ['line', 'area', 'donut', 'pie', 'treemap', 'radial']) {
+    assert.equal(
+      resolveChart(two, { type: requested, xKey: 'Region', yKey: 'Revenue' }).type,
+      requested,
+      `${requested} of two rows`
+    );
+  }
+});
+
+test('a one-row result never falls back to a share chart either', () => {
+  // The scatter and radar fallbacks reach for a donut when the row count is
+  // small, which on one row is the same empty claim by another route.
+  const one = [{ Region: 'North', Revenue: 4200 }];
+  assert.equal(resolveChart(one, { type: 'scatter' }).type, 'bar');
+  assert.equal(resolveChart(one, { type: 'radar' }).type, 'bar');
+});
+
+test('a result with no numbers in it is shown as a table, not an empty axis', () => {
+  // A measure that is null in every row profiles as a category, so the result
+  // has names and nothing to draw a height from. A bar chart of it is an axis
+  // with no bars; the rows themselves are at least the truth.
+  const nulls = [
+    { Region: 'North', Revenue: null },
+    { Region: 'South', Revenue: null },
+    { Region: 'East', Revenue: null },
+  ];
+  assert.equal(resolveChart(nulls, { type: 'bar', xKey: 'Region', yKey: 'Revenue' }).type, 'table');
+  assert.equal(resolveChart(nulls, { type: 'donut' }).type, 'table');
+  assert.equal(resolveChart(nulls, { type: 'auto' }).type, 'table');
+
+  // One real number is enough to draw one.
+  const some = [...nulls.slice(0, 2), { Region: 'East', Revenue: 12 }];
+  assert.equal(resolveChart(some, { type: 'bar', xKey: 'Region', yKey: 'Revenue' }).type, 'bar');
+});

@@ -484,3 +484,80 @@ test('scoring a large file stays bounded by the signal sample', () => {
   assert.ok(charts.length > 0);
   assert.ok(Date.now() - started < 10_000, 'planning does not scale with row count');
 });
+
+test('the time axis is charted as a trend, never as a ranking of periods', () => {
+  // Revenue falls month on month, so a chart grouped by month scores well on
+  // any statistic that notices — including the ones that answer a question
+  // about categories. The playbook offered the twelve months to the ranking and
+  // averaging families alongside every real category, and a declining year came
+  // out with the trend on slide one and "Average Revenue by Month" further
+  // down: the same twelve periods, ordered by size, drawn as horizontal bars.
+  // The builder's own ORDER BY comment says why that is not a chart of time.
+  let seed = 5;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const rows = [];
+  for (let m = 1; m <= 12; m++) {
+    for (let i = 0; i < 40; i++) {
+      rows.push({
+        month: `2024-${String(m).padStart(2, '0')}`,
+        category: ['Electronics', 'Home', 'Toys', 'Garden'][i % 4],
+        revenue: (100 + rnd() * 20) * (1 - (m - 1) * 0.06),
+      });
+    }
+  }
+
+  const charts = planCharts(rows, { max: 7 });
+  const overTime = charts.filter((c) => (c.dimension || c.xAxisKey) === 'month');
+  assert.ok(overTime.length >= 1, 'the time column is still charted');
+  for (const c of overTime) {
+    assert.ok(
+      ['line', 'area', 'waterfall'].includes(c.chart_type),
+      `${c.title} drew the periods as a ${c.chart_type}`
+    );
+    assert.ok(
+      /order by \[month\] asc/i.test(c.sql),
+      `${c.title} ordered the periods by something other than the axis: ${c.sql}`
+    );
+  }
+});
+
+test('evidence overturns the playbook, and only by two tiers', () => {
+  // The README's claim about the scoring weight, in the only terms that can be
+  // checked from outside: a trend outranks a ranking in the playbook, and the
+  // data can reverse that — but only when the trend has genuinely nothing to
+  // say. The same file with the growth taken out is the whole test.
+  const build = (growth) => {
+    let seed = 21;
+    const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+    const rows = [];
+    for (let m = 1; m <= 18; m++) {
+      for (let i = 0; i < 60; i++) {
+        // One supplier holds nearly the whole total: the most lopsided mix a
+        // ranking can be scored on.
+        const lead = i % 30 === 0;
+        const year = 2024 + Math.floor((m - 1) / 12);
+        rows.push({
+          order_date: `${year}-${String(((m - 1) % 12) + 1).padStart(2, '0')}-15`,
+          supplier: lead ? 'Acme' : `Supplier ${i % 6}`,
+          total_revenue: Math.round((lead ? 6000 : 20) * (1 + (m - 1) * growth) * (0.95 + rnd() * 0.1)),
+        });
+      }
+    }
+    return rows;
+  };
+
+  const leadOf = (charts) => charts[0];
+  const rising = planCharts(build(0.09), { max: 7 });
+  const flat = planCharts(build(0), { max: 7 });
+
+  assert.equal(leadOf(rising).chart_type, 'area', 'a real trend is not displaced by a lopsided mix');
+  const risingRank = rising.find((c) => (c.dimension || c.xAxisKey) === 'supplier');
+  assert.ok(risingRank, 'and the lopsided mix is still on the deck');
+  assert.ok(risingRank.signalScore > 0.8, 'scoring at nearly the top of its own statistic');
+
+  // Take the movement out and the same ranking leads: the prior is a prior.
+  assert.equal(leadOf(flat).dimension, 'supplier');
+  const flatTrend = flat.find((c) => c.chart_type === 'area' || c.chart_type === 'line');
+  assert.ok(flatTrend, 'a flat year still earns its one slide');
+  assert.equal(flatTrend.signalScore, 0, 'it just no longer opens the deck');
+});

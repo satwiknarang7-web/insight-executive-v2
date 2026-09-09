@@ -181,3 +181,57 @@ test('a correlation preview groups first, the way the query will', () => {
   assert.deepEqual(xs, [20, 50]);
   assert.deepEqual(ys, [200, 500]);
 });
+
+// ---------------------------------------------------------------------------
+// Degenerate shapes the statistics have to refuse
+// ---------------------------------------------------------------------------
+
+test('eta squared is not 1 just because every group holds one row', () => {
+  // Twenty-five products, one order each. The split explains the measure
+  // perfectly by construction — there is nothing left inside a group to
+  // explain — and the raw ratio reported 1.0, the top score in the deck, for
+  // a chart that is the raw values with a category name written under them.
+  let seed = 7;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const singletons = Array.from({ length: 25 }, (_, i) => ({
+    label: `P${i}`,
+    values: [rnd() * 100],
+  }));
+  assert.equal(varianceExplained(singletons), 0, 'one row a group is not evidence');
+
+  // Two rows a group, still noise: the correction has to survive past the
+  // point where the arithmetic is merely undefined.
+  const pairs = Array.from({ length: 12 }, (_, i) => ({
+    label: `P${i}`,
+    values: [rnd() * 100, rnd() * 100],
+  }));
+  assert.ok(varianceExplained(pairs) < 0.35, `noise in pairs scored ${varianceExplained(pairs)}`);
+
+  // And a real difference measured on real groups is left where it was.
+  const real = Array.from({ length: 4 }, (_, g) => ({
+    label: `G${g}`,
+    values: Array.from({ length: 40 }, () => g * 100 + rnd() * 10),
+  }));
+  assert.ok(varianceExplained(real) > 0.98, 'the correction is negligible on real groups');
+});
+
+test('a finer split does not explain more just by being finer', () => {
+  // The measure depends on `a` alone; `b` is independent. Crossing the two
+  // makes twenty cells out of four, and the raw ratio always rises when the
+  // cells get smaller — which is what a cross-tab signal reads as an
+  // interaction that is not there.
+  let seed = 99;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const noise = () => (rnd() + rnd() + rnd() + rnd() - 2) * 12;
+  const A = ['a1', 'a2', 'a3', 'a4'];
+  const B = ['b1', 'b2', 'b3', 'b4', 'b5'];
+  const rows = [];
+  for (let i = 0; i < 60; i++) {
+    rows.push({ a: A[i % 4], b: B[i % 5], m: A.indexOf(A[i % 4]) * 10 + noise() });
+  }
+  const cells = rows.map((r) => ({ ...r, pair: `${r.a}\u0000${r.b}` }));
+
+  const bySingle = varianceExplained(groupAggregate(rows, 'a', 'm', 'AVG').groups);
+  const byPair = varianceExplained(groupAggregate(cells, 'pair', 'm', 'AVG').groups);
+  assert.ok(byPair <= bySingle, `the pair added ${(byPair - bySingle).toFixed(3)} out of nothing`);
+});
