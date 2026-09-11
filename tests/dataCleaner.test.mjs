@@ -11,6 +11,7 @@ import {
   cleanFloatingPoints,
   noteMalformedRow,
   describeSchema,
+  negativesAreNotable,
 } from '../lib/dataCleaner.js';
 
 const clean = (rows) => sanitizeDataset(rows).cleanedData;
@@ -612,4 +613,53 @@ test('anything punctuated like a phone number is still redacted', () => {
   assert.equal(clean([{ Contact: '(555) 123-4567' }])[0].Contact, '[REDACTED_PHONE]');
   assert.equal(clean([{ Contact: '555-123-4567' }])[0].Contact, '[REDACTED_PHONE]');
   assert.equal(clean([{ Contact: '555.123.4567' }])[0].Contact, '[REDACTED_PHONE]');
+});
+
+// ---------------------------------------------------------------------------
+// A quantity that goes below zero
+// ---------------------------------------------------------------------------
+
+test('negatives are counted on every numeric column, without judging any', () => {
+  // The cleaner records the fact; whether it is worth telling anyone is a
+  // question about the column's name, asked elsewhere.
+  const rows = Array.from({ length: 40 }, (_, i) => ({
+    Total_Amount: i === 7 ? -21.56 : 100 + i,
+    Avg_Temp: i % 2 ? -4 : 12,
+  }));
+  const { metrics } = sanitizeDataset(rows);
+  assert.equal(metrics.columnStats.Total_Amount.negativeCount, 1);
+  assert.equal(metrics.columnStats.Total_Amount.negativeMin, -21.56);
+  assert.equal(metrics.columnStats.Avg_Temp.negativeCount, 20, 'recorded, not suppressed');
+});
+
+test('a quantity column is notable, a signed one is not', () => {
+  // A negative temperature, balance or delta is ordinary. A negative order
+  // total is worth a sentence even when it turns out to be legitimate.
+  for (const col of ['Total_Amount', 'Coupon_Discount', 'Quantity', 'Weight_kg', 'Unit_Price']) {
+    assert.equal(negativesAreNotable(col), true, col);
+  }
+  for (const col of ['Avg_Temp', 'Net_Change', 'Profit', 'Balance', 'Rating', 'Refund_Amount']) {
+    assert.equal(negativesAreNotable(col), false, col);
+  }
+});
+
+test('a column with no negatives records none', () => {
+  const rows = Array.from({ length: 30 }, (_, i) => ({ Total_Amount: 10 + i }));
+  const { metrics } = sanitizeDataset(rows);
+  assert.equal(metrics.columnStats.Total_Amount.negativeCount, 0);
+  assert.equal(metrics.columnStats.Total_Amount.negativeMin, null);
+});
+
+test('negative rows survive cleaning untouched', () => {
+  // They reconciled exactly against value + shipping - discount on the export
+  // that prompted this, so they are real orders. Deleting or zeroing them would
+  // be the cleaner deciding what the business meant.
+  const rows = Array.from({ length: 30 }, (_, i) => ({
+    Order_ID: `O${i}`,
+    Total_Amount: i === 3 ? -21.56 : 50 + i,
+  }));
+  const { cleanedData, metrics } = sanitizeDataset(rows);
+  assert.equal(cleanedData.length, 30, 'nothing is dropped');
+  assert.equal(cleanedData[3].Total_Amount, -21.56, 'and nothing is rewritten');
+  assert.equal(metrics.columnStats.Total_Amount.type, 'number');
 });

@@ -36,6 +36,7 @@ import {
 import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
+import { negativesAreNotable } from '../../lib/dataCleaner.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import {
@@ -247,6 +248,48 @@ function noteExcludedMeasures() {
       `${withheld.length === 1 ? 'It ' : 'The first '}${first.why}. ` +
       'Charts fall back to record counts, which are correct either way.',
   });
+}
+
+/**
+ * Say when a quantity column holds values below zero.
+ *
+ * The cleaner records the count for every numeric column; this decides which of
+ * them a reader needs told about. On a 250,000-row order export, five rows had
+ * a total below zero — a flat 100 coupon against an order of 26 plus shipping,
+ * arithmetically exact and entirely real. Nothing said so, and the only trace
+ * was the distribution opening with a band labelled "-22-41.1K", which reads as
+ * a typo rather than as the five rows it actually was.
+ *
+ * Stated, not corrected. The rows are valid and deleting or zeroing them would
+ * be the cleaner deciding what the business meant.
+ */
+function noteNegativeAmounts() {
+  if (!state) return;
+  const stats = state.metrics?.columnStats || {};
+  const found = Object.entries(stats)
+    .filter(([col, stat]) => stat?.negativeCount > 0 && negativesAreNotable(col))
+    .sort((a, b) => b[1].negativeCount - a[1].negativeCount);
+  if (found.length === 0) return;
+
+  for (const [col, stat] of found.slice(0, 3)) {
+    const rows = stat.negativeCount;
+    const share = state.view.rows.length
+      ? (rows / state.view.rows.length) * 100
+      : 0;
+    state.notices.push({
+      kind: 'negative-values',
+      column: col,
+      message:
+        `${rows.toLocaleString()} ${rows === 1 ? 'value' : 'values'} in ${col} ` +
+        `${rows === 1 ? 'is' : 'are'} below zero` +
+        (stat.negativeMin !== null && stat.negativeMin !== undefined
+          ? `, the lowest ${Number(stat.negativeMin).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+          : '') +
+        ` — ${share < 0.01 ? 'under 0.01' : share.toFixed(2)}% of rows. They are left as they are, ` +
+        'but a quantity that can fall below zero changes what a total means, and it sets the ' +
+        'lowest band on any distribution drawn from this column.',
+    });
+  }
 }
 
 /** Column profile with the extra display facts the Explore page needs. */
@@ -588,6 +631,7 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
   };
 
   noteExcludedMeasures();
+  noteNegativeAmounts();
   invalidateSearchIndex();
 
   progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
@@ -667,6 +711,7 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
   };
 
   noteExcludedMeasures();
+  noteNegativeAmounts();
   invalidateSearchIndex();
 
   progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
