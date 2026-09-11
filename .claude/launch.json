@@ -10,6 +10,16 @@
       ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "insight-noauth",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:noauth"
+      ],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

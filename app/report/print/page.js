@@ -416,9 +416,15 @@ export default function PrintReport() {
                       'Every figure on this page was computed from your rows by the query shown beside it.'}
                   </p>
                 </div>
-                <div className="flex flex-col gap-1 text-[8px] font-black uppercase tracking-[0.35em] text-white/10 italic">
-                  <span>SQL Verified</span>
-                </div>
+                {/*
+                  * The "SQL Verified" badge that used to sit here is gone
+                  * rather than clipped. The evidence panel above is taller than
+                  * the one italic line it replaced, so the badge was being cut
+                  * off by this column's overflow — and it was saying the same
+                  * thing twice: the panel already states that every figure came
+                  * from the query printed beside it, and the query itself is on
+                  * the page under "Verified metrics".
+                  */}
               </div>
             </div>
           </div>

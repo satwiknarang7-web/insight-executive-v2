@@ -4,6 +4,7 @@
   "description": "Automated, verifiable data analysis for CSV files — runs entirely in the browser.",
   "scripts": {
     "dev": "next dev --turbo",
+    "dev:noauth": "node scripts/dev-noauth.mjs",
     "build": "next build",
     "start": "next start",
     "test": "node --test \"tests/*.test.mjs\"",
