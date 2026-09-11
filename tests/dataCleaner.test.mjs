@@ -567,3 +567,49 @@ test('a symmetric column keeps the plain standard-deviation fence', () => {
   assert.equal(metrics.columnStats.score.outlierMethod, 'z');
   assert.equal(metrics.outlierRows, 1);
 });
+
+test('a decimal measure is not redacted as a phone number', () => {
+  // The ten-digit guard tested for exactly ten BARE digits, so it protected
+  // 9876543210 and missed 9876543210.5 — the same magnitude with a decimal
+  // place, which came out as "[REDACTED_PHONE].5". No phone number has a
+  // decimal point, so this shape was never ambiguous in the first place.
+  const { cleanedData, metrics } = sanitizeDataset([
+    { Revenue: '9876543210.5' },
+    { Revenue: '2500000000.75' },
+    { Revenue: '1234567890.25' },
+  ]);
+  assert.deepEqual(cleanedData.map((r) => r.Revenue), [9876543210.5, 2500000000.75, 1234567890.25]);
+  assert.equal(metrics.columnStats.Revenue.type, 'number');
+});
+
+test('redaction never quietly costs a column its type', () => {
+  // The second half of the loss. Redaction rewrites the cell to a string, so a
+  // column with enough redacted cells falls below the numeric-purity threshold
+  // in profileColumns and stops being a measure at all — it vanishes from every
+  // total, chart and KPI without anything saying so.
+  const rows = Array.from({ length: 120 }, (_, i) => ({
+    Tax_revenue_current_LCU_Value: `${1605180000000 + i}.${i % 10}`,
+  }));
+  const { cleanedData, metrics } = sanitizeDataset(rows);
+  assert.equal(metrics.columnStats.Tax_revenue_current_LCU_Value.type, 'number');
+  assert.ok(
+    cleanedData.every((r) => typeof r.Tax_revenue_current_LCU_Value === 'number'),
+    'every value survives as a number'
+  );
+});
+
+test('a signed or separated number is still a number', () => {
+  const out = clean([{ Revenue: '-9876543210.5', Balance: '1,234,567,890' }]);
+  assert.ok(!String(out[0].Revenue).includes('REDACTED'));
+  assert.ok(!String(out[0].Balance).includes('REDACTED'));
+});
+
+test('anything punctuated like a phone number is still redacted', () => {
+  // The guard only ever protects a cell that is nothing but a number. A real
+  // phone number carries a +, brackets or separators between its groups, so it
+  // never reaches that test whatever the column is called.
+  assert.equal(clean([{ Contact: '+1 555-123-4567' }])[0].Contact, '[REDACTED_PHONE]');
+  assert.equal(clean([{ Contact: '(555) 123-4567' }])[0].Contact, '[REDACTED_PHONE]');
+  assert.equal(clean([{ Contact: '555-123-4567' }])[0].Contact, '[REDACTED_PHONE]');
+  assert.equal(clean([{ Contact: '555.123.4567' }])[0].Contact, '[REDACTED_PHONE]');
+});
