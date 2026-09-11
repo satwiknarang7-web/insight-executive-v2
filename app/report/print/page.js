@@ -11,6 +11,7 @@ import ChartBoundary from "../../../components/charts/ChartBoundary";
 import { ChartPalette } from "../../../components/charts/palette";
 import { renameCategories } from "../../../lib/chartLabels";
 import { boldSegments } from "../../../lib/richText";
+import { evidenceTier, evidenceReason } from "../../../components/panels/EvidenceBadge";
 import { Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
 
 /**
@@ -121,6 +122,36 @@ export default function PrintReport() {
         </div>
       </div>
     );
+  };
+
+  /**
+   * The facts the audit page is allowed to state, all read off this analysis.
+   *
+   * Kept together and derived once so the page cannot drift back into asserting
+   * things nobody computed: if a number is not in here, it does not go on that
+   * page.
+   */
+  const tierCounts = (data.storyboard || []).reduce((acc, slide) => {
+    // A storyboard slide is { findings: { metrics }, chart }, not a flat
+    // finding. Reading slide.metrics here returns undefined for every slide and
+    // the page reports no evidence at all — silently, which is the failure this
+    // whole page is being rewritten to stop.
+    const tier = slide?.findings?.metrics?.evidence;
+    if (tier) acc[tier] = (acc[tier] || 0) + 1;
+    return acc;
+  }, {});
+  const audit = {
+    rows: Number.isFinite(data.slideZero?.rowsAnalyzed) ? data.slideZero.rowsAnalyzed : null,
+    findings: (data.storyboard || []).length,
+    queries: (data.storyboard || []).filter((slide) => slide?.chart?.sql).length,
+    narrated: !!data.narrated,
+    // "2 strong, 3 moderate" — the distribution, in the order a reader cares
+    // about, and empty rather than invented when no finding carries a tier.
+    evidence:
+      ['strong', 'moderate', 'indicative', 'thin']
+        .filter((tier) => tierCounts[tier])
+        .map((tier) => `${tierCounts[tier]} ${tier}`)
+        .join(', ') || null,
   };
 
   const slideStyle = {
@@ -360,19 +391,33 @@ export default function PrintReport() {
               </div>
 
               <div className="col-span-4 flex flex-col justify-between min-h-0 overflow-hidden">
+                {/*
+                  * What this panel used to hold was one sentence —
+                  * "immediate reallocation of resources toward high-impact
+                  * categories is recommended to optimize ROI" — printed
+                  * unchanged beside every finding in the deck. It was not
+                  * derived from the chart it sat next to, it contradicted the
+                  * engine's own advice a column to its left, and repeating one
+                  * rhetorical move down a document is the clearest tell that
+                  * nobody wrote it. The finding already carries a
+                  * recommendation, computed from its own numbers; this panel
+                  * now says how far that recommendation may be trusted, which
+                  * is the one thing the page did not already state.
+                  */}
                 <div className="p-4 bg-accent-500/10 border border-accent-500/20 rounded-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-3 opacity-5">
                     <Activity size={64} />
                   </div>
-                  <h4 className="text-[9px] font-black uppercase tracking-[0.35em] text-accent-500 mb-2">Strategic Lever</h4>
-                  <p className="text-[13px] text-accent-100 font-medium leading-relaxed italic">
-                    Immediate reallocation of resources toward high-impact categories is recommended to optimize ROI based on these trends.
+                  <h4 className="text-[9px] font-black uppercase tracking-[0.35em] text-accent-500 mb-2">
+                    {evidenceTier(slide.findings?.metrics?.evidence)?.label || 'Evidence'}
+                  </h4>
+                  <p className="text-[13px] text-accent-100 font-medium leading-relaxed">
+                    {evidenceReason(slide.findings?.metrics?.evidenceNotes) ||
+                      'Every figure on this page was computed from your rows by the query shown beside it.'}
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 text-[8px] font-black uppercase tracking-[0.35em] text-white/10 italic">
                   <span>SQL Verified</span>
-                  <span>Aggregated Logic</span>
-                  <span>Top 10 Precision</span>
                 </div>
               </div>
             </div>
@@ -391,18 +436,35 @@ export default function PrintReport() {
             </div>
           </div>
 
+          {/*
+            * This page is the one a sceptical reader turns to, so it is the one
+            * page that has to be true.
+            *
+            * It used to claim "Multi-Model Cross-Validation", which this app
+            * does not do, and print an audit block of ENGINE_VERSION
+            * NL2QUERY_PRO_V2, ENTROPY_SCORE 0.998 and LATENCY_EXEC 1.2s —
+            * none of them computed anywhere — under SOURCE:
+            * CLOUD_REPLICATED_DB, which was false for every CSV ever dropped
+            * on the upload page. Invented provenance on a product whose whole
+            * claim is an analysis you can defend costs more than it decorates:
+            * the reader who checks is the reader you needed to convince.
+            *
+            * Everything below is read off the analysis being printed.
+            */}
           <div className="grid grid-cols-2 gap-16">
             <div className="space-y-8">
-              <h3 className="text-xs font-black uppercase tracking-[0.5em] text-accent-500 border-b border-accent-500/20 pb-6">Synthesis Methodology</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.5em] text-accent-500 border-b border-accent-500/20 pb-6">How this was produced</h3>
               <ul className="space-y-6">
                 {[
-                  "SQL-Driven Mathematical Verification",
-                  "Heuristic Anomaly Detection & Scrubbing",
-                  "Context-Aware Narrative Synthesis",
-                  "Multi-Model Cross-Validation"
+                  `Every figure computed by SQL over your own rows — ${audit.queries} ${audit.queries === 1 ? 'query' : 'queries'}, each printed beside the finding it produced.`,
+                  'Types coerced, blanks counted and personal fields redacted before any query ran.',
+                  'Each finding carries an evidence tier, which caps how far its wording may go.',
+                  audit.narrated
+                    ? 'Wording refined by a language model, from figures it was handed; it never saw your rows and produced no number.'
+                    : 'Wording by the built-in analyst. No language model saw this dataset.',
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-4 text-white/60 text-lg">
-                    <CheckCircle2 size={24} className="text-accent-500" />
+                  <li key={i} className="flex items-start gap-4 text-white/60 text-base leading-relaxed">
+                    <CheckCircle2 size={20} className="text-accent-500 shrink-0 mt-1" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -411,12 +473,21 @@ export default function PrintReport() {
             <div className="space-y-8">
               <h3 className="text-xs font-black uppercase tracking-[0.5em] text-accent-500 border-b border-accent-500/20 pb-6">Audit Footprint</h3>
               <div className="p-10 bg-white/5 border border-white/10 rounded-[2rem] font-mono text-xs text-white/40 leading-loose">
-                TIMESTAMP: {new Date().toISOString()} <br />
-                ENGINE_VERSION: NL2QUERY_PRO_V2 <br />
-                ID: {reportId} <br />
-                ENTROPY_SCORE: 0.998 <br />
-                LATENCY_EXEC: 1.2s <br />
-                SOURCE: CLOUD_REPLICATED_DB
+                REPORT_ID: {reportId} <br />
+                GENERATED: {new Date().toISOString()} <br />
+                {audit.rows !== null && (
+                  <>
+                    ROWS_ANALYSED: {audit.rows.toLocaleString()} <br />
+                  </>
+                )}
+                FINDINGS: {audit.findings} <br />
+                QUERIES_RUN: {audit.queries} <br />
+                {audit.evidence && (
+                  <>
+                    EVIDENCE: {audit.evidence} <br />
+                  </>
+                )}
+                NARRATION: {audit.narrated ? 'MODEL_REPHRASED' : 'DETERMINISTIC'}
               </div>
             </div>
           </div>
@@ -429,7 +500,16 @@ export default function PrintReport() {
             <div className="h-px w-32 bg-white" />
           </div>
           <p className="text-sm text-white/20 max-w-2xl mx-auto leading-relaxed italic">
-            This document and the data contained herein are confidential. Unauthorized reproduction or distribution is strictly prohibited under the terms of the master service agreement.
+            {/*
+              * There is no master service agreement. The previous line invoked
+              * one to borrow the authority of a contract that was never signed,
+              * on the same page as the invented engine metrics. What is
+              * actually true about this document is more useful anyway: every
+              * number in it can be recomputed from the queries printed beside
+              * the findings.
+              */}
+            Every figure in this report is reproducible from the query printed beside the finding it
+            belongs to.
           </p>
         </div>
       </div>
