@@ -155,10 +155,18 @@ test('a pre-aggregate is left out of distributions and correlations too', () => 
 
 test('derived measures reach the charts', () => {
   const aware = planCharts(ORDERS, { max: 10, provenance: PROVENANCE, roles: ROLES });
-  assert.ok(
-    aware.some((c) => /COUNT\(DISTINCT|CASE WHEN/.test(c.sql)),
-    'at least one chart should be built on a derived measure'
-  );
+  // Asserted on the candidate rather than on two SQL spellings. This used to
+  // look for COUNT(DISTINCT or CASE WHEN, which are the shapes of a distinct
+  // count and a level share — and miss `SUM(a) / SUM(b)`, which is just as much
+  // a derived measure. Once derived measures started competing on measured
+  // evidence rather than on the order they are built in, a ratio won the slot
+  // and the test failed on a deck that was doing exactly what it asks for.
+  const built = aware.filter((c) => c.measure && c.measure.expr);
+  assert.ok(built.length > 0, 'at least one chart should be built on a derived measure');
+  for (const c of built) {
+    assert.ok(c.sql.includes(c.measure.expr), 'the chart runs the measure it names');
+    assert.equal(c.yAxisKey, c.measure.name);
+  }
 });
 
 // ---------------------------------------------------------------------------
