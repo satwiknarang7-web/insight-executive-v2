@@ -215,6 +215,40 @@ function columnRoles() {
   }
 }
 
+/**
+ * Say which measures the analysis will not aggregate, and why.
+ *
+ * A column withdrawn from every total is the most consequential thing this app
+ * decides on its own, and until now it did it in silence: the deck simply came
+ * back thinner, with no way to tell a dataset that had little to say from one
+ * whose best columns were disqualified. Six economic indicators disappearing
+ * from a 22-column file should be a sentence on screen, not an absence.
+ */
+function noteExcludedMeasures() {
+  if (!state) return;
+  const measures = new Set(state.viewProfile?.measures || []);
+  const roles = columnRoles();
+  const withheld = Object.entries(roles).filter(
+    ([col, r]) =>
+      measures.has(col) &&
+      (r.kind === 'attribute' || r.kind === 'preAggregate' || r.kind === 'denominated')
+  );
+  if (withheld.length === 0) return;
+
+  const named = withheld.slice(0, 3).map(([col]) => col).join(', ');
+  const more = withheld.length > 3 ? ` and ${withheld.length - 3} more` : '';
+  const [, first] = withheld[0];
+  state.notices.push({
+    kind: 'measure-excluded',
+    columns: withheld.map(([col]) => col),
+    message:
+      `${withheld.length} ${withheld.length === 1 ? 'column is' : 'columns are'} shown ` +
+      `but never totalled or averaged — ${named}${more}. ` +
+      `${withheld.length === 1 ? 'It ' : 'The first '}${first.why}. ` +
+      'Charts fall back to record counts, which are correct either way.',
+  });
+}
+
 /** Column profile with the extra display facts the Explore page needs. */
 function buildProfile(rows, columns, metrics) {
   const p = profileColumns(rows.slice(0, Math.min(rows.length, 20000)));
@@ -553,6 +587,7 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
     ingestedAt: Date.now(),
   };
 
+  noteExcludedMeasures();
   invalidateSearchIndex();
 
   progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
@@ -631,6 +666,7 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
     ingestedAt: Date.now(),
   };
 
+  noteExcludedMeasures();
   invalidateSearchIndex();
 
   progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);

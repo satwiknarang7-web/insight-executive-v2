@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Scissors, Layers, GitBranch, Sigma, X } from 'lucide-react';
+import { AlertTriangle, Scissors, Layers, GitBranch, Sigma, Calculator, X } from 'lucide-react';
 
 /**
  * What the ingest decided on the user's behalf, said out loud.
@@ -17,6 +17,7 @@ const ICONS = {
   'sheet-skipped': Layers,
   'totals-removed': Sigma,
   'many-to-many': GitBranch,
+  'measure-excluded': Calculator,
 };
 
 const HEADINGS = {
@@ -24,6 +25,7 @@ const HEADINGS = {
   'sheet-skipped': 'A sheet was skipped',
   'totals-removed': 'Totals rows were removed',
   'many-to-many': 'A relationship is ambiguous',
+  'measure-excluded': 'Some columns are never totalled',
 };
 
 const noticeIcon = (kind) => ICONS[kind] || AlertTriangle;
