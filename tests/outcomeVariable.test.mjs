@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { outcomeColumn, outcomeRateName } from '../lib/measureSemantics.js';
+import { outcomeColumn, outcomeRateName, outcomeRateExpression } from '../lib/measureSemantics.js';
 import { outcomeSpread } from '../lib/chartSignals.js';
 import { planCharts, planKpis } from '../lib/analystPlanner.js';
 import { runAnalysis } from '../lib/pipeline.js';
@@ -211,4 +211,96 @@ test('a segment count is never a date, and never the first thing said', () => {
   const labels = planKpis(rows).map((k) => k.label);
   // "Order Date Segments: 240" is the number of days the file covers.
   assert.ok(!labels.some((l) => /order date segments/i.test(l)), labels.join(', '));
+});
+
+test('a prepared label is found through its flag wrapper', () => {
+  // A prepared dataset almost never names its label bare. `Medal_Binary` was
+  // classified as a binary, dropped before planning, and a 202,616-row athlete
+  // export came back as six charts of record counts with nothing about who wins.
+  for (const [col, levels] of [
+    ['Medal_Binary', [0, 1]],
+    ['is_churned', ['No', 'Yes']],
+    ['fraud_flag', [0, 1]],
+    ['readmitted_yn', ['N', 'Y']],
+    ['converted_label', [0, 1]],
+  ]) {
+    const sample = Array.from({ length: 40 }, (_, i) => ({ [col]: levels[i % 2] }));
+    const found = outcomeColumn({ columns: [col], sample, cardinality: { [col]: 2 } });
+    assert.ok(found, `${col} should read as an outcome`);
+    assert.equal(found.column, col);
+  }
+});
+
+test('the flag wrapper is not part of the metric name', () => {
+  const sample = Array.from({ length: 40 }, (_, i) => ({ Medal_Binary: i % 2 }));
+  const found = outcomeColumn({ columns: ['Medal_Binary'], sample, cardinality: { Medal_Binary: 2 } });
+  assert.equal(outcomeRateName(found), 'Medal Rate', 'not "Medal Binary Rate"');
+});
+
+test('a good outcome is not reported as a risk', () => {
+  const sample = Array.from({ length: 40 }, (_, i) => ({ Medal_Binary: i % 2 }));
+  const found = outcomeColumn({ columns: ['Medal_Binary'], sample, cardinality: { Medal_Binary: 2 } });
+  assert.equal(found.highIsGood, true, 'a medal rate climbing is not an exposure');
+});
+
+test('a circumstance is still not an outcome', () => {
+  // Representing_Host is 0/1 like the label beside it, and is a predictor. The
+  // name still has to say the column is a result.
+  const sample = Array.from({ length: 40 }, (_, i) => ({ Representing_Host: i % 2 }));
+  assert.equal(
+    outcomeColumn({ columns: ['Representing_Host'], sample, cardinality: { Representing_Host: 2 } }),
+    null
+  );
+});
+
+test('the rate expression matches the column\'s own type', () => {
+  // The bug this guards: a flag parsed from CSV holds the NUMBER 1, and
+  // "[Medal_Binary] = '1'" matches nothing — every group comes back 0.0% and
+  // the chart draws a row of empty bars with no error anywhere.
+  const numeric = outcomeColumn({
+    columns: ['Medal_Binary'],
+    sample: Array.from({ length: 40 }, (_, i) => ({ Medal_Binary: i % 2 })),
+    cardinality: { Medal_Binary: 2 },
+  });
+  assert.match(outcomeRateExpression(numeric), /=\s*1\s+THEN/, 'a number is compared unquoted');
+  assert.doesNotMatch(outcomeRateExpression(numeric), /'1'/);
+
+  const textual = outcomeColumn({
+    columns: ['Churn'],
+    sample: Array.from({ length: 40 }, (_, i) => ({ Churn: ['Yes', 'No'][i % 2] })),
+    cardinality: { Churn: 2 },
+  });
+  assert.match(outcomeRateExpression(textual), /=\s*'Yes'\s+THEN/, 'text stays quoted');
+});
+
+test('the outcome chart the planner writes actually returns rates', async () => {
+  // The end-to-end guard. Detection, naming and SQL generation can each look
+  // right while the query returns 0.0% for every group, because comparing a
+  // numeric flag against a quoted level fails silently — no error, no empty
+  // result, just a chart of empty bars. Only running it catches that.
+  const { planCharts } = await import('../lib/analystPlanner.js');
+  const alasql = (await import('alasql')).default;
+
+  // 600 rows: medal rate 40% in Sport A, 10% in Sport B.
+  const rows = [];
+  for (let i = 0; i < 300; i++) {
+    rows.push({ Sport: 'A', Athlete: `a${i}`, Weight: 60 + (i % 30), Medal_Binary: i % 10 < 4 ? 1 : 0 });
+  }
+  for (let i = 0; i < 300; i++) {
+    rows.push({ Sport: 'B', Athlete: `b${i}`, Weight: 60 + (i % 30), Medal_Binary: i % 10 < 1 ? 1 : 0 });
+  }
+
+  const chart = planCharts(rows, { max: 8 }).find((c) => /Medal Rate by Sport/.test(c.title));
+  assert.ok(chart, 'the planner charts the rate against the dimension that moves it');
+
+  const table = 'SalesData';
+  if (alasql.tables[table]) delete alasql.tables[table];
+  alasql(`CREATE TABLE ${table}`);
+  alasql.tables[table].data = rows;
+
+  const out = alasql(chart.sql);
+  const bySport = Object.fromEntries(out.map((r) => [r.Sport, Number(r['Medal Rate'])]));
+  assert.ok(bySport.A > 0, 'a rate of zero everywhere is the bug this test exists for');
+  assert.equal(Math.round(bySport.A), 40);
+  assert.equal(Math.round(bySport.B), 10);
 });
