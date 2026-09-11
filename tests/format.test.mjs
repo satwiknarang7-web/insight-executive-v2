@@ -84,3 +84,35 @@ test('grouping does not follow the machine it is rendered on', () => {
   // two different ways.
   assert.equal(formatExact(2500000, 'Revenue'), '2,500,000');
 });
+
+test('formatNumber scales past M through B and T', () => {
+  assert.equal(formatNumber(2_500), '2.5K');
+  assert.equal(formatNumber(2_500_000), '2.5M');
+  assert.equal(formatNumber(2_500_000_000), '2.5B');
+  assert.equal(formatNumber(2_500_000_000_000), '2.5T');
+});
+
+test('formatNumber falls back to an exponent above 1e15', () => {
+  // The regression: a row-grain sum of a repeated country-level measure came to
+  // 1.078e18 and rendered as "1080507215161.0M" — no readable magnitude, and
+  // wide enough that the y axis clipped every tick to a row of zeros.
+  assert.equal(formatNumber(1.078e18), '1.08e18');
+  assert.equal(formatNumber(5.824e18), '5.82e18');
+  assert.ok(!String(formatNumber(1.078e18)).includes('M'));
+});
+
+test('formatNumber output stays narrow enough for a 96px axis gutter', () => {
+  // yAxisGeometry caps the gutter at 96px and sizes it at length * 12 * 0.58.
+  // That cap is only safe while the formatter cannot return an unbounded
+  // string, which is what "1080507215161.0M" (16 chars, 111px) violated.
+  const widest = [1e3, 1e6, 1e9, 1e12, 1e15, 1e18, -1.0805e18, Number.MAX_SAFE_INTEGER]
+    .map((v) => String(formatNumber(v)).length)
+    .reduce((a, b) => Math.max(a, b), 0);
+  assert.ok(widest * 12 * 0.58 + 14 <= 96, `widest formatted value was ${widest} chars`);
+});
+
+test('formatNumber keeps sign and small-number behaviour', () => {
+  assert.equal(formatNumber(-2_500_000_000), '-2.5B');
+  assert.equal(formatNumber(999), 999);
+  assert.equal(formatNumber(12.345), 12.35);
+});
