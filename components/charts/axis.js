@@ -11,7 +11,7 @@
  * widen the y gutter for wide numbers, and only fall back to truncation when a
  * label is long enough that no reasonable gutter would hold it.
  */
-import { formatDateLabel, formatNumber } from '../../lib/format.js';
+import { formatDateLabel, formatNumber, formatPercent, isPercentKey } from '../../lib/format.js';
 import { prettyColumn } from '../../lib/aggregateNames.js';
 import { legendRows } from '../../lib/sliceLabels.js';
 
@@ -145,6 +145,13 @@ export function yAxisGeometry(
   // A split chart has one key per series rather than one y column, and the
   // gutter has to fit the widest number across all of them.
   const keys = Array.isArray(yKey) ? yKey : [yKey];
+  // An axis of percentages says so. The prose has carried the unit since rates
+  // started being reported in points; the axis beside it still read "9 18 27
+  // 36", which is a medal rate with nothing to say what it is a rate of.
+  const asPercent = keys.some((k) => isPercentKey(k));
+  if (formatter === formatNumber && asPercent) {
+    formatter = formatPercent;
+  }
   const values = (data || [])
     .flatMap((row) => keys.map((key) => row?.[key]))
     .filter((v) => typeof v === 'number');

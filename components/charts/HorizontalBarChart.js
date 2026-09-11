@@ -67,7 +67,6 @@ export default function HorizontalBarChart({
         margin={chartMargin({ right: 24 })}
       >
         <CartesianGrid
-          strokeDasharray="3 3"
           stroke="var(--chart-grid)"
           strokeOpacity="var(--chart-grid-opacity)"
           horizontal={false}

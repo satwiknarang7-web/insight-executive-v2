@@ -108,7 +108,7 @@ export default function ScatterChart({ data, xKey, yKey, xLabel, yLabel, compact
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsScatterChart margin={chartMargin({ legend: true })}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
+        <CartesianGrid stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         {!xGeo.hidden && (
           <XAxis
             {...xGeo.props}

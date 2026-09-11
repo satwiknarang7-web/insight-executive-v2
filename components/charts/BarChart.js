@@ -64,7 +64,6 @@ export default function BarChart({
   // One colour per bar, rather than one gradient across all of them.
   const perCategory = useColorBy() === 'category';
   const gradientId = React.useId();
-  const barGradient = `bar-gradient-${gradientId}`;
   if (!data || data.length === 0) return null;
 
   // Gutters sized to the labels actually being drawn, so long category names
@@ -80,13 +79,7 @@ export default function BarChart({
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsBarChart data={data} margin={chartMargin()}>
-        <defs>
-          <linearGradient id={barGradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
-            <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0.6}/>
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
+        <CartesianGrid stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         {!x.hidden && (
 
           <XAxis {...x.props}>{x.title && <Label {...x.title} />}</XAxis>
@@ -118,7 +111,7 @@ export default function BarChart({
         ) : (
         <Bar 
           dataKey={yKey} 
-          fill={`url(#${barGradient})`} 
+          fill={CHART_COLORS[0]}
           radius={[6, 6, 0, 0]} 
           maxBarSize={40}
           name={yKey}
@@ -134,7 +127,7 @@ export default function BarChart({
                   ? '#f43f5e'
                   : perCategory
                   ? seriesColor(index)
-                  : `url(#${barGradient})`
+                  : CHART_COLORS[0]
               }
               stroke={entry.isAnomaly ? '#f43f5e' : 'none'}
               strokeWidth={entry.isAnomaly ? 2 : 0}

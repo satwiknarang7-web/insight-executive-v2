@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {
   formatExact,
   formatNumber,
+  formatPercent,
   formatValue,
+  isPercentKey,
   isCurrencyKey,
   isIdentifierKey,
   truncateLabel,
@@ -115,4 +117,32 @@ test('formatNumber keeps sign and small-number behaviour', () => {
   assert.equal(formatNumber(-2_500_000_000), '-2.5B');
   assert.equal(formatNumber(999), 999);
   assert.equal(formatNumber(12.345), 12.35);
+});
+
+test('a percentage carries its unit and is never abbreviated', () => {
+  // A rate on an axis read "9 18 27 36" — a medal rate with nothing to say what
+  // it was a rate of. And formatNumber compacts at a thousand, so routing a
+  // percentage through it produced "2.3K%": a magnitude suffix on a number that
+  // cannot usefully have one.
+  assert.equal(formatPercent(51.72), '51.7%');
+  assert.equal(formatPercent(2.345), '2.35%');
+  assert.equal(formatPercent(0), '0%');
+  assert.equal(formatPercent(123.4), '123%');
+  assert.doesNotMatch(String(formatPercent(2345)), /K/);
+});
+
+test('percent wins over currency when a name says both', () => {
+  // CURRENCY_KEY_RE matches "cost", so "Shipping Cost Rate" — a percentage of
+  // order value — was rendered as a sum of money.
+  assert.equal(isPercentKey('Shipping Cost Rate'), true);
+  assert.equal(isCurrencyKey('Shipping Cost Rate'), false);
+  assert.equal(formatValue(2.3, 'Shipping Cost Rate'), '2.3%');
+  assert.equal(formatValue(718000, 'Total Revenue'), '$718.0K');
+});
+
+test('a word that merely contains a rate word is not a percentage', () => {
+  assert.equal(isPercentKey('Shareholders'), false);
+  assert.equal(isPercentKey('Operating Cost'), false);
+  assert.equal(isPercentKey('Medal Rate'), true);
+  assert.equal(isPercentKey('F Share of Records'), true);
 });

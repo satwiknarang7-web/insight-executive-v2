@@ -212,7 +212,7 @@ export default function PresentPage() {
           <button
             onClick={() => setChoosing(true)}
             title={`Presented by ${avatar.name} - change presenter`}
-            className="flex items-center gap-2 rounded-lg border border-white/10 py-1.5 pl-1.5 pr-3 text-left transition-colors hover:bg-white/5"
+            className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 px-2 text-left transition-colors hover:bg-white/5 sm:h-auto sm:justify-start sm:py-1.5 sm:pl-1.5 sm:pr-3"
           >
             <AnalystAvatar avatar={avatar} size={26} speaking={speaking} muted={!narrating} />
             <span className="hidden sm:block">
@@ -232,7 +232,7 @@ export default function PresentPage() {
             aria-label={narrating ? 'Mute the presenter' : 'Unmute the presenter'}
             title={supported ? undefined : 'This browser has no speech synthesis'}
             disabled={!supported}
-            className={`rounded-lg border p-2 transition-colors disabled:opacity-25 ${
+            className={`flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto rounded-lg border transition-colors disabled:opacity-25 sm:p-2 ${
               narrating && supported
                 ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
                 : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
@@ -243,10 +243,10 @@ export default function PresentPage() {
 
           <ThemeToggle compact />
 
-          <button onClick={goFullscreen} aria-label="Toggle fullscreen" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
+          <button onClick={goFullscreen} aria-label="Toggle fullscreen" className="flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto rounded-lg border border-white/10 text-white/45 hover:bg-white/5 hover:text-white sm:p-2">
             <Maximize2 size={15} />
           </button>
-          <button onClick={() => router.push(exitTo)} aria-label="Exit presentation" className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-white/5 hover:text-white">
+          <button onClick={() => router.push(exitTo)} aria-label="Exit presentation" className="flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto rounded-lg border border-white/10 text-white/45 hover:bg-white/5 hover:text-white sm:p-2">
             <X size={15} />
           </button>
         </div>
@@ -306,7 +306,7 @@ export default function PresentPage() {
           onClick={() => go(-1)}
           disabled={page === 0}
           aria-label="Previous slide"
-          className="rounded-xl border border-white/10 p-3 text-white/55 transition-colors enabled:hover:bg-white/6 enabled:hover:text-white disabled:opacity-20"
+          className="flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto rounded-xl border border-white/10 text-white/55 transition-colors enabled:hover:bg-white/6 enabled:hover:text-white disabled:opacity-20 sm:p-3"
         >
           <ChevronLeft size={18} />
         </button>
@@ -323,7 +323,7 @@ export default function PresentPage() {
               ? 'Pause'
               : 'Play'
           }
-          className={`rounded-xl border p-3 transition-colors ${
+          className={`flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto rounded-xl border transition-colors sm:p-3 ${
             playing ? 'border-accent-500/40 bg-accent-500/15 text-accent-300' : 'border-white/10 text-white/55 hover:bg-white/6 hover:text-white'
           }`}
         >
@@ -332,7 +332,7 @@ export default function PresentPage() {
 
         <button
           onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)}
-          className="rounded-xl border border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/6 hover:text-white"
+          className="flex h-11 items-center justify-center rounded-xl border border-white/10 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/6 hover:text-white sm:h-auto sm:py-3"
         >
           {SPEEDS[speedIdx].label}
         </button>
@@ -341,7 +341,7 @@ export default function PresentPage() {
           onClick={() => go(1)}
           disabled={page === total - 1}
           aria-label="Next slide"
-          className="rounded-xl border border-white/10 p-3 text-white/55 transition-colors enabled:hover:bg-white/6 enabled:hover:text-white disabled:opacity-20"
+          className="flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto rounded-xl border border-white/10 text-white/55 transition-colors enabled:hover:bg-white/6 enabled:hover:text-white disabled:opacity-20 sm:p-3"
         >
           <ChevronRight size={18} />
         </button>

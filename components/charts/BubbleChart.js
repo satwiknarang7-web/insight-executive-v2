@@ -58,7 +58,6 @@ export default function BubbleChart({ data, xKey, yKey, sizeKey, labelKey, xLabe
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <ScatterChart margin={chartMargin({ right: 24 })}>
         <CartesianGrid
-          strokeDasharray="3 3"
           stroke="var(--chart-grid)"
           strokeOpacity="var(--chart-grid-opacity)"
         />

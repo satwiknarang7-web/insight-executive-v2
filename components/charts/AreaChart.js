@@ -48,8 +48,6 @@ export default function AreaChart({
   const seriesColor = useSeriesColor();
   const id = React.useId();
   const fillId = `area-fill-${id}`;
-  const strokeId = `area-stroke-${id}`;
-  const glowId = `area-glow-${id}`;
   if (!data || data.length === 0) return null;
 
   const x = xAxisGeometry(data, xKey, { compact, dense, title: xLabel ?? prettyLabel(xKey) });
@@ -72,24 +70,20 @@ export default function AreaChart({
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <RechartsAreaChart data={data} margin={chartMargin({ right: 18 })}>
         <defs>
+          {/*
+            * One hue, fading out. The fill used to run slot 0 into slot 1 and
+            * the stroke slot 0 into slot 2, so a single series wore three
+            * categorical identities — the colours that are supposed to tell
+            * one series from another, spent on one. A fade to transparent
+            * under the line is the conventional area fill; the hue does not
+            * change along the way.
+            */}
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={0.35} />
-            <stop offset="55%" stopColor={CHART_COLORS[1]} stopOpacity={0.12} />
-            <stop offset="100%" stopColor={CHART_COLORS[1]} stopOpacity={0} />
+            <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={0.28} />
+            <stop offset="100%" stopColor={CHART_COLORS[0]} stopOpacity={0} />
           </linearGradient>
-          <linearGradient id={strokeId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor={CHART_COLORS[0]} />
-            <stop offset="100%" stopColor={CHART_COLORS[2]} />
-          </linearGradient>
-          <filter id={glowId} x="-20%" y="-60%" width="140%" height="220%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
-        <CartesianGrid strokeDasharray="4 6" stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
+        <CartesianGrid stroke="var(--chart-grid)" strokeOpacity="var(--chart-grid-opacity)" vertical={false} />
         {!x.hidden && (
 
           <XAxis {...x.props} tickMargin={10}>{x.title && <Label {...x.title} />}</XAxis>
@@ -119,10 +113,9 @@ export default function AreaChart({
         <Area
           type="monotone"
           dataKey={yKey}
-          stroke={`url(#${strokeId})`}
-          strokeWidth={3}
+          stroke={CHART_COLORS[0]}
+          strokeWidth={2}
           fill={`url(#${fillId})`}
-          filter={`url(#${glowId})`}
           dot={false}
           activeDot={{ r: 5, fill: 'var(--chart-label)', stroke: CHART_COLORS[0], strokeWidth: 3 }}
           name="Actual Baseline"
