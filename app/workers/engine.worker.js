@@ -35,6 +35,7 @@ import {
 } from '../../lib/pipeline.js';
 import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
+import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import {
@@ -147,6 +148,30 @@ function modelRoles() {
   return Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role]));
 }
 
+/**
+ * Which measures repeat because they belong to something coarser than a row.
+ *
+ * A full scan of the table, so it is worked out once per view and reused. Three
+ * callers need the same answer — the reference panel, the derived measures and
+ * the planner — and they must agree: a column the planner refuses to sum while
+ * the panel still offers it is the bug this whole path exists to stop.
+ */
+let repeatedCache = { view: null, value: {} };
+function repeatedMeasures() {
+  if (!state) return {};
+  if (repeatedCache.view === state.view) return repeatedCache.value;
+  let value = {};
+  try {
+    value = detectRepeatedMeasures(state.view.rows, state.viewProfile);
+  } catch {
+    // Failing to prove repetition must not cost the dataset its analysis; the
+    // planner simply falls back to what it did before this check existed.
+    value = {};
+  }
+  repeatedCache = { view: state.view, value };
+  return value;
+}
+
 /** Measures derived from this dataset's shape, ready for the Measures page. */
 function describeDerived() {
   if (!state) return [];
@@ -159,6 +184,7 @@ function describeDerived() {
       rowCount: state.view.rows.length,
       columns: state.view.columns,
       sample: state.view.rows.slice(0, 500),
+      repeatedAt: repeatedMeasures(),
     });
   } catch {
     // A derived measure is a convenience; failing to work one out must never
@@ -181,6 +207,7 @@ function columnRoles() {
       roles: modelRoles(),
       cardinality: state.viewProfile?.cardinality || {},
       rowCount: state.view.rows.length,
+      repeatedAt: repeatedMeasures(),
     });
     return byColumn;
   } catch {
