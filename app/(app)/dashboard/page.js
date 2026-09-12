@@ -348,8 +348,21 @@ export default function DashboardPage() {
                 </div>
                 <ul className="mt-3 flex flex-col gap-2">
                   {analysis.critique.map((q, i) => (
-                    <li key={i} className="text-[12px] leading-relaxed text-white/40">
-                      {q.question}
+                    <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
+                      {/* Which questions were found in the data and which were
+                          thought up about it. Both are questions and neither is
+                          a finding, but a reader is owed the difference: one
+                          was measured, the other was imagined by a model that
+                          was shown no numbers. */}
+                      {q.source === 'model' && (
+                        <span
+                          title="Suggested by a language model, which was shown the column names and no values"
+                          className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-black uppercase tracking-[0.15em] text-white/25"
+                        >
+                          AI
+                        </span>
+                      )}
+                      <span>{q.question}</span>
                     </li>
                   ))}
                 </ul>

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { critique } from '../lib/critic.js';
+import { critique, modelBriefing, acceptModelQuestions } from '../lib/critic.js';
 
 /**
  * The critic exists for the mistakes reading the output cannot catch.
@@ -201,4 +201,87 @@ test('an empty or clean deck is left alone', () => {
     findings: [finding({ recommendation: 'Watch this for another period.' })],
   });
   assert.equal(clean.length, 0, 'a deck that used what it had raises nothing');
+});
+
+// ---------------------------------------------------------------------------
+// The model half
+// ---------------------------------------------------------------------------
+
+test('the briefing carries shape and no values', () => {
+  // The guarantee is structural, not prompted: a model with no figures in front
+  // of it has none to quote.
+  const brief = modelBriefing({
+    profile: {
+      dimensions: ['Region', 'Plan_Tier'],
+      measures: ['Revenue'],
+      cardinality: { Region: 5, Plan_Tier: 3, Revenue: 400 },
+    },
+    findings: [{ title: 'Revenue by Region', metrics: { leaderValue: 6801.25 } }],
+    questions: [{ question: 'Anything else?' }],
+  });
+  assert.deepEqual(brief.charted, ['Revenue by Region']);
+  assert.equal(brief.columns.length, 3);
+  const serialised = JSON.stringify(brief);
+  assert.doesNotMatch(serialised, /6801/, 'no metric reaches the model');
+  assert.doesNotMatch(serialised, /leaderValue/);
+});
+
+test('an answer dressed as a question is refused', () => {
+  const kept = acceptModelQuestions(
+    ['Revenue fell in December.', 'Electronics leads the field', 'Does churn differ by tier?'],
+    { columns: ['Revenue', 'tier'] }
+  );
+  assert.equal(kept.length, 1);
+  assert.match(kept[0].question, /Does churn differ by tier\?/);
+});
+
+test('a figure it was never shown is refused', () => {
+  // It saw no values, so every digit outside a column name is invented.
+  const kept = acceptModelQuestions(
+    [
+      'Are customers over 50 more likely to churn?',
+      'Is the 43% concentration stable across regions?',
+      'How does Q1_Revenue vary by Plan_Tier?',
+    ],
+    { columns: ['Q1_Revenue', 'Plan_Tier', 'regions'] }
+  );
+  assert.equal(kept.length, 1, 'only the one whose digits are a column name survives');
+  assert.match(kept[0].question, /Q1_Revenue/);
+});
+
+test('a question already asked is not asked again in another voice', () => {
+  const existing = [{ question: 'Does churn differ by contract length?' }];
+  const kept = acceptModelQuestions(
+    ['does churn differ by contract length?', 'Does support load predict churn?'],
+    { columns: ['churn'], existing }
+  );
+  assert.equal(kept.length, 1);
+  assert.match(kept[0].question, /support load/);
+});
+
+test('it does not repeat itself within one reply', () => {
+  const kept = acceptModelQuestions(
+    ['Does churn differ by tier?', 'Does churn differ by tier?'],
+    { columns: ['tier'] }
+  );
+  assert.equal(kept.length, 1);
+});
+
+test('model questions are labelled, and carry nothing else', () => {
+  const kept = acceptModelQuestions(['Does churn differ by tier?'], { columns: ['tier'] });
+  assert.equal(kept[0].source, 'model');
+  assert.equal(kept[0].kind, 'model');
+  assert.equal(kept[0].metrics, undefined);
+  assert.equal(kept[0].evidenceTier, undefined);
+});
+
+test('a flood is capped, and rubbish is survivable', () => {
+  const many = Array.from({ length: 30 }, (_, i) => `Does column ${'x'.repeat(i % 5)} matter here?`);
+  assert.ok(acceptModelQuestions(many, { columns: [] }).length <= 4);
+  assert.deepEqual(acceptModelQuestions(null, {}), []);
+  // Blank, a bare question mark with no words, and one far past the length
+  // cap: none of them survive. A "question" that normalises to nothing is not
+  // one, which is why the empty key is rejected rather than deduped.
+  assert.deepEqual(acceptModelQuestions(['   ', '?', 'x'.repeat(400) + '?'], { columns: [] }), []);
+  assert.equal(acceptModelQuestions(['Does tier explain it?'], { columns: [] }).length, 1);
 });
