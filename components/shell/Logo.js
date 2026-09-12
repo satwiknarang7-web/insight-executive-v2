@@ -19,17 +19,32 @@
  * show the wrong logo for a frame on every load, which is exactly the flash
  * that script exists to avoid.
  *
- * **Why the mark is cropped rather than shipped separately.** The artwork is a
- * stacked lockup: the hexagon above, the wordmark below. At the 24–40px height
- * a header gives it, the baked-in wordmark is three pixels tall and reads as
- * grey mush. So the image is framed to its hexagon and the product name is set
- * beside it as live type, which stays crisp at any size and in any theme. The
- * whole lockup is still available as `full`, for the places with room for it.
+ * **The mark ships as its own file.** The artwork is a stacked lockup: the
+ * hexagon above, the wordmark below. At the 24–40px height a header gives it,
+ * the baked-in wordmark is three pixels tall and reads as grey mush — so the
+ * header uses the hexagon alone and sets the product name beside it as live
+ * type, which stays crisp at any size and in any theme.
+ *
+ * That framing used to be done in CSS, by sizing the 1080px artwork to 1.86x
+ * its container and offsetting it behind `overflow: hidden`. It worked, and it
+ * cost 480KB to draw a 32px mark: both themes are rendered and one is hidden,
+ * so every page downloaded two 240KB files and threw away three quarters of
+ * each. The browser then resampled 1080px of artwork down to 60, which is the
+ * blurriest way to arrive at a small logo.
+ *
+ * The mark is now cropped to its own bounds at build time and shipped at 192px
+ * — enough for the 56px `xl` at 3x — which is 28KB a theme and pin sharp. The
+ * lockup is likewise shipped at the size anything actually displays it. No
+ * arithmetic, no cropping window, and a fifth of the bytes.
  */
 
-/** The artwork, one per theme. Both are 1080×1080 on a transparent background. */
-export const LOGO_DARK = '/brand/logo-dark.png';
-export const LOGO_LIGHT = '/brand/logo-light.png';
+/** The hexagon alone, tight to its bounds. 192×192, transparent. */
+export const MARK_DARK = '/brand/mark-dark.png';
+export const MARK_LIGHT = '/brand/mark-light.png';
+
+/** The whole stacked lockup, for the places with room for it. */
+export const LOCKUP_DARK = '/brand/lockup-dark.png';
+export const LOCKUP_LIGHT = '/brand/lockup-light.png';
 
 /** The product, in text, for the places an image will not do. */
 export const PRODUCT_NAME = 'Insight Executive';
@@ -51,48 +66,16 @@ const TYPE = {
   xl: { name: 'text-2xl', sub: 'text-[11px] tracking-[0.38em]', gap: 'gap-3.5' },
 };
 
-/**
- * Where the hexagon sits inside the 1080×1080 artwork.
- *
- * Measured off the file rather than guessed: the mark's outer dots run from
- * about (315, 105) to (780, 645), so a square window of 580 centred on that
- * starts at (258, 85) and leaves a little air on every side.
- *
- * Written as `size / window` and `-offset / window` rather than as decimals, so
- * the source measurements stay visible — a re-export at another resolution only
- * needs the first number changed, as long as the composition holds.
- */
-const ART = 1080;
-const WINDOW = 580;
-const CROP = { scale: ART / WINDOW, left: -258 / WINDOW, top: -85 / WINDOW };
-
-/**
- * The hexagon alone, framed out of the stacked artwork.
- *
- * `object-position` cannot do this: the source is square and so is the window,
- * so `cover` scales it 1:1 and there is nothing left to reposition. Zooming in
- * means sizing the image past its container and offsetting it, which is what
- * these three numbers are.
- */
+/** The mark, at the height asked for. */
 function Mark({ src, height, className = '' }) {
   return (
-    <span
-      className={`relative block overflow-hidden ${className}`}
-      style={{ width: height, height }}
+    <img
+      src={src}
+      alt=""
       aria-hidden="true"
-    >
-      <img
-        src={src}
-        alt=""
-        className="absolute max-w-none"
-        style={{
-          width: height * CROP.scale,
-          height: height * CROP.scale,
-          left: height * CROP.left,
-          top: height * CROP.top,
-        }}
-      />
-    </span>
+      className={`block shrink-0 ${className}`}
+      style={{ width: height, height }}
+    />
   );
 }
 
@@ -106,16 +89,16 @@ export default function Logo({ variant = 'lockup', size = 'md', className = '', 
   if (variant === 'full') {
     return (
       <span className={`inline-block ${className}`} title={title}>
-        <img src={LOGO_DARK} alt={title} className="logo-dark block w-auto" style={{ height }} />
-        <img src={LOGO_LIGHT} alt={title} className="logo-light w-auto" style={{ height }} />
+        <img src={LOCKUP_DARK} alt={title} className="logo-dark block w-auto" style={{ height }} />
+        <img src={LOCKUP_LIGHT} alt={title} className="logo-light w-auto" style={{ height }} />
       </span>
     );
   }
 
   const mark = (
     <>
-      <Mark src={LOGO_DARK} height={height} className="logo-dark" />
-      <Mark src={LOGO_LIGHT} height={height} className="logo-light" />
+      <Mark src={MARK_DARK} height={height} className="logo-dark" />
+      <Mark src={MARK_LIGHT} height={height} className="logo-light" />
     </>
   );
 

@@ -40,8 +40,15 @@
   --canvas: #030303;
   --canvas-raised: #050607;
   --surface: #0d0f11;
-  --card-bg: rgba(255, 255, 255, 0.02);
-  --card-border: rgba(255, 255, 255, 0.07);
+  /* A card has to read as its own plane, not as text that happens to sit
+     together. At 2% fill and a 7% border it was neither: the border composited
+     to rgb(30,32,34) against a #0d0f11 surface, a contrast of 1.18:1, which is
+     below what an edge needs to register as an edge. Both are raised — the
+     surface so the card is a plane, the border so it has a boundary — rather
+     than drawing one heavy outline, which reads as a box around content rather
+     than as a surface holding it. */
+  --card-bg: rgba(255, 255, 255, 0.045);
+  --card-border: rgba(255, 255, 255, 0.16);
   --chart-axis: #94a3b8;
   --chart-grid: #ffffff;
   --chart-grid-opacity: 0.05;
@@ -119,8 +126,8 @@
   --canvas: #ffffff;
   --canvas-raised: #f6f8fb;
   --surface: #ffffff;
-  --card-bg: rgba(11, 37, 69, 0.02);
-  --card-border: rgba(11, 37, 69, 0.12);
+  --card-bg: rgba(11, 37, 69, 0.022);
+  --card-border: rgba(11, 37, 69, 0.22);
   --chart-axis: #245b93;
   --chart-grid: #0b2545;
   --chart-grid-opacity: 0.10;

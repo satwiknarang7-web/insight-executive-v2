@@ -177,7 +177,7 @@ export default function PrintReport() {
               screen rather than the page. Not next/image — this is rendered by
               a headless browser, where lazy loading leaves a hole in the PDF. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo-light.png" alt="Insight Executive" className="h-14 w-auto" />
+          <img src="/brand/lockup-light.png" alt="Insight Executive" className="h-14 w-auto" />
         </div>
 
         <div className="space-y-8 relative z-10">

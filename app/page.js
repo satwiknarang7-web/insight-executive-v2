@@ -17,6 +17,12 @@ import {
   Trash2,
   X,
   LayoutDashboard,
+  MessageSquare,
+  Sigma,
+  PencilLine,
+  Share2,
+  FileDown,
+  Presentation,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../lib/store/DatasetProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
@@ -43,6 +49,52 @@ const FEATURES = [
     icon: Sparkles,
     title: 'Charts chosen by the data',
     body: 'A deterministic analyst playbook proposes the charts, then validates each type against the shape of its own results.',
+  },
+];
+
+/**
+ * What the product does once the analysis exists.
+ *
+ * The three cards above it are all about trust — cleaned, computed, chosen by
+ * the data — and that was the whole pitch. It describes a machine that produces
+ * a report and stops, which undersells a tool people go on to use: an analysis
+ * here can be interrogated, extended, rewritten, handed to someone else and
+ * printed, and none of that was on the page.
+ *
+ * Every line below names something that exists and works. Where a capability
+ * needs an account or a key, the copy says so rather than letting a visitor
+ * find out after signing up.
+ */
+const CAPABILITIES = [
+  {
+    icon: MessageSquare,
+    title: 'Ask it questions',
+    body: 'Type a question in plain English and get a chart with the SQL beside it. There is a query console too, for when you would rather write it yourself.',
+  },
+  {
+    icon: Sigma,
+    title: 'Name a calculation once',
+    body: '"Profit as a percentage of revenue" becomes a measure you can reuse on any card or chart. Parsed deterministically, so it works with no API key.',
+  },
+  {
+    icon: PencilLine,
+    title: 'Edit any of it',
+    body: 'Retitle a finding, rewrite the wording, reorder the deck, add a chart the planner did not think of, drop one you disagree with. Your edits survive a re-run.',
+  },
+  {
+    icon: Share2,
+    title: 'Share the finished thing',
+    body: 'Send an analysis to someone by email and they open the findings with the queries still attached — the reasoning travels with the answer. Needs an account.',
+  },
+  {
+    icon: FileDown,
+    title: 'Take it with you',
+    body: 'A print-ready PDF of the whole report, or the cleaned CSV with the coercions and redactions already applied.',
+  },
+  {
+    icon: Presentation,
+    title: 'Present it',
+    body: 'A full-screen deck you drive with the arrow keys, one slide per finding, with an optional narrator who reads the analysis aloud.',
   },
 ];
 
@@ -517,6 +569,33 @@ export default function LandingPage() {
               <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{f.body}</p>
             </div>
           ))}
+        </section>
+
+        {/* The half of the product the pitch above leaves out. */}
+        <section className="border-t border-white/6 py-10">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-lg font-black tracking-tight text-white/85">
+              And then it is yours to work with
+            </h2>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">
+              after the analysis
+            </span>
+          </div>
+          <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-white/40">
+            The deck it builds is a starting point, not an export. Question it, extend it, rewrite
+            it, and send it to whoever has to act on it.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {CAPABILITIES.map((c) => (
+              <div key={c.title} className="card p-5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/8 bg-white/[0.04] text-accent-400">
+                  <c.icon size={16} />
+                </div>
+                <div className="mt-4 text-sm font-bold text-white/85">{c.title}</div>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{c.body}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
         <footer className="border-t border-white/6 pt-6 text-[11px] text-white/25">
