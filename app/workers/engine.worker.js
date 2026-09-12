@@ -37,8 +37,6 @@ import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
-import { critique } from '../../lib/critic.js';
-import { outcomeColumn } from '../../lib/measureSemantics.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import {
@@ -954,34 +952,14 @@ function analyze(id, { focus, maxCharts }) {
     // somebody else's total, and sums the latter once per joined row.
     provenance: state.view.provenance,
     roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
+    // The profile and the withheld list are already built on this side, and
+    // rebuilding them inside the pipeline would mean a second full pass over
+    // the rows for facts this side already holds.
+    profile: state.viewProfile,
+    withheld: withheldMeasures(),
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
-  /**
-   * What the deck does not say.
-   *
-   * Computed here rather than in the pipeline because it needs the profile and
-   * the column roles, which live on the worker's state — and because it reads
-   * the finished analysis, so it cannot run any earlier than this.
-   */
-  let questions = [];
-  try {
-    const profile = { ...(state.viewProfile || {}), rowCount: state.view.rows.length };
-    questions = critique({
-      findings: result.perChart,
-      profile,
-      outcome: outcomeColumn({
-        columns: [...(profile.measures || []), ...(profile.dimensions || [])],
-        sample: state.view.rows.slice(0, 500),
-        cardinality: profile.cardinality || {},
-      }),
-      withheld: withheldMeasures(),
-    });
-  } catch {
-    // A question about the analysis must never cost the analysis.
-    questions = [];
-  }
-
-  reply(id, 'analyzed', { ...result, critique: questions });
+  reply(id, 'analyzed', result);
 }
 
 /** Execute an ad-hoc chart spec (from the Ask page) against the dataset. */
