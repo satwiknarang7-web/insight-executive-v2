@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Scissors, Layers, GitBranch, Sigma, Calculator, Minus, X } from 'lucide-react';
+import { AlertTriangle, Scissors, Layers, GitBranch, Sigma, Calculator, Minus, Filter, X } from 'lucide-react';
 
 /**
  * What the ingest decided on the user's behalf, said out loud.
@@ -19,6 +19,7 @@ const ICONS = {
   'many-to-many': GitBranch,
   'measure-excluded': Calculator,
   'negative-values': Minus,
+  'rows-excluded': Filter,
 };
 
 const HEADINGS = {
@@ -28,6 +29,7 @@ const HEADINGS = {
   'many-to-many': 'A relationship is ambiguous',
   'measure-excluded': 'Some columns are never totalled',
   'negative-values': 'A quantity goes below zero',
+  'rows-excluded': 'Some rows are left out of every figure',
 };
 
 const noticeIcon = (kind) => ICONS[kind] || AlertTriangle;

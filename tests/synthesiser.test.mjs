@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   nearDuplicates,
-  contestedBasis,
   argumentSpine,
   argumentBriefing,
   acceptArgument,
   spineAsBullets,
 } from '../lib/synthesiser.js';
+import { excludeVoidRows } from '../lib/voidRows.js';
 
 /**
  * A7, which reads the findings as a set rather than one at a time.
@@ -76,7 +76,7 @@ test('similar but not identical advice is left alone', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Rows the data says did not happen
+// The spine
 // ---------------------------------------------------------------------------
 
 const orders = ({ cancelled = 0, total = 1000 } = {}) =>
@@ -84,51 +84,17 @@ const orders = ({ cancelled = 0, total = 1000 } = {}) =>
     Order_Status: i < cancelled ? (i % 2 ? 'Cancelled' : 'Returned') : 'Delivered',
     Total_Amount: 100,
   }));
-
 const shape = { dimensions: ['Order_Status'], measures: ['Total_Amount'] };
 
-test('a status column marking rows void is found, and quantified', () => {
-  const found = contestedBasis(orders({ cancelled: 102 }), shape);
-  assert.equal(found.column, 'Order_Status');
-  assert.equal(found.rows, 102);
-  assert.equal(found.sharePct, 10.2);
-  assert.deepEqual([...found.levels].sort(), ['Cancelled', 'Returned']);
-});
-
-test('it detects and does not filter', () => {
-  // Filtering is a decision about what the customer means by their own measure.
-  // Making it here would be this file deciding what a business counts as
-  // revenue, so what it earns is a place in the argument, not a WHERE clause.
-  const rows = orders({ cancelled: 102 });
-  const before = rows.length;
-  contestedBasis(rows, shape);
-  assert.equal(rows.length, before);
-});
-
-test('a handful of void rows is a rounding error, not a premise', () => {
-  assert.equal(contestedBasis(orders({ cancelled: 3 }), shape), null);
-});
-
-test('a table with no status column has no contested basis', () => {
-  assert.equal(contestedBasis(orders({ cancelled: 102 }), { dimensions: ['Region'], measures: ['Total_Amount'] }), null);
-  assert.equal(contestedBasis([], shape), null);
-});
-
-// ---------------------------------------------------------------------------
-// The spine
-// ---------------------------------------------------------------------------
-
-test('a doubt that changes every figure comes before the figures', () => {
-  // The one ordering rule here that is not a matter of taste. A total whose
-  // basis is contested cannot lead, because nothing under it survives the
-  // decision about what the measure means.
-  const steps = argumentSpine({
-    findings: [finding()],
-    contested: contestedBasis(orders({ cancelled: 102 }), shape),
-    rowCount: 1000,
-  });
-  assert.equal(steps[0].role, 'doubt');
+test('what was excluded is stated before any figure it changed', () => {
+  // The one ordering rule here that is not a matter of taste. A tenth of the
+  // table leaving every total is the first thing a reader needs, not a footnote
+  // after the figures it moved.
+  const { excluded } = excludeVoidRows(orders({ cancelled: 102 }), shape);
+  const steps = argumentSpine({ findings: [finding()], excluded, rowCount: 898 });
+  assert.equal(steps[0].role, 'basis');
   assert.match(steps[0].text, /10\.2%/);
+  assert.match(steps[0].text, /898/);
   assert.equal(steps[1].role, 'claim');
 });
 
@@ -168,14 +134,15 @@ test('a deck with nothing actionable ends on no decision rather than a hollow on
   assert.ok(!steps.some((s) => s.role === 'decision'));
 });
 
-test('a contested basis IS the decision', () => {
+test('an exclusion states the basis and still ends on the decision', () => {
+  const { excluded } = excludeVoidRows(orders({ cancelled: 102 }), shape);
   const steps = argumentSpine({
     findings: [finding({ recommendation: 'Press the Electronics advantage.' })],
-    contested: contestedBasis(orders({ cancelled: 102 }), shape),
-    rowCount: 1000,
+    excluded,
+    rowCount: 898,
   });
-  assert.match(steps.at(-1).text, /Settle the treatment/);
-  assert.match(steps.at(-1).text, /nothing below is worth acting on/);
+  assert.equal(steps[0].role, 'basis');
+  assert.equal(steps.at(-1).role, 'decision');
 });
 
 // ---------------------------------------------------------------------------

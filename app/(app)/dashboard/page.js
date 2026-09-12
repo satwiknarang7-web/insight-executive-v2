@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
+import { exclusionNotice } from '../../../lib/voidRows';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
@@ -117,7 +118,7 @@ export default function DashboardPage() {
   if (!analysis) {
     return (
       <PageFrame title="Dashboard" subtitle={dataset?.fileName}>
-        <DatasetNotices notices={dataset?.notices} />
+        <DatasetNotices notices={[...(dataset?.notices || []), ...exclusionNotice(analysis?.slideZero?.excluded)]} />
         {joinNotice && <JoinNotice notice={joinNotice} />}
         <div className="card flex max-w-xl flex-col items-start gap-4 p-8">
           <BarChart3 size={28} className="text-accent-400" />
@@ -125,7 +126,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-black">Nothing analysed yet</h2>
             <p className="mt-2 text-sm leading-relaxed text-white/45">
               {dataset?.rowCount.toLocaleString()} rows are loaded and cleaned. Run the analysis to plan the
-              charts, execute the queries and compute the findings — all in your browser.
+              charts, execute the queries and compute the findings. The statistics are computed here; the AI reads your columns and their values to decide what is worth asking.
             </p>
           </div>
           <button
@@ -190,7 +191,7 @@ export default function DashboardPage() {
         </div>
       }
     >
-      <DatasetNotices notices={dataset?.notices} />
+      <DatasetNotices notices={[...(dataset?.notices || []), ...exclusionNotice(analysis?.slideZero?.excluded)]} />
       {joinNotice && <JoinNotice notice={joinNotice} />}
 
       {editing && (

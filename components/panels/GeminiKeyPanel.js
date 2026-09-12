@@ -212,7 +212,9 @@ export default function GeminiKeyPanel() {
         <p className="mt-4 border-t border-white/6 pt-3 text-[11px] leading-relaxed text-white/30">
           Kept in this browser only — never in your account, never in a saved analysis, and gone from
           this device when you remove it. It is sent with each model request to this app, which passes
-          it to Google and stores nothing.
+          it to Google and stores nothing. With a key connected, your column names, the values they
+          hold and a few sample rows are sent to Google too, on your key and billed to your account,
+          so the analysis can read what your data actually says.
         </p>
       </div>
     </div>

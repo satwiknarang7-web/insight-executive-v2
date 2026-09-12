@@ -449,7 +449,7 @@ function SignInForm() {
 
           <p className="mt-5 flex items-start gap-2 text-[11px] leading-relaxed text-white/30">
             <ShieldCheck size={13} className="mt-0.5 shrink-0 text-accent-400/70" />
-            Your spreadsheet never leaves your browser. Database credentials you save are encrypted on the
+            Your spreadsheet is parsed and queried in your browser; its columns and their values are sent to your AI provider on your own key. Database credentials you save are encrypted on the
             server and are never sent back to it.
           </p>
         </div>
@@ -546,7 +546,7 @@ const HIGHLIGHTS = [
   {
     icon: ShieldCheck,
     title: 'Your data stays yours',
-    body: 'Spreadsheets are parsed and queried in your browser. Saved credentials are encrypted server-side and never sent back.',
+    body: 'Spreadsheets are parsed and queried in your browser; their columns and values are sent to your AI provider on your own key. Saved credentials are encrypted server-side and never sent back.',
   },
   {
     icon: Presentation,

@@ -1,6 +1,7 @@
 import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptUnitClaims } from '../../../lib/semanticClaims';
+import { acceptVoidClaims } from '../../../lib/voidRows';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -48,10 +49,31 @@ Do NOT count:
 You are shown no values. Do not guess at magnitudes and do not invent a unit you
 cannot read out of the column name itself.
 
-Reply as JSON: { "claims": [ { "column": "<exact column name>", "unit": "<short
-name for the unit, letters only>" } ] }
+You are also answering a SECOND question about the same table.
 
-An empty list is a good answer and the most common correct one.`;
+Some tables record what became of each row: an order status, a transaction
+state, a disposition. Where such a column exists, some of its values mean the
+row DID NOT STAND — cancelled, returned, refunded, charged back, failed. Those
+rows are not revenue, and a total that includes them has the wrong name.
+
+You are shown the distinct values each category column actually holds, with how
+often each occurs. Say which column records this, and which of ITS OWN VALUES
+mean the row did not stand. Copy the values exactly from the list you were
+shown; a value you invent will be discarded.
+
+This is what the value list is for. "Storniert", "Retoure", "Annule", "RTO",
+"Devuelto", "COD Failed" all mean it, in tables whose column names give nothing
+away. A pending or in-progress row DID happen and is not void. A column where
+most of the values would be void is not a status column, so say nothing.
+
+Reply as JSON:
+{
+  "claims": [ { "column": "<exact column name>", "unit": "<short name for the unit, letters only>" } ],
+  "void_rows": { "column": "<exact column name>", "values": ["<exact value>"] }
+}
+
+An empty claims list is a good answer and the most common correct one. Omit
+void_rows entirely unless the table plainly has such a column.`;
 
 export async function POST(request) {
   try {
@@ -63,18 +85,35 @@ export async function POST(request) {
     const refused = await enforceLimit(request, 'semantics');
     if (refused) return refused;
 
-    const { columns = [], detected = {} } = await request.json();
+    const { columns = [], detected = {}, sample = [] } = await request.json();
     if (!Array.isArray(columns) || columns.length === 0) {
       return Response.json({ unavailable: true, reason: 'no_columns' });
     }
 
+    // A column's vocabulary is the evidence for both questions, so it goes
+    // under the column rather than in a block of its own: the values of
+    // `Order_Status` are useless three screens away from its name.
+    const describe = (c) => {
+      const head = `- ${c.name} (${c.kind}${c.levels ? `, ${c.levels} distinct` : ''})`;
+      if (Array.isArray(c.values) && c.values.length) {
+        return `${head}\n    values: ${c.values.map((v) => `${v.value} (${v.sharePct}%)`).join(', ')}`;
+      }
+      if (c.range) {
+        return (
+          `${head}\n    range: ${c.range.min} to ${c.range.max}, median ${c.range.median}` +
+          `${c.range.negatives ? ', goes below zero' : ''}`
+        );
+      }
+      return head;
+    };
+
     const prompt = `The table has these columns:
 
-${columns
-  .map((c) => `- ${c.name} (${c.kind}${c.levels ? `, ${c.levels} distinct` : ''})`)
-  .join('\n')}
+${columns.map(describe).join('\n')}
+${sample.length ? `\nA few whole rows, taken across the table:\n${JSON.stringify(sample.slice(0, 8))}` : ''}
 
-Which of the number columns are counted in a unit that is not the same on every row?`;
+Which number columns are counted in a unit that is not the same on every row, and
+which values mean a row did not stand?`;
 
     const result = await generateJson(prompt, SYSTEM, { geminiKey });
     if (!result || !Array.isArray(result.claims)) {
@@ -89,7 +128,12 @@ Which of the number columns are counted in a unit that is not the same on every 
       detected,
     });
 
-    return Response.json({ claims });
+    // And a void-row claim only survives if it names a column whose values were
+    // actually shown, and values that column actually holds. A status it made
+    // up would exclude nothing while reporting that it had.
+    const voidClaim = acceptVoidClaims(result.void_rows, { columns });
+
+    return Response.json({ claims, voidClaim });
   } catch (error) {
     console.error('[semantics]', error.message);
     return Response.json({ unavailable: true, reason: 'error' });

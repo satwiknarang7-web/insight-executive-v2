@@ -599,7 +599,7 @@ export default function LandingPage() {
         </section>
 
         <footer className="border-t border-white/6 pt-6 text-[11px] text-white/25">
-          Files are parsed, cleaned and queried entirely in your browser. Rows from a connected database
+          Files are parsed, cleaned and queried in your browser, and the shape and values of your columns are sent to your AI provider on your own key so the analysis can read them. Rows from a connected database
           reach it through this app&apos;s server, and are cleaned and queried in the browser too. Only
           anonymous summary statistics are sent to a language model, and only to phrase them — never your
           rows.

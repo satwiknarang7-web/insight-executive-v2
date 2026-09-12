@@ -39,6 +39,7 @@ import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
+import { valueVocabulary } from '../../lib/valueBriefing.js';
 import {
   buildDataModel,
   buildAnalysisView,
@@ -138,6 +139,11 @@ function summary() {
     // that holds the rows, the profile and the data model at once — and shown
     // on /measures beside the ones the user writes, because they are the same
     // kind of object and the only difference is who typed them.
+    // The distinct values of each low-cardinality column and the range of each
+    // numeric one. Computed here because this is the only place that holds the
+    // rows, and sent to the semantic pass so it can read a status column's
+    // vocabulary rather than guess at it from the column's name.
+    vocabulary: valueVocabulary(state.view.rows, state.viewProfile),
     derivedMeasures: describeDerived(),
     columnRoles: columnRoles(),
     notices: state.notices,
@@ -840,8 +846,8 @@ export function rollUpMetrics(tables, view) {
  * wrong trade: a spreadsheet someone opened to look at once then sat in this
  * browser's storage indefinitely, surviving the tab being closed, and turned up
  * again for whoever opened the app next on a shared machine. For a product
- * whose promise is that your file never leaves your browser, leaving it there
- * afterwards is the wrong half of that sentence to honour.
+ * that does not persist what you open, leaving it in storage afterwards is the
+ * wrong half of that promise to honour.
  *
  * So nothing is stored. The worker holds the rows in memory; closing the tab
  * destroys the worker and the rows with it. Client-side navigation between
@@ -937,7 +943,7 @@ function sourceRows() {
   return out;
 }
 
-function analyze(id, { focus, maxCharts, claims = null }) {
+function analyze(id, { focus, maxCharts, claims = null, voidClaim = null }) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
@@ -960,6 +966,10 @@ function analyze(id, { focus, maxCharts, claims = null }) {
     // Unit claims settled before planning, because they decide which sums are
     // allowed. Null when no provider answered, which is the lexicon alone.
     claims,
+    // Which values in which column mean the row did not stand. Settled before
+    // planning for the same reason as the unit claims: it decides which ROWS
+    // are summed, and every figure below inherits the answer.
+    voidClaim,
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
   reply(id, 'analyzed', result);

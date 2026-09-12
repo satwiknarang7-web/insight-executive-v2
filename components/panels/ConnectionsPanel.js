@@ -120,7 +120,7 @@ export default function ConnectionsPanel({ organization }) {
           <span className="label !text-amber-400/80">Different from uploading a file</span>
         </div>
         <p className="text-[13px] leading-relaxed text-white/60">
-          Spreadsheets are analysed entirely in your browser and never reach a server. A connected database
+          Spreadsheets are parsed and queried in your browser, and their columns and values are sent to your AI provider on your own key. A connected database
           is not: the query runs from the server using the credentials stored here, and the rows come back
           through it. Use a read-only database role.
         </p>
