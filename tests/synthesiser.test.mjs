@@ -55,7 +55,7 @@ test('two findings about different things are not duplicates', () => {
   assert.ok(!found.some((f) => f.kind === 'duplicate-claim'));
 });
 
-test('the same instruction twice is cleared the second time', () => {
+test('the same instruction twice is pointed at the first, not deleted', () => {
   // Word for word, about two different columns, on one deck.
   const advice = 'Decide whether the reliance is a strength to press or an exposure to hedge.';
   const found = nearDuplicates([
@@ -64,7 +64,7 @@ test('the same instruction twice is cleared the second time', () => {
   ]);
   const repeat = found.find((f) => f.kind === 'repeated-advice');
   assert.equal(repeat.id, 'c2');
-  assert.equal(repeat.repair.op, 'clear_text');
+  assert.equal(repeat.repair.op, 'set_text');
 });
 
 test('the same instruction about a different subject is still the same instruction', () => {
@@ -86,7 +86,10 @@ test('the same instruction about a different subject is still the same instructi
   ]);
   const repeat = found.find((f) => f.kind === 'repeated-advice');
   assert.equal(repeat.id, 'c2');
-  assert.equal(repeat.repair.op, 'clear_text');
+  // Pointed at the other slide, not deleted: clearing it left a slide that
+  // described a bar chart and stopped.
+  assert.equal(repeat.repair.op, 'set_text');
+  assert.match(repeat.repair.text, /The same decision applies here/);
 });
 
 test('genuinely different advice is left alone', () => {

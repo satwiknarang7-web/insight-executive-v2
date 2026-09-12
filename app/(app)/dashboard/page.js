@@ -549,6 +549,8 @@ function describeEdit(edit) {
   if (edit.op === 'chart_type') return `Redrawn as a ${edit.chart_type} chart`;
   if (edit.op === 'colorBy') return 'Dropped one colour per bar';
   if (edit.op === 'remove_kpi') return 'Removed a repeated card';
+  if (edit.op === 'set_text') return 'Replaced a repeated recommendation with a pointer';
+  if (edit.op === 'clear_text') return 'Removed a claim its own numbers did not support';
   if (edit.op === 'reorder') return 'Reordered the deck';
   return 'Edited';
 }
