@@ -37,6 +37,8 @@ import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
+import { critique } from '../../lib/critic.js';
+import { outcomeColumn } from '../../lib/measureSemantics.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import {
@@ -225,6 +227,26 @@ function columnRoles() {
  * whose best columns were disqualified. Six economic indicators disappearing
  * from a 22-column file should be a sentence on screen, not an absence.
  */
+/**
+ * Columns the engine profiled and then refused to aggregate.
+ *
+ * One definition, because two things need it and they must agree: the ingest
+ * notice that explains the absence, and the critic, which must NOT ask about a
+ * column whose absence is already explained.
+ */
+function withheldMeasures() {
+  if (!state) return [];
+  const measures = new Set(state.viewProfile?.measures || []);
+  const roles = columnRoles();
+  return Object.entries(roles)
+    .filter(
+      ([col, r]) =>
+        measures.has(col) &&
+        (r.kind === 'attribute' || r.kind === 'preAggregate' || r.kind === 'denominated')
+    )
+    .map(([col]) => col);
+}
+
 function noteExcludedMeasures() {
   if (!state) return;
   const measures = new Set(state.viewProfile?.measures || []);
@@ -336,7 +358,25 @@ function buildProfile(rows, columns, metrics) {
       mean: count ? sum / count : null,
     };
   }
-  return { columns: byName, measures: p.measures, dimensions: p.dimensions, temporal: p.temporal };
+  /**
+   * `cardinality` is carried, and that is not cosmetic.
+   *
+   * `columnRoles` passes `state.viewProfile?.cardinality || {}` into
+   * `classifyColumns`, and this shape did not have it — so that argument has
+   * always been an empty object in the running app. Two rules read it and both
+   * were dormant: the identifier test (`distinct >= 0.95 * rowCount`, which is
+   * what stops a per-row key being treated as a measure) and the unit-column
+   * test in `detectDenomination`, which refuses to combine rows when the table
+   * carries a currency column holding more than one value. Only the name-based
+   * halves of each were ever reached.
+   */
+  return {
+    columns: byName,
+    measures: p.measures,
+    dimensions: p.dimensions,
+    temporal: p.temporal,
+    cardinality: p.cardinality,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -916,7 +956,32 @@ function analyze(id, { focus, maxCharts }) {
     roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
-  reply(id, 'analyzed', result);
+  /**
+   * What the deck does not say.
+   *
+   * Computed here rather than in the pipeline because it needs the profile and
+   * the column roles, which live on the worker's state — and because it reads
+   * the finished analysis, so it cannot run any earlier than this.
+   */
+  let questions = [];
+  try {
+    const profile = { ...(state.viewProfile || {}), rowCount: state.view.rows.length };
+    questions = critique({
+      findings: result.perChart,
+      profile,
+      outcome: outcomeColumn({
+        columns: [...(profile.measures || []), ...(profile.dimensions || [])],
+        sample: state.view.rows.slice(0, 500),
+        cardinality: profile.cardinality || {},
+      }),
+      withheld: withheldMeasures(),
+    });
+  } catch {
+    // A question about the analysis must never cost the analysis.
+    questions = [];
+  }
+
+  reply(id, 'analyzed', { ...result, critique: questions });
 }
 
 /** Execute an ad-hoc chart spec (from the Ask page) against the dataset. */

@@ -20,6 +20,7 @@ import {
   Pencil,
   Check,
   Info,
+  HelpCircle,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
@@ -327,6 +328,32 @@ export default function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            )}
+
+            {/* What the deck does not say.
+                Kept visually apart from the findings above it and never styled
+                like one: these are questions with nothing behind them, and a
+                reader has to be able to tell them from the sentences that
+                carry a query. Every expensive mistake in this project has been
+                an absence — a chart that is not there leaves no mark on the
+                page — so the absences get a place to appear. */}
+            {analysis?.critique?.length > 0 && (
+              <div className="mt-5 border-t border-white/8 pt-4">
+                <div className="flex items-center gap-2">
+                  <HelpCircle size={12} className="shrink-0 text-white/30" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                    Open questions
+                  </span>
+                  <span className="text-[10px] text-white/20">nothing here is a finding</span>
+                </div>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {analysis.critique.map((q, i) => (
+                    <li key={i} className="text-[12px] leading-relaxed text-white/40">
+                      {q.question}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 
