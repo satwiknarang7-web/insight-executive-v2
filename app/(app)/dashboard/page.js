@@ -22,6 +22,7 @@ import {
   Info,
   HelpCircle,
   SlidersHorizontal,
+  Wand2,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
@@ -368,6 +369,40 @@ export default function DashboardPage() {
                 </ul>
               </div>
             )}
+
+            {/* What the editing agent changed.
+                Shown for the same reason the AI badge above exists: a reader
+                who finds a heading they did not write is owed the sentence
+                explaining who wrote it and why. Every one of these is a change
+                a person could have made by hand through the same whitelist, is
+                recorded on the slide as an edit, and can be typed over. */}
+            {analysis?.analystEdits?.length > 0 && (
+              <div className="mt-5 border-t border-white/8 pt-4">
+                <div className="flex items-center gap-2">
+                  <Wand2 size={12} className="shrink-0 text-white/30" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                    Edits made
+                  </span>
+                  <span className="text-[10px] text-white/20">presentation only — no number changed</span>
+                </div>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {analysis.analystEdits.map((e, i) => (
+                    <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
+                      <span
+                        title="Made by a language model, which was shown the deck's structure and no values"
+                        className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-black uppercase tracking-[0.15em] text-white/25"
+                      >
+                        AI
+                      </span>
+                      <span>
+                        <span className="text-white/55">{describeEdit(e)}</span>
+                        {e.why ? ` — ${e.why}` : ''}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -464,6 +499,20 @@ export default function DashboardPage() {
  * value is still allowed — it just drops the provenance, because at that point
  * the number is no longer the query's.
  */
+/**
+ * One edit, in the words a person would use for it.
+ *
+ * Named rather than rendered inline because the phrasing is the whole point:
+ * "renamed" and "redrawn" are what happened, and a reader who sees a heading
+ * they did not write needs to be told which of the two it was.
+ */
+function describeEdit(edit) {
+  if (edit.op === 'retitle') return `Renamed a chart to "${edit.title}"`;
+  if (edit.op === 'chart_type') return `Redrawn as a ${edit.chart_type} chart`;
+  if (edit.op === 'reorder') return 'Reordered the deck';
+  return 'Edited';
+}
+
 function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, onCompute, onDelete }) {
   // One dropdown covers both kinds of source, so a measure is picked exactly
   // where a plain aggregate is. Measures are prefixed to keep the two apart.
