@@ -67,10 +67,32 @@ test('the same instruction twice is cleared the second time', () => {
   assert.equal(repeat.repair.op, 'clear_text');
 });
 
-test('similar but not identical advice is left alone', () => {
+test('the same instruction about a different subject is still the same instruction', () => {
+  // The pair that shipped: one sentence, two columns, one word different. An
+  // exact-string check called them distinct and both went out.
+  const found = nearDuplicates([
+    finding({
+      id: 'c1',
+      dimension: 'Category',
+      recommendation: 'Decide whether the reliance on Electronics is a strength to press or an exposure to hedge.',
+      metrics: { evidence: 'strong', leader: 'Electronics' },
+    }),
+    finding({
+      id: 'c2',
+      dimension: 'Customer_Age_Group',
+      recommendation: 'Decide whether the reliance on 26-35 is a strength to press or an exposure to hedge.',
+      metrics: { evidence: 'strong', leader: '26-35' },
+    }),
+  ]);
+  const repeat = found.find((f) => f.kind === 'repeated-advice');
+  assert.equal(repeat.id, 'c2');
+  assert.equal(repeat.repair.op, 'clear_text');
+});
+
+test('genuinely different advice is left alone', () => {
   const found = nearDuplicates([
     finding({ id: 'c1', dimension: 'Category', recommendation: 'Decide whether the reliance on Electronics is a strength or an exposure.' }),
-    finding({ id: 'c2', dimension: 'Region', recommendation: 'Decide whether the reliance on North is a strength or an exposure.' }),
+    finding({ id: 'c2', dimension: 'Region', recommendation: 'Work out what accounts for the gap before committing effort either way.' }),
   ]);
   assert.ok(!found.some((f) => f.kind === 'repeated-advice'));
 });
