@@ -945,48 +945,69 @@ test('no two summary bullets draw the same consequence', () => {
   assert.equal(new Set(tails).size, tails.length, `a consequence was reused: ${tails.join(' || ')}`);
 });
 
-test('a thin finding does not lead the summary over a solid one', () => {
-  const thin = {
-    id: 'thin',
+test('two groups over many records is evidence, not a shortage of it', () => {
+  /*
+   * This test used to assert the opposite, and the opposite was the bug.
+   *
+   * It called a two-category split "a large number on almost no evidence" and
+   * required it to rank below an eight-category one. But the evidence behind a
+   * chart is the records underneath it, not the number of bars drawn from
+   * them: 990 against 10 across nine thousand rows is a 99% concentration
+   * measured on nine thousand rows.
+   *
+   * On a real 202,616-row export that belief graded host-country medal rates —
+   * 21.7% on 11,747 entries against 13.0% on 190,869, the strongest finding in
+   * the file — as "not enough data yet, rests on 2 data points", and buried it
+   * under a weight band holding fourteen athletes whose chart had more bars.
+   */
+  const twoGroups = {
+    id: 'two',
     title: 'Revenue by Tier',
     chart_type: 'bar',
     xAxisKey: 'Tier',
     yAxisKey: 'Revenue',
-    // Two categories, one taking almost everything: a large number on almost
-    // no evidence.
     resultData: [
       { Tier: 'Gold', Revenue: 990 },
       { Tier: 'Silver', Revenue: 10 },
     ],
   };
-  const solid = {
-    id: 'solid',
-    title: 'Revenue by Category',
+  const { perChart } = analyzeStoryboard([twoGroups], new Array(9000).fill({}));
+  const finding = perChart.find((f) => f.id === 'two');
+
+  assert.ok(
+    ['moderate', 'strong'].includes(finding.metrics.evidence),
+    `a 99% split over 9,000 records came out as ${finding.metrics.evidence}`
+  );
+  assert.ok(
+    !(finding.metrics.evidenceNotes || []).some((n) => /rests on 2 data points/.test(n)),
+    'it still claimed to rest on two data points'
+  );
+  // The shape is still worth saying — it is a gap, not a ranking — but as a
+  // note a reader can weigh rather than as a penalty that reads as "we do not
+  // have the data", which was untrue.
+  assert.ok(
+    (finding.metrics.evidenceNotes || []).some((n) => /gap between them rather than a ranking/.test(n)),
+    'the two-group shape went unmentioned'
+  );
+});
+
+test('a finding with few records behind it is still weak', () => {
+  // The guard the old test was reaching for, applied to the quantity that
+  // actually carries it.
+  const sparse = {
+    id: 'sparse',
+    title: 'Revenue by Tier',
     chart_type: 'bar',
-    xAxisKey: 'Category',
+    xAxisKey: 'Tier',
     yAxisKey: 'Revenue',
     resultData: [
-      { Category: 'Electronics', Revenue: 5200 },
-      { Category: 'Home', Revenue: 1800 },
-      { Category: 'Toys', Revenue: 900 },
-      { Category: 'Books', Revenue: 600 },
-      { Category: 'Garden', Revenue: 500 },
-      { Category: 'Pets', Revenue: 400 },
-      { Category: 'Sports', Revenue: 300 },
-      { Category: 'Auto', Revenue: 300 },
+      { Tier: 'Gold', Revenue: 990 },
+      { Tier: 'Silver', Revenue: 10 },
     ],
   };
-  const { perChart, synthesis } = analyzeStoryboard([thin, solid], new Array(9000).fill({}));
+  const { perChart } = analyzeStoryboard([sparse], new Array(5).fill({}));
   const rank = ['thin', 'indicative', 'moderate', 'strong'];
-  const thinFinding = perChart.find((f) => f.id === 'thin');
-  const solidFinding = perChart.find((f) => f.id === 'solid');
-
-  assert.ok(thinFinding.metrics.leaderSharePct > solidFinding.metrics.leaderSharePct, 'its number is bigger');
-  assert.ok(
-    rank.indexOf(thinFinding.metrics.evidence) < rank.indexOf(solidFinding.metrics.evidence),
-    'and its evidence is weaker'
-  );
-  assert.match(synthesis.headline, /Electronics/, 'so the better-evidenced finding opens the summary');
+  assert.ok(rank.indexOf(perChart[0].metrics.evidence) <= rank.indexOf('indicative'));
 });
 
 // ---------------------------------------------------------------------------
