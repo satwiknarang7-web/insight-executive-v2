@@ -15,6 +15,8 @@ import { formatDateLabel, formatNumber, formatPercent, isPercentKey } from '../.
 import { prettyColumn } from '../../lib/aggregateNames.js';
 import { legendRows } from '../../lib/sliceLabels.js';
 
+export const LEGEND_H = 26;
+
 /** Rough width of a string at a given font size, in px. */
 const textWidth = (s, fontSize = 12) => String(s ?? '').length * fontSize * 0.58;
 
@@ -221,7 +223,6 @@ export function legendProps({ seriesCount = 1, compact = false } = {}) {
 }
 
 /** The height of one row of legend entries. */
-export const LEGEND_H = 26;
 
 /** Truncate only as a last resort, and only past `max`. */
 export function clip(value, max = HARD_MAX) {

@@ -24,6 +24,26 @@ import { MIN_PASSWORD } from '../../lib/auth/otp';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 import Logo, { PRODUCT_NAME } from '../../components/shell/Logo';
 
+const SOURCES = [...availableConnectors().map((c) => c.label), 'CSV & Excel'];
+
+const HIGHLIGHTS = [
+  {
+    icon: Gauge,
+    title: 'Computed, not guessed',
+    body: 'Statistics come from real SQL over your rows. The model only phrases findings it was handed — it never does the maths.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Your data stays yours',
+    body: 'Spreadsheets are parsed and queried in your browser; their columns and values are sent to your AI provider on your own key. Saved credentials are encrypted server-side and never sent back.',
+  },
+  {
+    icon: Presentation,
+    title: 'Ready to present',
+    body: 'A narrated deck, an executive summary and an exportable report, from the same verified findings — shareable with your team.',
+  },
+];
+
 function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
@@ -535,25 +555,9 @@ function Pitch() {
  * Files come last and are named separately: they are the one source that needs
  * no connection at all.
  */
-const SOURCES = [...availableConnectors().map((c) => c.label), 'CSV & Excel'];
 
-const HIGHLIGHTS = [
-  {
-    icon: Gauge,
-    title: 'Computed, not guessed',
-    body: 'Statistics come from real SQL over your rows. The model only phrases findings it was handed — it never does the maths.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Your data stays yours',
-    body: 'Spreadsheets are parsed and queried in your browser; their columns and values are sent to your AI provider on your own key. Saved credentials are encrypted server-side and never sent back.',
-  },
-  {
-    icon: Presentation,
-    title: 'Ready to present',
-    body: 'A narrated deck, an executive summary and an exportable report, from the same verified findings — shareable with your team.',
-  },
-];
+
+
 
 function Feedback({ error, notice }) {
   if (error) {

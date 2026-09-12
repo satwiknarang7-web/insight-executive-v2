@@ -36,6 +36,9 @@ import {
   pretty,
 } from '../../lib/chartSpecs';
 
+const selectClass =
+  'min-h-11 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50 sm:min-h-0';
+
 /**
  * A starting choice for one dimension slot.
  *
@@ -481,8 +484,7 @@ function Field({ label, help, children }) {
   );
 }
 
-const selectClass =
-  'min-h-11 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50 sm:min-h-0';
+
 
 function Select({ value, onChange, options, format = (v) => v }) {
   return (

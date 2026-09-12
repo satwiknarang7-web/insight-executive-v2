@@ -50,6 +50,12 @@ export default function DashboardPage() {
   const { analyze, setVoidRowsIncluded, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
     useActions();
   const router = useRouter();
+  const [building, setBuilding] = useState(false);
+  // Putting the void rows back is a full re-analysis, so the control has to say
+  // it is working. Without it the button looks broken for the second or two the
+  // engine takes, on the one notice a reader is most likely to press twice.
+  const [rerunning, setRerunning] = useState(false);
+  const [saving, setSaving] = useState(false);
   /**
    * The way out of the exclusion, attached to the sentence that announces it.
    *
@@ -74,12 +80,7 @@ export default function DashboardPage() {
       }
     : null;
   const notices = [...(dataset?.notices || []), ...exclusionNotice(excluded, voidAction)];
-  const [building, setBuilding] = useState(false);
-  // Putting the void rows back is a full re-analysis, so the control has to say
-  // it is working. Without it the button looks broken for the second or two the
-  // engine takes, on the one notice a reader is most likely to press twice.
-  const [rerunning, setRerunning] = useState(false);
-  const [saving, setSaving] = useState(false);
+
   // One switch for the whole page. A pencil beside every field would put an
   // affordance next to every sentence on a dashboard whose job is to be read.
   const [editing, setEditing] = useState(false);

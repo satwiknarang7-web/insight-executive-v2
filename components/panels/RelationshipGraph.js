@@ -44,6 +44,11 @@ import {
   anchorSides,
 } from '../../lib/erLayout';
 
+const clip = (s, max) => {
+  const text = String(s ?? '');
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+};
+
 /**
  * How far the pointer must travel before a press counts as a drag.
  *
@@ -483,7 +488,4 @@ function sourceLabel(table) {
   return table.sourceFile || table.sheetName || `${(table.rowCount || 0).toLocaleString()} rows`;
 }
 
-const clip = (s, max) => {
-  const text = String(s ?? '');
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
-};
+
