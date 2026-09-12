@@ -46,6 +46,22 @@ function pipelineStages() {
   return [...found];
 }
 
+/**
+ * Stage names the provider emits.
+ *
+ * The last two steps of an analysis do not happen in the worker: reading the
+ * deck back and repairing it can call a model, and the worker cannot. They are
+ * scanned here for the same reason as the other two — a stage renamed on one
+ * side and not the other leaves the panel stuck one step short of done, on the
+ * screen a first-time customer is watching.
+ */
+function providerStages() {
+  const src = read('../lib/store/DatasetProvider.js');
+  const found = new Set();
+  for (const m of src.matchAll(/pushProgress\([^,]+,\s*\{\s*stage:\s*'([^']+)'/g)) found.add(m[1]);
+  return [...found];
+}
+
 /* Stages that deliberately belong to no plan.
  *
  * `Sanitizing & redacting` comes from the cleaner's own progress channel, which
@@ -122,4 +138,26 @@ test('a remote ingest does not show a file-reading step it will never run', () =
   // to read or delimit, and a step that can never light up is worse than absent.
   assert.equal(stepIndexFor(INGEST_REMOTE, 'Reading data'), -1);
   assert.equal(stepIndexFor(INGEST_FILES, 'Reading data'), 0);
+});
+
+test('every stage the provider emits belongs to a step', () => {
+  const stages = providerStages();
+  assert.ok(stages.length >= 3, `only found ${stages.length} provider stages — the scan is broken`);
+
+  for (const stage of stages) {
+    const claimed = ALL_PLANS.some((plan) => stepIndexFor(plan, stage) > -1);
+    assert.ok(claimed, `no step claims the provider stage "${stage}"`);
+  }
+});
+
+test('the analysis plan ends where the provider ends, not where the worker does', () => {
+  // The worker stops short of 'Ready' on purpose: the deck is built there and
+  // finished two steps later. If the pipeline ever announces 'Ready' again,
+  // the panel ticks its last box while the repair pass is still running.
+  const pipeline = read('../lib/pipeline.js');
+  assert.ok(
+    !/stage:\s*'Ready'/.test(pipeline),
+    'the pipeline announced Ready again — the panel will complete before the repair pass runs'
+  );
+  assert.equal(ANALYZE[ANALYZE.length - 1].id, 'ready');
 });

@@ -48,10 +48,19 @@ test('the loading screen is told every stage the engine runs', () => {
     'Verifying the maths',
     'Reviewing the deck',
     'Writing the report',
-    'Ready',
   ]) {
     assert.ok(names.includes(expected), `never announced "${expected}"`);
   }
+});
+
+test('the engine does not announce Ready, because it is not the last thing to run', () => {
+  // The deck is BUILT here and finished two steps later, in the provider, where
+  // the presentation audit repairs it and A2 rewrites what a rule cannot. The
+  // worker cannot reach a model, so those steps cannot live here — and a
+  // 'Ready' at this point ticks the panel's last box while a customer still has
+  // two passes to wait for.
+  const { stages } = run(orders());
+  assert.ok(!stages.some((s) => s.stage === 'Ready'), 'the engine claimed the job was finished');
 });
 
 test('every stage belongs to a step the panel can show', () => {
@@ -70,7 +79,10 @@ test('the stages run forwards', () => {
     assert.ok(percent >= last, `progress went backwards to ${percent}`);
     last = percent;
   }
-  assert.equal(stages.at(-1).percent, 100);
+  // Short of 100 on purpose: the last stretch belongs to the repair pass.
+  const handover = stages.at(-1).percent;
+  assert.ok(handover < 100, `the engine reached ${handover}% before the deck had been read back`);
+  assert.ok(handover >= 80, `the engine stopped at ${handover}%, which leaves the bar looking stalled`);
 });
 
 test('an outcome reaches even a two-slide deck, so the gap cannot open', () => {

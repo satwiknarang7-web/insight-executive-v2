@@ -383,16 +383,24 @@ export default function DashboardPage() {
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
                     Edits made
                   </span>
-                  <span className="text-[10px] text-white/20">presentation only — no number changed</span>
+                  <span className="text-[10px] text-white/20">before you saw it — no number changed</span>
                 </div>
                 <ul className="mt-3 flex flex-col gap-2">
                   {analysis.analystEdits.map((e, i) => (
                     <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
+                      {/* Which fixes were measured and which were written.
+                          A donut of two slices is arithmetic; a shorter
+                          heading is a judgement, and a reader deciding how
+                          much to trust a change is owed the difference. */}
                       <span
-                        title="Made by a language model, which was shown the deck's structure and no values"
+                        title={
+                          e.source === 'audit'
+                            ? 'Found and fixed by a deterministic check — no model involved'
+                            : "Made by a language model, which was shown the deck's structure and no values"
+                        }
                         className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-black uppercase tracking-[0.15em] text-white/25"
                       >
-                        AI
+                        {e.source === 'audit' ? 'CHECK' : 'AI'}
                       </span>
                       <span>
                         <span className="text-white/55">{describeEdit(e)}</span>
@@ -509,6 +517,8 @@ export default function DashboardPage() {
 function describeEdit(edit) {
   if (edit.op === 'retitle') return `Renamed a chart to "${edit.title}"`;
   if (edit.op === 'chart_type') return `Redrawn as a ${edit.chart_type} chart`;
+  if (edit.op === 'colorBy') return 'Dropped one colour per bar';
+  if (edit.op === 'remove_kpi') return 'Removed a repeated card';
   if (edit.op === 'reorder') return 'Reordered the deck';
   return 'Edited';
 }

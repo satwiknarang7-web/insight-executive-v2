@@ -48,10 +48,13 @@ The three operations you may return:
 
 Guidance, in the order it matters:
 
-1. Retitle only a heading that is worse than what you would write. A heading
-   naming the operation ("Sum of Amount by Region", "Count of Rows by Year")
-   should name the subject instead. A heading that is already clear stays as it
-   is — renaming for the sake of it is worse than leaving it.
+1. Retitle the headings marked 'needs_rewrite' first — that field says what a
+   check already found wrong with it, usually that it names the operation ("Sum
+   of Amount by Region") or that it is too long and gets clipped on screen.
+   Those are the ones worth your attention, and a shorter heading must still
+   name the same thing: shorten by dropping words that carry nothing, never by
+   dropping the subject. A heading with no flag and no problem stays as it is —
+   renaming for the sake of it is worse than leaving it.
 2. Never put a number, a superlative or a claim in a heading. You have been
    shown no values, so any figure you write is invented and will be dropped.
    Headings describe what the chart shows, never what it proves.
