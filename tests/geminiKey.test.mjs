@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {
   KEY_HEADER,
   KEY_PATTERN,
+  CLASSIC_PATTERN,
+  STUDIO_PATTERN,
   STORAGE_KEY,
   clearKey,
   keyProblem,
@@ -27,28 +29,49 @@ import { callerGeminiKey } from '../lib/llm.server.js';
 
 const VALID = `AIza${'a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R'}`; // 4 + 35
 
-test('the fixture is the shape Google actually issues', () => {
+/* The newer AI Studio format. The panel used to refuse these outright, with a
+ * sentence explaining confidently that they were a key for something else —
+ * because this file had one issuing format written into it as if it were the
+ * only one. It was the only one at the time. */
+const STUDIO = `AQ.${'Ab8RN6Jv'}${'x7Q2'.repeat(8)}`;
+
+test('both shapes Google issues are accepted', () => {
   assert.equal(VALID.length, 39);
-  assert.ok(KEY_PATTERN.test(VALID));
+  assert.ok(CLASSIC_PATTERN.test(VALID));
   assert.equal(keyProblem(VALID), null);
+  assert.ok(STUDIO_PATTERN.test(STUDIO));
+  assert.equal(keyProblem(STUDIO), null, 'an AI Studio key is not a key for something else');
+});
+
+test('a shape this file has never seen is not refused on a guess', () => {
+  // The decision about what a valid key is belongs to Google, and `verifyKey`
+  // asks it before anything is saved. Turning an unknown format away here is
+  // how the last one broke, so an unfamiliar but plausible key goes through.
+  assert.equal(keyProblem(`XY.${'a1B2c3D4'.repeat(4)}`), null);
 });
 
 test('a key that is wrong is refused, and told why', () => {
   assert.match(keyProblem(''), /Paste a key/);
   assert.match(keyProblem('   '), /Paste a key/);
-  assert.match(keyProblem('sk-proj-abcdefghijklmnopqrstuvwxyz012345'), /starts with "AIza"/);
+  // Named where it can be named: these prefixes belong to somebody else.
+  assert.match(keyProblem('sk-proj-abcdefghijklmnopqrstuvwxyz012345'), /OpenAI key/);
+  assert.match(keyProblem(`sk-ant-${'a'.repeat(40)}`), /Anthropic key/);
+  assert.match(keyProblem(`gsk_${'a'.repeat(40)}`), /Groq key/);
   assert.match(keyProblem('AIzaShort'), /39 characters; that one is 9/);
   assert.match(keyProblem(`${VALID}extra`), /39 characters/);
+  assert.match(keyProblem('AQ.short'), /cut short/);
   // A newline pulled in by a sloppy copy is the most common real mistake.
   assert.match(keyProblem(`AIza a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q`), /space in it/);
   // Right length and prefix, wrong alphabet.
   assert.match(keyProblem(`AIza${'!'.repeat(35)}`), /characters a Google key does not use/);
+  // And a paste that is not a credential at all never reaches Google.
+  assert.match(keyProblem('!'.repeat(40)), /characters a Google key does not use/);
 });
 
 test('no rejection message ever repeats the key back', () => {
   // Error text is the part of this that reliably reaches a screenshot or a
   // support thread, so it must not carry the secret it is complaining about.
-  for (const bad of [`${VALID}extra`, `AIza${'!'.repeat(35)}`, 'AIzaShort']) {
+  for (const bad of [`${VALID}extra`, `AIza${'!'.repeat(35)}`, 'AIzaShort', 'AQ.short']) {
     const message = keyProblem(bad);
     assert.ok(message, 'expected a problem');
     assert.ok(!message.includes(bad), `the message quoted the key: ${message}`);
@@ -153,12 +176,17 @@ test('the header is only added when there is a key to add', () => {
 
 const asRequest = (headers) => ({ headers: { get: (name) => headers[name] ?? null } });
 
-test('the route reads a well-formed key and ignores anything else', () => {
+test('the route reads a plausible key and ignores anything else', () => {
   assert.equal(callerGeminiKey(asRequest({ [KEY_HEADER]: VALID })), VALID);
+  assert.equal(callerGeminiKey(asRequest({ [KEY_HEADER]: STUDIO })), STUDIO);
   assert.equal(callerGeminiKey(asRequest({ [KEY_HEADER]: `  ${VALID}  ` })), VALID);
-  // Junk in the header is no key, not a key to try — a bad value must never be
-  // dialled out to Google, and must never come back out of this function.
-  for (const junk of ['', 'null', 'undefined', 'AIzaShort', `${VALID}x`, 'Bearer ' + VALID]) {
+  // Junk in the header is no key, not a key to try. What counts as junk is
+  // deliberately narrow now: something that could not be a credential at all.
+  // The server does not know every length Google issues — it guessed once, and
+  // the guess is what refused a real key — so a key-shaped string it does not
+  // recognise is passed on to be rejected by the only thing that knows.
+  const newline = String.fromCharCode(10);
+  for (const junk of ['', 'null', 'undefined', 'AIzaShort', 'Bearer ' + VALID, VALID + newline + 'X-Injected: yes', '!'.repeat(40), 'x'.repeat(500)]) {
     assert.equal(callerGeminiKey(asRequest({ [KEY_HEADER]: junk })), '');
   }
   assert.equal(callerGeminiKey(asRequest({})), '');
