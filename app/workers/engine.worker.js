@@ -943,7 +943,7 @@ function sourceRows() {
   return out;
 }
 
-function analyze(id, { focus, maxCharts, claims = null, voidClaim = null }) {
+function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includeVoid = false }) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
@@ -970,6 +970,9 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null }) {
     // planning for the same reason as the unit claims: it decides which ROWS
     // are summed, and every figure below inherits the answer.
     voidClaim,
+    // Whether the reader asked for the void rows back. Default false: the
+    // narrower total is the one that is what its name says.
+    includeVoid,
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
   reply(id, 'analyzed', result);

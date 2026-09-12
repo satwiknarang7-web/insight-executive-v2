@@ -47,10 +47,38 @@ export default function DashboardPage() {
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
   const customMeasures = useMeasures();
-  const { analyze, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
+  const { analyze, setVoidRowsIncluded, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
     useActions();
   const router = useRouter();
+  /**
+   * The way out of the exclusion, attached to the sentence that announces it.
+   *
+   * A notice stating a decision with no way to reverse it is an apology rather
+   * than a disclosure. The engine's default stands — a total that counts
+   * cancellations is not the quantity its name says — but it is the reader's
+   * table and their definition of revenue.
+   */
+  const excluded = analysis?.slideZero?.excluded || null;
+  const voidAction = excluded
+    ? {
+        label: excluded.applied === false ? 'Leave them out' : 'Count them anyway',
+        busy: rerunning,
+        onClick: async () => {
+          setRerunning(true);
+          try {
+            await setVoidRowsIncluded(excluded.applied !== false);
+          } finally {
+            setRerunning(false);
+          }
+        },
+      }
+    : null;
+  const notices = [...(dataset?.notices || []), ...exclusionNotice(excluded, voidAction)];
   const [building, setBuilding] = useState(false);
+  // Putting the void rows back is a full re-analysis, so the control has to say
+  // it is working. Without it the button looks broken for the second or two the
+  // engine takes, on the one notice a reader is most likely to press twice.
+  const [rerunning, setRerunning] = useState(false);
   const [saving, setSaving] = useState(false);
   // One switch for the whole page. A pencil beside every field would put an
   // affordance next to every sentence on a dashboard whose job is to be read.
@@ -118,7 +146,7 @@ export default function DashboardPage() {
   if (!analysis) {
     return (
       <PageFrame title="Dashboard" subtitle={dataset?.fileName}>
-        <DatasetNotices notices={[...(dataset?.notices || []), ...exclusionNotice(analysis?.slideZero?.excluded)]} />
+        <DatasetNotices notices={notices} />
         {joinNotice && <JoinNotice notice={joinNotice} />}
         <div className="card flex max-w-xl flex-col items-start gap-4 p-8">
           <BarChart3 size={28} className="text-accent-400" />
@@ -191,7 +219,7 @@ export default function DashboardPage() {
         </div>
       }
     >
-      <DatasetNotices notices={[...(dataset?.notices || []), ...exclusionNotice(analysis?.slideZero?.excluded)]} />
+      <DatasetNotices notices={notices} />
       {joinNotice && <JoinNotice notice={joinNotice} />}
 
       {editing && (

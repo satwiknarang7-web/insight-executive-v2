@@ -5,6 +5,7 @@ import {
   excludeVoidRows,
   describeExclusion,
   acceptVoidClaims,
+  exclusionNotice,
 } from '../lib/voidRows.js';
 import { valueVocabulary, valuesBriefing } from '../lib/valueBriefing.js';
 
@@ -89,6 +90,30 @@ test('what is removed and what is reported can never disagree', () => {
   const rows = orders({ cancelled: 102 });
   const { rows: kept, excluded } = excludeVoidRows(rows, shape);
   assert.equal(rows.length - kept.length, excluded.rows);
+});
+
+test('asked to keep them, the detection still runs and still reports', () => {
+  // The whole value of the choice being a choice. A reader who decides a
+  // cancelled order belongs in their total gets their total — and gets told
+  // what is in it, because silence here is the original bug with a preference
+  // attached to it.
+  const rows = orders({ cancelled: 102 });
+  const { rows: kept, excluded } = excludeVoidRows(rows, shape, null, { include: true });
+  assert.equal(kept.length, 1000, 'nothing was excluded');
+  assert.equal(excluded.applied, false);
+  assert.equal(excluded.rows, 102, 'but it still counted them');
+});
+
+test('keeping them in is the louder sentence, and the louder notice', () => {
+  // This is the state the original bug was in. Somebody who chose it is told
+  // what their totals now contain, not reassured that a choice was respected —
+  // and the notice goes where a capped table goes, which cannot be dismissed.
+  const { excluded } = excludeVoidRows(orders({ cancelled: 102 }), shape, null, { include: true });
+  const said = describeExclusion(excluded);
+  assert.match(said, /are counted in every total/);
+  assert.match(said, /not revenue/);
+  assert.equal(exclusionNotice(excluded)[0].kind, 'rows-included');
+  assert.equal(exclusionNotice(excluded, { label: 'Leave them out' })[0].action.label, 'Leave them out');
 });
 
 test('the exclusion is described in a sentence a reader can act on', () => {
