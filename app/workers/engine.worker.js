@@ -937,7 +937,7 @@ function sourceRows() {
   return out;
 }
 
-function analyze(id, { focus, maxCharts }) {
+function analyze(id, { focus, maxCharts, claims = null }) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
@@ -957,6 +957,9 @@ function analyze(id, { focus, maxCharts }) {
     // the rows for facts this side already holds.
     profile: state.viewProfile,
     withheld: withheldMeasures(),
+    // Unit claims settled before planning, because they decide which sums are
+    // allowed. Null when no provider answered, which is the lexicon alone.
+    claims,
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
   reply(id, 'analyzed', result);
