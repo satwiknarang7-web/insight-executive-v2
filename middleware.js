@@ -32,6 +32,11 @@ import { createServerClient } from '@supabase/ssr';
  */
 function isPublic(pathname) {
   return (
+    // The landing page. It holds no data, reads none, and exists to be read by
+    // somebody who has not signed up — which it could not be while it sat
+    // behind this check, showing the pitch only to people who had already
+    // taken it. Everything that works is a tab in the shell, behind sign-in.
+    pathname === '/' ||
     pathname === '/sign-in' ||
     pathname.startsWith('/api/auth/') ||
     pathname.startsWith('/_next/') ||
@@ -84,10 +89,11 @@ export async function middleware(request) {
     return NextResponse.redirect(target);
   }
 
-  // Someone already signed in has no use for the sign-in page.
+  // Someone already signed in has no use for the sign-in page, and sending
+  // them to the landing page would be the same mistake one step along.
   if (data?.user && pathname === '/sign-in') {
     const target = request.nextUrl.clone();
-    target.pathname = '/';
+    target.pathname = '/home';
     target.search = '';
     return NextResponse.redirect(target);
   }

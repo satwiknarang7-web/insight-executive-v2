@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
+import TransformPanel from '../../../components/panels/TransformPanel';
 import {
   REASON_TEXT,
   columnTally,
@@ -343,6 +344,13 @@ export default function ExplorePage() {
               <ChevronRight size={14} />
             </button>
           </div>
+        </div>
+
+        {/* Shaping belongs beside the rows it shapes: the columns are named
+            here, the values are visible here, and the effect of a step is
+            legible the moment it is applied. */}
+        <div className="mb-5">
+          <TransformPanel />
         </div>
 
         <div className="overflow-x-auto">

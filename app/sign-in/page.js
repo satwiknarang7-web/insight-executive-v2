@@ -55,7 +55,9 @@ function SignInForm() {
   // to go. Relative paths only — an absolute URL here is an open redirect.
   const nextPath = (() => {
     const raw = params.get('next');
-    return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
+    // `/` is the landing page now, and somebody who has just signed in has
+    // read the pitch. The app is where they were going.
+    return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/home';
   })();
   const [mode, setMode] = useState('sign-in'); // sign-in | sign-up | recover
   // The password being SET during a reset, as opposed to the one being checked
