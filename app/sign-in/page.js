@@ -55,7 +55,11 @@ function SignInForm() {
     const raw = params.get('next');
     return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
   })();
-  const [mode, setMode] = useState('sign-in'); // sign-in | sign-up
+  const [mode, setMode] = useState('sign-in'); // sign-in | sign-up | recover
+  // The password being SET during a reset, as opposed to the one being checked
+  // at sign-in. Kept apart so a half-typed reset cannot be submitted as a
+  // sign-in attempt, or the reverse.
+  const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState('credentials'); // plan | credentials | code
   // Chosen before an address is typed, and sent with the sign-up so the account
   // is created already on a plan rather than being assigned one afterwards.
@@ -179,6 +183,17 @@ function SignInForm() {
       setError(null);
       setNotice(null);
       try {
+        if (mode === 'recover') {
+          const started = await post('/api/auth/recover', { email });
+          setChallengeId(started.challengeId || null);
+          setStep('code');
+          setCooldown(60);
+          // Said the same way whether or not that address has an account, which
+          // is the only way this form cannot be used to find out.
+          setNotice(`If ${email} has an account, a reset code is on its way. It expires in 10 minutes.`);
+          return;
+        }
+
         const path = mode === 'sign-up' ? '/api/auth/sign-up' : '/api/auth/sign-in';
         const data = await post(path, mode === 'sign-up' ? { email, password, plan } : { email, password });
 
@@ -215,7 +230,12 @@ function SignInForm() {
       setBusy(true);
       setError(null);
       try {
-        await post('/api/auth/verify', { challengeId, code, remember });
+        await post(
+          '/api/auth/verify',
+          mode === 'recover'
+            ? { challengeId, code, remember, purpose: 'recover', password: newPassword }
+            : { challengeId, code, remember }
+        );
         await finish();
       } catch (err) {
         setError(err.message);
@@ -230,7 +250,7 @@ function SignInForm() {
         setBusy(false);
       }
     },
-    [challengeId, code, remember, post, finish]
+    [challengeId, code, remember, mode, newPassword, post, finish]
   );
 
   const resend = useCallback(async () => {
@@ -280,6 +300,8 @@ function SignInForm() {
           <h1 className="text-xl font-black tracking-tight">
             {step === 'code'
               ? 'Check your email'
+              : mode === 'recover'
+              ? 'Reset your password'
               : step === 'plan'
               ? 'Choose your plan'
               : mode === 'sign-up'
@@ -289,6 +311,10 @@ function SignInForm() {
           {step === 'code' ? (
             <p className="mt-2 text-[13px] leading-relaxed text-white/50">
               We sent a six-digit code to <span className="font-bold text-white/75">{email}</span>.
+            </p>
+          ) : mode === 'recover' ? (
+            <p className="mt-2 text-[13px] leading-relaxed text-white/45">
+              We will email you a code. Your current password keeps working until you set a new one.
             </p>
           ) : step === 'plan' ? (
             <p className="mt-2 text-[13px] leading-relaxed text-white/45">
@@ -377,6 +403,7 @@ function SignInForm() {
               )}
             </label>
 
+            {mode !== 'recover' && (
             <label className="flex flex-col gap-2">
               <span className="label">Password</span>
               <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 focus-within:border-accent-500/50">
@@ -404,6 +431,7 @@ function SignInForm() {
                 </button>
               </div>
             </label>
+            )}
 
             <Feedback error={error} notice={notice} />
 
@@ -413,9 +441,42 @@ function SignInForm() {
               className="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-50"
             >
               {busy && <Loader2 size={14} className="animate-spin" />}
-              {mode === 'sign-up' ? 'Create account' : 'Continue'}
+              {mode === 'sign-up' ? 'Create account' : mode === 'recover' ? 'Send reset code' : 'Continue'}
             </button>
 
+            {mode === 'sign-in' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('recover');
+                  setStep('credentials');
+                  setPassword('');
+                  setError(null);
+                  setNotice(null);
+                }}
+                className="text-center text-[12px] text-white/40 transition-colors hover:text-white/70"
+              >
+                Forgot your password?
+              </button>
+            )}
+
+            {mode === 'recover' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('sign-in');
+                  setStep('credentials');
+                  setNewPassword('');
+                  setError(null);
+                  setNotice(null);
+                }}
+                className="text-center text-[12px] text-white/40 transition-colors hover:text-white/70"
+              >
+                Back to signing in
+              </button>
+            )}
+
+            {mode !== 'recover' && (
             <button
               type="button"
               onClick={() => {
@@ -433,6 +494,7 @@ function SignInForm() {
             >
               {mode === 'sign-up' ? 'I already have an account' : 'Create an account instead'}
             </button>
+            )}
 
             {/* The operator door, named as one. It is a different credential
                 and a different portal, and the whole reason it is here is that
@@ -465,6 +527,27 @@ function SignInForm() {
               />
             </label>
 
+            {mode === 'recover' && (
+              <label className="flex flex-col gap-2">
+                <span className="label">New password</span>
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-accent-500/50"
+                  placeholder="At least 8 characters"
+                />
+                {/* Asked for on the same screen as the code, so the reset is one
+                    step rather than a sign-in that silently leaves the old
+                    password in place. */}
+                <span className="text-[11px] leading-relaxed text-white/30">
+                  Setting this signs you in and replaces your old password everywhere.
+                </span>
+              </label>
+            )}
+
             <label className="flex cursor-pointer items-start gap-2.5">
               <input
                 type="checkbox"
@@ -481,11 +564,11 @@ function SignInForm() {
 
             <button
               type="submit"
-              disabled={busy || code.length !== 6}
+              disabled={busy || code.length !== 6 || (mode === 'recover' && !newPassword)}
               className="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-50"
             >
               {busy && <Loader2 size={14} className="animate-spin" />}
-              Verify and continue
+              {mode === 'recover' ? 'Set password and sign in' : 'Verify and continue'}
             </button>
 
             <div className="flex items-center justify-between gap-3 text-[12px]">

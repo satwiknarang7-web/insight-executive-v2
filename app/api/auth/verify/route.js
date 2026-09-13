@@ -8,10 +8,10 @@
  */
 import { NextResponse } from 'next/server';
 import { isSupabaseConfigured } from '../../../../lib/vault/supabase.server';
-import { confirmUser, mintSession } from '../../../../lib/auth/accounts.server';
+import { confirmUser, mintSession, setPassword } from '../../../../lib/auth/accounts.server';
 import { claimChallenge, trustDevice } from '../../../../lib/auth/challenges.server';
 import { authFailure } from '../../../../lib/auth/failures';
-import { DEVICE_COOKIE, TRUSTED_DEVICE_TTL_MS } from '../../../../lib/auth/otp';
+import { DEVICE_COOKIE, TRUSTED_DEVICE_TTL_MS, passwordProblem } from '../../../../lib/auth/otp';
 import { clientKey, take } from '../../../../lib/auth/rateLimit';
 
 export const runtime = 'nodejs';
@@ -48,6 +48,16 @@ export async function POST(request) {
   const code = String(body?.code || '').replace(/\D/g, '');
   if (code.length !== 6) return NextResponse.json({ error: 'Enter the six-digit code.' }, { status: 400 });
 
+  // A reset carries its new password here, and it is checked BEFORE the code is
+  // claimed. A challenge is single-use: rejecting a weak password after
+  // spending the code would burn it and send the user back for another email,
+  // having done nothing wrong except pick badly.
+  const resetting = body?.purpose === 'recover';
+  if (resetting) {
+    const weak = passwordProblem(body?.password);
+    if (weak) return NextResponse.json({ error: weak }, { status: 400 });
+  }
+
   let claim;
   try {
     claim = await claimChallenge(body?.challengeId, code);
@@ -75,9 +85,28 @@ export async function POST(request) {
 
   const { challenge } = claim;
 
+  // What the challenge was raised for decides what may happen now. Taken from
+  // the claimed row, never from the request: a caller who asked to reset a
+  // password cannot do it with a sign-in code, and one who did not ask cannot
+  // have their password changed by a field they never sent.
+  if (resetting !== (challenge.purpose === 'recover')) {
+    return NextResponse.json(
+      { error: 'That code was not issued for this. Start again.', restart: true },
+      { status: 410 }
+    );
+  }
+
   try {
     // Finishing a sign-up is what marks the address as genuinely theirs.
     if (challenge.purpose === 'signup' && challenge.user_id) {
+      await confirmUser(challenge.user_id);
+    }
+
+    if (challenge.purpose === 'recover' && challenge.user_id) {
+      await setPassword(challenge.user_id, body.password);
+      // Reading the mailbox is the same proof sign-up accepts, so an account
+      // that never finished confirming is confirmed by this too — otherwise a
+      // reset would succeed and leave them unable to sign in with it.
       await confirmUser(challenge.user_id);
     }
 
@@ -105,6 +134,13 @@ export async function POST(request) {
     return response;
   } catch (error) {
     console.error('[auth/verify]', error.message);
-    return NextResponse.json({ error: 'The code was right, but signing in failed.' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: resetting
+          ? 'The code was right, but the password could not be changed.'
+          : 'The code was right, but signing in failed.',
+      },
+      { status: 500 }
+    );
   }
 }
