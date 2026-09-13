@@ -38,6 +38,7 @@ import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
 import { UNCERTAIN, mergeConfidence, noteUncertain } from '../../lib/cellConfidence.js';
+import { confidenceAfterTransforms, planTransforms } from '../../lib/transforms.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import { valueVocabulary } from '../../lib/valueBriefing.js';
@@ -104,6 +105,11 @@ function summary() {
     profile: state.viewProfile,
     ingestedAt: state.ingestedAt,
     preview: state.view.rows.slice(0, 50),
+    // What is currently shaping the view, and which steps could not be run.
+    transforms: state.transforms || [],
+    baseColumns: state.baseColumns || state.view.columns,
+    transformSteps: state.transformPlan?.steps || [],
+    transformSkipped: state.transformPlan?.skipped || [],
 
     // Multi-sheet additions.
     multiTable: state.order.length > 1,
@@ -666,8 +672,6 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
     94,
     model.relationships.length ? `${model.relationships.length} relationship(s) found` : 'Single table'
   );
-  const view = buildAnalysisView(tables, model);
-  const metrics = rollUpMetrics(tables, view);
 
   const sourceName =
     inputs.length === 1
@@ -680,20 +684,20 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
     tables,
     order,
     model,
-    view,
-    viewProfile: buildProfile(view.rows, view.columns, metrics),
-    viewSchema: describeSchema(view.rows, TABLE),
-    metrics,
+    // A fresh source arrives unshaped. Transforms are the reader's, and they
+    // belong to the data they were written against.
+    transforms: [],
     fileName: sourceName,
     notices,
     ingestedAt: Date.now(),
   };
+  rebuildView();
 
   noteExcludedMeasures();
   noteNegativeAmounts();
   invalidateSearchIndex();
 
-  progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
+  progress(id, 'Ready', 100, `${state.view.rows.length.toLocaleString()} rows ready`);
   reply(id, 'ingested', summary());
 }
 
@@ -754,27 +758,22 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
   for (const w of model.warnings) notices.push({ kind: 'many-to-many', message: w.message });
 
   progress(id, 'Joining tables', 92, model.relationships.length ? `${model.relationships.length} relationship(s) found` : 'Single table');
-  const view = buildAnalysisView(built, model);
-  const metrics = rollUpMetrics(built, view);
-
   state = {
     tables: built,
     order,
     model,
-    view,
-    viewProfile: buildProfile(view.rows, view.columns, metrics),
-    viewSchema: describeSchema(view.rows, TABLE),
-    metrics,
+    transforms: [],
     fileName: sourceLabel || 'Connected database',
     notices,
     ingestedAt: Date.now(),
   };
+  rebuildView();
 
   noteExcludedMeasures();
   noteNegativeAmounts();
   invalidateSearchIndex();
 
-  progress(id, 'Ready', 100, `${view.rows.length.toLocaleString()} rows ready`);
+  progress(id, 'Ready', 100, `${state.view.rows.length.toLocaleString()} rows ready`);
   reply(id, 'ingested', summary());
 }
 
@@ -908,6 +907,92 @@ async function restore(id) {
  * Inferred joins are wrong often enough that this has to exist: analysing on a
  * bad guess produces confident, precise, false numbers.
  */
+/** A scratch table for the transform steps, so mounting one cannot disturb
+ *  whatever the analysis has mounted under the real name. */
+const TRANSFORM_TABLE = 'Transform';
+
+/**
+ * Rebuild everything that hangs off the tables: the joined view, the
+ * transforms on top of it, and the profile, schema and metrics that describe
+ * the result.
+ *
+ * There are three reasons to rebuild — a fresh ingest, a changed data model, a
+ * changed transform list — and they used to be two copies of the same six
+ * lines with a third about to be added. The order matters and is easy to get
+ * subtly wrong: the profile has to see the transformed columns, not the joined
+ * ones, or the chart planner proposes charts over columns that no longer exist.
+ */
+function rebuildView() {
+  const base = buildAnalysisView(state.tables, state.model);
+  const metrics = rollUpMetrics(state.tables, base);
+  const plan = planTransforms(state.transforms || [], base.columns, TRANSFORM_TABLE);
+
+  let view = base;
+  if (plan.steps.length) {
+    let rows = base.rows;
+    for (const step of plan.steps) {
+      mountTables({ view: rows, viewName: TRANSFORM_TABLE });
+      rows = runSql(step.sql, TRANSFORM_TABLE);
+    }
+    unmountTables([TRANSFORM_TABLE]);
+    // `plan.columns` rather than the keys of the first row: a step that filters
+    // every row away still has a known shape, and an empty result must not
+    // silently become a dataset with no columns.
+    view = { ...base, rows, columns: plan.columns };
+  }
+
+  state.view = view;
+  state.metrics = {
+    ...metrics,
+    confidence: confidenceAfterTransforms(metrics.confidence, state.transforms || []),
+  };
+  state.viewProfile = buildProfile(view.rows, view.columns, state.metrics);
+  state.viewSchema = describeSchema(view.rows, TABLE);
+  state.transformPlan = { steps: plan.steps, skipped: plan.skipped };
+  // The shape before any step ran. The panel plans the whole list from here
+  // every time it is edited, so it needs the ground the list stands on rather
+  // than the result of standing on it.
+  state.baseColumns = base.columns;
+  invalidateSearchIndex();
+  return plan;
+}
+
+/**
+ * Replace the transform list and rebuild on top of it.
+ *
+ * The whole list every time rather than one operation at a time. Transforms
+ * refer to each other — a derive written against a renamed column, a filter on
+ * a derived one — so there is no such thing as applying one in isolation, and a
+ * protocol that pretended otherwise would need every edit to carry the context
+ * of the steps around it. Sending the list is simpler and cannot drift.
+ *
+ * The reply carries what could not be run. A step that no longer fits the data
+ * is not an error the caller should have prevented; it is the ordinary result
+ * of editing a list, and the panel shows it against the step that caused it.
+ */
+function setTransforms(id, { transforms = [] }) {
+  if (!state) {
+    reply(id, 'error', { message: 'No dataset loaded.' });
+    return;
+  }
+
+  const previous = state.transforms || [];
+  state.transforms = Array.isArray(transforms) ? transforms : [];
+
+  try {
+    rebuildView();
+  } catch (e) {
+    // A step that validated but would not execute leaves the dataset as it
+    // was. Better a rejected edit than a table nobody can get back.
+    state.transforms = previous;
+    rebuildView();
+    reply(id, 'error', { message: `That step could not run: ${e.message}` });
+    return;
+  }
+
+  reply(id, 'transformed', { ...summary(), transforms: state.transforms, ...state.transformPlan });
+}
+
 function setModel(id, { factTable = null, relationships = null }) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
@@ -923,14 +1008,8 @@ function setModel(id, { factTable = null, relationships = null }) {
     relationships,
   });
 
-  const view = buildAnalysisView(state.tables, rebuilt);
-  const metrics = rollUpMetrics(state.tables, view);
   state.model = rebuilt;
-  state.view = view;
-  state.metrics = metrics;
-  state.viewProfile = buildProfile(view.rows, view.columns, metrics);
-  state.viewSchema = describeSchema(view.rows, TABLE);
-  invalidateSearchIndex();
+  rebuildView();
 
   reply(id, 'model', summary());
 }
@@ -1221,6 +1300,8 @@ self.onmessage = async (e) => {
         return restore(id);
       case 'setModel':
         return setModel(id, payload);
+      case 'setTransforms':
+        return setTransforms(id, payload);
       case 'testRelationship':
         return testRelationship(id, payload);
       case 'analyze':

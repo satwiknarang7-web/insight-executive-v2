@@ -28,6 +28,7 @@ import { SAMPLES } from '../../../lib/samples';
 import { availableConnectors } from '../../../lib/connectors/registry';
 import ConnectSource from '../../../components/panels/ConnectSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
+import TransformPanel from '../../../components/panels/TransformPanel';
 import Image from 'next/image';
 
 /** The four screens an analysis produces, in the order they arrive. */
@@ -522,6 +523,8 @@ export default function LandingPage() {
               * the writing reads like. It sits below the upload rather than
               * above it because uploading is the task and this is a setting.
               */}
+            {!busy && dataset && <TransformPanel />}
+
             {planAllows('model') && (
               <div data-tutorial="gemini-key-panel">
                 <GeminiKeyPanel />
