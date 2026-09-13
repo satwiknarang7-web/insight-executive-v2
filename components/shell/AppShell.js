@@ -23,13 +23,22 @@ import {
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import { useTutorial } from '../../lib/store/TutorialProvider';
+import { usePlan } from '../../lib/store/PlanProvider';
 import ThemeToggle from './ThemeToggle';
 import Logo, { PRODUCT_NAME } from './Logo';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
   { href: '/explore', label: 'Explore', icon: Table2, hint: 'Browse and filter the cleaned rows' },
-  { href: '/ask', label: 'Ask', icon: MessageSquare, hint: 'Question your data in plain English' },
+  {
+    href: '/ask',
+    label: 'Ask',
+    icon: MessageSquare,
+    hint: 'Question your data in plain English',
+    // Every answer here is written by a model, so there is nothing behind this
+    // page on a plan that may not call one.
+    requires: 'model',
+  },
   { href: '/measures', label: 'Measures', icon: Sigma, hint: 'Name a calculation once, then reuse it' },
   { href: '/quality', label: 'Data Quality', icon: ShieldCheck, hint: 'Cleaning report and query audit' },
   {
@@ -91,6 +100,10 @@ export default function AppShell({ children }) {
   const { analysis } = useAnalysis();
   const { exportCsv, reset } = useActions();
   const { start: startTutorial } = useTutorial();
+  const { can: planAllows, loading: planLoading } = usePlan();
+  // A page whose whole content needs a capability this plan lacks is left out
+  // rather than shown disabled: the sidebar is navigation, not a price list.
+  const nav = NAV.filter((item) => !item.requires || planLoading || planAllows(item.requires));
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -180,7 +193,7 @@ export default function AppShell({ children }) {
       )}
 
       <nav className="flex flex-col gap-1">
-        {NAV.map((item) => (
+        {nav.map((item) => (
           <NavLink
             key={item.href}
             item={item}
@@ -214,7 +227,7 @@ export default function AppShell({ children }) {
 
       <div className="mt-auto flex flex-col gap-2 pt-4">
         <button
-          onClick={() => startTutorial(0)}
+          onClick={() => startTutorial()}
           title="Take a guided tour"
           className={`${actionClass(rail)} border-white/10 bg-white/[0.03] text-white/50 hover:bg-accent-500/10 hover:text-accent-300`}
         >

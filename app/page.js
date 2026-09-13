@@ -9,24 +9,20 @@ import {
   UploadCloud,
   FileSpreadsheet,
   ShieldCheck,
-  Gauge,
-  Sparkles,
   ArrowRight,
   AlertTriangle,
   Table2,
   Trash2,
   X,
   LayoutDashboard,
-  MessageSquare,
-  Sigma,
-  PencilLine,
-  Share2,
-  FileDown,
-  Presentation,
   Compass,
+  Sparkles,
+  PencilRuler,
+  Lock,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../lib/store/DatasetProvider';
 import { useTutorial } from '../lib/store/TutorialProvider';
+import { usePlan } from '../lib/store/PlanProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import Logo from '../components/shell/Logo';
 import { vaultAvailable } from '../lib/vault/supabase.client';
@@ -37,67 +33,27 @@ import ConnectSource from '../components/panels/ConnectSource';
 import GeminiKeyPanel from '../components/panels/GeminiKeyPanel';
 import Image from 'next/image';
 
-const FEATURES = [
+/** The four screens an analysis produces, in the order they arrive. */
+const SHOWCASE = [
   {
-    icon: ShieldCheck,
-    title: 'Cleaned and checked first',
-    body: 'Emails, phone numbers and card-shaped IDs are redacted in your browser. Types are coerced, blanks are counted, outliers flagged.',
+    title: 'Dashboard',
+    desc: 'KPI cards, executive summary, and auto-generated charts — all computed from your data. Click any finding to deep-dive.',
+    src: '/screenshots/dashboard.jpg',
   },
   {
-    icon: Gauge,
-    title: 'Every number is computed, not guessed',
-    body: 'Statistics come from real SQL over your rows. The language model only phrases findings it has been handed — it never does the maths.',
+    title: 'Explore',
+    desc: 'Browse the cleaned rows in a filterable data grid. Column types are tagged, and every row is searchable.',
+    src: '/screenshots/explore.jpg',
   },
   {
-    icon: Sparkles,
-    title: 'Charts chosen by the data',
-    body: 'A deterministic analyst playbook proposes the charts, then validates each type against the shape of its own results.',
-  },
-];
-
-/**
- * What the product does once the analysis exists.
- *
- * The three cards above it are all about trust — cleaned, computed, chosen by
- * the data — and that was the whole pitch. It describes a machine that produces
- * a report and stops, which undersells a tool people go on to use: an analysis
- * here can be interrogated, extended, rewritten, handed to someone else and
- * printed, and none of that was on the page.
- *
- * Every line below names something that exists and works. Where a capability
- * needs an account or a key, the copy says so rather than letting a visitor
- * find out after signing up.
- */
-const CAPABILITIES = [
-  {
-    icon: MessageSquare,
-    title: 'Ask it questions',
-    body: 'Type a question in plain English and get a chart with the SQL beside it. There is a query console too, for when you would rather write it yourself.',
+    title: 'Ask AI',
+    desc: 'Type a question in plain English. Get a chart with the SQL that produced it, running in your browser.',
+    src: '/screenshots/ask.jpg',
   },
   {
-    icon: Sigma,
-    title: 'Name a calculation once',
-    body: '"Profit as a percentage of revenue" becomes a measure you can reuse on any card or chart. Parsed deterministically, so it works with no API key.',
-  },
-  {
-    icon: PencilLine,
-    title: 'Edit any of it',
-    body: 'Retitle a finding, rewrite the wording, reorder the deck, add a chart the planner did not think of, drop one you disagree with. Your edits survive a re-run.',
-  },
-  {
-    icon: Share2,
-    title: 'Share the finished thing',
-    body: 'Send an analysis to someone by email and they open the findings with the queries still attached — the reasoning travels with the answer. Needs an account.',
-  },
-  {
-    icon: FileDown,
-    title: 'Take it with you',
-    body: 'A print-ready PDF of the whole report, or the cleaned CSV with the coercions and redactions already applied.',
-  },
-  {
-    icon: Presentation,
-    title: 'Present it',
-    body: 'A full-screen deck you drive with the arrow keys, one slide per finding, with an optional narrator who reads the analysis aloud.',
+    title: 'Present',
+    desc: 'A full-screen slide deck with one finding per slide, keyboard navigation, and optional voice narration.',
+    src: '/screenshots/present.jpg',
   },
 ];
 
@@ -105,7 +61,7 @@ export default function LandingPage() {
   const router = useRouter();
   const { dataset, status, error } = useDataset();
   const { analysis } = useAnalysis();
-  const { ingestFile, ingestText, analyze, setError, reset } = useActions();
+  const { ingestFile, ingestText, analyze, startBlank, setError, reset } = useActions();
   const [dragging, setDragging] = useState(false);
   // Two-step, because discarding a loaded dataset also discards any analysis of
   // it and there is no undo — but a modal for one button is heavier than this.
@@ -116,16 +72,60 @@ export default function LandingPage() {
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
   const { start: startTutorial } = useTutorial();
+  const { can: planAllows, loading: planLoading } = usePlan();
   const revealRefs = useRef([]);
 
-  // Scroll-triggered fade-in for the How-it-Works section.
+  /**
+   * The walkthrough fades in as it is scrolled to, one card after the next.
+   *
+   * Two things are deliberate. The cards render *visible* and this hides them
+   * before revealing them, rather than the other way round — a section that
+   * starts at opacity 0 in the stylesheet and waits for JavaScript to turn it
+   * on is a section that is silently missing whenever that JavaScript does not
+   * run, and the markup being present makes it look fine. And the hiding is
+   * React state rather than a class put on the node, because a class added
+   * behind React's back is wiped by the next render of a `className` it owns.
+   *
+   * Every card is hidden and then observed; anything already on screen is
+   * revealed by the observer's first callback. Measuring what is below the fold
+   * at mount looked tidier and was wrong — layout is not settled that early.
+   */
+  const [hiddenCards, setHiddenCards] = useState(null);
+
   useEffect(() => {
+    const cards = revealRefs.current.filter(Boolean);
+    if (!cards.length) return;
+
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    setHiddenCards(new Set(cards.map((_, i) => i)));
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      (entries) =>
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          observer.unobserve(e.target);
+          const i = cards.indexOf(e.target);
+          setHiddenCards((prev) => {
+            if (!prev?.has(i)) return prev;
+            const next = new Set(prev);
+            next.delete(i);
+            return next;
+          });
+        }),
       { threshold: 0.15 }
     );
-    revealRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
+    cards.forEach((el) => observer.observe(el));
+
+    // The floor. An IntersectionObserver that never delivers — a browser that
+    // is not painting, a bug here, anything — would otherwise leave the whole
+    // section hidden with its markup sitting in the DOM looking healthy. After
+    // this the cards are shown whether or not anyone was watching.
+    const floor = setTimeout(() => setHiddenCards(null), 4000);
+
+    return () => {
+      clearTimeout(floor);
+      observer.disconnect();
+    };
   }, []);
 
   const busy = status === 'ingesting' || status === 'analyzing';
@@ -199,12 +199,26 @@ export default function LandingPage() {
     }
   }, [analyze, router]);
 
+  /**
+   * The other way in: an empty dashboard, filled by hand.
+   *
+   * Nothing is profiled and nothing is sent anywhere, which is why it is the
+   * one both plans have. It is also instant, so there is no busy state to show.
+   */
+  const buildFromScratch = useCallback(() => {
+    startBlank();
+    router.push('/dashboard');
+  }, [startBlank, router]);
+
   return (
     <div className="relative min-h-screen">
       <div className="ambient-wash" />
       <div className="grid-veil" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 md:px-10">
+      <div className="relative z-10 mx-auto flex max-w-6xl flex-col px-6 py-7 md:px-10 [@media(max-height:820px)]:py-4">
+        {/* The working screen: header and the upload column, exactly one viewport
+            tall. The walkthrough below is a deliberate scroll, not a fold. */}
+        <div className="flex min-h-[calc(100vh-1.75rem)] flex-col [@media(max-height:820px)]:min-h-[calc(100vh-1rem)]">
         <header className="flex items-center gap-3">
           <Logo size="xl" />
           <div className="ml-auto flex items-center gap-2">
@@ -224,7 +238,7 @@ export default function LandingPage() {
           </div>
         </header>
 
-        <div className="grid items-start gap-10 py-12 lg:grid-cols-[1fr_minmax(0,470px)] lg:gap-14">
+        <div className="grid flex-1 content-center items-start gap-8 py-8 lg:grid-cols-[1fr_minmax(0,440px)] lg:gap-12 [@media(max-height:820px)]:py-5">
           {/* Left: pitch */}
           <div className="flex flex-col lg:pt-4">
             {/*
@@ -265,7 +279,7 @@ export default function LandingPage() {
                 .
               </span>
             </h1>
-            <p className="mt-5 max-w-[46ch] text-[15px] leading-relaxed text-white/55">
+            <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-white/55">
               Insight profiles your data, builds the charts an analyst would build, and computes every
               statistic itself — so each claim on screen traces back to a query you can read.
             </p>
@@ -278,13 +292,13 @@ export default function LandingPage() {
               * three surfaces the app really has — the cleaning report, the
               * dashboard, the deck — in the order they arrive.
               */}
-            <ol className="mt-8 max-w-md divide-y divide-white/6 border-y border-white/6">
+            <ol className="mt-6 max-w-md divide-y divide-white/6 border-y border-white/6">
               {[
                 ['Cleaned', 'Types coerced, blanks counted, personal fields redacted — in your browser.'],
                 ['Analysed', 'A dashboard of charts the data chose, under an executive summary.'],
                 ['Presented', 'The findings as a slide deck, each one traceable to its query.'],
               ].map(([step, body], index) => (
-                <li key={step} className="flex gap-4 py-3.5">
+                <li key={step} className="flex gap-4 py-3">
                   <span className="mt-px w-4 shrink-0 text-[11px] font-black tabular-nums text-accent-400/70">
                     {index + 1}
                   </span>
@@ -305,7 +319,7 @@ export default function LandingPage() {
               * the right offers. Nine equal-weight pills also wrapped 7-and-2
               * and made a file look like the same kind of thing as a warehouse.
               */}
-            <dl className="mt-7 max-w-md space-y-2 text-[12px]">
+            <dl className="mt-6 max-w-md space-y-1.5 text-[12px]">
               {[
                 ['Files', 'CSV, Excel'],
                 ['Live sources', availableConnectors().map((c) => c.label).join(' · ')],
@@ -404,16 +418,53 @@ export default function LandingPage() {
                     <LayoutDashboard size={16} /> Back to the dashboard
                   </button>
                 )}
+                {/*
+                  * How this dataset gets its dashboard.
+                  *
+                  * Asked here rather than at sign-up, because the answer
+                  * depends on the data in front of you: the same account may
+                  * want the analyst for one export and a blank page for the
+                  * next. On a free plan the assisted option is shown rather
+                  * than hidden — a locked door you can see is information; a
+                  * missing one is confusion.
+                  */}
+                {planAllows('autoAnalysis') ? (
+                  <button
+                    onClick={runAnalysis}
+                    className={
+                      hasAnalysis
+                        ? 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white'
+                        : 'mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]'
+                    }
+                  >
+                    <Sparkles size={hasAnalysis ? 14 : 16} />
+                    {hasAnalysis ? 'Re-run the analysis' : 'AI-assisted dashboard'}
+                  </button>
+                ) : (
+                  !planLoading && (
+                    <button
+                      onClick={() => router.push('/upgrade')}
+                      className="mt-5 flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.04]"
+                    >
+                      <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-white/40">
+                        <Lock size={14} /> AI-assisted dashboard
+                      </span>
+                      <span className="shrink-0 rounded-full border border-accent-500/30 bg-accent-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-accent-400">
+                        Pro
+                      </span>
+                    </button>
+                  )
+                )}
+
                 <button
-                  onClick={runAnalysis}
+                  onClick={buildFromScratch}
                   className={
-                    hasAnalysis
+                    planAllows('autoAnalysis')
                       ? 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white'
-                      : 'mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]'
+                      : 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]'
                   }
                 >
-                  {hasAnalysis ? 'Re-run the analysis' : 'Analyse dataset'}{' '}
-                  <ArrowRight size={hasAnalysis ? 14 : 16} />
+                  <PencilRuler size={14} /> Build from scratch
                 </button>
                 <button
                   onClick={() => router.push('/explore')}
@@ -444,13 +495,13 @@ export default function LandingPage() {
 
             {!busy && !dataset && (
               <>
-                <div className="card p-5">
-                  <label className="flex flex-col gap-2">
-                    <span className="label">Data source</span>
+                <div className="card p-3">
+                  <label className="flex items-center gap-3">
+                    <span className="label shrink-0">Data source</span>
                     <select
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
                     >
                       <option value="file" className="bg-surface">
                         CSV or Excel file
@@ -502,13 +553,13 @@ export default function LandingPage() {
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-14 text-center transition-colors ${
+                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
                     dragging
                       ? 'border-accent-500 bg-accent-500/8'
                       : 'border-white/12 bg-white/[0.02] hover:border-accent-500/40 hover:bg-white/[0.035]'
                   }`}
                 >
-                  <UploadCloud size={30} className={dragging ? 'text-accent-400' : 'text-white/30'} />
+                  <UploadCloud size={26} className={dragging ? 'text-accent-400' : 'text-white/30'} />
                   <div className="text-sm font-bold text-white/80">Drop a CSV or Excel file here</div>
                   <div className="text-xs text-white/35">
                     several related files or sheets are welcome — nothing leaves your browser
@@ -527,18 +578,18 @@ export default function LandingPage() {
                   />
                 </div>
 
-                <div className="card p-5" data-tutorial="sample-datasets">
-                  <div className="label mb-3">Or try a sample</div>
+                <div className="card p-4" data-tutorial="sample-datasets">
+                  <div className="label mb-2">Or try a sample</div>
                   <div className="flex flex-col gap-2">
                     {SAMPLES.map((s) => (
                       <button
                         key={s.key}
                         onClick={() => loadSample(s)}
-                        className="group flex items-center justify-between gap-3 rounded-xl border border-white/7 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.05]"
+                        className="group flex items-center justify-between gap-3 rounded-xl border border-white/7 bg-white/[0.02] px-3.5 py-2.5 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.05]"
                       >
                         <div className="min-w-0">
-                          <div className="text-sm font-bold text-white/85 group-hover:text-accent-300">{s.title}</div>
-                          <div className="mt-0.5 truncate text-[11px] text-white/35">{s.description}</div>
+                          <div className="text-[13px] font-bold text-white/85 group-hover:text-accent-300">{s.title}</div>
+                          <div className="truncate text-[11px] text-white/35">{s.description}</div>
                         </div>
                         <ArrowRight size={15} className="shrink-0 text-white/20 group-hover:text-accent-400" />
                       </button>
@@ -557,9 +608,11 @@ export default function LandingPage() {
               * the writing reads like. It sits below the upload rather than
               * above it because uploading is the task and this is a setting.
               */}
-            <div data-tutorial="gemini-key-panel">
-              <GeminiKeyPanel />
-            </div>
+            {planAllows('model') && (
+              <div data-tutorial="gemini-key-panel">
+                <GeminiKeyPanel />
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 p-4">
@@ -575,26 +628,17 @@ export default function LandingPage() {
             )}
           </div>
         </div>
+        </div>
 
-        {/* What the product does, as three cards rather than a list. */}
-        <section className="grid gap-4 border-t border-white/6 py-10 md:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="card p-5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/8 bg-white/[0.04] text-accent-400">
-                <f.icon size={16} />
-              </div>
-              <div className="mt-4 text-sm font-bold text-white/85">{f.title}</div>
-              <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{f.body}</p>
-            </div>
-          ))}
-        </section>
-
-        {/* How it works — visual walkthrough with screenshots. */}
-        <section className="border-t border-white/6 py-12">
-          <div className="mb-2 flex items-baseline justify-between gap-4">
-            <h2 className="text-lg font-black tracking-tight text-white/85">
-              See it in action
-            </h2>
+        {/* See it in action — the four screens the analysis produces.
+          *
+          * Not a 2x2 of equal tiles: the dashboard is the product and the other
+          * three are what you do with it, so it takes the full width and they
+          * share the row beneath. Equal tiles said they were equal things.
+          */}
+        <section className="border-t border-white/6 py-14">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-lg font-black tracking-tight text-white/85">See it in action</h2>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">
               how it works
             </span>
@@ -604,41 +648,19 @@ export default function LandingPage() {
             AI question console, and a presentation deck — each one traceable and editable.
           </p>
 
-          <div className="mt-8 grid gap-8 md:grid-cols-2">
-            {[
-              {
-                step: 1,
-                title: 'Dashboard',
-                desc: 'KPI cards, executive summary, and auto-generated charts — all computed from your data. Click any finding to deep-dive.',
-                src: '/screenshots/dashboard.jpg',
-              },
-              {
-                step: 2,
-                title: 'Explore',
-                desc: 'Browse the cleaned rows in a filterable data grid. Column types are tagged, and every row is searchable.',
-                src: '/screenshots/explore.jpg',
-              },
-              {
-                step: 3,
-                title: 'Ask AI',
-                desc: 'Type a question in plain English. Get a chart with the SQL that produced it, running in your browser.',
-                src: '/screenshots/ask.jpg',
-              },
-              {
-                step: 4,
-                title: 'Present',
-                desc: 'A full-screen slide deck with one finding per slide, keyboard navigation, and optional voice narration.',
-                src: '/screenshots/present.jpg',
-              },
-            ].map((item, i) => (
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {SHOWCASE.map((item, i) => (
               <div
                 key={item.title}
-                ref={(el) => (revealRefs.current[i] = el)}
-                className="scroll-reveal group"
+                ref={(el) => {
+                  revealRefs.current[i] = el;
+                }}
+                style={{ transitionDelay: `${i * 90}ms` }}
+                className={`scroll-reveal group ${hiddenCards?.has(i) ? 'reveal-armed' : ''} ${
+                  i === 0 ? 'md:col-span-3' : ''
+                }`}
               >
-                {/* Browser-frame mockup */}
-                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-all duration-300 group-hover:border-accent-500/30 group-hover:shadow-lg group-hover:shadow-accent-500/5">
-                  {/* Faux title bar */}
+                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-colors duration-300 group-hover:border-accent-500/30">
                   <div className="flex items-center gap-2 border-b border-white/6 px-3 py-2">
                     <div className="flex gap-1.5">
                       <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
@@ -649,21 +671,20 @@ export default function LandingPage() {
                       {item.title}
                     </span>
                   </div>
-                  {/* Screenshot */}
-                  <div className="hw-screenshot relative aspect-video">
+                  <div className={`relative ${i === 0 ? 'aspect-[21/8]' : 'aspect-video'}`}>
                     <Image
                       src={item.src}
-                      alt={`${item.title} — screenshot of the ${item.title.toLowerCase()} page`}
+                      alt={`The ${item.title.toLowerCase()} screen`}
                       fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
+                      priority={i === 0}
+                      className="object-cover object-top"
+                      sizes={i === 0 ? '(max-width: 768px) 100vw, 1100px' : '(max-width: 768px) 100vw, 33vw'}
                     />
                   </div>
                 </div>
-                {/* Caption */}
                 <div className="mt-3 flex gap-3">
                   <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-accent-500/25 bg-accent-500/8 text-[10px] font-black tabular-nums text-accent-400">
-                    {item.step}
+                    {i + 1}
                   </span>
                   <div className="min-w-0">
                     <div className="text-sm font-bold text-white/85">{item.title}</div>
@@ -673,53 +694,16 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-
-          {/* Take the Tour CTA */}
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <button
-              onClick={() => startTutorial(0)}
-              className="flex items-center gap-2 rounded-xl border border-accent-500/30 bg-accent-500/8 px-6 py-3 text-sm font-bold uppercase tracking-[0.15em] text-accent-300 transition-all hover:bg-accent-500/15 hover:border-accent-500/50 hover:shadow-lg hover:shadow-accent-500/10"
-            >
-              <Compass size={16} /> Take the guided tour
-            </button>
-            <p className="text-[11px] text-white/25">
-              An interactive walkthrough that highlights each feature as you explore
-            </p>
-          </div>
         </section>
 
-        {/* The half of the product the pitch above leaves out. */}
-        <section className="border-t border-white/6 py-10">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-lg font-black tracking-tight text-white/85">
-              And then it is yours to work with
-            </h2>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">
-              after the analysis
-            </span>
-          </div>
-          <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-white/40">
-            The deck it builds is a starting point, not an export. Question it, extend it, rewrite
-            it, and send it to whoever has to act on it.
-          </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {CAPABILITIES.map((c) => (
-              <div key={c.title} className="card p-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/8 bg-white/[0.04] text-accent-400">
-                  <c.icon size={16} />
-                </div>
-                <div className="mt-4 text-sm font-bold text-white/85">{c.title}</div>
-                <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{c.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <footer className="border-t border-white/6 pt-6 text-[11px] text-white/25">
-          Files are parsed, cleaned and queried in your browser, and the shape and values of your columns are sent to your AI provider on your own key so the analysis can read them. Rows from a connected database
-          reach it through this app&apos;s server, and are cleaned and queried in the browser too. Only
-          anonymous summary statistics are sent to a language model, and only to phrase them — never your
-          rows.
+        <footer className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-white/6 pt-4 text-[11px] text-white/25">
+          <span>Parsed, cleaned and queried in your browser. Only summary statistics reach a model — never your rows.</span>
+          <button
+            onClick={() => startTutorial()}
+            className="ml-auto flex items-center gap-1.5 font-bold uppercase tracking-[0.15em] text-white/35 transition-colors hover:text-accent-400"
+          >
+            <Compass size={12} /> Guided tour
+          </button>
         </footer>
       </div>
     </div>

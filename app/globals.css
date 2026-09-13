@@ -363,6 +363,18 @@ body {
   color: var(--ink-5);
 }
 
+/* Scroll-triggered fade-in for the landing page walkthrough. The stagger is set
+   per card as an inline transition-delay, so the order lives with the markup. */
+.scroll-reveal {
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+/* Applied by the page itself, and removed again as each card is scrolled to.
+   A card is only ever hidden while something is running that will show it. */
+.scroll-reveal.reveal-armed {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -371,6 +383,7 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .scroll-reveal.reveal-armed { opacity: 1; transform: none; transition: none; }
 }
 
 @media print {
@@ -415,18 +428,12 @@ body {
  * ring that pulses around the target, and a glass tooltip. All positioning is
  * done inline by the component — these classes handle the look.
  * --------------------------------------------------------------------------- */
-.tutorial-overlay {
+/* The tour's layer takes no pointer events of its own, so the page underneath
+   stays fully usable while the tour is talking. Only the tooltip is clickable. */
+.tutorial-layer {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  pointer-events: auto;
-}
-
-.tutorial-backdrop {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
 }
 
@@ -442,6 +449,7 @@ body {
 
 .tutorial-tooltip {
   position: fixed;
+  pointer-events: auto;
   width: 320px;
   max-width: calc(100vw - 32px);
   padding: 16px 18px;
@@ -453,6 +461,24 @@ body {
               0 0 0 1px rgba(20, 184, 166, 0.08);
   animation: tutorial-fade-in 260ms ease-out;
   z-index: 10000;
+}
+
+/* Parked, not pointing: the hand-back note, and the fallback for a step whose
+   target never mounted. Sits out of the way instead of over the content. */
+.tutorial-tooltip--corner {
+  top: auto;
+  left: auto;
+  right: 20px;
+  bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .tutorial-tooltip--corner {
+    right: 16px;
+    left: 16px;
+    bottom: 16px;
+    width: auto;
+  }
 }
 
 :root[data-theme='light'] .tutorial-tooltip {
@@ -478,34 +504,7 @@ body {
   to { opacity: 1; transform: none; }
 }
 
-/* How-it-works screenshots on the landing page. */
-@keyframes hw-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.hw-screenshot {
-  animation: hw-float 6s ease-in-out infinite;
-}
-
-.hw-screenshot:nth-child(2) { animation-delay: 1.5s; }
-.hw-screenshot:nth-child(3) { animation-delay: 3s; }
-.hw-screenshot:nth-child(4) { animation-delay: 4.5s; }
-
-/* Scroll-triggered fade-in for landing page sections. */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-.scroll-reveal.visible {
-  opacity: 1;
-  transform: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .tutorial-ring { animation: none; }
   .tutorial-tooltip { animation: none; }
-  .hw-screenshot { animation: none; }
-  .scroll-reveal { opacity: 1; transform: none; transition: none; }
 }

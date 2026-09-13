@@ -109,17 +109,15 @@ samples.
 
 ### Optional: better prose
 
-Set any one of these to have an LLM rephrase the computed findings, and to enable
-natural-language questions on `/ask`. Create `.env.local`:
+There is no deployment model key. Anyone who wants a model to rephrase the
+computed findings — or to ask natural-language questions on `/ask` — connects
+their own Gemini key in the app, and it is billed to their own account. Nothing
+needs to be configured to run Insight, and this deployment never spends anyone
+else's credit on a viewer's request.
 
-```
-GROQ_API_KEY=...
-ANTHROPIC_API_KEY=...
-GEMINI_API_KEY=...
-```
-
-They are tried in that order and each is optional. Without them, `/ask` falls back
-to matching your question against the planner's own charts.
+Without a key, every number, chart and finding is still computed and shown; the
+wording is the deterministic prose, and `/ask` falls back to matching your
+question against the planner's own charts.
 
 ### A note on `xlsx`
 

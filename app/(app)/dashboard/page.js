@@ -28,6 +28,7 @@ import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/s
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import { exclusionNotice } from '../../../lib/voidRows';
 import PageFrame from '../../../components/shell/PageFrame';
+import { usePlan } from '../../../lib/store/PlanProvider';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
 import EditableText from '../../../components/panels/EditableText';
@@ -47,9 +48,10 @@ export default function DashboardPage() {
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
   const customMeasures = useMeasures();
-  const { analyze, setVoidRowsIncluded, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
+  const { analyze, startBlank, setVoidRowsIncluded, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
     useActions();
   const router = useRouter();
+  const { can: planAllows } = usePlan();
   const [building, setBuilding] = useState(false);
   // Putting the void rows back is a full re-analysis, so the control has to say
   // it is working. Without it the button looks broken for the second or two the
@@ -154,16 +156,35 @@ export default function DashboardPage() {
           <div>
             <h2 className="text-lg font-black">Nothing analysed yet</h2>
             <p className="mt-2 text-sm leading-relaxed text-white/45">
-              {dataset?.rowCount.toLocaleString()} rows are loaded and cleaned. Run the analysis to plan the
-              charts, execute the queries and compute the findings. The statistics are computed here; the AI reads your columns and their values to decide what is worth asking.
+              {dataset?.rowCount.toLocaleString()} rows are loaded and cleaned.{' '}
+              {planAllows('autoAnalysis')
+                ? 'Run the analysis to plan the charts, execute the queries and compute the findings. The statistics are computed here; the AI reads your columns and their values to decide what is worth asking.'
+                : 'Start an empty dashboard and add the charts you want, or upgrade to have the analyst build one for you.'}
             </p>
           </div>
-          <button
-            onClick={run}
-            className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
-          >
-            Analyse dataset
-          </button>
+          {planAllows('autoAnalysis') ? (
+            <button
+              onClick={run}
+              className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
+            >
+              Analyse dataset
+            </button>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={startBlank}
+                className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
+              >
+                Build from scratch
+              </button>
+              <button
+                onClick={() => router.push('/upgrade')}
+                className="rounded-xl border border-white/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                See Pro
+              </button>
+            </div>
+          )}
         </div>
       </PageFrame>
     );
@@ -211,12 +232,14 @@ export default function DashboardPage() {
           >
             <Presentation size={13} /> Present
           </button>
-          <button
-            onClick={run}
-            className="rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
-          >
-            Re-run
-          </button>
+          {planAllows('autoAnalysis') && (
+            <button
+              onClick={run}
+              className="rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              Re-run
+            </button>
+          )}
         </div>
       }
     >

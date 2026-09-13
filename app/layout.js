@@ -1,6 +1,7 @@
 import './globals.css';
 import { DatasetProvider } from '../lib/store/DatasetProvider';
 import { TutorialProvider } from '../lib/store/TutorialProvider';
+import { PlanProvider } from '../lib/store/PlanProvider';
 import TutorialOverlay from '../components/panels/TutorialOverlay';
 import { ThemeScript } from '../components/shell/ThemeToggle';
 
@@ -29,10 +30,12 @@ export default function RootLayout({ children }) {
       </head>
       <body className="antialiased bg-canvas text-white font-sans" suppressHydrationWarning>
         <DatasetProvider>
-          <TutorialProvider>
-            {children}
-            <TutorialOverlay />
-          </TutorialProvider>
+          <PlanProvider>
+            <TutorialProvider>
+              {children}
+              <TutorialOverlay />
+            </TutorialProvider>
+          </PlanProvider>
         </DatasetProvider>
       </body>
     </html>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ArrowUpRight, Check, Eye, EyeOff, KeyRound, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowUpRight, Check, ChevronDown, Eye, EyeOff, KeyRound, Loader2, Sparkles, Trash2 } from 'lucide-react';
 
 import {
   STUDIO_URL,
@@ -42,6 +42,9 @@ export default function GeminiKeyPanel() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState('');
   const [justSaved, setJustSaved] = useState(false);
+  // Collapsed by default. This is an optional extra on the screen whose job is
+  // to get a file loaded, and expanded it was the tallest thing on that screen.
+  const [open, setOpen] = useState(false);
   const abortRef = useRef(null);
 
   // Only to drop an in-flight verification if the panel goes away mid-check.
@@ -90,13 +93,21 @@ export default function GeminiKeyPanel() {
 
   return (
     <div className="card overflow-hidden p-0">
-      <div className="flex items-start gap-3 border-b border-white/6 bg-gradient-to-r from-accent-500/10 to-transparent p-5">
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-accent-500/25 bg-accent-500/10 text-accent-400">
-          <Sparkles size={16} />
+      {/* The summary row is the whole panel until someone wants it. It still
+          says what a key is for, because that is what decides whether to open
+          it — it just says it in one line instead of a paragraph. */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-white/[0.02]"
+      >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-accent-500/25 bg-accent-500/10 text-accent-400">
+          <Sparkles size={15} />
         </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-black text-white/90">Gemini — your own key</h2>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="text-[13px] font-black text-white/90">Gemini — your own key</span>
             {saved ? (
               <span className="flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-emerald-400">
                 <Check size={9} strokeWidth={3.5} /> Connected
@@ -106,23 +117,20 @@ export default function GeminiKeyPanel() {
                 Optional
               </span>
             )}
-          </div>
-          {/*
-            * What it changes, said before anything is asked for.
-            *
-            * A key here buys better *writing*, not better numbers, and saying
-            * so is the difference between an honest optional extra and a
-            * paywall dressed as a feature.
-            */}
-          <p className="mt-1.5 text-[12px] leading-relaxed text-white/45">
-            Every number, chart and finding is computed from your rows by SQL and is there either way.
-            A key lets a model phrase those findings in better prose — on your account, billed to you,
-            never to this deployment.
-          </p>
-        </div>
-      </div>
+          </span>
+          <span className="mt-0.5 block truncate text-[11px] leading-relaxed text-white/35">
+            {saved ? maskKey(saved) : 'Numbers and charts are computed either way — a key only rephrases them.'}
+          </span>
+        </span>
+        <ChevronDown
+          size={15}
+          className={`shrink-0 text-white/25 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
 
-      <div className="p-5">
+      {open && (
+        <div className="border-t border-white/6 p-4">
+
         {saved ? (
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2 font-mono text-[12px] text-white/55">
@@ -202,21 +210,14 @@ export default function GeminiKeyPanel() {
           </p>
         )}
 
-        {/*
-          * Where the key goes, in the place someone decides whether to paste one.
-          *
-          * Both halves are load-bearing and the second is the caveat: it is kept
-          * on this device only, and it is sent to this app's server on each
-          * model call, because the prompts are assembled there.
-          */}
-        <p className="mt-4 border-t border-white/6 pt-3 text-[11px] leading-relaxed text-white/30">
-          Kept in this browser only — never in your account, never in a saved analysis, and gone from
-          this device when you remove it. It is sent with each model request to this app, which passes
-          it to Google and stores nothing. With a key connected, your column names, the values they
-          hold and a few sample rows are sent to Google too, on your key and billed to your account,
-          so the analysis can read what your data actually says.
+        {/* The caveat, kept to the two facts that change someone's decision:
+            where the key lives, and what travels with it. */}
+        <p className="mt-3 border-t border-white/6 pt-3 text-[11px] leading-relaxed text-white/30">
+          Kept in this browser only. Sent with each request to Google on your key, along with your
+          column names, their values and a few sample rows.
         </p>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

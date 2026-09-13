@@ -297,8 +297,8 @@ test('a viewer key is used on its own — the deployment is never billed instead
   }
 });
 
-test('canGenerate says yes for a viewer key even with no deployment providers', async () => {
-  const { canGenerate, hasAnyProvider } = await import('../lib/llm.server.js');
+test('canGenerate says yes for a viewer key and no for anything else', async () => {
+  const { canGenerate } = await import('../lib/llm.server.js');
   const before = {
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -307,11 +307,15 @@ test('canGenerate says yes for a viewer key even with no deployment providers', 
   for (const name of Object.keys(before)) delete process.env[name];
 
   try {
-    // A deployment with no keys of its own is a supported configuration: every
-    // viewer brings their own, and anyone who does not gets the deterministic
-    // text, which is complete on its own.
-    assert.equal(hasAnyProvider(), false);
+    // The deployment holds no keys at all: every viewer brings their own, and
+    // anyone who does not gets the deterministic text, which is complete on its
+    // own. Deployment variables being set must change nothing.
     assert.equal(canGenerate(asRequest({})), false);
+    process.env.GROQ_API_KEY = 'gsk_deployment_key';
+    process.env.ANTHROPIC_API_KEY = 'sk-ant-deployment-key';
+    process.env.GEMINI_API_KEY = 'AIzaDeploymentKey';
+    assert.equal(canGenerate(asRequest({})), false, 'a deployment key opened the route');
+    for (const name of Object.keys(before)) delete process.env[name];
     assert.equal(canGenerate(asRequest({ [KEY_HEADER]: VALID })), true);
     // Junk in the header must not open the route.
     assert.equal(canGenerate(asRequest({ [KEY_HEADER]: 'not-a-key' })), false);

@@ -1,4 +1,5 @@
 import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptUnitClaims } from '../../../lib/semanticClaims';
 import { acceptVoidClaims } from '../../../lib/voidRows';
@@ -77,6 +78,12 @@ void_rows entirely unless the table plainly has such a column.`;
 
 export async function POST(request) {
   try {
+    // The plan decides whether this account may reach a model at all, and it
+    // is read from the database rather than the request — the browser hides
+    // these controls on a free plan, but hiding is not enforcing.
+    const denied = await refusedFor('model');
+    if (denied) return Response.json(denied, { status: 402 });
+
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }

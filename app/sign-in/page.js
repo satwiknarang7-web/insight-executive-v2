@@ -23,6 +23,8 @@ import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
 import { MIN_PASSWORD } from '../../lib/auth/otp';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 import Logo, { PRODUCT_NAME } from '../../components/shell/Logo';
+import PlanChoice from '../../components/panels/PlanChoice';
+import { FREE } from '../../lib/plans.js';
 
 const SOURCES = [...availableConnectors().map((c) => c.label), 'CSV & Excel'];
 
@@ -54,7 +56,10 @@ function SignInForm() {
     return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
   })();
   const [mode, setMode] = useState('sign-in'); // sign-in | sign-up
-  const [step, setStep] = useState('credentials'); // credentials | code
+  const [step, setStep] = useState('credentials'); // plan | credentials | code
+  // Chosen before an address is typed, and sent with the sign-up so the account
+  // is created already on a plan rather than being assigned one afterwards.
+  const [plan, setPlan] = useState(FREE);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -175,7 +180,7 @@ function SignInForm() {
       setNotice(null);
       try {
         const path = mode === 'sign-up' ? '/api/auth/sign-up' : '/api/auth/sign-in';
-        const data = await post(path, { email, password });
+        const data = await post(path, mode === 'sign-up' ? { email, password, plan } : { email, password });
 
         if (data.verified) {
           await finish();
@@ -201,7 +206,7 @@ function SignInForm() {
         setBusy(false);
       }
     },
-    [mode, email, password, post, finish]
+    [mode, email, password, plan, post, finish]
   );
 
   const submitCode = useCallback(
@@ -275,6 +280,8 @@ function SignInForm() {
           <h1 className="text-xl font-black tracking-tight">
             {step === 'code'
               ? 'Check your email'
+              : step === 'plan'
+              ? 'Choose your plan'
               : mode === 'sign-up'
               ? 'Create your account'
               : `Sign in to ${PRODUCT_NAME}`}
@@ -282,6 +289,11 @@ function SignInForm() {
           {step === 'code' ? (
             <p className="mt-2 text-[13px] leading-relaxed text-white/50">
               We sent a six-digit code to <span className="font-bold text-white/75">{email}</span>.
+            </p>
+          ) : step === 'plan' ? (
+            <p className="mt-2 text-[13px] leading-relaxed text-white/45">
+              Both plans clean your data and let you build a dashboard. Pro adds the analyst that
+              builds it for you. You can change this later.
             </p>
           ) : (
             <p className="mt-2 text-[13px] leading-relaxed text-white/45">
@@ -299,6 +311,25 @@ function SignInForm() {
               Supabase values to enable it.
             </p>
           </div>
+        ) : step === 'plan' ? (
+          <>
+            <PlanChoice
+              value={plan}
+              onChange={setPlan}
+              onContinue={() => setStep('credentials')}
+              ctaLabel="Continue"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setMode('sign-in');
+                setStep('credentials');
+              }}
+              className="mt-3 w-full text-center text-[12px] text-white/40 transition-colors hover:text-white/70"
+            >
+              I already have an account
+            </button>
+          </>
         ) : step === 'credentials' ? (
           <form onSubmit={submitCredentials} className="card mt-6 flex flex-col gap-4 p-5">
             <label className="flex flex-col gap-2">
@@ -388,7 +419,13 @@ function SignInForm() {
             <button
               type="button"
               onClick={() => {
-                setMode((m) => (m === 'sign-up' ? 'sign-in' : 'sign-up'));
+                // Creating an account starts at the plan, not at the address:
+                // what you are signing up *for* is the first question.
+                setMode((m) => {
+                  const next = m === 'sign-up' ? 'sign-in' : 'sign-up';
+                  setStep(next === 'sign-up' ? 'plan' : 'credentials');
+                  return next;
+                });
                 setError(null);
                 setNotice(null);
               }}

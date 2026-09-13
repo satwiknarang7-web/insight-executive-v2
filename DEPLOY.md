@@ -26,9 +26,6 @@ In the Repl, open the **Secrets** panel (lock icon) and add:
 
 | Key | Required | Purpose |
 |-----|----------|---------|
-| `GROQ_API_KEY` | optional | Groq — first choice for narrative wording (fastest) |
-| `ANTHROPIC_API_KEY` | optional | Claude — second choice |
-| `GEMINI_API_KEY` | optional | Gemini — third choice |
 | `ELEVENLABS_API_KEY` | optional | Narrate the presentation with an ElevenLabs voice instead of the browser's |
 | `ELEVENLABS_VOICE_ID` | optional | Override the default narration voice (id from the ElevenLabs voice library) |
 | `SMTP_USER` | for accounts | Gmail address that sends the two-factor codes |
@@ -88,5 +85,5 @@ been applied. If sign-up returns 501, SMTP is not configured.
 Next.js is made by Vercel, so this is the smoothest host:
 
 1. Go to https://vercel.com → **Add New… → Project** → import the same GitHub repo.
-2. Optionally add `GROQ_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`.
+2. No model key is needed or read — viewers connect their own Gemini key in the app.
 3. Deploy → you get a `*.vercel.app` URL. Serverless functions handle the API routes natively.

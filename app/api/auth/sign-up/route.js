@@ -16,6 +16,7 @@ import { normalizeEmail, passwordProblem } from '../../../../lib/auth/otp';
 import { domainOf, emailProblem, suggestEmail } from '../../../../lib/auth/emailAddress';
 import { domainAcceptsMail } from '../../../../lib/auth/mailDomain.server';
 import { clientKey, take } from '../../../../lib/auth/rateLimit';
+import { setPlan } from '../../../../lib/plans.server';
 
 export const runtime = 'nodejs';
 
@@ -119,6 +120,19 @@ export async function POST(request) {
     if (known) return known;
     console.error('[auth/sign-up]', error.message);
     return NextResponse.json({ error: 'That account could not be created.' }, { status: 500 });
+  }
+
+  // The plan the sign-up screen offered, recorded against the account now that
+  // there is definitely an account and a way to confirm it. Written here rather
+  // than at verification because this is where the user id first exists, and an
+  // account abandoned before confirmation is deleted, taking the row with it.
+  //
+  // Deliberately not fatal. A missing row reads as free, which is the safe end
+  // of the gate — losing a completed sign-up over it would not be.
+  try {
+    await setPlan(userId, body?.plan);
+  } catch (error) {
+    console.error('[auth/sign-up] the chosen plan could not be recorded:', error.message);
   }
 
   const sent = await sendCodeEmail({ to: email, code, purpose: 'signup' });

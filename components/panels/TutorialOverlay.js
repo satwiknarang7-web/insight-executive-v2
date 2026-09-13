@@ -1,35 +1,65 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
 import { X, ArrowLeft, ArrowRight, Compass } from 'lucide-react';
 import { useTutorial } from '../../lib/store/TutorialProvider';
 
 /**
- * Full-screen guided-tour overlay.
+ * The guided tour's one piece of chrome.
  *
- * When the tutorial is active it renders:
- *   1. A dark backdrop with a transparent "spotlight" cut-out over the target.
- *   2. A teal-glowing ring around the target element.
- *   3. An animated tooltip beside the target with step info and navigation.
+ * Non-modal by construction. There is no backdrop and nothing is trapped: the
+ * layer itself does not take pointer events, so every click, drag and keystroke
+ * lands on the page underneath. A reader can drop a file on the dropzone the
+ * tour is currently pointing at, which is the whole point of pointing at it.
  *
- * Navigation between pages is handled automatically: if the next step is on a
- * different route, the overlay pushes to that route and waits for the target
- * element to appear in the DOM before positioning.
+ * What it draws:
+ *   1. A glowing ring around the step's target — the pointing, nothing more.
+ *   2. A tooltip beside it, positioned from the target's real geometry and the
+ *      tooltip's own measured size, clamped inside the viewport.
+ *   3. A hand-back note in the corner when a page's steps are spent.
+ *
+ * It never navigates. See `lib/tutorialSteps.js` for why that matters.
  */
+
+/** Used until the tooltip has been measured once. */
+const FALLBACK_TIP = { width: 320, height: 220 };
+/** Space between the target's ring and the tooltip. */
+const GAP = 16;
+/** Space between the target and its ring. */
+const PAD = 12;
+/** Closest the tooltip may sit to a viewport edge. */
+const MARGIN = 16;
+/** How long to wait for a target that has not mounted yet. */
+const TARGET_TIMEOUT = 4000;
+
 export default function TutorialOverlay() {
-  const { active, currentStep, stepIndex, totalSteps, next, prev, stop } = useTutorial();
-  const router = useRouter();
-  const pathname = usePathname();
+  const {
+    active,
+    currentStep,
+    continueHint,
+    stepNumber,
+    totalSteps,
+    atStart,
+    isLastStep,
+    next,
+    prev,
+    stop,
+  } = useTutorial();
 
   const [rect, setRect] = useState(null);
-  const [tooltipSide, setTooltipSide] = useState('bottom');
-  const [navigating, setNavigating] = useState(false);
-  const overlayRef = useRef(null);
-  const pollRef = useRef(null);
+  const [side, setSide] = useState('bottom');
+  // The tooltip's own box is needed to decide which side it fits on, so it is
+  // state rather than a ref — it is read during render.
+  const [tipSize, setTipSize] = useState(FALLBACK_TIP);
+  const tipRef = useRef(null);
+  const frame = useRef(0);
+  // `measure` changes identity whenever the step or the tooltip's size does.
+  // The effects below want to run when the *step* changes and not before, so
+  // they reach the latest one through here instead of depending on it.
+  const measureRef = useRef(null);
 
-  // ----- Locate the target element and track its position ----- //
-  const findAndTrack = useCallback(() => {
+  // ----- Where the target is, and which side the tooltip fits on ----- //
+  const measure = useCallback((sizeOverride) => {
     if (!currentStep) return;
     const el = document.querySelector(`[data-tutorial="${currentStep.target}"]`);
     if (!el) {
@@ -37,155 +67,198 @@ export default function TutorialOverlay() {
       return;
     }
     const r = el.getBoundingClientRect();
-    setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-
-    // Decide tooltip side — prefer step's placement, but flip if clipped.
-    const pad = 280; // tooltip approximate height
-    let side = currentStep.placement || 'bottom';
-    if (side === 'bottom' && r.bottom + pad > window.innerHeight) side = 'top';
-    if (side === 'top' && r.top - pad < 0) side = 'bottom';
-    if (side === 'left' && r.left - 340 < 0) side = 'right';
-    if (side === 'right' && r.right + 340 > window.innerWidth) side = 'left';
-    setTooltipSide(side);
-
-    // Scroll the element into view if needed.
-    if (r.top < 0 || r.bottom > window.innerHeight) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // A mounted-but-collapsed target is no better than a missing one.
+    if (r.width === 0 && r.height === 0) {
+      setRect(null);
+      return;
     }
-  }, [currentStep]);
+    setRect({ target: currentStep.target, top: r.top, left: r.left, width: r.width, height: r.height });
 
-  // When the active step changes, navigate if needed, then poll for the target.
+    const { width: tw, height: th } = sizeOverride || tipSize;
+    let s = currentStep.placement || 'bottom';
+    if (s === 'bottom' && r.bottom + GAP + th > window.innerHeight) s = 'top';
+    else if (s === 'top' && r.top - GAP - th < 0) s = 'bottom';
+    else if (s === 'left' && r.left - GAP - tw < 0) s = 'right';
+    else if (s === 'right' && r.right + GAP + tw > window.innerWidth) s = 'left';
+    setSide(s);
+  }, [currentStep, tipSize]);
+
+  useEffect(() => {
+    measureRef.current = measure;
+  }, [measure]);
+
+  // ----- Find the target when the step changes ----- //
+  // The element may not have mounted yet, so watch the DOM rather than polling
+  // it on a timer. Scrolling happens here and only here: doing it inside
+  // `measure` would let the scroll listener chase its own tail.
   useEffect(() => {
     if (!active || !currentStep) return;
+    let cancelled = false;
+    let observer = null;
+    let timer = 0;
 
-    // If step is on a different page, navigate first.
-    if (currentStep.page && currentStep.page !== pathname) {
-      setNavigating(true);
-      router.push(currentStep.page);
-      return; // the pathname change will re-trigger this effect
-    }
-    setNavigating(false);
-
-    // Poll until the target appears (it may mount after navigation / render).
-    let attempts = 0;
-    const maxAttempts = 40; // 40 × 100ms = 4s
-    clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => {
+    const attempt = () => {
+      if (cancelled) return true;
       const el = document.querySelector(`[data-tutorial="${currentStep.target}"]`);
-      if (el || attempts >= maxAttempts) {
-        clearInterval(pollRef.current);
-        findAndTrack();
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      if (r.top < 0 || r.bottom > window.innerHeight) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-      attempts++;
-    }, 100);
-
-    return () => clearInterval(pollRef.current);
-  }, [active, currentStep, pathname, router, findAndTrack]);
-
-  // Reposition on scroll / resize.
-  useEffect(() => {
-    if (!active) return;
-    const handler = () => findAndTrack();
-    window.addEventListener('scroll', handler, true);
-    window.addEventListener('resize', handler);
-    return () => {
-      window.removeEventListener('scroll', handler, true);
-      window.removeEventListener('resize', handler);
+      measureRef.current?.();
+      return true;
     };
-  }, [active, findAndTrack]);
 
-  // Close on Escape.
+    if (!attempt()) {
+      observer = new MutationObserver(() => {
+        if (attempt()) {
+          observer.disconnect();
+          clearTimeout(timer);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      timer = setTimeout(() => observer?.disconnect(), TARGET_TIMEOUT);
+    }
+
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+      clearTimeout(timer);
+    };
+  }, [active, currentStep]);
+
+  // ----- Follow the target as the page moves under it ----- //
+  useEffect(() => {
+    if (!active || !currentStep) return;
+    const onMove = () => {
+      cancelAnimationFrame(frame.current);
+      frame.current = requestAnimationFrame(() => measureRef.current?.());
+    };
+    window.addEventListener('scroll', onMove, true);
+    window.addEventListener('resize', onMove);
+    return () => {
+      cancelAnimationFrame(frame.current);
+      window.removeEventListener('scroll', onMove, true);
+      window.removeEventListener('resize', onMove);
+    };
+  }, [active, currentStep]);
+
+  // ----- Measure the tooltip itself ----- //
+  // Its height depends on how long the step's prose is, so the flip decision
+  // above has to be made against the real box rather than a guessed one.
+  useEffect(() => {
+    const el = tipRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      const size = { width: el.offsetWidth, height: el.offsetHeight };
+      setTipSize((before) => {
+        if (Math.abs(before.height - size.height) <= 8 && Math.abs(before.width - size.width) <= 8) {
+          return before;
+        }
+        // Reposition against the size just measured rather than waiting a
+        // render for it to arrive as state.
+        measureRef.current?.(size);
+        return size;
+      });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [currentStep, continueHint]);
+
+  // Escape closes it. Arrow keys are deliberately left alone — the page owns
+  // the keyboard while the tour is only talking.
   useEffect(() => {
     if (!active) return;
     const onKey = (e) => {
       if (e.key === 'Escape') stop();
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, stop, next, prev]);
+  }, [active, stop]);
 
-  if (!active || !currentStep) return null;
+  if (!active) return null;
 
-  // Spotlight geometry — 8px padding around the target.
-  const pad = 12;
-  const spotlight = rect
+  // The hand-back note: this page is done, and moving on is the reader's move.
+  if (continueHint) {
+    return (
+      <div className="tutorial-layer">
+        <div ref={tipRef} className="tutorial-tooltip tutorial-tooltip--corner" role="note" aria-live="polite">
+          <div className="mb-1 flex items-center gap-2">
+            <Compass size={16} className="shrink-0 text-accent-400" />
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-accent-400/70">
+              Tour paused
+            </span>
+            <button
+              onClick={stop}
+              className="ml-auto rounded-md p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white"
+              aria-label="End tutorial"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">{continueHint}</p>
+          <div className="mt-4 flex items-center gap-2">
+            <button
+              onClick={prev}
+              className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              <ArrowLeft size={12} /> Back
+            </button>
+            <button
+              onClick={stop}
+              className="ml-auto text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 transition-colors hover:text-white/60"
+            >
+              End tour
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentStep) return null;
+
+  // Geometry from the previous step is not geometry for this one: the rect is
+  // tagged with the target it was measured from, and a stale one reads as none.
+  const fresh = rect && rect.target === currentStep.target ? rect : null;
+  const spotlight = fresh
     ? {
-        top: rect.top - pad,
-        left: rect.left - pad,
-        width: rect.width + pad * 2,
-        height: rect.height + pad * 2,
+        top: fresh.top - PAD,
+        left: fresh.left - PAD,
+        width: fresh.width + PAD * 2,
+        height: fresh.height + PAD * 2,
       }
     : null;
 
-  // Tooltip position relative to the spotlight.
-  const tooltipStyle = {};
+  // Position from the measured tooltip, clamped so no edge can push it off
+  // screen. Only `top`/`left` are set, so there is one way for it to be wrong.
+  const style = {};
   if (spotlight) {
-    const gap = 16;
-    switch (tooltipSide) {
-      case 'bottom':
-        tooltipStyle.top = spotlight.top + spotlight.height + gap;
-        tooltipStyle.left = Math.max(16, Math.min(spotlight.left, window.innerWidth - 340));
-        break;
+    const { width: tw, height: th } = tipSize;
+    const clampX = (x) => Math.max(MARGIN, Math.min(x, window.innerWidth - tw - MARGIN));
+    const clampY = (y) => Math.max(MARGIN, Math.min(y, window.innerHeight - th - MARGIN));
+    switch (side) {
       case 'top':
-        tooltipStyle.bottom = window.innerHeight - spotlight.top + gap;
-        tooltipStyle.left = Math.max(16, Math.min(spotlight.left, window.innerWidth - 340));
+        style.top = clampY(spotlight.top - GAP - th);
+        style.left = clampX(spotlight.left);
         break;
       case 'left':
-        tooltipStyle.top = spotlight.top;
-        tooltipStyle.right = window.innerWidth - spotlight.left + gap;
+        style.top = clampY(spotlight.top);
+        style.left = clampX(spotlight.left - GAP - tw);
         break;
       case 'right':
-        tooltipStyle.top = spotlight.top;
-        tooltipStyle.left = spotlight.left + spotlight.width + gap;
+        style.top = clampY(spotlight.top);
+        style.left = clampX(spotlight.left + spotlight.width + GAP);
         break;
+      default:
+        style.top = clampY(spotlight.top + spotlight.height + GAP);
+        style.left = clampX(spotlight.left);
     }
-  } else {
-    // Target not found — center the tooltip.
-    tooltipStyle.top = '50%';
-    tooltipStyle.left = '50%';
-    tooltipStyle.transform = 'translate(-50%, -50%)';
   }
 
   return (
-    <div
-      ref={overlayRef}
-      className="tutorial-overlay"
-      onClick={(e) => {
-        // Click on backdrop (not tooltip) dismisses the tour.
-        if (e.target === overlayRef.current) stop();
-      }}
-      aria-modal="true"
-      role="dialog"
-      aria-label="Guided tour"
-    >
-      {/* SVG backdrop with spotlight cutout */}
-      <svg className="tutorial-backdrop" aria-hidden="true">
-        <defs>
-          <mask id="tutorial-mask">
-            <rect width="100%" height="100%" fill="white" />
-            {spotlight && (
-              <rect
-                x={spotlight.left}
-                y={spotlight.top}
-                width={spotlight.width}
-                height={spotlight.height}
-                rx={12}
-                fill="black"
-              />
-            )}
-          </mask>
-        </defs>
-        <rect
-          width="100%"
-          height="100%"
-          fill="rgba(0,0,0,0.6)"
-          mask="url(#tutorial-mask)"
-        />
-      </svg>
-
-      {/* Glow ring around target */}
+    <div className="tutorial-layer">
+      {/* The pointing. No backdrop — clicks go straight through to the target. */}
       {spotlight && (
         <div
           className="tutorial-ring"
@@ -198,34 +271,43 @@ export default function TutorialOverlay() {
         />
       )}
 
-      {/* Tooltip */}
-      <div className="tutorial-tooltip" style={tooltipStyle}>
-        <div className="flex items-center gap-2 mb-1">
-          <Compass size={16} className="text-accent-400 shrink-0" />
+      {/* If the target never appeared, the tooltip parks in the corner rather
+          than floating over the middle of the page with nothing to point at. */}
+      <div
+        ref={tipRef}
+        className={`tutorial-tooltip${spotlight ? '' : ' tutorial-tooltip--corner'}`}
+        style={spotlight ? style : undefined}
+        role="note"
+        aria-live="polite"
+      >
+        <div className="mb-1 flex items-center gap-2">
+          <Compass size={16} className="shrink-0 text-accent-400" />
           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-accent-400/70">
-            {stepIndex + 1} of {totalSteps}
+            {stepNumber} of {totalSteps}
           </span>
           <button
             onClick={stop}
-            className="ml-auto rounded-md p-1 text-white/30 hover:bg-white/10 hover:text-white transition-colors"
+            className="ml-auto rounded-md p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white"
             aria-label="Close tutorial"
           >
             <X size={14} />
           </button>
         </div>
 
-        <h3 className="text-sm font-bold text-white/90 mt-1">{currentStep.title}</h3>
-        <p className="text-[12px] leading-relaxed text-white/50 mt-1.5">{currentStep.body}</p>
+        <h3 className="mt-1 text-sm font-bold text-white/90">{currentStep.title}</h3>
+        <p className="mt-1.5 text-[12px] leading-relaxed text-white/50">{currentStep.body}</p>
 
-        {navigating && (
-          <p className="text-[11px] text-accent-400/60 mt-2 animate-pulse">Navigating…</p>
+        {!spotlight && (
+          <p className="mt-2 text-[11px] text-white/30">
+            This part of the screen isn&rsquo;t on the page yet.
+          </p>
         )}
 
-        <div className="flex items-center gap-2 mt-4">
+        <div className="mt-4 flex items-center gap-2">
           <button
             onClick={prev}
-            disabled={stepIndex === 0}
-            className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled={atStart}
+            className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowLeft size={12} /> Back
           </button>
@@ -233,7 +315,7 @@ export default function TutorialOverlay() {
             onClick={next}
             className="flex items-center gap-1 rounded-lg bg-accent-500 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-accent transition-colors hover:bg-accent-400"
           >
-            {stepIndex + 1 === totalSteps ? 'Finish' : 'Next'} <ArrowRight size={12} />
+            {isLastStep ? 'Finish' : 'Next'} <ArrowRight size={12} />
           </button>
           <button
             onClick={stop}
@@ -244,14 +326,14 @@ export default function TutorialOverlay() {
         </div>
 
         {/* Step progress dots */}
-        <div className="flex items-center gap-1.5 mt-3 justify-center">
+        <div className="mt-3 flex items-center justify-center gap-1.5">
           {Array.from({ length: totalSteps }, (_, i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === stepIndex
+                i === stepNumber - 1
                   ? 'w-4 bg-accent-400'
-                  : i < stepIndex
+                  : i < stepNumber - 1
                     ? 'w-1.5 bg-accent-400/40'
                     : 'w-1.5 bg-white/15'
               }`}
