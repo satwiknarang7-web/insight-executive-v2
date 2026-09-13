@@ -19,6 +19,7 @@ import {
   FileText,
   UserRound,
   GitBranch,
+  Home,
   Compass,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
@@ -28,6 +29,15 @@ import ThemeToggle from './ThemeToggle';
 import Logo, { PRODUCT_NAME } from './Logo';
 
 const NAV = [
+  {
+    href: '/home',
+    label: 'Home',
+    icon: Home,
+    hint: 'Load a source, shape it, and see what you are working with',
+    // The one page that stands without a dataset, because it is where one
+    // comes from. Everything below it is a view onto data that already exists.
+    standalone: true,
+  },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
   { href: '/explore', label: 'Explore', icon: Table2, hint: 'Browse and filter the cleaned rows' },
   {
@@ -130,17 +140,26 @@ export default function AppShell({ children }) {
       return next;
     });
 
-  // The whole app is client-side state; without a dataset these pages have
-  // nothing to render, so send people back to the upload screen.
+  /**
+   * Most of this app is a view onto a dataset, and has nothing to show without
+   * one. Home is the exception: it is where a dataset comes from, so it has to
+   * render before there is one — which is the whole point of it being a tab
+   * rather than a separate page outside the shell.
+   *
+   * So the guard is per page rather than shell-wide. Anything that needs data
+   * and has none goes to Home; Home always stands.
+   */
+  const needsData = pathname !== '/home';
+
   useEffect(() => {
-    if (status !== 'booting' && !dataset) router.replace('/');
-  }, [status, dataset, router]);
+    if (needsData && status !== 'booting' && !dataset) router.replace('/home');
+  }, [needsData, status, dataset, router]);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
 
-  if (!dataset) {
+  if (needsData && !dataset) {
     return (
       <div className="flex min-h-screen items-center justify-center text-white/30">
         <div className="animate-pulse text-xs font-bold uppercase tracking-[0.35em]">Loading session…</div>
@@ -152,7 +171,7 @@ export default function AppShell({ children }) {
     <div className={`flex h-full flex-col gap-6 overflow-y-auto overflow-x-hidden ${rail ? 'p-3' : 'p-5'}`}>
       <div className={`flex items-center ${rail ? 'flex-col gap-3' : 'gap-3'}`}>
         {/* The rail has no room for the wordmark, so it gets the mark alone. */}
-        <Link href="/" className="flex items-center gap-3" title={PRODUCT_NAME}>
+        <Link href="/home" className="flex items-center gap-3" title={PRODUCT_NAME}>
           <Logo variant={rail ? 'mark' : 'lockup'} size="md" />
         </Link>
 
@@ -172,22 +191,32 @@ export default function AppShell({ children }) {
       </div>
 
       {/* The dataset card is all text; as a rail it becomes one icon with the
-          same information in its tooltip. */}
+          same information in its tooltip.
+          
+          It renders empty rather than not at all when nothing is loaded: the
+          shell now stands on Home before there is a dataset, and a card that
+          vanished would move every nav item up the moment one arrived. */}
       {rail ? (
         <div
           className="flex h-9 items-center justify-center rounded-lg border border-white/7 bg-white/[0.02] text-white/40"
-          title={`${dataset.fileName} — ${dataset.rowCount.toLocaleString()} rows · ${dataset.columns.length} columns`}
+          title={
+            dataset
+              ? `${dataset.fileName} — ${dataset.rowCount.toLocaleString()} rows · ${dataset.columns.length} columns`
+              : 'No dataset loaded'
+          }
         >
           <FileText size={15} />
         </div>
       ) : (
         <div className="rounded-xl border border-white/7 bg-white/[0.02] p-3">
           <div className="label mb-1">Dataset</div>
-          <div className="truncate text-sm font-bold text-white/85" title={dataset.fileName}>
-            {dataset.fileName}
+          <div className="truncate text-sm font-bold text-white/85" title={dataset?.fileName || ''}>
+            {dataset ? dataset.fileName : 'Nothing loaded'}
           </div>
           <div className="mt-1 text-[11px] text-white/40">
-            {dataset.rowCount.toLocaleString()} rows · {dataset.columns.length} columns
+            {dataset
+              ? `${dataset.rowCount.toLocaleString()} rows · ${dataset.columns.length} columns`
+              : 'Load a source on Home'}
           </div>
         </div>
       )}
@@ -253,7 +282,7 @@ export default function AppShell({ children }) {
         <button
           onClick={async () => {
             await reset();
-            router.push('/');
+            router.push('/home');
           }}
           title="Start over with a new dataset"
           className={`${actionClass(rail)} border-white/10 bg-transparent text-white/35 hover:bg-white/5 hover:text-white/70`}
@@ -271,7 +300,7 @@ export default function AppShell({ children }) {
 
       {/* Mobile top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-white/7 bg-canvas-raised/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/home" className="flex items-center gap-2">
           <Logo size="sm" />
         </Link>
         {/* The only way to navigate on a phone, and it was a 34px square —

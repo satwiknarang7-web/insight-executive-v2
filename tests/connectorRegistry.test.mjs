@@ -285,7 +285,10 @@ test('the pages name the sources by reading the registry, not by retyping them',
   const { fileURLToPath } = await import('node:url');
   const read = (rel) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
-  for (const page of ['../app/page.js', '../app/sign-in/page.js']) {
+  // Home moved inside the app shell when the landing page became a tab; the
+  // claim moved with it, and so does the rule that it be read rather than
+  // retyped. `app/page.js` is now a redirect and names nothing.
+  for (const page of ['../app/(app)/home/page.js', '../app/sign-in/page.js']) {
     const src = read(page);
     assert.match(src, /availableConnectors\(\)/, `${page} does not read the registry`);
     // A label typed into the page is the drift starting again. "CSV & Excel"

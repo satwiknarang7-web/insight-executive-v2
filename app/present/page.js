@@ -81,7 +81,7 @@ export default function PresentPage() {
     // a shared analysis IS, and this is the screen for it. Requiring a dataset
     // here meant an analysis someone sent you could be opened and then
     // immediately bounced back to the upload page.
-    if (status !== 'booting' && !dataset && !analysis?.storyboard?.length) router.replace('/');
+    if (status !== 'booting' && !dataset && !analysis?.storyboard?.length) router.replace('/home');
   }, [status, dataset, analysis, router]);
 
   // Keyboard control: arrows, space to play/pause, escape to leave.
