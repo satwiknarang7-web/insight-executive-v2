@@ -39,7 +39,14 @@ const NAV = [
     standalone: true,
   },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
-  { href: '/explore', label: 'Explore', icon: Table2, hint: 'Browse and filter the cleaned rows' },
+  {
+    href: '/explore',
+    label: 'Explore',
+    icon: Table2,
+    // Where the data is looked at and where it is changed. Shaping and measures
+    // both live here now: they are the same question asked twice.
+    hint: 'Browse the rows, reshape them, and name the calculations you need',
+  },
   {
     href: '/ask',
     label: 'Ask',
@@ -49,7 +56,6 @@ const NAV = [
     // page on a plan that may not call one.
     requires: 'model',
   },
-  { href: '/measures', label: 'Measures', icon: Sigma, hint: 'Name a calculation once, then reuse it' },
   { href: '/quality', label: 'Data Quality', icon: ShieldCheck, hint: 'Cleaning report and query audit' },
   {
     href: '/profile',

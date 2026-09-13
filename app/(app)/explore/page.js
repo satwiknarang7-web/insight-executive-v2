@@ -13,10 +13,14 @@ import {
   Type,
   Calendar,
   Fingerprint,
+  Sigma,
+  Wand2,
 } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import TransformPanel from '../../../components/panels/TransformPanel';
+import MeasuresPanel from '../../../components/panels/MeasuresPanel';
+import Collapse from '../../../components/shell/Collapse';
 import {
   REASON_TEXT,
   columnTally,
@@ -48,6 +52,17 @@ export default function ExplorePage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
   const [anomaliesOnly, setAnomaliesOnly] = useState(false);
+  /**
+   * Both working sections start open and can be put away.
+   *
+   * This page now holds four things — what the columns are, how they are being
+   * reshaped, the calculations defined over them, and the rows themselves —
+   * and the rows are what most visits are for. Neither panel may stand between
+   * a reader and the table for longer than they want it to.
+   */
+  const [showShape, setShowShape] = useState(true);
+  const [showMeasures, setShowMeasures] = useState(false);
+
   // null means the joined analysis view — the table every chart and measure
   // runs against. The source sheets are browsable in their own right, which
   // they were not: with three files loaded this page showed the view and gave
@@ -348,9 +363,30 @@ export default function ExplorePage() {
 
         {/* Shaping belongs beside the rows it shapes: the columns are named
             here, the values are visible here, and the effect of a step is
-            legible the moment it is applied. */}
-        <div className="mb-5">
-          <TransformPanel />
+            legible the moment it is applied. Measures sit with it because they
+            are the other half of the same question — what this data should say
+            that the file does not — even though one changes the table and the
+            other does not. */}
+        <div className="mb-5 flex flex-col gap-3">
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <Wand2 size={14} className="text-accent-400" />
+              <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">Shape the data</h2>
+              <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+              <Collapse open={showShape} onToggle={() => setShowShape((v) => !v)} label="the shaping steps" />
+            </div>
+            {showShape && <TransformPanel />}
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <Sigma size={14} className="text-accent-400" />
+              <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">Measures</h2>
+              <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+              <Collapse open={showMeasures} onToggle={() => setShowMeasures((v) => !v)} label="the measures" />
+            </div>
+            {showMeasures && <MeasuresPanel />}
+          </div>
         </div>
 
         <div className="overflow-x-auto">

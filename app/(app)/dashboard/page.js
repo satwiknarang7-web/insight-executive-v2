@@ -28,6 +28,7 @@ import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/s
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import { exclusionNotice } from '../../../lib/voidRows';
 import PageFrame from '../../../components/shell/PageFrame';
+import Collapse from '../../../components/shell/Collapse';
 import { usePlan } from '../../../lib/store/PlanProvider';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
@@ -705,20 +706,6 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
 }
 
 /** A section's fold control: a chevron that turns, and says what it folds. */
-function Collapse({ open, onToggle, label }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-expanded={open}
-      aria-label={`${open ? 'Hide' : 'Show'} ${label}`}
-      className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-white/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/35 transition-colors hover:bg-white/5 hover:text-white/70 sm:min-h-0 sm:px-2"
-    >
-      {open ? 'Hide' : 'Show'}
-      <ChevronRight size={12} className={`transition-transform ${open ? 'rotate-90' : ''}`} />
-    </button>
-  );
-}
 
 /**
  * One finding on the grid.
