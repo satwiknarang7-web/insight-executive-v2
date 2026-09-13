@@ -273,7 +273,7 @@ export default function ExplorePage() {
       </section>
 
       {/* Table */}
-      <section className="card overflow-hidden">
+      <section className="card overflow-hidden" data-tutorial="explore-table">
         <div className="flex items-center justify-between gap-4 border-b border-white/7 px-4 py-3">
           <div className="flex items-center gap-2 text-xs text-white/40">
             {loading && <Loader2 size={13} className="animate-spin text-accent-400" />}

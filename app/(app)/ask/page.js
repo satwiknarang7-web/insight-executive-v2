@@ -197,7 +197,7 @@ export default function AskPage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-5">
           {/* Prompt */}
-          <div className="card p-4">
+          <div className="card p-4" data-tutorial="ask-input">
             <div className="flex items-center gap-2">
               <input
                 value={question}

@@ -19,8 +19,10 @@ import {
   FileText,
   UserRound,
   GitBranch,
+  Compass,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
+import { useTutorial } from '../../lib/store/TutorialProvider';
 import ThemeToggle from './ThemeToggle';
 import Logo, { PRODUCT_NAME } from './Logo';
 
@@ -88,6 +90,7 @@ export default function AppShell({ children }) {
   const { dataset, status } = useDataset();
   const { analysis } = useAnalysis();
   const { exportCsv, reset } = useActions();
+  const { start: startTutorial } = useTutorial();
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -210,6 +213,13 @@ export default function AppShell({ children }) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-2 pt-4">
+        <button
+          onClick={() => startTutorial(0)}
+          title="Take a guided tour"
+          className={`${actionClass(rail)} border-white/10 bg-white/[0.03] text-white/50 hover:bg-accent-500/10 hover:text-accent-300`}
+        >
+          <Compass size={14} /> {!rail && 'Tutorial'}
+        </button>
         <ThemeToggle compact={rail} />
         {analysis?.storyboard?.length > 0 && (
           <Link

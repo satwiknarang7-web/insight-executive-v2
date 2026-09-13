@@ -407,3 +407,105 @@ body {
 .slide-in {
   animation: slide-in 260ms ease-out;
 }
+
+/* ---------------------------------------------------------------------------
+ * Guided tour overlay.
+ *
+ * The overlay is an SVG backdrop with a mask cutout for the spotlight, a CSS
+ * ring that pulses around the target, and a glass tooltip. All positioning is
+ * done inline by the component — these classes handle the look.
+ * --------------------------------------------------------------------------- */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.tutorial-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tutorial-ring {
+  position: fixed;
+  border-radius: 12px;
+  border: 2px solid var(--color-accent-400);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15),
+              0 0 24px 4px rgba(20, 184, 166, 0.10);
+  pointer-events: none;
+  animation: tutorial-pulse 2s ease-in-out infinite;
+}
+
+.tutorial-tooltip {
+  position: fixed;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 16px 18px;
+  background: rgba(13, 15, 17, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(20, 184, 166, 0.08);
+  animation: tutorial-fade-in 260ms ease-out;
+  z-index: 10000;
+}
+
+:root[data-theme='light'] .tutorial-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(11, 37, 69, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12),
+              0 0 0 1px rgba(15, 48, 87, 0.06);
+}
+
+@keyframes tutorial-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15),
+                0 0 24px 4px rgba(20, 184, 166, 0.10);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(20, 184, 166, 0.08),
+                0 0 32px 8px rgba(20, 184, 166, 0.18);
+  }
+}
+
+@keyframes tutorial-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* How-it-works screenshots on the landing page. */
+@keyframes hw-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.hw-screenshot {
+  animation: hw-float 6s ease-in-out infinite;
+}
+
+.hw-screenshot:nth-child(2) { animation-delay: 1.5s; }
+.hw-screenshot:nth-child(3) { animation-delay: 3s; }
+.hw-screenshot:nth-child(4) { animation-delay: 4.5s; }
+
+/* Scroll-triggered fade-in for landing page sections. */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-ring { animation: none; }
+  .tutorial-tooltip { animation: none; }
+  .hw-screenshot { animation: none; }
+  .scroll-reveal { opacity: 1; transform: none; transition: none; }
+}

@@ -237,7 +237,7 @@ export default function DashboardPage() {
       {/* KPI strip. Kept on screen while editing even when empty, so deleting
           the last card does not also remove the way to add one back. */}
       {(kpis?.length > 0 || editing) && (
-        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4" data-tutorial="dashboard-kpis">
           {(kpis || []).map((k, i) => (
             <KpiCard
               key={`${k.origLabel || k.label}-${i}`}
@@ -268,7 +268,7 @@ export default function DashboardPage() {
       )}
 
       {/* Executive summary */}
-      <section className="mb-8">
+      <section className="mb-8" data-tutorial="dashboard-summary">
         <div className="mb-3 flex items-center gap-3">
           <Sparkles size={14} className="text-accent-400" />
           <EditableText
@@ -475,7 +475,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Chart grid */}
-      <section>
+      <section data-tutorial="dashboard-findings">
         <div className="mb-3 flex items-center gap-3">
           <BarChart3 size={14} className="text-accent-400" />
           <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">

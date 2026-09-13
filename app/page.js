@@ -23,8 +23,10 @@ import {
   Share2,
   FileDown,
   Presentation,
+  Compass,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../lib/store/DatasetProvider';
+import { useTutorial } from '../lib/store/TutorialProvider';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import Logo from '../components/shell/Logo';
 import { vaultAvailable } from '../lib/vault/supabase.client';
@@ -33,6 +35,7 @@ import { SAMPLES } from '../lib/samples';
 import { availableConnectors } from '../lib/connectors/registry';
 import ConnectSource from '../components/panels/ConnectSource';
 import GeminiKeyPanel from '../components/panels/GeminiKeyPanel';
+import Image from 'next/image';
 
 const FEATURES = [
   {
@@ -112,6 +115,18 @@ export default function LandingPage() {
   const [source, setSource] = useState('file');
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
+  const { start: startTutorial } = useTutorial();
+  const revealRefs = useRef([]);
+
+  // Scroll-triggered fade-in for the How-it-Works section.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.15 }
+    );
+    revealRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   const busy = status === 'ingesting' || status === 'analyzing';
   // The logo in the app shell points here, so anyone who taps it lands back on
@@ -476,6 +491,7 @@ export default function LandingPage() {
             {!busy && !dataset && source === 'file' && (
               <>
                 <div
+                  data-tutorial="upload-dropzone"
                   onDragOver={(e) => {
                     e.preventDefault();
                     setDragging(true);
@@ -511,7 +527,7 @@ export default function LandingPage() {
                   />
                 </div>
 
-                <div className="card p-5">
+                <div className="card p-5" data-tutorial="sample-datasets">
                   <div className="label mb-3">Or try a sample</div>
                   <div className="flex flex-col gap-2">
                     {SAMPLES.map((s) => (
@@ -541,7 +557,9 @@ export default function LandingPage() {
               * the writing reads like. It sits below the upload rather than
               * above it because uploading is the task and this is a setting.
               */}
-            <GeminiKeyPanel />
+            <div data-tutorial="gemini-key-panel">
+              <GeminiKeyPanel />
+            </div>
 
             {error && (
               <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 p-4">
@@ -569,6 +587,105 @@ export default function LandingPage() {
               <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{f.body}</p>
             </div>
           ))}
+        </section>
+
+        {/* How it works — visual walkthrough with screenshots. */}
+        <section className="border-t border-white/6 py-12">
+          <div className="mb-2 flex items-baseline justify-between gap-4">
+            <h2 className="text-lg font-black tracking-tight text-white/85">
+              See it in action
+            </h2>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">
+              how it works
+            </span>
+          </div>
+          <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-white/40">
+            Upload a file, and in seconds you have a full analytics dashboard, a data explorer, an
+            AI question console, and a presentation deck — each one traceable and editable.
+          </p>
+
+          <div className="mt-8 grid gap-8 md:grid-cols-2">
+            {[
+              {
+                step: 1,
+                title: 'Dashboard',
+                desc: 'KPI cards, executive summary, and auto-generated charts — all computed from your data. Click any finding to deep-dive.',
+                src: '/screenshots/dashboard.jpg',
+              },
+              {
+                step: 2,
+                title: 'Explore',
+                desc: 'Browse the cleaned rows in a filterable data grid. Column types are tagged, and every row is searchable.',
+                src: '/screenshots/explore.jpg',
+              },
+              {
+                step: 3,
+                title: 'Ask AI',
+                desc: 'Type a question in plain English. Get a chart with the SQL that produced it, running in your browser.',
+                src: '/screenshots/ask.jpg',
+              },
+              {
+                step: 4,
+                title: 'Present',
+                desc: 'A full-screen slide deck with one finding per slide, keyboard navigation, and optional voice narration.',
+                src: '/screenshots/present.jpg',
+              },
+            ].map((item, i) => (
+              <div
+                key={item.title}
+                ref={(el) => (revealRefs.current[i] = el)}
+                className="scroll-reveal group"
+              >
+                {/* Browser-frame mockup */}
+                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-all duration-300 group-hover:border-accent-500/30 group-hover:shadow-lg group-hover:shadow-accent-500/5">
+                  {/* Faux title bar */}
+                  <div className="flex items-center gap-2 border-b border-white/6 px-3 py-2">
+                    <div className="flex gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                    </div>
+                    <span className="ml-2 text-[9px] font-bold uppercase tracking-[0.2em] text-white/25">
+                      {item.title}
+                    </span>
+                  </div>
+                  {/* Screenshot */}
+                  <div className="hw-screenshot relative aspect-video">
+                    <Image
+                      src={item.src}
+                      alt={`${item.title} — screenshot of the ${item.title.toLowerCase()} page`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
+                </div>
+                {/* Caption */}
+                <div className="mt-3 flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-accent-500/25 bg-accent-500/8 text-[10px] font-black tabular-nums text-accent-400">
+                    {item.step}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-white/85">{item.title}</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{item.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Take the Tour CTA */}
+          <div className="mt-10 flex flex-col items-center gap-3">
+            <button
+              onClick={() => startTutorial(0)}
+              className="flex items-center gap-2 rounded-xl border border-accent-500/30 bg-accent-500/8 px-6 py-3 text-sm font-bold uppercase tracking-[0.15em] text-accent-300 transition-all hover:bg-accent-500/15 hover:border-accent-500/50 hover:shadow-lg hover:shadow-accent-500/10"
+            >
+              <Compass size={16} /> Take the guided tour
+            </button>
+            <p className="text-[11px] text-white/25">
+              An interactive walkthrough that highlights each feature as you explore
+            </p>
+          </div>
         </section>
 
         {/* The half of the product the pitch above leaves out. */}
