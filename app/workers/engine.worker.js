@@ -37,6 +37,7 @@ import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
+import { mergeConfidence } from '../../lib/cellConfidence.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import { valueVocabulary } from '../../lib/valueBriefing.js';
@@ -790,6 +791,14 @@ export function rollUpMetrics(tables, view) {
     decimalCommaColumns: [],
     ambiguousCommaColumns: [],
     columnStats: {},
+    // Which cells the cleaner had to guess at, summed across the sheets and
+    // still measured against the table each column actually came from.
+    confidence: mergeConfidence(
+      Object.keys(tables).map((name) => ({
+        confidence: tables[name].metrics?.confidence,
+        rowCount: tables[name].rows?.length || tables[name].metrics?.totalRows || 0,
+      }))
+    ),
   };
   for (const name of Object.keys(tables)) {
     const m = tables[name].metrics || {};
@@ -973,6 +982,10 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
     // Whether the reader asked for the void rows back. Default false: the
     // narrower total is the one that is what its name says.
     includeVoid,
+    // What the cleaner had to guess at. A finding computed perfectly over
+    // inferred values is only as good as the inference, and the evidence tier
+    // is where that gets said.
+    confidence: state.metrics?.confidence || null,
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
   reply(id, 'analyzed', result);
@@ -989,7 +1002,7 @@ function askExecute(id, { spec }) {
     const charts = executeCharts([{ ...spec, id: spec.id || 'ask_1' }], state.view.rows);
     // Compute the same verified findings a dashboard slide gets, so an ad-hoc
     // answer is grounded in real statistics rather than the model's guess.
-    const { perChart } = analyzeStoryboard(charts, state.view.rows);
+    const { perChart } = analyzeStoryboard(charts, state.view.rows, state.metrics?.confidence || null);
     reply(id, 'asked', { chart: charts[0] || null, finding: perChart[0] || null });
   } catch (e) {
     reply(id, 'error', { message: e.message });

@@ -1,10 +1,11 @@
 'use client';
 
-import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Code2, ChevronRight, Database } from 'lucide-react';
+import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Code2, ChevronRight, Database, HelpCircle } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import DatasetNotices from '../../../components/panels/DatasetNotices';
 import { formatSql } from '../../../lib/sqlFormat';
+import { REASON_TEXT, summarizeConfidence } from '../../../lib/cellConfidence';
 
 export default function QualityPage() {
   const { dataset } = useDataset();
@@ -23,6 +24,11 @@ export default function QualityPage() {
   // knows their own file is the only one who can say the call was right.
   const decimalComma = m.decimalCommaColumns || [];
   const ambiguousComma = m.ambiguousCommaColumns || [];
+
+  // Cells the cleaner had to choose a reading for, as opposed to cells it
+  // merely reformatted. The distinction is the whole point of the section
+  // below: a flag on every changed cell would be a flag on nearly every cell.
+  const guessed = summarizeConfidence(m.confidence, dataset.rowCount);
 
   const notices = dataset.notices || [];
 
@@ -150,6 +156,61 @@ export default function QualityPage() {
           </Bullet>
         </ul>
       </section>
+
+      {/* Cells that were a judgement rather than a reading */}
+      {guessed.columns.length > 0 && (
+        <section className="card mb-8 p-6">
+          <div className="mb-1 flex items-center gap-2">
+            <HelpCircle size={14} className="text-amber-400" />
+            <span className="label">Cells the cleaner had to guess at</span>
+          </div>
+          <p className="mb-5 max-w-3xl text-[12px] leading-relaxed text-white/40">
+            Not the same as the {m.typesCoerced.toLocaleString()} values that changed type above.
+            Reading <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">1234</code> as
+            a number is unambiguous; these are cells where two readings were equally defensible and one
+            had to be chosen. Findings built on a column below carry that doubt in their evidence, and a
+            column that is mostly guesswork cannot support a strong claim however clean its arithmetic
+            looks.
+          </p>
+
+          <ul className="flex flex-col gap-2">
+            {guessed.columns.map((entry) => {
+              const pct = Math.round(entry.share * 100);
+              return (
+                <li key={entry.column} className="rounded-xl border border-white/6 bg-white/[0.02] p-4">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-mono text-[13px] font-bold text-white/85">{entry.column}</span>
+                    <span className="text-[11px] tabular-nums text-amber-300/80">
+                      {entry.count.toLocaleString()} {entry.count === 1 ? 'cell' : 'cells'}
+                    </span>
+                    <span className="ml-auto text-[11px] font-black tabular-nums text-white/45">
+                      {pct < 1 ? '<1' : pct}%
+                    </span>
+                  </div>
+
+                  {/* The bar is the share, not a score: full means the whole
+                      column was chosen rather than read. */}
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/6">
+                    <div
+                      className="h-full rounded-full bg-amber-400/60"
+                      style={{ width: `${Math.max(2, Math.min(100, entry.share * 100))}%` }}
+                    />
+                  </div>
+
+                  <ul className="mt-2.5 flex flex-col gap-1">
+                    {Object.entries(entry.reasons).map(([reason, n]) => (
+                      <li key={reason} className="text-[12px] leading-relaxed text-white/40">
+                        <span className="tabular-nums text-white/55">{n.toLocaleString()}</span>{' '}
+                        {REASON_TEXT[reason] || reason}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* Column detail */}
       <section className="card mb-8 overflow-hidden">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   ChevronLeft,
@@ -16,6 +16,12 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
+import {
+  REASON_TEXT,
+  columnTally,
+  columnUncertainCount,
+  columnUncertainShare,
+} from '../../../lib/cellConfidence';
 import { formatExact, formatNumber } from '../../../lib/format';
 import { formatMeasureValue } from '../../../lib/measures';
 
@@ -110,6 +116,43 @@ export default function ExplorePage() {
     },
     [sortBy]
   );
+
+  /**
+   * Which columns carry a doubt, and what to say about each.
+   *
+   * Marked on the header rather than on the cell. The rows on screen are
+   * sorted and filtered, so their position in this page is not the position the
+   * doubts were recorded against — highlighting by that index would put the
+   * warning on whichever row happened to land there, which is worse than no
+   * warning at all. The header is true of the column however the page is
+   * ordered, and it answers the question a reader actually has while browsing:
+   * can I trust this column.
+   */
+  const doubt = useMemo(() => {
+    const store = dataset?.metrics?.confidence;
+    // Resolved here rather than taken from below: this runs before the
+    // `!dataset` guard, where `sourceTable` does not exist yet.
+    const sheet = (dataset?.tables || []).find((t) => t.name === table) || null;
+    const cols = sheet ? sheet.columns : dataset?.columns;
+    if (!store || !cols) return {};
+    const out = {};
+    for (const col of cols) {
+      const count = columnUncertainCount(store, col);
+      if (!count) continue;
+      const reasons = Object.entries(columnTally(store, col)).sort((a, b) => b[1] - a[1]);
+      const pct = Math.round(columnUncertainShare(store, col, dataset.rowCount) * 100);
+      out[col] = {
+        count,
+        label: `${pct < 1 ? '<1' : pct}%`,
+        title:
+          `${count.toLocaleString()} of these cells were a judgement, not a reading — ` +
+          reasons.map(([reason]) => REASON_TEXT[reason] || reason).join('; ') +
+          '. See Data Quality.',
+      };
+    }
+    return out;
+  }, [dataset, table]);
+
 
   if (!dataset) return null;
 
@@ -313,6 +356,14 @@ export default function ExplorePage() {
                       className="flex min-h-11 items-center gap-1 text-[10px] font-black uppercase tracking-[0.15em] text-white/45 transition-colors hover:text-accent-300 sm:min-h-0"
                     >
                       {col}
+                      {doubt[col] && (
+                        <span
+                          title={doubt[col].title}
+                          className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-px text-[9px] font-black tabular-nums text-amber-300/90"
+                        >
+                          {doubt[col].label}
+                        </span>
+                      )}
                       {sortBy === col &&
                         (sortDir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />)}
                     </button>
