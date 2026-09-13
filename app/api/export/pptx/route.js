@@ -5,8 +5,9 @@
  * PDF's does: so there is one definition of what the file looks like, whatever
  * asks for it.
  *
- * Unlike the PDF this needs no browser, so it works on any host — which also
- * makes it the export that still works when the PDF renderer is unavailable.
+ * Unlike the PDF this needs no browser — the charts are built from the numbers
+ * the findings already carry, as native PowerPoint objects — so it works on any
+ * host, and it is the export that still works when the PDF renderer is missing.
  */
 import { NextResponse } from 'next/server';
 import { pptxFilename, renderAnalysisPptx } from '../../../../lib/report/pptx.server';

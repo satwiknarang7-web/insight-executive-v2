@@ -129,7 +129,7 @@ export default function ReportPage() {
           <button
             onClick={downloadPptx}
             disabled={pptxBusy}
-            title="A PowerPoint deck: one finding per slide, each with its evidence tier and the query behind it. Charts are not drawn — the PDF has those."
+            title="A PowerPoint deck: one finding per slide, with a real PowerPoint chart you can edit, its evidence tier, and the query behind it."
             className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
           >
             {pptxBusy ? <Loader2 size={13} className="animate-spin" /> : <Presentation size={13} />} PowerPoint
