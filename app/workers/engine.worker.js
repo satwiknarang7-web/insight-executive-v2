@@ -37,7 +37,7 @@ import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
-import { mergeConfidence } from '../../lib/cellConfidence.js';
+import { UNCERTAIN, mergeConfidence, noteUncertain } from '../../lib/cellConfidence.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
 import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import { valueVocabulary } from '../../lib/valueBriefing.js';
@@ -395,7 +395,7 @@ function buildProfile(rows, columns, metrics) {
  * batches them through `sanitizeChunk` to keep the same code path — and the
  * same PII redaction and type coercion — as the CSV route.
  */
-function buildTable({ name, sheetName, sourceFile, columns, rows }) {
+function buildTable({ name, sheetName, sourceFile, columns, rows, uncertain = null }) {
   const metrics = createMetrics(columns, rows.length);
   const cleaned = [];
   const BATCH = 5000;
@@ -405,6 +405,20 @@ function buildTable({ name, sheetName, sourceFile, columns, rows }) {
   metrics.totalRows = rows.length;
   metrics.totalCells = rows.length * columns.length;
   finalizeMetrics(cleaned, columns, metrics);
+
+  /**
+   * Doubt that came with the data rather than from reading it.
+   *
+   * An extracted document arrives already knowing which cells the model was
+   * unsure of. Those join the cleaner's own judgements in the same store, so a
+   * finding built on a smudged column is capped exactly as one built on a
+   * guessed date is. Seeded after cleaning because the indices refer to the row
+   * order handed in, which the extractor has already stripped of empty rows so
+   * that the cleaner drops none and the positions still line up.
+   */
+  for (const cell of uncertain || []) {
+    noteUncertain(metrics.confidence, cell?.column, cell?.row, UNCERTAIN.EXTRACTED);
+  }
 
   return {
     name,
@@ -720,6 +734,7 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
       sourceFile: sourceLabel || 'Connected database',
       columns: t.columns?.length ? t.columns : Object.keys(t.rows?.[0] || {}),
       rows: t.rows || [],
+      uncertain: t.uncertain || null,
     });
     built[tableName] = table;
     order.push(tableName);

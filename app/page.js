@@ -23,6 +23,7 @@ import {
 import { useActions, useAnalysis, useDataset } from '../lib/store/DatasetProvider';
 import { useTutorial } from '../lib/store/TutorialProvider';
 import { usePlan } from '../lib/store/PlanProvider';
+import { isExtractable } from '../lib/documentExtraction';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import Logo from '../components/shell/Logo';
 import { vaultAvailable } from '../lib/vault/supabase.client';
@@ -61,7 +62,7 @@ export default function LandingPage() {
   const router = useRouter();
   const { dataset, status, error } = useDataset();
   const { analysis } = useAnalysis();
-  const { ingestFile, ingestText, analyze, startBlank, setError, reset } = useActions();
+  const { ingestFile, ingestText, ingestDocument, analyze, startBlank, setError, reset } = useActions();
   const [dragging, setDragging] = useState(false);
   // Two-step, because discarding a loaded dataset also discards any analysis of
   // it and there is no undo — but a modal for one button is heavier than this.
@@ -138,13 +139,30 @@ export default function LandingPage() {
   // to each other exactly as it relates the tabs of a single workbook.
   const handleFiles = useCallback(
     async (files) => {
+      const list = Array.from(files || []);
+      /**
+       * A photograph is not a spreadsheet, and the difference decides the path.
+       *
+       * Documents go one at a time through extraction: each is a separate
+       * vision call on the reader's own key, and batching them would spend
+       * several before anyone has seen whether the first came back sensibly.
+       */
+      const documents = list.filter(isExtractable);
       try {
-        await ingestFile(files);
+        if (documents.length) {
+          if (!planAllows('model')) {
+            router.push('/upgrade');
+            return;
+          }
+          await ingestDocument(documents[0]);
+          return;
+        }
+        await ingestFile(list);
       } catch {
         /* surfaced through context error */
       }
     },
-    [ingestFile]
+    [ingestFile, ingestDocument, planAllows, router]
   );
 
   const onDrop = useCallback(
@@ -482,7 +500,7 @@ export default function LandingPage() {
                   ref={inputRef}
                   type="file"
                   multiple
-                  accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv"
+                  accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv,.png,.jpg,.jpeg,.webp,.pdf,image/*,application/pdf"
                   className="hidden"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || []);
@@ -560,15 +578,17 @@ export default function LandingPage() {
                   }`}
                 >
                   <UploadCloud size={26} className={dragging ? 'text-accent-400' : 'text-white/30'} />
-                  <div className="text-sm font-bold text-white/80">Drop a CSV or Excel file here</div>
+                  <div className="text-sm font-bold text-white/80">Drop a spreadsheet or a photo of a table</div>
                   <div className="text-xs text-white/35">
-                    several related files or sheets are welcome — nothing leaves your browser
+                    {planAllows('model')
+                      ? 'CSV, Excel — or a PDF or photograph, read on your own key'
+                      : 'CSV and Excel — nothing leaves your browser'}
                   </div>
                   <input
                     ref={inputRef}
                     type="file"
                     multiple
-                    accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv"
+                    accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv,.png,.jpg,.jpeg,.webp,.pdf,image/*,application/pdf"
                     className="hidden"
                     onChange={(e) => {
                       const files = Array.from(e.target.files || []);
