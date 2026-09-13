@@ -24,6 +24,7 @@ import { MIN_PASSWORD } from '../../lib/auth/otp';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 import Logo, { PRODUCT_NAME } from '../../components/shell/Logo';
 import PlanChoice from '../../components/panels/PlanChoice';
+import { usePlan } from '../../lib/store/PlanProvider';
 import { FREE } from '../../lib/plans.js';
 
 const SOURCES = [...availableConnectors().map((c) => c.label), 'CSV & Excel'];
@@ -48,6 +49,7 @@ const HIGHLIGHTS = [
 
 function SignInForm() {
   const router = useRouter();
+  const { refresh: refreshPlan } = usePlan();
   const params = useSearchParams();
   // Where the middleware turned them away from, so they land where they meant
   // to go. Relative paths only — an absolute URL here is an open redirect.
@@ -170,11 +172,15 @@ function SignInForm() {
   /** Signed in for real: give the user an organisation, then get out of the way. */
   const finish = useCallback(async () => {
     await fetch('/api/auth/bootstrap', { method: 'POST' }).catch(() => {});
+    // The plan was read before this session existed, and the layout holding it
+    // does not remount on a client navigation — so without this the account
+    // that just signed in keeps whatever was true for a signed-out visitor.
+    await refreshPlan().catch(() => {});
     // Straight to the data-source page: signing in is the first step, choosing
     // a source is the second.
     router.replace(nextPath);
     router.refresh();
-  }, [router, nextPath]);
+  }, [router, nextPath, refreshPlan]);
 
   const submitCredentials = useCallback(
     async (e) => {

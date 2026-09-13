@@ -9,6 +9,7 @@
  * be satisfied by muscle memory, the way "type DELETE" or a second click can.
  */
 import { useCallback, useState } from 'react';
+import { usePlan } from '../../lib/store/PlanProvider';
 import { useRouter } from 'next/navigation';
 import { Loader2, LogOut, ShieldAlert, UserRound } from 'lucide-react';
 
@@ -18,15 +19,20 @@ export default function AccountPanel({ email, connectionCount = 0 }) {
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(null); // 'sign-out' | 'delete'
   const [error, setError] = useState(null);
+  const { refresh: refreshPlan } = usePlan();
 
   const matches = typed.trim().toLowerCase() === String(email || '').trim().toLowerCase();
 
   const signOut = useCallback(async () => {
     setBusy('sign-out');
     await fetch('/api/auth/sign-out', { method: 'POST' }).catch(() => {});
+    // The same staleness as signing in, in the other direction: without this
+    // the browser goes on offering Pro controls to a signed-out visitor. They
+    // would be refused by the server, but offering them is its own bug.
+    await refreshPlan().catch(() => {});
     router.replace('/');
     router.refresh();
-  }, [router]);
+  }, [router, refreshPlan]);
 
   const deleteAccount = useCallback(async () => {
     if (!matches) return;
