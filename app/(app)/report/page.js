@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Printer, FileDown, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck, Info } from 'lucide-react';
+import { Printer, FileDown, Presentation, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck, Info } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
@@ -14,6 +14,7 @@ export default function ReportPage() {
   const { analysis } = useAnalysis();
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(null);
+  const [pptxBusy, setPptxBusy] = useState(false);
 
   /**
    * Server-rendered PDF via headless Chrome. It needs a Chrome binary on the
@@ -57,6 +58,42 @@ export default function ReportPage() {
     }
   }, [analysis, dataset]);
 
+  /**
+   * The same findings as a deck.
+   *
+   * No browser needed on the host, so this is the export that still works when
+   * the PDF renderer is missing — and the one that carries the evidence tier
+   * and the query onto the slide, where a meeting can see them.
+   */
+  const downloadPptx = useCallback(async () => {
+    setPptxBusy(true);
+    setPdfError(null);
+    try {
+      const res = await fetch('/api/export/pptx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...analysis, fileName: dataset?.fileName || null }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || 'The deck could not be built.');
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(dataset?.fileName || 'insight').replace(/\.(csv|tsv|txt|xlsx?|xlsm)$/i, '')}_deck.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setPdfError(e.message);
+    } finally {
+      setPptxBusy(false);
+    }
+  }, [analysis, dataset]);
+
   if (!analysis?.storyboard?.length) {
     return (
       <PageFrame title="Report">
@@ -88,6 +125,14 @@ export default function ReportPage() {
             className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
           >
             {pdfBusy ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />} Server PDF
+          </button>
+          <button
+            onClick={downloadPptx}
+            disabled={pptxBusy}
+            title="A PowerPoint deck: one finding per slide, each with its evidence tier and the query behind it. Charts are not drawn — the PDF has those."
+            className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
+          >
+            {pptxBusy ? <Loader2 size={13} className="animate-spin" /> : <Presentation size={13} />} PowerPoint
           </button>
         </div>
       }
