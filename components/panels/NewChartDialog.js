@@ -21,6 +21,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BarChart3, Loader2, Plus, X } from 'lucide-react';
 import { formatSql } from '../../lib/sqlFormat';
+import { recommendCharts } from '../../lib/chartAdvisor';
+import { useActions } from '../../lib/store/DatasetProvider';
 import {
   AGGREGATES,
   BUCKETS,
@@ -74,6 +76,17 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
   const [bucket, setBucket] = useState('auto');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  /**
+   * What this query's own results support.
+   *
+   * Read from the rows the query actually returns rather than from the sample,
+   * because the sample is raw records and the chart is drawn over the grouped
+   * result — five hundred orders and five regions are different shapes, and the
+   * shape is the whole question. The query runs in the engine, in the browser,
+   * over rows that have not moved.
+   */
+  const [advice, setAdvice] = useState(null);
+  const { runSql } = useActions();
 
   const requirement = chartRequirement(chartType);
 
@@ -151,7 +164,7 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
     setSort('value-desc');
   }, [chartType, dimensions, measures, temporal]);
 
-  const { spec, error: specError } = useMemo(
+  const { spec: builtSpec, error: specError } = useMemo(
     () =>
       buildChartSpec(
         { type: chartType, dims, vals, limit, sort, bucket },
@@ -159,6 +172,44 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
       ),
     [chartType, dims, vals, limit, sort, bucket, columns, profile, sample, customMeasures]
   );
+  const spec = builtSpec;
+
+  /**
+   * Run the built query and ask the advisor what it supports.
+   *
+   * Debounced, because every keystroke in a well would otherwise be a pass over
+   * the rows. Failures are silent: a recommendation is a help, and a dialog
+   * that shouts because a half-finished spec did not run is worse than one that
+   * waits.
+   */
+  useEffect(() => {
+    const sql = spec?.sql;
+    if (!sql) {
+      setAdvice(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      runSql(sql)
+        .then(({ rows }) => {
+          if (cancelled || !rows?.length) return;
+          const { recommendations } = recommendCharts(rows, {
+            xKey: spec.xAxisKey,
+            yKeys: [spec.yAxisKey, spec.secondaryYAxisKey].filter(Boolean),
+            // The dialog knows whether it sorted these rows by size. Every
+            // ranking ordered that way is monotone, and a funnel offered on
+            // that basis alone would be offered on nearly every chart.
+            orderedByValue: String(sort).startsWith('value'),
+          });
+          setAdvice({ sql, recommendations: recommendations.filter((r) => r.score >= 0.4).slice(0, 4) });
+        })
+        .catch(() => {});
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [spec?.sql, spec?.xAxisKey, spec?.yAxisKey, spec?.secondaryYAxisKey, sort, runSql]);
 
   // Warnings, not refusals: each of these produces a chart that renders and
   // says less than it should, and the person building it is better placed than
@@ -245,6 +296,29 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
     <Shell onClose={onClose}>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Chart type">
+          {/* What the data supports, before the list of everything that exists.
+              Each carries the reason it earned, because a recommendation a
+              person cannot argue with is one they have to take on trust. */}
+          {advice?.recommendations?.length > 0 && (
+            <div className="mb-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/25">Suits this data</span>
+              {advice.recommendations.map((r) => (
+                <button
+                  key={r.type}
+                  type="button"
+                  title={r.why}
+                  onClick={() => setChartType(r.type)}
+                  className={`rounded-full border px-2 py-0.5 text-[10px] font-bold transition-colors ${
+                    chartType === r.type
+                      ? 'border-accent-500/50 bg-accent-500/15 text-accent-200'
+                      : 'border-white/10 text-white/45 hover:border-accent-500/30 hover:text-accent-300'
+                  }`}
+                >
+                  {chartTypeLabel(r.type)}
+                </button>
+              ))}
+            </div>
+          )}
           <select
             value={chartType}
             onChange={(e) => setChartType(e.target.value)}

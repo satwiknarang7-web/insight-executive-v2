@@ -60,6 +60,41 @@ horizontal bars, a donut whose visible slices are not most of the whole is drawn
 as a ranking instead, a short series is a line rather than a mostly-empty area,
 and histogram bands are sized by Freedman–Diaconis rather than fixed at four.
 
+### Which chart, from the values
+
+`analystPlanner` decides which charts a *schema* permits and `chartSignals`
+measures whether a candidate has anything to say. `chartAdvisor` answers the
+third question: given these result rows, what shape are they?
+
+The rule that governs it is that **nothing reads a column name**. Not to find
+the date column, not to find the geography, not to decide what is a measure. A
+file whose columns are called `f1`…`f7`, or are in Turkish, or are the twelve
+months written in Japanese, is read the same way as one with English headers,
+because the evidence is in the values either way — and a lexicon of English
+nouns is a list of the conventions somebody happened to remember. A test reads
+the module's own regular expressions and fails if any of them contains a word
+like `date` or `revenue`.
+
+What it reads, and what follows:
+
+| What the values show | What it means for the chart |
+| --- | --- |
+| Labels shaped like calendar points, evenly spaced | A line, or an area once the series is long |
+| Dated but unevenly spaced | Columns — a line would invent the gaps |
+| Month names, weekdays, quarters | Calendar order, never sorted by size |
+| `< 10`, `10–100`, `100+` | A distribution, in its own order |
+| Values adding to 100, or to 1 | Parts of one whole: a donut, or a treemap when there are many |
+| Any negative value | No part-to-whole shape at all; a waterfall instead |
+| Each step keeping less than half of the first | A funnel — but not a ranking that was merely sorted |
+| Two measures that move together | A scatter, with the coefficient in the reason |
+| Two measures orders of magnitude apart | An axis each |
+| Names that match the boundary file | A map, decided by the values rather than by the column being called "country" |
+
+Every recommendation carries the sentence that earned it, and the chart dialog
+shows them against the query's real results — so a person building a chart by
+hand is told what their own rows support, and can disagree with a reason rather
+than with a black box.
+
 ### Writing the findings
 
 `insightEngine` computes every number and writes prose that a language model may
@@ -83,6 +118,36 @@ analyzers already verified, and it refuses pairs it cannot compare honestly —
 two shares measured against different wholes, or a share of a sum against a
 share of a set of averages.
 
+## Where the data comes from
+
+Everything is in one searchable catalog on Home, grouped the way people think
+about it. A file dropped in the browser is parsed there and never uploaded; a
+link or a database is fetched by the server and handed straight to the browser,
+which is stated on screen because it is a different promise.
+
+| Group | Sources |
+| --- | --- |
+| Files | CSV, TSV and delimited text · Excel and ODS workbooks · JSON and NDJSON · XML · HTML pages · Parquet · SQLite · PDFs and photographs of tables · pasted text |
+| Web and APIs | any file behind a link · Google Sheets · a REST endpoint returning JSON · an OData feed · the tables on a web page |
+| Databases | PostgreSQL · Neon · Supabase · Amazon Redshift · CockroachDB · Timescale · AlloyDB · RDS and Aurora · MySQL · MariaDB · TiDB · PlanetScale · SingleStore · SQL Server · Azure SQL · Oracle |
+| Warehouses and lakehouses | Snowflake · Databricks SQL · ClickHouse · Trino, Presto and Starburst · Microsoft Fabric |
+| Platforms | Tableau published data sources · MongoDB · Airtable |
+
+Several of these are flavours of a driver that already existed — Redshift and
+Timescale speak Postgres, PlanetScale speaks MySQL — and they exist as separate
+entries because the host, the port and the defaults differ, not the protocol.
+ClickHouse, Databricks and Trino have no driver package at all: each answers
+plain HTTP, so each is a few dozen lines against its own REST protocol.
+
+**A link is rewritten before it is fetched.** A Google Sheet is pasted as its
+editing page and served as a CSV export; a GitHub file as the page that renders
+it and served raw; a Dropbox share as a preview. The rewrite happens in the
+browser and is shown, so the address that will actually be read is visible
+before anything is read. The fetch itself goes through `/api/fetch`, which
+resolves the host and refuses a private one, follows redirects by hand so a
+public URL cannot bounce into an internal one, caps the body and times out —
+the same guards the database connectors use, for the same reason.
+
 ## Pages
 
 | Route | What it does |
@@ -96,6 +161,33 @@ share of a set of averages.
 | `/quality` | Cleaning report, per-column stats, full query audit |
 | `/present` | Full-screen slide deck (arrow keys, space to autoplay) |
 | `/report` | Print-ready long-form report |
+
+## Cleaning
+
+Cleaning decides what a value *is*, and every decision it makes is one the
+reader can see and disagree with. Beyond parsing and PII redaction:
+
+- **Dates in the forms people write them.** `5 Jan 2024`, `Jan 5, 2024`,
+  `05-Jan-24`, `31.12.2024`, `March 2024`, `2024-03` — all read at UTC, so the
+  day on screen is the day in the file wherever the reader is sitting. A
+  dotted date is day-first unless that cannot be.
+- **Scale letters.** A column of `1.2K` and `$3M` becomes numbers — but only
+  where the column is otherwise numeric. A column of sizes reading `5M`, `XL`,
+  `Regular` stays text, because there `5M` is a size.
+- **Spellings of one category.** `North`, `north` and ` NORTH ` are one region
+  written three ways by three people, and four bars where there should be one
+  is the kind of wrong that stops a reader trusting the rest of the page. Each
+  group folds into its most frequent spelling. Never in a column with more
+  distinct values than a category can have, where a near-duplicate is far more
+  likely to be two people than one name.
+- **Empty columns** are removed, and **a title and a stamp above a CSV header**
+  are cut using the same scorer workbooks already use for sheets. Blank or
+  repeated header cells get names of their own rather than overwriting a
+  neighbour.
+
+Each of those is reported as a notice on the dashboard, with the values that
+were folded listed on `/quality`. A decision stated with no way to see it is
+not a disclosure.
 
 ## Shaping the data
 
