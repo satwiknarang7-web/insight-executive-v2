@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Scissors, Layers, GitBranch, Sigma, Calculator, Minus, Filter, X } from 'lucide-react';
+import { AlertTriangle, Scissors, Layers, GitBranch, Sigma, Calculator, Minus, Filter, X, Eraser, Columns3, SpellCheck } from 'lucide-react';
 
 /**
  * What the ingest decided on the user's behalf, said out loud.
@@ -21,6 +21,9 @@ const ICONS = {
   'negative-values': Minus,
   'rows-excluded': Filter,
   'rows-included': AlertTriangle,
+  'preamble-skipped': Eraser,
+  'columns-empty': Columns3,
+  'values-unified': SpellCheck,
 };
 
 const HEADINGS = {
@@ -32,6 +35,9 @@ const HEADINGS = {
   'negative-values': 'A quantity goes below zero',
   'rows-excluded': 'Some rows are left out of every figure',
   'rows-included': 'Void rows are counted in every figure',
+  'preamble-skipped': 'Lines above the header were skipped',
+  'columns-empty': 'Empty columns were removed',
+  'values-unified': 'Spellings of a category were folded together',
 };
 
 const noticeIcon = (kind) => ICONS[kind] || AlertTriangle;

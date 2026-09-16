@@ -301,9 +301,19 @@ test('the pages name the sources by reading the registry, not by retyping them',
   // Home moved inside the app shell when the landing page became a tab; the
   // claim moved with it, and so does the rule that it be read rather than
   // retyped. `app/page.js` is now a redirect and names nothing.
+  // Home now names its sources through the catalog in `lib/sources.js`, which
+  // builds the database entries from the registry — so the chain is checked
+  // rather than the one call: the page reads a deriving module, and that
+  // module reads the registry.
+  assert.match(read('../lib/sources.js'), /availableConnectors\(\)/, 'the catalog stopped reading the registry');
+
   for (const page of ['../app/(app)/home/page.js', '../app/sign-in/page.js']) {
     const src = read(page);
-    assert.match(src, /availableConnectors\(\)/, `${page} does not read the registry`);
+    assert.match(
+      src,
+      /availableConnectors\(\)|from '(?:\.\.\/)+lib\/sources'/,
+      `${page} neither reads the registry nor the catalog built from it`
+    );
     // A label typed into the page is the drift starting again. "CSV & Excel"
     // is exempt: files are the one source with no connector behind them.
     for (const label of CONNECTORS.map((c) => c.label)) {

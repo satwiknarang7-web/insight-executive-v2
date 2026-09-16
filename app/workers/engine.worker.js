@@ -24,6 +24,7 @@ import {
   finalizeMetrics,
   describeSchema,
   nullifyStrayValues,
+  dropEmptyColumns,
 } from '../../lib/dataCleaner.js';
 import {
   runAnalysis,
@@ -52,6 +53,7 @@ import {
 } from '../../lib/dataModel.js';
 import { readWorkbook, isWorkbookFile, sqlSafeName } from '../../lib/workbook.js';
 import { formatOf, parseStructuredText } from '../../lib/ingest/formats.js';
+import { skipPreamble, uniqueHeader } from '../../lib/ingest/delimited.js';
 import { idbDel, KEYS } from '../../lib/store/idb.js';
 
 /**
@@ -446,6 +448,8 @@ function buildTable({ name, sheetName, sourceFile, columns, rows, uncertain = nu
   metrics.totalRows = rows.length;
   metrics.totalCells = rows.length * columns.length;
   finalizeMetrics(cleaned, columns, metrics);
+  columns = [...columns];
+  dropEmptyColumns(cleaned, columns, metrics);
 
   /**
    * Doubt that came with the data rather than from reading it.
@@ -527,8 +531,34 @@ function recordMalformed(results, metrics, chunkStart) {
   }
 }
 
+/**
+ * The source without the lines above its header.
+ *
+ * Decided before Papa starts, on the first 32 KB, because a transform applied
+ * inside Papa's first chunk costs the errors that chunk reported. For a file
+ * the cut is made in bytes, so a multi-byte character in the title does not
+ * move the header by one.
+ */
+async function withoutPreamble(source) {
+  if (typeof source === 'string') {
+    const r = skipPreamble(source);
+    return { source: r.text, skipped: r.skipped };
+  }
+  const head = await source.slice(0, 32768).text();
+  const r = skipPreamble(head);
+  if (!r.skipped) return { source, skipped: 0 };
+  const removed = head.slice(0, head.length - r.text.length);
+  const bytes = new TextEncoder().encode(removed).length;
+  return { source: source.slice(bytes), skipped: r.skipped };
+}
+
 /** Stream one CSV/TSV file or text blob into a cleaned table. */
-export function parseDelimited(source, { fileName, totalBytes = 0, onProgress, chunkSize } = {}) {
+export async function parseDelimited(source, options = {}) {
+  const { source: input, skipped } = await withoutPreamble(source);
+  return parseDelimitedText(input, { ...options, preamble: skipped });
+}
+
+function parseDelimitedText(source, { fileName, totalBytes = 0, onProgress, chunkSize, preamble = 0 } = {}) {
   return new Promise((resolve, reject) => {
     let columns = null;
     let metrics = null;
@@ -541,8 +571,9 @@ export function parseDelimited(source, { fileName, totalBytes = 0, onProgress, c
       // column called `Client's Name` made every generated query over it fail
       // and the deck came back empty with nothing on screen to say why. Papa
       // renames the row keys along with the header, so nothing downstream ever
-      // sees the raw form.
-      transformHeader: sqlSafeName,
+      // sees the raw form. Wrapped so a blank or repeated header cell gets a
+      // name of its own rather than overwriting a neighbour.
+      transformHeader: uniqueHeader(sqlSafeName),
       skipEmptyLines: 'greedy',
       dynamicTyping: false,
       chunkSize: chunkSize || 1024 * 512,
@@ -568,12 +599,51 @@ export function parseDelimited(source, { fileName, totalBytes = 0, onProgress, c
         }
         metrics.totalRows = rawRows;
         metrics.totalCells = rawRows * columns.length;
+        metrics.preambleRows = preamble;
         finalizeMetrics(cleaned, columns, metrics);
+        dropEmptyColumns(cleaned, columns, metrics);
         resolve({ columns, rows: cleaned, metrics });
       },
       error: (err) => reject(new Error(parseFailureMessage(fileName, err))),
     });
   });
+}
+
+/**
+ * What the cleaner decided about a table, as notices a reader sees.
+ *
+ * Three decisions that used to be silent: lines cut from the top of a file,
+ * columns removed because every cell was blank, and spellings of a category
+ * folded into one. Each changes what the table is, and each is reversible
+ * only by knowing it happened.
+ */
+function cleaningNotices(name, metrics) {
+  const out = [];
+  if (!metrics) return out;
+  if (metrics.preambleRows > 0) {
+    out.push({
+      kind: 'preamble-skipped',
+      message: `${metrics.preambleRows} line${metrics.preambleRows === 1 ? '' : 's'} above the header of ${name} were skipped — a title or a stamp, not a record.`,
+    });
+  }
+  if (metrics.emptyColumns?.length) {
+    const list = metrics.emptyColumns.slice(0, 6).join(', ');
+    out.push({
+      kind: 'columns-empty',
+      message: `${metrics.emptyColumns.length} empty column${metrics.emptyColumns.length === 1 ? '' : 's'} removed from ${name} (${list}${metrics.emptyColumns.length > 6 ? ', …' : ''}) — every cell was blank.`,
+    });
+  }
+  if (metrics.valuesUnified > 0) {
+    const columns = Object.entries(metrics.columnStats || {})
+      .filter(([, st]) => st.unifiedCount)
+      .map(([col, st]) => `${col} (${st.unified.slice(0, 2).map((u) => `"${u.from}" → "${u.to}"`).join(', ')})`)
+      .slice(0, 4);
+    out.push({
+      kind: 'values-unified',
+      message: `${metrics.valuesUnified.toLocaleString()} cells in ${name} were spellings of a category already present and were folded into it: ${columns.join('; ')}. See Data Quality.`,
+    });
+  }
+  return out;
 }
 
 /** A cell the cleaner can read, from what a binary format hands back. */
@@ -775,6 +845,7 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
       : buildTable(p);
     tables[table.name] = table;
     order.push(table.name);
+    notices.push(...cleaningNotices(table.name, table.metrics));
   }
 
   progress(
@@ -865,6 +936,7 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
     });
     built[tableName] = table;
     order.push(tableName);
+    notices.push(...cleaningNotices(tableName, table.metrics));
 
     // A truncated result is the one thing that must never pass silently: every
     // total computed downstream would be a fraction of the real one.
