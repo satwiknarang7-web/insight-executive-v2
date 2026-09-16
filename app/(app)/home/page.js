@@ -25,8 +25,10 @@ import { isExtractable } from '../../../lib/documentExtraction';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import PageFrame from '../../../components/shell/PageFrame';
 import { SAMPLES } from '../../../lib/samples';
-import { availableConnectors } from '../../../lib/connectors/registry';
+import { acceptFor, sourceById } from '../../../lib/sources';
 import ConnectSource from '../../../components/panels/ConnectSource';
+import SourceCatalog from '../../../components/panels/SourceCatalog';
+import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
 import Image from 'next/image';
 
@@ -65,7 +67,12 @@ export default function LandingPage() {
   const [confirmRemove, setConfirmRemove] = useState(false);
   // One dropdown for every source. 'file' is a spreadsheet; anything else is a
   // connector id from the registry.
+  // Which entry of the catalog is chosen. Everything below asks the entry
+  // what kind of thing it is — a file, a link, a database, pasted text — and
+  // renders the form for that kind.
   const [source, setSource] = useState('file');
+  const chosen = sourceById(source) || sourceById('file');
+  const [pasted, setPasted] = useState('');
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
   const { start: startTutorial } = useTutorial();
@@ -186,7 +193,7 @@ export default function LandingPage() {
   // and only once a database source is actually chosen — a visitor who only
   // ever uploads a file never pays for it.
   useEffect(() => {
-    if (source === 'file' || organization) return;
+    if (chosen.kind !== 'connector' || organization) return;
     let cancelled = false;
     fetch('/api/auth/bootstrap', { method: 'POST' })
       .then((r) => (r.ok ? r.json() : null))
@@ -197,7 +204,7 @@ export default function LandingPage() {
     return () => {
       cancelled = true;
     };
-  }, [source, organization]);
+  }, [chosen.kind, organization]);
 
   const removeDataset = useCallback(async () => {
     setConfirmRemove(false);
@@ -382,7 +389,7 @@ export default function LandingPage() {
                   ref={inputRef}
                   type="file"
                   multiple
-                  accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv,.png,.jpg,.jpeg,.webp,.pdf,image/*,application/pdf"
+                  accept={acceptFor()}
                   className="hidden"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || []);
@@ -394,52 +401,62 @@ export default function LandingPage() {
             )}
 
             {!busy && !dataset && (
-              <>
-                <div className="card p-3">
-                  <label className="flex items-center gap-3">
-                    <span className="label shrink-0">Data source</span>
-                    <select
-                      value={source}
-                      onChange={(e) => setSource(e.target.value)}
-                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
-                    >
-                      <option value="file" className="bg-surface">
-                        CSV or Excel file
-                      </option>
-                      {availableConnectors().map((c) => (
-                        <option key={c.id} value={c.id} className="bg-surface">
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              <div className="card p-4" data-tutorial="source-catalog">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="label">Get data</span>
+                  <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
+                </div>
+                <SourceCatalog value={source} onChange={setSource} allowsModel={planAllows('model')} />
 
-                  {/* The dropzone's "nothing leaves your browser" is true of a
-                      file and false of a warehouse: a connector's rows are
-                      fetched by the server by design. The claim is scoped to
-                      the source that is actually selected. */}
-                  {source !== 'file' && (
-                    <p className="mt-3 text-xs leading-relaxed text-white/35">
+                {chosen.kind === 'connector' && (
+                  <div className="mt-4 border-t border-white/6 pt-4">
+                    <p className="mb-3 text-xs leading-relaxed text-white/35">
                       Rows from a connected database are fetched by this app&apos;s server and passed
                       straight through to your browser, where they are cleaned and analysed. Unlike a file,
                       they do travel over the network.
                     </p>
-                  )}
+                    <ConnectSource
+                      source={chosen.connector}
+                      organization={organization}
+                      onNeedsAccount={() => router.push('/sign-in?next=/')}
+                    />
+                  </div>
+                )}
 
-                  {source !== 'file' && (
-                    <div className="mt-4">
-                      <ConnectSource
-                        source={source}
-                        organization={organization}
-                        onNeedsAccount={() => router.push('/sign-in?next=/')}
-                      />
+                {chosen.kind === 'web' && (
+                  <div className="mt-4 border-t border-white/6 pt-4">
+                    <WebSource kind={chosen.web} />
+                  </div>
+                )}
+
+                {chosen.kind === 'paste' && (
+                  <div className="mt-4 flex flex-col gap-2 border-t border-white/6 pt-4">
+                    <textarea
+                      value={pasted}
+                      onChange={(e) => setPasted(e.target.value)}
+                      placeholder={'region,revenue,units\nNorth,1200,5\nSouth,850,3'}
+                      spellCheck={false}
+                      rows={6}
+                      aria-label="Pasted rows"
+                      className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] text-white/85 outline-none placeholder:text-white/20 focus:border-accent-500/50"
+                    />
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={!pasted.trim()}
+                        onClick={() => ingestText(pasted, /^\s*[[{]/.test(pasted) ? 'pasted.json' : 'pasted.csv').catch(() => {})}
+                        className="rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-40"
+                      >
+                        Load
+                      </button>
+                      <span className="text-[11px] text-white/30">Comma, tab or semicolon separated, with a header row. JSON works too.</span>
                     </div>
-                  )}
-                </div>
-              </>
+                  </div>
+                )}
+              </div>
             )}
 
-            {!busy && !dataset && source === 'file' && (
+            {!busy && !dataset && chosen.kind === 'file' && (
               <>
                 <div
                   data-tutorial="upload-dropzone"
@@ -460,17 +477,19 @@ export default function LandingPage() {
                   }`}
                 >
                   <UploadCloud size={26} className={dragging ? 'text-accent-400' : 'text-white/30'} />
-                  <div className="text-sm font-bold text-white/80">Drop a spreadsheet or a photo of a table</div>
+                  <div className="text-sm font-bold text-white/80">
+                    {chosen.id === 'file' ? 'Drop a file, or several' : `Drop a ${chosen.label.replace(/ workbook| database| page/, '').toLowerCase()} file`}
+                  </div>
                   <div className="text-xs text-white/35">
-                    {planAllows('model')
-                      ? 'CSV, Excel — or a PDF or photograph, read on your own key'
-                      : 'CSV and Excel — nothing leaves your browser'}
+                    {chosen.id === 'document'
+                      ? 'A PDF or a photograph, read by a model on your own key'
+                      : 'CSV, Excel, JSON, XML, Parquet, SQLite — nothing leaves your browser'}
                   </div>
                   <input
                     ref={inputRef}
                     type="file"
                     multiple
-                    accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xlsb,.xls,text/csv,.png,.jpg,.jpeg,.webp,.pdf,image/*,application/pdf"
+                    accept={acceptFor(chosen.id)}
                     className="hidden"
                     onChange={(e) => {
                       const files = Array.from(e.target.files || []);

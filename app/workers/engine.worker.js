@@ -51,6 +51,7 @@ import {
   manualRelationship,
 } from '../../lib/dataModel.js';
 import { readWorkbook, isWorkbookFile, sqlSafeName } from '../../lib/workbook.js';
+import { formatOf, parseStructuredText } from '../../lib/ingest/formats.js';
 import { idbDel, KEYS } from '../../lib/store/idb.js';
 
 /**
@@ -575,6 +576,73 @@ export function parseDelimited(source, { fileName, totalBytes = 0, onProgress, c
   });
 }
 
+/** A cell the cleaner can read, from what a binary format hands back. */
+function plainValue(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'bigint') return Number.isSafeInteger(Number(v)) ? Number(v) : v.toString();
+  if (v instanceof Date) return isNaN(v) ? null : v.toISOString();
+  if (v instanceof Uint8Array) return `<${v.length} bytes>`;
+  if (typeof v === 'object') return JSON.stringify(v);
+  return v;
+}
+
+/** The base name of a file, for naming the table it becomes. */
+const stem = (name) => String(name || 'data').replace(/\.[^.]+$/, '');
+
+/**
+ * Read a file that is not a CSV and not a workbook into tables.
+ *
+ * JSON, NDJSON, XML and HTML are text and go through the pure parsers. A
+ * Parquet file is read by hyparquet; a SQLite database by sql.js, every table
+ * and view in it becoming a table here. Both libraries are loaded only when
+ * such a file arrives, since together they are a megabyte nobody uploading a
+ * CSV should pay for.
+ */
+async function readStructuredFile(f, format, name) {
+  if (format === 'parquet') {
+    const { parquetReadObjects } = await import('hyparquet');
+    const buffer = await f.arrayBuffer();
+    const file = { byteLength: buffer.byteLength, slice: (a, b) => Promise.resolve(buffer.slice(a, b)) };
+    const objects = await parquetReadObjects({ file });
+    const rows = objects.map((o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, plainValue(v)])));
+    if (!rows.length) throw new Error(`${name} holds no rows.`);
+    return [{ name: stem(name), columns: Object.keys(rows[0]), rows }];
+  }
+
+  if (format === 'sqlite') {
+    const initSqlJs = (await import('sql.js')).default;
+    const SQL = await initSqlJs({ locateFile: () => '/sql-wasm.wasm' });
+    const db = new SQL.Database(new Uint8Array(await f.arrayBuffer()));
+    try {
+      const listed = db.exec("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY name");
+      const names = listed[0]?.values.map((r) => r[0]) || [];
+      const tables = [];
+      for (const table of names) {
+        const result = db.exec(`SELECT * FROM "${String(table).replace(/"/g, '""')}" LIMIT 200001`);
+        if (!result[0]) continue;
+        const { columns, values } = result[0];
+        const rows = values.map((vals) => Object.fromEntries(columns.map((c, i) => [c, plainValue(vals[i])])));
+        if (rows.length) tables.push({ name: table, columns, rows });
+      }
+      if (!tables.length) throw new Error(`${name} has no tables with rows in them.`);
+      return tables;
+    } finally {
+      db.close();
+    }
+  }
+
+  const text = await f.text();
+  const tables = parseStructuredText(format, text, stem(name));
+  if (!tables.length) {
+    throw new Error(
+      format === 'html'
+        ? `No table was found on ${name}.`
+        : `No records were found in ${name}. Is it a list of objects, or an object with one inside it?`
+    );
+  }
+  return tables;
+}
+
 /**
  * Ingest one or more files. Each CSV becomes one table; each usable sheet of a
  * workbook becomes one table. Relationships are inferred across all of them.
@@ -592,7 +660,18 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
   const unitProgress = (fraction, stage, log) =>
     progress(id, stage, Math.min(80, Math.round(((unit + fraction) / totalUnits) * 78) + 2), log);
 
-  if (inputs.length === 0 && text) {
+  if (inputs.length === 0 && text && /^\s*[[{]/.test(text)) {
+    // Pasted JSON: an array of records, or an object with one inside it.
+    progress(id, 'Reading data', 4, `Reading ${fileName || 'pasted data'}`);
+    const name = fileName || 'pasted.json';
+    const tables = parseStructuredText('json', text, stem(name));
+    if (!tables.length) throw new Error('That JSON holds no records. Paste an array of objects, or CSV rows with a header.');
+    for (const t of tables) {
+      const tableName = normalizeTableName(t.name, taken);
+      taken.add(tableName);
+      pending.push({ name: tableName, sheetName: null, sourceFile: name, columns: t.columns, rows: t.rows, metrics: null });
+    }
+  } else if (inputs.length === 0 && text) {
     progress(id, 'Reading data', 4, `Reading ${fileName || 'pasted data'}`);
     const name = fileName || 'dataset.csv';
     const { columns, rows, metrics } = await parseDelimited(text, {
@@ -607,8 +686,18 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
 
   for (const f of inputs) {
     const name = f.name || 'dataset';
+    const format = formatOf(name, f.type);
 
-    if (isWorkbookFile(name)) {
+    if (format !== 'delimited' && format !== 'workbook' && format !== 'document') {
+      unitProgress(0.05, 'Reading file', `Reading ${name}`);
+      const tables = await readStructuredFile(f, format, name);
+      tables.forEach((t, i) => {
+        unitProgress(0.1 + (0.85 * (i + 1)) / tables.length, 'Cleaning rows', `${t.name}: ${t.rows.length.toLocaleString()} rows`);
+        const tableName = normalizeTableName(t.name, taken);
+        taken.add(tableName);
+        pending.push({ name: tableName, sheetName: tables.length > 1 ? t.name : null, sourceFile: name, columns: t.columns, rows: t.rows, metrics: null });
+      });
+    } else if (isWorkbookFile(name)) {
       unitProgress(0.05, 'Reading workbook', `Opening ${name}`);
       const buffer = await f.arrayBuffer();
       const { sheets, skipped } = readWorkbook(buffer, { fileName: name });

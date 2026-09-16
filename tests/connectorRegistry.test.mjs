@@ -1,4 +1,18 @@
 import test from 'node:test';
+import { readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+/** The sources `public.connections.source` accepts, per the latest migration that sets them. */
+function permittedSources() {
+  const dir = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
+  let latest = null;
+  for (const file of readdirSync(dir).sort()) {
+    const sql = readFileSync(`${dir}${file}`, 'utf8');
+    const m = sql.match(/source in \(([^)]+)\)/i);
+    if (m) latest = m[1];
+  }
+  return new Set([...latest.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]));
+}
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {
@@ -85,10 +99,9 @@ test('every connector stores under a source the database permits', () => {
   // hiding. A connector that is a *flavour* of another (Neon over Postgres)
   // stores under the base source precisely so that adding one never needs a
   // migration; what has to hold is that the stored value is permitted.
-  const allowed = new Set([
-    'postgres', 'supabase', 'mysql', 'sqlserver',
-    'oracle', 'snowflake', 'fabric', 'tableau',
-  ]);
+  // Read from the migrations rather than retyped: the constraint has been
+  // widened once already, and a list typed here would be the third copy.
+  const allowed = permittedSources();
 
   for (const id of ids) {
     assert.ok(
@@ -170,8 +183,8 @@ test('a non-numeric port is rejected', () => {
 });
 
 test('an unknown source is rejected rather than silently accepted', () => {
-  assert.deepEqual(validateConfig('mongodb', {}), ['Unknown source "mongodb".']);
-  assert.equal(getConnector('mongodb'), null);
+  assert.deepEqual(validateConfig('neo4j', {}), ['Unknown source "neo4j".']);
+  assert.equal(getConnector('neo4j'), null);
 });
 
 test("Tableau's token name stays readable while its secret does not", () => {

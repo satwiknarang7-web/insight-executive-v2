@@ -21,8 +21,8 @@ import path from 'node:path';
 // Tableau is not a database: it has no SQL and no identifiers to quote, so the
 // SQL-specific invariants below genuinely do not apply to it. Splitting the
 // list keeps those checks meaningful instead of loosening them for everyone.
-const SQL_DRIVERS = ['postgres', 'mysql', 'sqlserver', 'snowflake', 'oracle', 'fabric'];
-const DRIVERS = [...SQL_DRIVERS, 'tableau'];
+const SQL_DRIVERS = ['postgres', 'mysql', 'sqlserver', 'snowflake', 'oracle', 'fabric', 'clickhouse', 'databricks', 'trino'];
+const DRIVERS = [...SQL_DRIVERS, 'tableau', 'mongodb', 'airtable'];
 const REQUIRED = ['testConnection', 'listTables', 'previewTable', 'fetchRows', 'fetchTable'];
 
 const dir = path.join('lib', 'connectors');
