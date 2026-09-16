@@ -96,8 +96,9 @@ test('every stage the analysis pipeline emits belongs to a step', () => {
 
 test('the templated query stage is matched by its prefix, whatever the title', () => {
   // The one stage whose text is not known ahead of time.
+  const query = ANALYZE.findIndex((s) => s.id === 'query');
   for (const title of ['Revenue by region', 'Churn vs tenure', '']) {
-    assert.equal(stepIndexFor(ANALYZE, `Querying: ${title}`), 1);
+    assert.equal(stepIndexFor(ANALYZE, `Querying: ${title}`), query);
   }
 });
 

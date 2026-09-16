@@ -38,13 +38,14 @@ import { KPI_METRICS, metricNeedsColumn } from '../../../lib/kpiMetrics';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
 import SaveAnalysisDialog from '../../../components/panels/SaveAnalysisDialog';
 import DatasetNotices from '../../../components/panels/DatasetNotices';
+import PreparationNotice from '../../../components/panels/PreparationNotice';
 import NarrationNote from '../../../components/panels/NarrationNote';
 import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
 
 export default function DashboardPage() {
-  const { dataset, status } = useDataset();
+  const { dataset, status, preparation } = useDataset();
   const { analysis, narrating } = useAnalysis();
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
@@ -245,6 +246,7 @@ export default function DashboardPage() {
       }
     >
       <DatasetNotices notices={notices} />
+      <PreparationNotice preparation={preparation} />
       {joinNotice && <JoinNotice notice={joinNotice} />}
 
       {editing && (

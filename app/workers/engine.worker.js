@@ -326,6 +326,36 @@ function noteNegativeAmounts() {
 }
 
 /** Column profile with the extra display facts the Explore page needs. */
+/**
+ * The cleaner's per-column stats, for a column the cleaner did not clean.
+ *
+ * Type is decided by the values present: all numbers is a number, all
+ * ISO-shaped strings is a date, anything else is text. The distinct count is
+ * exact up to the same cap the cleaner uses, and capped honestly past it.
+ */
+function statsFromRows(rows, col) {
+  const distinct = new Set();
+  let nullCount = 0;
+  let numbers = 0;
+  let dates = 0;
+  let present = 0;
+  let capped = false;
+  for (let i = 0; i < rows.length; i++) {
+    const v = rows[i][col];
+    if (v === null || v === undefined || v === '') {
+      nullCount++;
+      continue;
+    }
+    present++;
+    if (typeof v === 'number') numbers++;
+    else if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) dates++;
+    if (distinct.size < 20000) distinct.add(v);
+    else capped = true;
+  }
+  const type = !present ? 'unknown' : numbers === present ? 'number' : dates === present ? 'date' : 'text';
+  return { type, nullCount, distinctCount: distinct.size, distinctCapped: capped, derived: true };
+}
+
 function buildProfile(rows, columns, metrics) {
   const p = profileColumns(rows.slice(0, Math.min(rows.length, 20000)));
   // Now that the measures are known, blank the odd non-numeric cell inside
@@ -335,7 +365,11 @@ function buildProfile(rows, columns, metrics) {
   nullifyStrayValues(rows, p.measures);
   const byName = {};
   for (const col of columns) {
-    const stat = metrics.columnStats[col] || {};
+    // A column the cleaner never saw — one a shaping step made — has no stats
+    // of its own, and reporting it as "unknown, 0 distinct" beside columns
+    // that came from the file would make the analyst's margin column look
+    // broken on the one page where it is inspected. Measured from the rows.
+    const stat = metrics.columnStats[col] || statsFromRows(rows, col);
     let min = Infinity;
     let max = -Infinity;
     let sum = 0;
@@ -944,7 +978,7 @@ function rebuildView() {
   state.view = view;
   state.metrics = {
     ...metrics,
-    confidence: confidenceAfterTransforms(metrics.confidence, state.transforms || []),
+    confidence: confidenceAfterTransforms(metrics.confidence, plan),
   };
   state.viewProfile = buildProfile(view.rows, view.columns, state.metrics);
   state.viewSchema = describeSchema(view.rows, TABLE);

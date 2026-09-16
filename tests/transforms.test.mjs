@@ -54,7 +54,7 @@ test('derive appends the column and keeps the rest in place', () => {
 test('retype casts in place without moving the column', () => {
   const step = planTransform({ kind: RETYPE, column: 'units', to: 'number' }, COLUMNS);
   assert.deepEqual(step.columns, COLUMNS, 'the shape is unchanged');
-  assert.match(step.sql, /CAST\(\[units\] AS FLOAT\) AS \[units\]/);
+  assert.match(step.sql, /TO_NUMBER\(\[units\]\) AS \[units\]/);
 });
 
 test('filter is the one step that changes rows rather than shape', () => {
@@ -193,6 +193,10 @@ test('every step can describe itself to a person', () => {
 
 /* -- doubt, carried across a reshape -------------------------------------- */
 
+const COLS = ['region', 'units', 'revenue', 'a'];
+/** The store follows the PLAN, so every test here plans its ops first. */
+const after = (store, ops, columns = COLS) => confidenceAfterTransforms(store, planTransforms(ops, columns));
+
 function storeWith(counts) {
   const store = createConfidence();
   for (const [column, n] of Object.entries(counts)) {
@@ -203,63 +207,65 @@ function storeWith(counts) {
 
 test('no transforms leaves the store exactly as it was', () => {
   const store = storeWith({ units: 3 });
-  assert.equal(confidenceAfterTransforms(store, []), store, 'the same object, untouched');
+  assert.equal(after(store, []), store, 'the same object, untouched');
 });
 
 test('a rename takes the doubt with it', () => {
-  const after = confidenceAfterTransforms(storeWith({ revenue: 5 }), [
+  const result = after(storeWith({ revenue: 5 }), [
     { kind: RENAME, column: 'revenue', to: 'net' },
   ]);
-  assert.equal(columnUncertainCount(after, 'net'), 5);
-  assert.equal(columnUncertainCount(after, 'revenue'), 0, 'and leaves nothing behind');
+  assert.equal(columnUncertainCount(result, 'net'), 5);
+  assert.equal(columnUncertainCount(result, 'revenue'), 0, 'and leaves nothing behind');
 });
 
 test('a drop takes its doubt out of the total', () => {
-  const after = confidenceAfterTransforms(storeWith({ units: 4, region: 2 }), [
+  const result = after(storeWith({ units: 4, region: 2 }), [
     { kind: DROP, column: 'units' },
   ]);
-  assert.equal(columnUncertainCount(after, 'units'), 0);
-  assert.equal(columnUncertainCount(after, 'region'), 2);
-  assert.equal(after.total, 2, 'the dropped column is not still counted');
+  assert.equal(columnUncertainCount(result, 'units'), 0);
+  assert.equal(columnUncertainCount(result, 'region'), 2);
+  assert.equal(result.total, 2, 'the dropped column is not still counted');
 });
 
 test('a derived column is no sounder than its shakiest input', () => {
   // [net] / [units] cannot be more trustworthy than units was.
-  const after = confidenceAfterTransforms(storeWith({ units: 40, net: 2 }), [
-    { kind: DERIVE, name: 'per_unit', expr: '[net] / [units]' },
-  ]);
-  assert.equal(columnUncertainCount(after, 'per_unit'), 40, 'it inherits the worst, not the average');
+  const result = after(
+    storeWith({ units: 40, net: 2 }),
+    [{ kind: DERIVE, name: 'per_unit', expr: '[net] / [units]' }],
+    ['units', 'net']
+  );
+  assert.equal(columnUncertainCount(result, 'per_unit'), 40, 'it inherits the worst, not the average');
 });
 
 test('a derived column from clean inputs carries no doubt', () => {
-  const after = confidenceAfterTransforms(storeWith({ units: 3 }), [
+  const result = after(storeWith({ units: 3 }), [
     { kind: DERIVE, name: 'flag', expr: '[region]' },
   ]);
-  assert.equal(columnUncertainCount(after, 'flag'), 0);
+  assert.equal(columnUncertainCount(result, 'flag'), 0);
 });
 
 test('row positions are thrown away, because a filter renumbers them', () => {
-  const after = confidenceAfterTransforms(storeWith({ units: 3 }), [
+  const result = after(storeWith({ units: 3 }), [
     { kind: FILTER, expr: '[units] > 0' },
   ]);
-  assert.deepEqual(after.cells, {}, 'no position survives a reshape');
-  assert.equal(after.truncated, true, 'and the store says so');
-  assert.equal(columnUncertainCount(after, 'units'), 3, 'while the counts stay exact');
+  assert.deepEqual(result.cells, {}, 'no position survives a reshape');
+  assert.equal(result.truncated, true, 'and the store says so');
+  assert.equal(columnUncertainCount(result, 'units'), 3, 'while the counts stay exact');
 });
 
 test('a step turned off changes nothing', () => {
-  const after = confidenceAfterTransforms(storeWith({ revenue: 5 }), [
+  const result = after(storeWith({ revenue: 5 }), [
     { kind: RENAME, column: 'revenue', to: 'net', enabled: false },
   ]);
-  assert.equal(columnUncertainCount(after, 'revenue'), 5, 'the rename never happened');
+  assert.equal(columnUncertainCount(result, 'revenue'), 5, 'the rename never happened');
 });
 
 test('renames chain, so the last name holds the doubt', () => {
-  const after = confidenceAfterTransforms(storeWith({ a: 7 }), [
+  const result = after(storeWith({ a: 7 }), [
     { kind: RENAME, column: 'a', to: 'b' },
     { kind: RENAME, column: 'b', to: 'c' },
   ]);
-  assert.equal(columnUncertainCount(after, 'c'), 7);
-  assert.equal(columnUncertainCount(after, 'a'), 0);
-  assert.equal(columnUncertainCount(after, 'b'), 0);
+  assert.equal(columnUncertainCount(result, 'c'), 7);
+  assert.equal(columnUncertainCount(result, 'a'), 0);
+  assert.equal(columnUncertainCount(result, 'b'), 0);
 });

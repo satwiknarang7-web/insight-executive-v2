@@ -90,12 +90,63 @@ share of a set of averages.
 | `/` | Upload or pick a sample dataset |
 | `/dashboard` | KPIs, executive summary, every finding as a chart card |
 | `/insight/[id]` | One finding in depth: chart, verified metrics, the SQL |
-| `/explore` | Column profile plus a paged, sortable, searchable table |
+| `/explore` | Column profile, the shaping steps, the measures, and a paged, sortable, searchable table |
 | `/ask` | Ask a question in plain English; includes a SQL console |
 | `/measures` | Name a calculation once — described in plain English — and reuse it on cards and charts |
 | `/quality` | Cleaning report, per-column stats, full query audit |
 | `/present` | Full-screen slide deck (arrow keys, space to autoplay) |
 | `/report` | Print-ready long-form report |
+
+## Shaping the data
+
+Cleaning decides what a value *is*. Shaping is the layer above it — what
+Power Query does — and it lives on `/explore`, beside the rows it changes.
+Every step is one `SELECT` over the result of the step before it, and the
+panel shows the query each one became:
+
+| Kind | What it does |
+| --- | --- |
+| derive, conditional, bucket, datepart, split, merge, index | Add a column: a formula, a CASE, bands of a number, the month of a date, the two halves of "City, ST", several columns joined, a row number |
+| rename, retype, keep, drop | Change the shape: a new name, a column read as number / whole number / text / date, a subset of columns, one fewer |
+| text, replace, fill | Change values in place: trim and case, swap a value or text inside it, put something in the blanks |
+| filter, blanks, dedupe, sort, limit | Change the rows: keep or remove by a condition, drop blank rows, remove duplicates (whole-row or by key), order, keep the top N |
+| group, unpivot, pivot | Change the table: summarise to one row per key, turn columns into rows, turn a category's values into columns |
+
+A step can be built from a form, or typed as a sentence — "split City on the
+comma into Town and State", "extract the month from Order Date", "group by
+Region: total Revenue, number of orders". A deterministic parser
+(`lib/transformLanguage.js`) reads the common shapes with no API key; what it
+cannot read goes to the model, and either way the result is planned against
+the real column list before it is offered. Formulas are checked by the same
+validator a measure goes through, so a step cannot become a query, and every
+function a formula may call is one `lib/engineFunctions.js` registers — the
+null-safe versions, because `UPPER(null)` throws in alasql and a blank cell is
+the most ordinary thing in a spreadsheet.
+
+The confidence store follows the columns through all of it: a renamed column
+keeps its doubt, a derived one inherits the worst of its inputs, a grouped one
+inherits the column it aggregates.
+
+### The analyst prepares the table first
+
+With a model key, the first analysis of a dataset starts with a preparation
+pass (`/api/prepare`). The model is shown the columns, the values each
+category column holds, the range of each number and a few whole rows — the
+same briefing the semantics pass sees — and asked what it would do before
+opening the chart menu: the margin column the file should have had, the month
+out of the order date, the two fields in one address column, the bands the
+business talks about, and the two or three measures worth a card.
+
+What comes back is checked step by step against the real columns, in order,
+and then split along one line: **a step that only adds a column runs on its
+own**, so the planner charts the margin and draws the trend over the month;
+**a step that removes or changes anything is offered** in Explore with the
+model's reason, for a person to accept. Its measures are saved, put on the
+dashboard as cards, and charted against the column it named. The dashboard
+says what was done and links to the steps, each with its query.
+
+Without a key the table is analysed as it arrived, which is what every
+analysis did until now.
 
 ## Getting started
 

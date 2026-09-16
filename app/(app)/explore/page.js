@@ -83,6 +83,9 @@ export default function ExplorePage() {
     return () => clearTimeout(timerRef.current);
   }, [search]);
 
+  // `dataset` is a dependency on purpose: applying a shaping step replaces the
+  // rows, and a page fetched before it would go on showing the old table under
+  // the new column headers.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -97,7 +100,7 @@ export default function ExplorePage() {
     return () => {
       cancelled = true;
     };
-  }, [fetchPage, offset, sortBy, sortDir, filter, anomaliesOnly, table]);
+  }, [fetchPage, offset, sortBy, sortDir, filter, anomaliesOnly, table, dataset]);
 
   // Measures follow the filter, not the page: paging through the same selection
   // must not recompute them, and narrowing the selection must.
@@ -375,7 +378,9 @@ export default function ExplorePage() {
               <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
               <Collapse open={showShape} onToggle={() => setShowShape((v) => !v)} label="the shaping steps" />
             </div>
-            {showShape && <TransformPanel />}
+            {/* Keyed on the dataset: a staged list written against a file that
+                is gone must not survive into the next one. */}
+            {showShape && <TransformPanel key={dataset.ingestedAt} />}
           </div>
 
           <div>
