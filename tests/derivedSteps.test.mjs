@@ -205,3 +205,42 @@ test('a step that names a column that is not there is dropped with a reason', ()
   assert.equal(merged.skipped.length, 1);
   assert.ok(merged.skipped[0].reason);
 });
+
+test('a joined multi-file view gets steps too', () => {
+  // The shape this was reported on: three files joined into one analysis view,
+  // 46 columns, a quarter of a million rows. Identifiers are not banded, the
+  // date is, and nothing here depends on there being only one file.
+  const cardinality = {
+    Order_ID: 250000, Customer_ID: 40000, Product_ID: 2000, Order_Date: 1095,
+    Payment_Mode: 4, Category: 6, Quantity: 40, Unit_Price: 701,
+    Total_Amount: 200000, Customer_Age: 60,
+  };
+  const sample = Array.from({ length: 8 }, (_, i) => ({
+    Order_Date: `2024-0${(i % 9) + 1}-1${i % 9}`,
+  }));
+
+  const steps = deriveSteps({
+    columns: Object.keys(cardinality),
+    profile: {
+      dimensions: ['Order_ID', 'Customer_ID', 'Product_ID', 'Order_Date', 'Payment_Mode', 'Category'],
+      measures: ['Quantity', 'Unit_Price', 'Total_Amount', 'Customer_Age'],
+      temporal: ['Order_Date'],
+      cardinality,
+    },
+    vocabulary: {
+      dimensions: { Payment_Mode: [{ value: 'UPI' }, { value: 'Card' }, { value: 'COD' }, { value: 'Wallet' }] },
+      measures: {
+        Quantity: { min: 1, median: 5, max: 40 },
+        Unit_Price: { min: 5, median: 120, max: 900 },
+        Total_Amount: { min: 5, median: 600, max: 90000 },
+        Customer_Age: { min: 18, median: 41, max: 88 },
+      },
+      sample,
+    },
+  });
+
+  assert.ok(steps.some((s) => s.part === 'year_month'), 'the order date gets a month');
+  const band = steps.find((s) => s.kind === 'bucket');
+  assert.ok(band, 'and one number is banded');
+  assert.ok(!['Order_ID', 'Customer_ID', 'Product_ID'].includes(band.column), 'never an identifier');
+});
