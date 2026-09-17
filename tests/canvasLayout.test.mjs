@@ -5,12 +5,14 @@ import {
   MIN_CANVAS_HEIGHT,
   MIN_CARD_HEIGHT,
   MIN_CARD_WIDTH,
+  PAGE_HEIGHT,
   arrange,
   canvasHeight,
   canvasScale,
   cardBox,
   layoutMap,
   moveBox,
+  paginateBoard,
   readingOrder,
   resizeBox,
 } from '../lib/canvasLayout.js';
@@ -177,4 +179,35 @@ test('a filter is offered for a column the deck actually breaks numbers down by'
 test('a deck that breaks nothing down offers no filters', () => {
   assert.deepEqual(planSlicers([{ chart_type: 'card' }], { profile: { cardinality: {} } }), []);
   assert.deepEqual(planSlicers([], {}), []);
+});
+
+/* And the board, cut to fit a slide. */
+
+test('a board taller than a page is cut between cards, never through one', () => {
+  const entries = [
+    { id: 'rail', box: { x: 0, y: 0, w: 240, h: 300 } },
+    { id: 'lead', box: { x: 256, y: 0, w: 1184, h: 340 } },
+    { id: 'a', box: { x: 256, y: 356, w: 375, h: 300 } },
+    { id: 'b', box: { x: 256, y: 700, w: 375, h: 280 } },
+  ];
+  const pages = paginateBoard(entries, PAGE_HEIGHT);
+  assert.equal(pages.length, 2);
+  assert.deepEqual([...pages[0].boxes.keys()].sort(), ['a', 'lead', 'rail']);
+  assert.deepEqual([...pages[1].boxes.keys()], ['b']);
+
+  // Every page opens at its own top-left: a page below the rail must not begin
+  // with an empty column where the rail is not.
+  for (const page of pages) {
+    const boxes = [...page.boxes.values()];
+    assert.equal(Math.min(...boxes.map((b) => b.y)), 0, 'a page starts at its top');
+    assert.equal(Math.min(...boxes.map((b) => b.x)), 0, 'and at its left');
+  }
+  // Relative positions inside a page survive the lift.
+  assert.equal(pages[0].boxes.get('lead').x - pages[0].boxes.get('rail').x, 256);
+});
+
+test('a board that fits is one page, and an empty one is still a page', () => {
+  const entries = [{ id: 'only', box: { x: 0, y: 0, w: 600, h: 300 } }];
+  assert.equal(paginateBoard(entries).length, 1);
+  assert.equal(paginateBoard([]).length, 1, 'a deck with nothing on the board still has a slide');
 });

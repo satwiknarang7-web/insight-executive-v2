@@ -527,8 +527,6 @@ function useNarrowViewport(query = '(max-width: 767px)') {
 
 function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
   const board = analysis.storyboard || [];
-  const kpis = analysis.kpis || [];
-  const card = analysis.slideZero?.strategicScorecard || {};
 
   /**
    * The board, at the size the slide can give it.
@@ -567,9 +565,6 @@ function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
    */
   const boardScale = Math.min(room.width / CANVAS_WIDTH, room.height / boardHeight) || 1;
 
-  // A page with more than one row of cards in it leaves less for the chrome.
-  const rows = boardHeight > 400 ? 2 : 1;
-
   /**
    * A phone is not a projector.
    *
@@ -583,39 +578,30 @@ function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
   const narrow = useNarrowViewport();
 
   /**
-   * The chrome gives way before the charts do.
+   * The chrome is one line, and the board gets the rest.
    *
-   * Everything else on this slide — the title, the card strip, the scorecard —
-   * is there to frame the grid, and on a slide with two rows of charts it was
-   * taking enough height that the grid could not fit at its own minimum. Framing
-   * shrinks first; the charts are the slide.
+   * This slide used to open with the summary's own title, the summary's own
+   * card strip and the summary's own scorecard, and then give the board what
+   * was left — which was about a third of the slide, so the charts came out
+   * small and hugging one corner with half the screen empty beside them. Every
+   * one of those three is on the opening slide already; repeating them here
+   * cost the board the room it exists to use.
+   *
+   * What a reader needs on this slide is which board they are looking at and
+   * how far through it they are, and that is a line of text.
    */
-  const tight = rows >= 2;
-
   return (
     <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden py-2">
-      <div className={`flex flex-wrap items-baseline gap-x-4 gap-y-1 ${tight ? 'mb-2' : 'mb-4'}`}>
-        <h1 className={`font-black tracking-tight ${tight ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'}`}>
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h1 className="text-xl font-black tracking-tight md:text-2xl">
           {analysis.slideZero?.title || 'Everything together'}
         </h1>
         <span className="text-[13px] text-white/40">
           {board.length} {board.length === 1 ? 'finding' : 'findings'}
+          {pages.length > 1 ? ` · ${page + 1} of ${pages.length}` : ''}
           {fileName ? ` · ${fileName}` : ''}
         </span>
       </div>
-
-      {kpis.length > 0 && (
-        <div className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${tight ? 'mb-2' : 'mb-4'}`}>
-          {kpis.map((k, i) => (
-            <div key={`${k.label}-${i}`} className={`card ${tight ? 'px-3 py-2' : 'p-3'}`}>
-              <div className={`font-black text-white ${tight ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'}`}>
-                {k.value}
-              </div>
-              <div className="label mt-0.5 truncate">{k.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/*
         * The arrangement the dashboard was left in, not a grid of its charts.
@@ -667,11 +653,6 @@ function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
         )}
       </div>
 
-      <div className={`grid gap-3 md:grid-cols-3 ${tight ? 'mt-2' : 'mt-4'}`}>
-        <Pill icon={Target} tone="accent" label="Focus" text={card.focus} compact={tight} />
-        <Pill icon={AlertTriangle} tone="rose" label="Risk" text={card.risk} compact={tight} />
-        <Pill icon={TrendingUp} tone="emerald" label="Opportunity" text={card.opportunity} compact={tight} />
-      </div>
     </div>
   );
 }

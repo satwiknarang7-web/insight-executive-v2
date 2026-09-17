@@ -6,6 +6,7 @@ import {
   chronological,
   pearson,
   compactNum,
+  outcomeRiskLine,
   truncation,
 } from '../lib/insightEngine.js';
 
@@ -1102,4 +1103,23 @@ test('a correlation within reach of chance can never be strong evidence', () => 
   const f = analyzeChart(scatter(points));
   assert.match(f.metrics.statisticalSignificance, /within what chance produces/);
   assert.ok(['thin', 'indicative'].includes(f.metrics.evidence), `evidence was ${f.metrics.evidence}`);
+});
+
+test('a segment at zero is compared to, not multiplied by', () => {
+  // The case worth reporting — one group at 35% against another at none — is
+  // the one where the ratio has no value, and the sentence said "nullx".
+  const line = outcomeRiskLine({
+    measure: 'Churn Rate',
+    dimension: 'total revenue band',
+    metrics: { leader: '30-1.3K', leaderValue: 35.2, laggard: '8.7K+', laggardValue: 0, leaderToLaggardRatio: null },
+  });
+  assert.doesNotMatch(line, /null/);
+  assert.match(line, /35\.2% — against 8\.7K\+ at 0%/);
+
+  // And where there is a multiple, it is still printed as one.
+  const withRatio = outcomeRiskLine({
+    measure: 'Churn Rate',
+    metrics: { leader: 'Month-to-month', leaderValue: 51.7, laggard: 'Two year', laggardValue: 3.3, leaderToLaggardRatio: 15.5 },
+  });
+  assert.match(withRatio, /15\.5x Two year at 3\.3%/);
 });
