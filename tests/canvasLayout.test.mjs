@@ -9,6 +9,7 @@ import {
   canvasHeight,
   canvasScale,
   cardBox,
+  contentBounds,
   layoutMap,
   moveBox,
   readingOrder,
@@ -115,6 +116,54 @@ test('a drag moves and resizes inside the same bounds', () => {
   assert.equal(moveBox(box, -500, -500).x, 0, 'a drag past the edge stops at it');
   assert.deepEqual(resizeBox(box, 100, 50), { x: 100, y: 100, w: 500, h: 350 });
   assert.equal(resizeBox(box, -9999, -9999).w, MIN_CARD_WIDTH);
+});
+
+test('a card nobody placed lands in the gaps, not on top of the board', () => {
+  // The board as the composer left it: a full-width row, then two beside it.
+  const slides = [
+    { id: 'lead', layout: { x: 0, y: 0, w: 1440, h: 300 } },
+    { id: 'left', layout: { x: 0, y: 316, w: 700, h: 260 } },
+    { id: 'right', layout: { x: 716, y: 316, w: 724, h: 260 } },
+    // And the card somebody just added, which has never been anywhere.
+    { id: 'new' },
+  ];
+  const boxes = layoutMap(slides, () => ({ w: 340, h: 120 }));
+  const added = boxes.get('new');
+
+  for (const id of ['lead', 'left', 'right']) {
+    const other = boxes.get(id);
+    const clear =
+      added.x >= other.x + other.w ||
+      other.x >= added.x + added.w ||
+      added.y >= other.y + other.h ||
+      other.y >= added.y + added.h;
+    assert.ok(clear, `the new card is sitting on ${id}`);
+  }
+  assert.ok(added.y + added.h <= CANVAS_HEIGHT, 'and it is still on the page');
+
+  // Nothing that was already placed moved to make room for it.
+  assert.deepEqual(boxes.get('lead'), { x: 0, y: 0, w: 1440, h: 300 });
+  assert.deepEqual(boxes.get('right'), { x: 716, y: 316, w: 724, h: 260 });
+});
+
+test('a sizeOf that answers in boxes is taken at its word', () => {
+  // A KPI card is a number and its name. Sized as a share of six columns it
+  // came out half a row tall, which is not what a number needs.
+  const boxes = layoutMap([{ id: 'card' }], () => ({ w: 340, h: 120 }));
+  assert.deepEqual(boxes.get('card'), { x: 0, y: 0, w: 340, h: 120 });
+});
+
+test('the board is fitted by what is on it, not by the page around it', () => {
+  // A board arranged into the top-left corner shown on a slide that scales the
+  // whole canvas is a board with half a screen of empty page beside it.
+  assert.deepEqual(contentBounds([{ x: 100, y: 50, w: 300, h: 200 }, { x: 500, y: 50, w: 200, h: 400 }]), {
+    x: 100,
+    y: 50,
+    w: 600,
+    h: 400,
+  });
+  // Nothing on it is the whole page: there is nothing to fit to.
+  assert.deepEqual(contentBounds([]), { x: 0, y: 0, w: CANVAS_WIDTH, h: CANVAS_HEIGHT });
 });
 
 /* And the arrangement the analyst proposes. */
@@ -243,7 +292,10 @@ test('a filter opens as a list while the charts can still breathe', () => {
   const tight = [{ id: 'f1', values: 3 }];
   const fitted = fitFilters(tight, { charts: 7, cards: 4 });
   assert.equal(fitted.mode, 'dropdown');
-  assert.ok(fitted.height < 100, 'and it costs the page a line rather than a list');
+  assert.ok(
+    fitted.height < fitFilters(roomy, { charts: 2, cards: 4 }).height,
+    'and it costs the page a line rather than a list'
+  );
   assert.equal(tight[0].slicerMode, 'dropdown');
 });
 

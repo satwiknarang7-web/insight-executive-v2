@@ -47,6 +47,7 @@ import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
 import { slideLayout } from '../../../lib/slideSize';
+import { KPI_TILE } from '../../../lib/canvasLayout';
 
 /** The least room a plot can be drawn in, whatever is above and below it. */
 const MIN_PLOT_HEIGHT = 120;
@@ -101,6 +102,19 @@ export default function DashboardPage() {
   const findingIndex = useMemo(
     () => new Map((analysis?.storyboard || []).map((slide, i) => [slide.id, i])),
     [analysis?.storyboard]
+  );
+
+  /**
+   * How big a tile wants to be before anybody has placed it.
+   *
+   * A finding answers in the pre-canvas language — a share of six columns and a
+   * plot height. A card answers in a box, because a number and its name want a
+   * corner rather than a share of a row: sized like a chart, a card somebody
+   * added arrived as a 700x380 rectangle holding two lines of text.
+   */
+  const tileSize = useCallback(
+    (tile) => (tile.kpiIndex === undefined ? slideLayout(tile.size) : KPI_TILE),
+    []
   );
 
   const moveTile = useCallback(
@@ -287,7 +301,15 @@ export default function DashboardPage() {
           {/* A card is a tile now, so it is added the way a chart is rather
               than from a slot at the end of a strip that no longer exists. */}
           <button
-            onClick={() => createKpi()}
+            onClick={() => {
+              createKpi();
+              // A new card is blank, and everything that makes it not blank —
+              // its label, its metric, where it sits — lives in edit mode.
+              // Adding one and being left on a read-only page with a card
+              // reading "Label / Value" on it is the button not finishing its
+              // job.
+              setEditing(true);
+            }}
             className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white sm:min-h-0"
           >
             <Plus size={13} /> New card
@@ -375,7 +397,7 @@ export default function DashboardPage() {
         <div className={`transition-opacity duration-200 ${filtering ? 'opacity-60' : 'opacity-100'}`}>
           <DashboardCanvas
             slides={tiles}
-            sizeOf={(tile) => slideLayout(tile.size)}
+            sizeOf={tileSize}
             editing={editing}
             onMove={moveTile}
           >
@@ -531,7 +553,13 @@ function KpiTile({
       data-card
       style={placement}
       onPointerDown={editing && !stacked ? onCardPointerDown : undefined}
-      className={`card relative flex flex-col justify-center overflow-hidden p-4 ${
+      // The editor hangs off the bottom of the card, so while it is open the
+      // card must not clip its own children. `z-30` keeps it above the tiles it
+      // hangs over — a panel drawn under the next card is a panel nobody can
+      // use.
+      className={`card relative flex flex-col justify-center p-4 ${
+        editing && !stacked ? 'z-30 overflow-visible' : 'overflow-hidden'
+      } ${
         editing && !stacked ? 'cursor-grab select-none' : ''
       } ${dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : ''}`}
     >
@@ -568,8 +596,27 @@ function KpiTile({
         className="display mt-2 text-[26px] leading-snug text-white"
       />
 
+      {/*
+        * What the card measures, in a panel that hangs below it.
+        *
+        * It used to be laid out inside the card, which is a box the reader
+        * sized for a number and its name: the two dropdowns did not fit, the
+        * card clipped them, and the control for choosing a metric was half a
+        * select box hanging off the bottom edge. Out of flow it is always fully
+        * visible, and the board does not jump about when edit mode is turned
+        * on.
+        */}
       {editing && (
-        <div className="mt-3 flex flex-col gap-1.5 border-t border-white/8 pt-3">
+        <div
+          data-no-drag
+          className={
+            stacked
+              ? // Stacked there is no canvas and no fixed height to escape, so
+                // the panel stays in the card where it reads better.
+                'mt-3 flex flex-col gap-1.5 border-t border-white/8 pt-3'
+              : 'panel absolute left-0 right-0 top-full z-30 mt-1.5 flex flex-col gap-1.5 p-2'
+          }
+        >
           <div className="flex items-center gap-1.5">
             <select
               value={metric}
@@ -751,6 +798,7 @@ function FindingCard({
           {editing && (
             <Link
               href={`/insight/${slide.id || `slide_${index + 1}`}`}
+              data-no-drag
               aria-label={`Edit the chart for ${slide.pageTitle}`}
               title="Change what this chart measures"
               className="flex h-11 w-11 items-center justify-center rounded-lg text-white/15 sm:h-auto sm:w-auto sm:p-1.5 transition-colors hover:bg-accent-500/10 hover:text-accent-300"
@@ -758,20 +806,28 @@ function FindingCard({
               <SlidersHorizontal size={14} />
             </Link>
           )}
-          <button
-            type="button"
-            aria-label={`Delete ${slide.pageTitle}`}
-            title="Delete this finding"
-            onClick={(e) => {
-              // Outside edit mode the whole card is a link; deleting must not navigate.
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-white/15 sm:h-auto sm:w-auto sm:p-1.5 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
-          >
-            <Trash2 size={14} />
-          </button>
+          {/* Deleting lives in edit mode, with every other change to the board.
+              It used to sit on every card at all times, which put an
+              irreversible one-click control on a page whose job is to be read —
+              and made the board inconsistent with itself, since a card could
+              only be deleted while editing and the chart beside it could be
+              deleted whenever. Editing is where the board is changed. */}
+          {editing && (
+            <button
+              type="button"
+              data-no-drag
+              aria-label={`Delete ${slide.pageTitle}`}
+              title="Delete this finding"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-white/15 sm:h-auto sm:w-auto sm:p-1.5 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
           {!editing && <ChevronRight size={16} className="text-white/20 group-hover:text-accent-400" />}
         </div>
       </div>
@@ -788,8 +844,12 @@ function FindingCard({
           sentence have had theirs, because on a canvas the card's height is the
           thing being dragged and the chart is what that height is for. */}
       <div
-        className="mt-4 min-h-0 flex-1"
-        style={{ minHeight: MIN_PLOT_HEIGHT }}
+        className={`min-h-0 flex-1 ${isSlicer ? 'mt-2.5' : 'mt-4'}`}
+        // A filter is a control, not a plot: a list of tick-boxes or one line
+        // that opens them. Holding 120px of plot open underneath it pushed the
+        // control itself past the bottom edge of a tile sized for a control,
+        // and what a reader saw was a filter card with its filter cut off.
+        style={isSlicer ? undefined : { minHeight: MIN_PLOT_HEIGHT }}
         onClick={
           target
             ? (e) => {

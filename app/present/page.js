@@ -28,7 +28,7 @@ import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
 import useNarration from '../../lib/useNarration';
 import { dashboardScript, slideScript, summaryScript, pickVoice } from '../../lib/speech';
 import { findingsOnly } from '../../lib/storyboard';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, canvasScale, layoutMap, readingOrder } from '../../lib/canvasLayout';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, KPI_TILE, contentBounds, layoutMap, readingOrder } from '../../lib/canvasLayout';
 import { slideLayout } from '../../lib/slideSize';
 
 /*
@@ -234,7 +234,14 @@ export default function PresentPage() {
       )}
 
       {/* Top bar */}
-      <header className="relative z-20 flex items-center justify-between gap-4 px-6 py-4">
+      {/* The chrome is thinner on the board slide. Every row it takes is a row
+          the board is scaled down by, and on that slide the board is the whole
+          point — the other two are prose and want the air. */}
+      <header
+        className={`relative z-20 flex items-center justify-between gap-4 px-6 ${
+          onDashboard ? 'py-2' : 'py-4'
+        }`}
+      >
         <div className="min-w-0">
           <div className="label">
             {page === 0
@@ -337,7 +344,16 @@ export default function PresentPage() {
       )}
 
       {/* Slide */}
-      <div key={page} className="slide-in relative z-10 flex min-h-0 flex-1 flex-col px-6 pb-2 md:px-12">
+      {/* The board slide is given the whole of the slide area. The other two are
+          prose and want a margin; the board is the thing the deck exists to
+          show, and every pixel of padding around it is a pixel off every chart
+          on it. */}
+      <div
+        key={page}
+        className={`slide-in relative z-10 flex min-h-0 flex-1 flex-col ${
+          onDashboard ? 'px-2 pb-2' : 'px-6 pb-2 md:px-12'
+        }`}
+      >
         {page === 0 ? (
           <SummarySlide slideZero={analysis.slideZero} />
         ) : onDashboard ? (
@@ -348,7 +364,11 @@ export default function PresentPage() {
       </div>
 
       {/* Controls */}
-      <footer className="relative z-20 flex items-center justify-center gap-3 px-6 py-4">
+      <footer
+        className={`relative z-20 flex items-center justify-center gap-3 px-6 ${
+          onDashboard ? 'py-2' : 'py-4'
+        }`}
+      >
         <button
           onClick={() => go(-1)}
           disabled={page === 0}
@@ -537,10 +557,17 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
    * The board, at the size the slide can give it.
    *
    * The cards carry coordinates on a canvas of fixed logical width, so the only
-   * question here is what that canvas scales to — and it is a different question
-   * from the dashboard's, because a slide is bounded in BOTH directions. The
-   * scale is whichever of the two fits, so the arrangement never runs off the
-   * bottom of the one surface in this product nobody can scroll.
+   * question here is what scales to what — and it is a different question from
+   * the dashboard's, because a slide is bounded in BOTH directions.
+   *
+   * What is scaled is the arrangement, not the page it was arranged on. The
+   * canvas is a fixed rectangle and a board rarely uses every corner of it, so
+   * fitting the canvas meant projecting whatever empty page the arrangement
+   * happened to leave — a dashboard in the middle of a screen with a band of
+   * nothing down each side. Fitting the cards' own bounding box puts the charts
+   * themselves against the edges, which is what a presented dashboard is for.
+   * A board that does fill its page is unchanged by this: its bounds are the
+   * page.
    */
   const boardRef = useRef(null);
   const [room, setRoom] = useState({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
@@ -555,13 +582,17 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
     return () => observer.disconnect();
   }, []);
 
-  const sizeOf = useCallback((item) => slideLayout(item.size), []);
+  // A card is a number and its name; sized as a share of six columns it comes
+  // out half a row tall. The board says what its tiles are, so it says how big
+  // the ones nobody has placed should be.
+  const sizeOf = useCallback((item) => (item.kpiCard ? KPI_TILE : slideLayout(item.size)), []);
   const boardBoxes = useMemo(() => layoutMap(board, sizeOf), [board, sizeOf]);
 
-  // The page is sixteen by nine and so, near enough, is the room it is given,
-  // so this is usually the width. The height is what stops a slide area that is
-  // taller than that from pushing the bottom row off the screen.
-  const boardScale = canvasScale(room.width, room.height);
+  const bounds = useMemo(() => contentBounds([...boardBoxes.values()]), [boardBoxes]);
+  // Whichever of the two runs out first. Both are allowed past 1: a board of
+  // four tiles projected at its logical size would be four tiles in the middle
+  // of a wall.
+  const boardScale = Math.min(room.width / bounds.w, room.height / bounds.h) || 1;
 
   /**
    * A phone is not a projector.
@@ -589,7 +620,7 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
    * how far through it they are, and that is a line of text.
    */
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden py-2">
+    <div className="flex h-full w-full flex-col overflow-hidden">
 
       {/*
         * The arrangement the dashboard was left in, not a grid of its charts.
@@ -616,16 +647,16 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
         ) : (
           <div
             style={{
-              width: CANVAS_WIDTH,
-              height: CANVAS_HEIGHT,
+              width: bounds.w,
+              height: bounds.h,
               transform: `scale(${boardScale})`,
               transformOrigin: 'top left',
-              // Centred in both directions. A sixteen-by-nine page in a slide
-              // area wider than that has room left over whatever it does with
-              // it; left-aligned, all of it piles up on the right and the board
-              // looks abandoned in the corner.
-              marginLeft: Math.max(0, (room.width - CANVAS_WIDTH * boardScale) / 2),
-              marginTop: Math.max(0, (room.height - CANVAS_HEIGHT * boardScale) / 2),
+              // Centred in whichever direction has room left over. One of the
+              // two always does — the board's shape and the slide's are not the
+              // same shape — and left-aligned it all piles up on one side, so
+              // the board looks abandoned in the corner.
+              marginLeft: Math.max(0, (room.width - bounds.w * boardScale) / 2),
+              marginTop: Math.max(0, (room.height - bounds.h * boardScale) / 2),
             }}
             className="relative"
           >
@@ -636,7 +667,15 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
               return (
                 <div
                   key={item.id}
-                  style={{ position: 'absolute', left: box.x, top: box.y, width: box.w, height: box.h }}
+                  // Relative to the arrangement's own top-left corner, which is
+                  // what is being fitted here rather than the canvas's.
+                  style={{
+                    position: 'absolute',
+                    left: box.x - bounds.x,
+                    top: box.y - bounds.y,
+                    width: box.w,
+                    height: box.h,
+                  }}
                   className="card flex flex-col p-3"
                 >
                   <BoardTile item={item} />
