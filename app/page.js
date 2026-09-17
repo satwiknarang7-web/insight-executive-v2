@@ -30,17 +30,17 @@ const SHOWCASE = [
     src: '/screenshots/dashboard.jpg',
   },
   {
-    title: 'Explore',
+    title: 'Data table',
     desc: 'Browse the cleaned rows in a filterable data grid. Column types are tagged, and every row is searchable.',
     src: '/screenshots/explore.jpg',
   },
   {
-    title: 'Ask AI',
+    title: 'Ask a question',
     desc: 'Type a question in plain English. Get a chart with the SQL that produced it, running in your browser.',
     src: '/screenshots/ask.jpg',
   },
   {
-    title: 'Present',
+    title: 'Slideshow',
     desc: 'A full-screen slide deck with one finding per slide, keyboard navigation, and optional voice narration.',
     src: '/screenshots/present.jpg',
   },

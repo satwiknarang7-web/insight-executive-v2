@@ -174,7 +174,7 @@ export default function ExplorePage() {
         title:
           `${count.toLocaleString()} of these cells were a judgement, not a reading — ` +
           reasons.map(([reason]) => REASON_TEXT[reason] || reason).join('; ') +
-          '. See Data Quality.',
+          '. See the Cleaning report.',
       };
     }
     return out;
@@ -196,7 +196,7 @@ export default function ExplorePage() {
 
   return (
     <PageFrame
-      title="Explore"
+      title="Data table"
       subtitle={`${dataset.rowCount.toLocaleString()} cleaned rows · ${columns.length} columns`}
       action={
         <div className="flex flex-wrap items-center gap-2">

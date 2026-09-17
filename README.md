@@ -159,18 +159,26 @@ the same guards the database connectors use, for the same reason.
 
 ## Pages
 
-| Route | What it does |
-| --- | --- |
-| `/` | Upload or pick a sample dataset |
-| `/dashboard` | KPIs, executive summary, every finding as a chart card |
-| `/insight/[id]` | One finding in depth: chart, verified metrics, the SQL |
-| `/explore` | Column profile, the shaping steps, the measures, and a paged, sortable, searchable table |
-| `/ask` | Ask a question in plain English; includes a SQL console |
-| `/measures` | Name a calculation once — described in plain English — and reuse it on cards and charts |
-| `/quality` | Cleaning report, per-column stats, full query audit |
-| `/settings` | Lighting, material, and the guided tour |
-| `/present` | Full-screen slide deck (arrow keys, space to autoplay) |
-| `/report` | Print-ready long-form report |
+The tab is named for what the page does rather than for where it sits, so
+somebody arriving can find a thing without having learned the vocabulary first.
+"Home" and "Dashboard" both read as a landing page; "Profile" and "Settings"
+both read as your own preferences; "Explore" does not say that the rows are in
+there. Each nav label is also the page's own title, so the tab you clicked and
+the page you land on agree.
+
+| Route | Tab | What it does |
+| --- | --- | --- |
+| `/home` | Get data | Load a file, a link or a database, and see what arrived |
+| `/dashboard` | Dashboard | KPIs, executive summary, every finding as a chart card |
+| `/insight/[id]` | — | One finding in depth: chart, verified metrics, the SQL |
+| `/explore` | Data table | The rows, the shaping steps and the measures over them |
+| `/ask` | Ask a question | Plain English in, a chart and its query out; includes a SQL console |
+| `/measures` | — | Name a calculation once and reuse it on cards and charts |
+| `/quality` | Cleaning report | What was changed on the way in, per-column stats, full query audit |
+| `/settings` | Settings | Lighting, material, and the guided tour |
+| `/profile` | Account | Saved analyses, stored connections, sign-in |
+| `/present` | Slideshow | Full-screen deck (arrow keys, space to autoplay) |
+| `/report` | Report | Print-ready long-form report |
 
 ## Cleaning
 

@@ -640,7 +640,7 @@ function cleaningNotices(name, metrics) {
       .slice(0, 4);
     out.push({
       kind: 'values-unified',
-      message: `${metrics.valuesUnified.toLocaleString()} cells in ${name} were spellings of a category already present and were folded into it: ${columns.join('; ')}. See Data Quality.`,
+      message: `${metrics.valuesUnified.toLocaleString()} cells in ${name} were spellings of a category already present and were folded into it: ${columns.join('; ')}. See the Cleaning report.`,
     });
   }
   return out;

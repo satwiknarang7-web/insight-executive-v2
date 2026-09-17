@@ -50,7 +50,7 @@ export default function QualityPage() {
   const nullsFromShortRows = m.nullsFromShortRows || 0;
 
   return (
-    <PageFrame title="Data Quality" subtitle={`Cleaning report for ${dataset.fileName}`}>
+    <PageFrame title="Cleaning report" subtitle={`What was changed on the way in, for ${dataset.fileName}`}>
       {/* What the ingest decided for you. This is the page that owes the reader
           the full list, so it is shown here undismissed and in full. */}
       {notices.length > 0 && (

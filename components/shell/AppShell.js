@@ -28,17 +28,17 @@ import Logo, { PRODUCT_NAME } from './Logo';
 const NAV = [
   {
     href: '/home',
-    label: 'Home',
+    label: 'Get data',
     icon: Home,
-    hint: 'Load a source, shape it, and see what you are working with',
+    hint: 'Load a file, a link or a database — and see what arrived',
     // The one page that stands without a dataset, because it is where one
     // comes from. Everything below it is a view onto data that already exists.
     standalone: true,
   },
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Charts and the executive summary' },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'The charts and the executive summary' },
   {
     href: '/explore',
-    label: 'Explore',
+    label: 'Data table',
     icon: Table2,
     // Where the data is looked at and where it is changed. Shaping and measures
     // both live here now: they are the same question asked twice.
@@ -46,19 +46,19 @@ const NAV = [
   },
   {
     href: '/ask',
-    label: 'Ask',
+    label: 'Ask a question',
     icon: MessageSquare,
-    hint: 'Question your data in plain English',
+    hint: 'Ask in plain English and get a chart, with the query behind it',
     // Every answer here is written by a model, so there is nothing behind this
     // page on a plan that may not call one.
     requires: 'model',
   },
-  { href: '/quality', label: 'Data Quality', icon: ShieldCheck, hint: 'Cleaning report and query audit' },
+  { href: '/quality', label: 'Cleaning report', icon: ShieldCheck, hint: 'What was changed on the way in, and every query that ran' },
   {
     href: '/profile',
-    label: 'Profile',
+    label: 'Account',
     icon: UserRound,
-    hint: 'Your username, your library, saved connections and your account',
+    hint: 'Your saved analyses, your stored connections and your sign-in',
   },
   {
     href: '/settings',
@@ -237,7 +237,7 @@ export default function AppShell({ children }) {
           <div className="mt-1 text-[11px] text-white/40">
             {dataset
               ? `${dataset.rowCount.toLocaleString()} rows · ${dataset.columns.length} columns`
-              : 'Load a source on Home'}
+              : 'Open Get data to load one'}
           </div>
         </div>
       )}
@@ -256,7 +256,7 @@ export default function AppShell({ children }) {
           <NavLink
             item={{
               href: '/model',
-              label: 'Data Model',
+              label: 'How tables join',
               icon: GitBranch,
               hint: 'Review how your tables were joined',
             }}
@@ -267,7 +267,7 @@ export default function AppShell({ children }) {
         )}
         {analysis?.storyboard?.length > 0 && (
           <NavLink
-            item={{ href: '/present', label: 'Present', icon: Presentation, hint: 'Full-screen slide deck' }}
+            item={{ href: '/present', label: 'Slideshow', icon: Presentation, hint: 'The findings full-screen, one per slide' }}
             active={pathname === '/present'}
             onNavigate={() => setMenuOpen(false)}
             collapsed={rail}

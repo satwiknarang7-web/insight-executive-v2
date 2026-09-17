@@ -193,7 +193,7 @@ export default function AskPage() {
   if (!dataset) return null;
 
   return (
-    <PageFrame title="Ask" subtitle="Question your data in plain English">
+    <PageFrame title="Ask a question" subtitle="In plain English. Every answer comes with the query behind it.">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-5">
           {/* Prompt */}

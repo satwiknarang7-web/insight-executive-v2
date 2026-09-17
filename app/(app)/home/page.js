@@ -15,7 +15,6 @@ import {
   Trash2,
   X,
   LayoutDashboard,
-  Compass,
   Sparkles,
   PencilRuler,
   Lock,
@@ -33,31 +32,7 @@ import SourcePicker from '../../../components/panels/SourcePicker';
 import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
-import Image from 'next/image';
 
-/** The four screens an analysis produces, in the order they arrive. */
-const SHOWCASE = [
-  {
-    title: 'Dashboard',
-    desc: 'KPI cards, executive summary, and auto-generated charts — all computed from your data. Click any finding to deep-dive.',
-    src: '/screenshots/dashboard.jpg',
-  },
-  {
-    title: 'Explore',
-    desc: 'Browse the cleaned rows in a filterable data grid. Column types are tagged, and every row is searchable.',
-    src: '/screenshots/explore.jpg',
-  },
-  {
-    title: 'Ask AI',
-    desc: 'Type a question in plain English. Get a chart with the SQL that produced it, running in your browser.',
-    src: '/screenshots/ask.jpg',
-  },
-  {
-    title: 'Present',
-    desc: 'A full-screen slide deck with one finding per slide, keyboard navigation, and optional voice narration.',
-    src: '/screenshots/present.jpg',
-  },
-];
 
 export default function LandingPage() {
   const router = useRouter();
@@ -237,8 +212,8 @@ export default function LandingPage() {
 
   return (
     <PageFrame
-      title="Home"
-      subtitle={dataset ? `${dataset.fileName} · ${dataset.rowCount.toLocaleString()} rows` : 'Load a source to begin'}
+      title="Get data"
+      subtitle={dataset ? `${dataset.fileName} · ${dataset.rowCount.toLocaleString()} rows` : 'A file, a link or a database — whichever you have'}
     >
       <div className="relative">
         <div>
@@ -417,7 +392,7 @@ export default function LandingPage() {
             {!busy && !dataset && (
               <div className="card p-4" data-tutorial="source-catalog">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="label">Get data</span>
+                  <span className="label">Source</span>
                   <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
                 </div>
                 <SourcePicker value={source} onChange={setSource} allowsModel={planAllows('model')} />
