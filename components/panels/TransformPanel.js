@@ -490,7 +490,10 @@ export default function TransformPanel() {
                 <div className="min-w-0 flex-1">
                   <div className={`text-[12px] ${off ? 'text-white/25 line-through' : 'text-white/75'}`}>
                     {describeTransform(op)}
-                    {op.source === 'model' && (
+                    {/* Both sources are the analyst to a reader: one is a
+                        rule reading the values, one is a model reading them,
+                        and the badge is about who decided rather than how. */}
+                    {(op.source === 'model' || op.source === 'derived') && (
                       <span
                         title={op.why || 'Added by the analyst'}
                         className="ml-2 rounded-full border border-accent-500/30 bg-accent-500/10 px-1.5 py-px text-[9px] font-black uppercase tracking-[0.15em] text-accent-300/90"
@@ -499,7 +502,7 @@ export default function TransformPanel() {
                       </span>
                     )}
                   </div>
-                  {op.source === 'model' && op.why && (
+                  {(op.source === 'model' || op.source === 'derived') && op.why && (
                     <div className="mt-0.5 text-[11px] leading-snug text-white/35">{op.why}</div>
                   )}
                   {failed && (
