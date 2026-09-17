@@ -404,8 +404,75 @@ export default function LandingPage() {
               </div>
             )}
 
+            {/*
+              * The source comes first, because it decides what everything under
+              * it is.
+              *
+              * The drop zone used to lead and the picker sat at the bottom, which
+              * put the answer above the question: a zone that takes CSVs is the
+              * *form* for having chosen CSV, and it is the wrong form entirely
+              * once somebody picks Postgres. Choose the source, then fill in what
+              * that source needs.
+              */}
+            {!busy && !dataset && (
+              <div className="card p-4" data-tutorial="source-catalog">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="label">Get data</span>
+                  <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
+                </div>
+                <SourcePicker value={source} onChange={setSource} allowsModel={planAllows('model')} />
+
+                {chosen.kind === 'connector' && (
+                  <div className="mt-4 border-t border-white/6 pt-4">
+                    <p className="mb-3 text-xs leading-relaxed text-white/35">
+                      Rows from a connected database are fetched by this app&apos;s server and passed
+                      straight through to your browser, where they are cleaned and analysed. Unlike a file,
+                      they do travel over the network.
+                    </p>
+                    <ConnectSource
+                      source={chosen.connector}
+                      organization={organization}
+                      onNeedsAccount={() => router.push('/sign-in?next=/')}
+                    />
+                  </div>
+                )}
+
+                {chosen.kind === 'web' && (
+                  <div className="mt-4 border-t border-white/6 pt-4">
+                    <WebSource kind={chosen.web} />
+                  </div>
+                )}
+
+                {chosen.kind === 'paste' && (
+                  <div className="mt-4 flex flex-col gap-2 border-t border-white/6 pt-4">
+                    <textarea
+                      value={pasted}
+                      onChange={(e) => setPasted(e.target.value)}
+                      placeholder={'region,revenue,units\nNorth,1200,5\nSouth,850,3'}
+                      spellCheck={false}
+                      rows={6}
+                      aria-label="Pasted rows"
+                      className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] text-white/85 outline-none placeholder:text-white/20 focus:border-accent-500/50"
+                    />
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={!pasted.trim()}
+                        onClick={() => ingestText(pasted, /^\s*[[{]/.test(pasted) ? 'pasted.json' : 'pasted.csv').catch(() => {})}
+                        className="rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-40"
+                      >
+                        Load
+                      </button>
+                      <span className="text-[11px] text-white/30">Comma, tab or semicolon separated, with a header row. JSON works too.</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* And the form for whichever kind was chosen. A file is dropped;
+                everything else has its own panel inside the card above. */}
             {!busy && !dataset && chosen.kind === 'file' && (
-              <>
                 <div
                   data-tutorial="upload-dropzone"
                   onDragOver={(e) => {
@@ -446,7 +513,10 @@ export default function LandingPage() {
                     }}
                   />
                 </div>
+            )}
 
+            {!busy && !dataset && (
+              <>
                 {/*
                   * Reading a table out of a photograph, on its own.
                   *
@@ -517,61 +587,6 @@ export default function LandingPage() {
               </>
             )}
 
-            {!busy && !dataset && (
-              <div className="card p-4" data-tutorial="source-catalog">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="label">Get data</span>
-                  <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
-                </div>
-                <SourcePicker value={source} onChange={setSource} allowsModel={planAllows('model')} />
-
-                {chosen.kind === 'connector' && (
-                  <div className="mt-4 border-t border-white/6 pt-4">
-                    <p className="mb-3 text-xs leading-relaxed text-white/35">
-                      Rows from a connected database are fetched by this app&apos;s server and passed
-                      straight through to your browser, where they are cleaned and analysed. Unlike a file,
-                      they do travel over the network.
-                    </p>
-                    <ConnectSource
-                      source={chosen.connector}
-                      organization={organization}
-                      onNeedsAccount={() => router.push('/sign-in?next=/')}
-                    />
-                  </div>
-                )}
-
-                {chosen.kind === 'web' && (
-                  <div className="mt-4 border-t border-white/6 pt-4">
-                    <WebSource kind={chosen.web} />
-                  </div>
-                )}
-
-                {chosen.kind === 'paste' && (
-                  <div className="mt-4 flex flex-col gap-2 border-t border-white/6 pt-4">
-                    <textarea
-                      value={pasted}
-                      onChange={(e) => setPasted(e.target.value)}
-                      placeholder={'region,revenue,units\nNorth,1200,5\nSouth,850,3'}
-                      spellCheck={false}
-                      rows={6}
-                      aria-label="Pasted rows"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] text-white/85 outline-none placeholder:text-white/20 focus:border-accent-500/50"
-                    />
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        disabled={!pasted.trim()}
-                        onClick={() => ingestText(pasted, /^\s*[[{]/.test(pasted) ? 'pasted.json' : 'pasted.csv').catch(() => {})}
-                        className="rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-40"
-                      >
-                        Load
-                      </button>
-                      <span className="text-[11px] text-white/30">Comma, tab or semicolon separated, with a header row. JSON works too.</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/*
               * Outside the fragment above, so it is on the page in both states.
