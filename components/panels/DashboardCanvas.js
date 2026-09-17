@@ -197,11 +197,10 @@ export default function DashboardCanvas({ slides = [], sizeOf = null, editing = 
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
             touchAction: dragging ? 'none' : undefined,
-            // Centred once it has stopped shrinking. A scaled canvas still
-            // takes its full logical width in the layout, so this is only
-            // meaningful at 1:1 — on a screen wider than the board, which is
-            // exactly where a board pinned to the left looks abandoned.
-            marginLeft: scale === 1 ? Math.max(0, (width - CANVAS_WIDTH) / 2) : 0,
+            // Centred in whatever room is left over. A scaled page still takes
+            // its full logical width in the layout, so the margin is computed
+            // from the drawn width rather than left to the browser.
+            marginLeft: Math.max(0, (width - CANVAS_WIDTH * scale) / 2),
           }}
           className="relative"
         >

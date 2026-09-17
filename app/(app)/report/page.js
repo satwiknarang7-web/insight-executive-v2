@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { Printer, FileDown, Presentation, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck, Info } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
+import { findingsOnly } from '../../../lib/storyboard';
 import PageFrame from '../../../components/shell/PageFrame';
 import LazyChart from '../../../components/charts/LazyChart';
 import ChartBoundary from '../../../components/charts/ChartBoundary';
@@ -102,7 +103,10 @@ export default function ReportPage() {
     );
   }
 
-  const { slideZero, storyboard } = analysis;
+  const { slideZero } = analysis;
+  // A report is read in sequence, so the filter tiles are not part of it — see
+  // `findingsOnly`. They belong to the board, which is a different thing.
+  const storyboard = findingsOnly(analysis.storyboard);
   const generated = new Date(analysis.generatedAt || Date.now());
 
   return (

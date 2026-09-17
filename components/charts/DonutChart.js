@@ -41,7 +41,9 @@ export default function DonutChart({
   onSelect = null,
   selected = null,
 }) {
-  const legend = legendProps({ seriesCount: (data || []).length, compact });
+  // Required: on a share chart the colour is the only name a slice has, so the
+  // legend survives a compact tile where a bar chart's would not.
+  const legend = legendProps({ seriesCount: (data || []).length, compact, required: true });
   const solid = variant === 'pie';
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();

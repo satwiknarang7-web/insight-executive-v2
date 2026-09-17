@@ -14,7 +14,7 @@ import {
   readingOrder,
   resizeBox,
 } from '../lib/canvasLayout.js';
-import { composeBoard, planSlicers } from '../lib/boardComposer.js';
+import { composeBoard, fitFilters, planSlicers } from '../lib/boardComposer.js';
 
 /* The dashboard as an arrangement.
 
@@ -230,4 +230,29 @@ test('a filter is offered for a column the deck actually breaks numbers down by'
 test('a deck that breaks nothing down offers no filters', () => {
   assert.deepEqual(planSlicers([{ chart_type: 'card' }], { profile: { cardinality: {} } }), []);
   assert.deepEqual(planSlicers([], {}), []);
+});
+
+test('a filter opens as a list while the charts can still breathe', () => {
+  // Two charts leave room for three checkboxes to sit open.
+  const roomy = [{ id: 'f1', values: 3 }];
+  assert.equal(fitFilters(roomy, { charts: 2, cards: 4 }).mode, 'list');
+  assert.equal(roomy[0].slicerMode, 'list', 'and the tile is told');
+
+  // Seven do not: a hundred and eighty pixels holding three checkboxes is
+  // height the charts under them lose.
+  const tight = [{ id: 'f1', values: 3 }];
+  const fitted = fitFilters(tight, { charts: 7, cards: 4 });
+  assert.equal(fitted.mode, 'dropdown');
+  assert.ok(fitted.height < 100, 'and it costs the page a line rather than a list');
+  assert.equal(tight[0].slicerMode, 'dropdown');
+});
+
+test('a mode somebody chose is never overruled by the room', () => {
+  const chosen = [{ id: 'f1', values: 3, slicerMode: 'list' }];
+  fitFilters(chosen, { charts: 9, cards: 4 });
+  assert.equal(chosen[0].slicerMode, 'list', 'the editor beats the composer');
+});
+
+test('no filters, no strip', () => {
+  assert.equal(fitFilters([], { charts: 4 }).height, 0);
 });

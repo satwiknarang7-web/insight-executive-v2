@@ -194,8 +194,37 @@ export function yAxisGeometry(
  * series names itself, and a small card has no room for one at all. Callers
  * render `{legend && <Legend {...legend} />}`.
  */
-export function legendProps({ seriesCount = 1, compact = false } = {}) {
-  if (seriesCount < 2 || compact) return null;
+export function legendProps({ seriesCount = 1, compact = false, required = false } = {}) {
+  if (seriesCount < 2) return null;
+
+  /*
+   * A compact tile drops its legend, except where the legend IS the chart.
+   *
+   * On a bar chart the categories are written along the axis and the legend
+   * repeats them, so a small tile loses nothing by dropping it. On a donut the
+   * colours are the only thing tying an arc to a name: dropped, it becomes a
+   * ring of anonymous colours with a few numbers around it, which is what a
+   * board of small tiles was showing. Where it is required it is kept, and kept
+   * to one row — the room is the reason it was being dropped.
+   */
+  if (compact) {
+    if (!required) return null;
+    return {
+      verticalAlign: 'bottom',
+      align: 'center',
+      layout: 'horizontal',
+      height: LEGEND_H,
+      iconType: 'circle',
+      iconSize: 7,
+      wrapperStyle: {
+        paddingTop: 2,
+        lineHeight: '14px',
+        maxHeight: LEGEND_H,
+        overflow: 'hidden',
+        fontSize: 10,
+      },
+    };
+  }
 
   // A legend is allowed a second row, and no more. Clipping it to one hid
   // entries past the first, which left colours in the chart that nothing on

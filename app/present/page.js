@@ -27,6 +27,7 @@ import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
 import useNarration from '../../lib/useNarration';
 import { dashboardScript, slideScript, summaryScript, pickVoice } from '../../lib/speech';
+import { findingsOnly } from '../../lib/storyboard';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, canvasScale, layoutMap, readingOrder } from '../../lib/canvasLayout';
 import { slideLayout } from '../../lib/slideSize';
 
@@ -76,7 +77,7 @@ export default function PresentPage() {
    * 9", a heading, and three empty checkboxes filling a screen. Walked slides
    * are the findings; the board at the end is everything.
    */
-  const findings = useMemo(() => board.filter((slide) => slide?.chart?.chart_type !== 'slicer'), [board]);
+  const findings = useMemo(() => findingsOnly(board), [board]);
 
   /**
    * Everything the board holds: its cards and its findings.
@@ -589,16 +590,6 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
    */
   return (
     <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden py-2">
-      <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <h1 className="text-xl font-black tracking-tight md:text-2xl">
-          {analysis.slideZero?.title || 'Everything together'}
-        </h1>
-        <span className="text-[13px] text-white/40">
-          {board.length} {board.length === 1 ? 'finding' : 'findings'}
-          {fileName ? ` · ${fileName}` : ''}
-        </span>
-      </div>
-
 
       {/*
         * The arrangement the dashboard was left in, not a grid of its charts.
@@ -629,6 +620,12 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
               height: CANVAS_HEIGHT,
               transform: `scale(${boardScale})`,
               transformOrigin: 'top left',
+              // Centred in both directions. A sixteen-by-nine page in a slide
+              // area wider than that has room left over whatever it does with
+              // it; left-aligned, all of it piles up on the right and the board
+              // looks abandoned in the corner.
+              marginLeft: Math.max(0, (room.width - CANVAS_WIDTH * boardScale) / 2),
+              marginTop: Math.max(0, (room.height - CANVAS_HEIGHT * boardScale) / 2),
             }}
             className="relative"
           >
@@ -759,6 +756,7 @@ function BoardTile({ item }) {
             colors={item.chart?.colors}
             labels={item.chart?.labels}
             colorBy={item.chart?.colorBy}
+            slicerMode={item.chart?.slicerMode}
             xLabel={item.chart?.xAxisLabel}
             yLabel={item.chart?.yAxisLabel}
             compact
