@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ChevronLeft,
@@ -27,6 +27,8 @@ import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
 import useNarration from '../../lib/useNarration';
 import { dashboardScript, slideScript, summaryScript, pickVoice } from '../../lib/speech';
+import { CANVAS_WIDTH, MIN_CANVAS_HEIGHT, canvasHeight, layoutMap, readingOrder } from '../../lib/canvasLayout';
+import { slideLayout } from '../../lib/slideSize';
 
 /**
  * Slides that are not one of the findings: the summary in front, and the board
@@ -476,58 +478,6 @@ function SummarySlide({ slideZero, kpis }) {
  * Titles only, no narrative: every word has already been said, and repeating it
  * in six-point type beside a thumbnail helps nobody.
  */
-/**
- * The grid shape that leaves the fewest empty cells.
- *
- * A fixed three columns put four findings as three and then one, with a quarter
- * of the slide blank beside the orphan. The shape is chosen by how completely
- * it fills instead — four becomes two by two — and ties go to the wider grid,
- * because a slide is wider than it is tall.
- */
-function gridFor(count) {
-  if (count <= 1) return { cols: 1, rows: 1 };
-
-  /**
-   * The shape that gives each chart the most usable box.
-   *
-   * Height is the scarce dimension. A slide is far wider than it is tall, so a
-   * grid with one more row costs every tile a third of its height while a grid
-   * with one more column costs a fifth of its width — and it is height that
-   * decides whether a chart draws a plot or just its own axis labels. Seven
-   * findings laid out three across and three down put one chart alone on the
-   * last row and squeezed the other six into a third of the slide each; four
-   * across and two down gives every one of them half.
-   *
-   * Scored on the tile a shape would produce rather than on the shape itself:
-   * height counts more than linearly, because the difference between 320 pixels
-   * and 220 is the difference between a chart and a label, while the difference
-   * between 320 and 420 is barely visible. Width stops helping past the point
-   * where a chart is comfortable. Empty cells are penalised, so a grid does not
-   * gain a hole to win a few pixels.
-   */
-  const BAND = 2.5;        // the grid area is roughly 16:6
-  const HEIGHT_CAP = 320;  // more than this adds little
-  const WIDTH_CAP = 640;
-
-  let best = null;
-  for (let cols = 1; cols <= 5; cols++) {
-    const rows = Math.ceil(count / cols);
-    if (rows > 3) continue;
-    // Tile proportions in arbitrary units; only their ratio matters.
-    const width = Math.min((BAND * 1000) / cols, WIDTH_CAP);
-    const height = Math.min(1000 / rows, HEIGHT_CAP);
-    const empty = cols * rows - count;
-    const score = height ** 1.5 * width * (1 - 0.2 * empty);
-    // On a tie, the wider layout. Two charts both score the same laid out side
-    // by side or stacked, because each caps out on width and height either way
-    // — and on a slide that is wider than it is tall, side by side is the one a
-    // person would draw.
-    if (!best || score > best.score || (score === best.score && rows < best.rows)) {
-      best = { cols, rows, score };
-    }
-  }
-  return best ? { cols: best.cols, rows: best.rows } : { cols: count, rows: 1 };
-}
 
 /**
  * Whether the deck is being read on a phone rather than projected.
@@ -553,15 +503,35 @@ function DashboardSlide({ analysis, fileName }) {
   const card = analysis.slideZero?.strategicScorecard || {};
 
   /**
-   * A grid that fits, rather than one that scrolls.
+   * The board, at the size the slide can give it.
    *
-   * This used to be a fixed two or three columns with 190px chart tiles and
-   * `overflow-y-auto`, so a deck of nine findings ran off the bottom of the
-   * slide — on the one slide whose entire purpose is showing everything at
-   * once, while presenting, where nobody can scroll for you. The shape is now
-   * chosen from the count, and the rows divide whatever height is left.
+   * The cards carry coordinates on a canvas of fixed logical width, so the only
+   * question here is what that canvas scales to — and it is a different question
+   * from the dashboard's, because a slide is bounded in BOTH directions. The
+   * scale is whichever of the two fits, so the arrangement never runs off the
+   * bottom of the one surface in this product nobody can scroll.
    */
-  const { cols, rows } = gridFor(board.length);
+  const boardRef = useRef(null);
+  const [room, setRoom] = useState({ width: CANVAS_WIDTH, height: MIN_CANVAS_HEIGHT });
+
+  useLayoutEffect(() => {
+    const el = boardRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const measure = () => setRoom({ width: el.clientWidth || CANVAS_WIDTH, height: el.clientHeight || MIN_CANVAS_HEIGHT });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const sizeOf = useCallback((item) => slideLayout(item.size), []);
+  const boardBoxes = useMemo(() => layoutMap(board, sizeOf), [board, sizeOf]);
+  const boardHeight = useMemo(() => canvasHeight([...boardBoxes.values()]), [boardBoxes]);
+  const boardScale = Math.min(room.width / CANVAS_WIDTH, room.height / boardHeight) || 1;
+
+  // How many rows the arrangement occupies, which is all the chrome below needs
+  // to know: a board two rows deep leaves less for the title and the scorecard.
+  const rows = boardHeight > MIN_CANVAS_HEIGHT * 0.75 ? 2 : 1;
 
   /**
    * A phone is not a projector.
@@ -610,53 +580,53 @@ function DashboardSlide({ analysis, fileName }) {
         </div>
       )}
 
-      <div
-        className={`grid min-h-0 flex-1 gap-3 ${narrow ? 'overflow-y-auto' : 'overflow-hidden'}`}
-        style={narrow ? {
-          gridTemplateColumns: 'minmax(0, 1fr)',
-          gridAutoRows: 'minmax(210px, auto)',
-        } : {
-          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          // The rows divide whatever is left, and never ask for more than that.
-          //
-          // A minimum here is what put a scrollbar back on the closing slide: a
-          // floor of 190 per row means two rows demand 392 whether the slide has
-          // it or not, and where it does not the grid overflows the one surface
-          // in the product nobody can scroll — a slide being projected. The
-          // chrome around it gives way instead, below, so the tiles keep a
-          // usable size without the grid ever asking for space it has not got.
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-        }}
-      >
-        {board.map((item) => (
-          <div key={item.id} className="card flex min-h-0 flex-col p-3">
-            <div className="mb-2 truncate text-[13px] font-black text-white/85" title={item.pageTitle}>
-              {item.pageTitle}
-            </div>
-            {/* `min-h-0` again: without it the tile refuses to shrink under the
-                chart's own size and the grid grows past the slide. */}
-            <div className="min-h-0 w-full flex-1">
-              <ChartBoundary resetKey={`board-${item.id}-${item.chart?.chart_type}`}>
-                <LazyChart
-                  data={item.chart?.resultData}
-                  type={item.chart?.chart_type}
-                  xKey={item.chart?.xAxisKey}
-                  yKey={item.chart?.yAxisKey}
-                  secondaryYKey={item.chart?.secondaryYAxisKey}
-                  seriesKey={item.chart?.seriesKey}
-                  seriesSort={item.chart?.seriesSort}
-                  colors={item.chart?.colors}
-                  labels={item.chart?.labels}
-                  colorBy={item.chart?.colorBy}
-                  xLabel={item.chart?.xAxisLabel}
-                  yLabel={item.chart?.yAxisLabel}
-                  compact
-                  eager
-                />
-              </ChartBoundary>
-            </div>
+      {/*
+        * The arrangement the dashboard was left in, not a grid of its charts.
+        *
+        * This slide IS the dashboard, and it used to redraw it as evenly sized
+        * tiles in however many columns fitted — which threw away the one thing
+        * the reader had said about their findings, that this one is the story
+        * and those two are its drivers. The board's own coordinates are scaled
+        * into whatever the slide has room for, so the deck shows the dashboard
+        * that was built rather than a second opinion about it.
+        *
+        * On a phone it stacks, in the order the arrangement reads. See
+        * lib/canvasLayout.js.
+        */}
+      <div className="relative min-h-0 flex-1 overflow-hidden" ref={boardRef}>
+        {narrow ? (
+          <div className="flex h-full flex-col gap-3 overflow-y-auto">
+            {readingOrder(board, sizeOf).map((item) => (
+              <div key={item.id} className="card flex min-h-[210px] flex-col p-3">
+                <BoardTile item={item} />
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <div
+            style={{
+              width: CANVAS_WIDTH,
+              height: boardHeight,
+              transform: `scale(${boardScale})`,
+              transformOrigin: 'top left',
+            }}
+            className="relative"
+          >
+            {board.map((item) => {
+              const box = boardBoxes.get(String(item.id));
+              if (!box) return null;
+              return (
+                <div
+                  key={item.id}
+                  style={{ position: 'absolute', left: box.x, top: box.y, width: box.w, height: box.h }}
+                  className="card flex flex-col p-3"
+                >
+                  <BoardTile item={item} />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className={`grid gap-3 md:grid-cols-3 ${tight ? 'mt-2' : 'mt-4'}`}>
@@ -738,6 +708,39 @@ function ChartSlide({ slide }) {
         </ChartBoundary>
       </div>
     </div>
+  );
+}
+
+/** One finding on the board: its name, and its chart under it. */
+function BoardTile({ item }) {
+  return (
+    <>
+      <div className="mb-2 truncate text-[13px] font-black text-white/85" title={item.pageTitle}>
+        {item.pageTitle}
+      </div>
+      {/* `min-h-0`: without it the tile refuses to shrink under the chart's own
+          size and grows past the box it was given. */}
+      <div className="min-h-0 w-full flex-1">
+        <ChartBoundary resetKey={`board-${item.id}-${item.chart?.chart_type}`}>
+          <LazyChart
+            data={item.chart?.resultData}
+            type={item.chart?.chart_type}
+            xKey={item.chart?.xAxisKey}
+            yKey={item.chart?.yAxisKey}
+            secondaryYKey={item.chart?.secondaryYAxisKey}
+            seriesKey={item.chart?.seriesKey}
+            seriesSort={item.chart?.seriesSort}
+            colors={item.chart?.colors}
+            labels={item.chart?.labels}
+            colorBy={item.chart?.colorBy}
+            xLabel={item.chart?.xAxisLabel}
+            yLabel={item.chart?.yAxisLabel}
+            compact
+            eager
+          />
+        </ChartBoundary>
+      </div>
+    </>
   );
 }
 

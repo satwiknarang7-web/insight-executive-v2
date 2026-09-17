@@ -46,8 +46,11 @@ import NarrationNote from '../../../components/panels/NarrationNote';
 import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
-import { slideLayout, slideStyle } from '../../../lib/slideSize';
-import CardResizer from '../../../components/panels/CardResizer';
+import { slideLayout } from '../../../lib/slideSize';
+
+/** The least room a plot can be drawn in, whatever is above and below it. */
+const MIN_PLOT_HEIGHT = 120;
+import DashboardCanvas from '../../../components/panels/DashboardCanvas';
 
 export default function DashboardPage() {
   const { dataset, status, preparation } = useDataset();
@@ -626,40 +629,51 @@ export default function DashboardPage() {
           <Collapse open={showFindings} onToggle={() => setShowFindings((v) => !v)} label="findings" />
         </div>
 
-        {/* Six columns on a desktop, and each card claims a share of them —
-            see `lib/slideSize.js`. A deck that sets no size lays out two
-            across, exactly as every deck did before sizing existed. */}
         {/*
-          * The deck stays put while a filter is recomputing.
+          * The board, as an arrangement rather than a queue.
           *
-          * Nothing is unmounted and nothing is replaced by a spinner: the charts
-          * on screen are the previous slice's, they are about to become this
-          * one's, and a chart that vanishes and comes back has thrown away the
-          * one thing that makes a filter readable — seeing the bars move. The
-          * whole grid just loses a little contrast while the numbers are in
-          * flight, which is the only honest signal that they are.
+          * Cards carry coordinates on a canvas of fixed logical width and the
+          * canvas is scaled to the room available — see lib/canvasLayout.js. A
+          * deck that has never been arranged is flowed across it at the widths
+          * its cards already had, so an existing dashboard opens as the
+          * dashboard it was and is a canvas from the first drag.
+          *
+          * It stays put while a filter is recomputing. Nothing is unmounted and
+          * nothing is replaced by a spinner: the charts on screen are the
+          * previous slice's and they are about to become this one's, and a
+          * chart that vanishes and comes back has thrown away the one thing
+          * that makes a filter readable — seeing the bars move. The board just
+          * loses a little contrast while the numbers are in flight.
           */}
         {showFindings && (
-        <div
-          className={`grid grid-cols-1 gap-4 transition-opacity duration-200 md:grid-cols-2 xl:grid-cols-6 ${
-            filtering ? 'opacity-60' : 'opacity-100'
-          }`}
-        >
-          {storyboard.map((slide, i) => (
-            <FindingCard
-              key={slide.id || i}
-              slide={slide}
-              index={i}
-              total={storyboard.length}
-              editing={editing}
-              filters={filters}
-              filterContext={filterContext}
-              onSelect={selectValue}
-              onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
-              onDelete={() => deleteSlide(slide.id)}
-              onEdit={(patch) => editSlide(slide.id, patch)}
-            />
-          ))}
+        <div className={`transition-opacity duration-200 ${filtering ? 'opacity-60' : 'opacity-100'}`}>
+          <DashboardCanvas
+            slides={storyboard}
+            sizeOf={(slide) => slideLayout(slide.size)}
+            editing={editing}
+            onMove={(id, box) => editSlide(id, { layout: box })}
+          >
+            {({ slide, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown }) => (
+              <FindingCard
+                key={slide.id || index}
+                slide={slide}
+                index={index}
+                total={storyboard.length}
+                editing={editing}
+                filters={filters}
+                filterContext={filterContext}
+                box={box}
+                dragging={dragging}
+                stacked={stacked}
+                onCardPointerDown={onCardPointerDown}
+                onResizePointerDown={onResizePointerDown}
+                onSelect={selectValue}
+                onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
+                onDelete={() => deleteSlide(slide.id)}
+                onEdit={(patch) => editSlide(slide.id, patch)}
+              />
+            )}
+          </DashboardCanvas>
         </div>
         )}
       </section>
@@ -852,7 +866,23 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
  * the first click into a text field would navigate away from the page. In edit
  * mode the same markup is wrapped in a plain div instead.
  */
-function FindingCard({ slide, index, total, editing, filters, filterContext, onSelect, onClearFilter, onDelete, onEdit }) {
+function FindingCard({
+  slide,
+  index,
+  total,
+  editing,
+  filters,
+  filterContext,
+  box,
+  dragging = false,
+  stacked = false,
+  onCardPointerDown,
+  onResizePointerDown,
+  onSelect,
+  onClearFilter,
+  onDelete,
+  onEdit,
+}) {
   /**
    * Can a click on this chart be turned into a filter?
    *
@@ -861,7 +891,6 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
    * at a text field.
    */
   const target = editing ? null : clickTarget(slide.chart, filterContext);
-  const layout = slideLayout(slide.size);
   // A filter tile is a control, not a claim. It still runs a query and still
   // gets a finding written about it — "Month-to-month leads contract types on
   // record count" — and that sentence under a row of checkboxes is the app
@@ -871,22 +900,34 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
   // was clicked, so the others can be dimmed rather than listed.
   const kept = target?.kind === 'values' ? selectedValues(filters || [], target.column) : [];
   const picked = target?.multi ? kept : kept[0] ?? null;
-  // The tile's share of the row travels as two custom properties; the class
-  // decides which one this viewport can honour. See globals.css.
+  /**
+   * Where this card is.
+   *
+   * On the canvas that is an absolute box in canvas units; stacked on a narrow
+   * screen it is a card in a column that keeps its height and takes whatever
+   * width there is. The wrapper is a link to the write-up outside edit mode and
+   * a plain div inside it, because a card full of text fields cannot also be a
+   * link.
+   */
+  const placement = stacked
+    ? { position: 'relative', height: box?.h }
+    : { position: 'absolute', left: box?.x, top: box?.y, width: box?.w, height: box?.h };
+
   const Wrapper = editing ? 'div' : Link;
-  const wrapperProps = editing
-    ? {
-        'data-card': true,
-        style: slideStyle(layout),
-        className: 'card slide-tile relative flex flex-col overflow-hidden p-5',
-      }
-    : {
-        'data-card': true,
-        style: slideStyle(layout),
-        href: `/insight/${slide.id || `slide_${index + 1}`}`,
-        className:
-          'group card slide-tile relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
-      };
+  const wrapperProps = {
+    'data-card': true,
+    style: placement,
+    onPointerDown: editing && !stacked ? onCardPointerDown : undefined,
+    className: [
+      'card relative flex flex-col overflow-hidden p-5',
+      editing && !stacked ? 'cursor-grab select-none' : '',
+      dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : '',
+      editing ? '' : 'group transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
+    ]
+      .filter(Boolean)
+      .join(' '),
+  };
+  if (!editing) wrapperProps.href = `/insight/${slide.id || `slide_${index + 1}`}`;
 
   return (
     <Wrapper {...wrapperProps}>
@@ -959,16 +1000,12 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
         * card — the title, the sentence, the chevron — still opens the
         * write-up, which is where that behaviour was worth keeping.
         */}
+      {/* The plot takes whatever the card has left once the title and the
+          sentence have had theirs, because on a canvas the card's height is the
+          thing being dragged and the chart is what that height is for. */}
       <div
-        // `flex-none`: the card is a flex column, and a flex item's height is a
-        // suggestion until it is told not to grow or shrink. Without it a
-        // dragged height was ignored in favour of whatever the row's tallest
-        // card had settled on.
-        className="mt-4 flex-none"
-        // A dragged height, so it is a number rather than a class. The
-        // transition is what makes a drag feel like it is moving the edge
-        // rather than redrawing the card at each step.
-        style={{ height: layout.height, transition: 'height 120ms ease-out' }}
+        className="mt-4 min-h-0 flex-1"
+        style={{ minHeight: MIN_PLOT_HEIGHT }}
         onClick={
           target
             ? (e) => {
@@ -1017,13 +1054,21 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
         />
       )}
 
-      {/* Sizing lives in edit mode with every other change to the deck. */}
-      {editing && (
-        <CardResizer
-          layout={layout}
-          label={slide.pageTitle || 'this finding'}
-          onResize={(next) => onEdit({ size: next })}
-        />
+      {/* The corner. Sizing lives in edit mode with every other change to the
+          deck, and the canvas owns the gesture — this is the grip it reads. */}
+      {editing && !stacked && (
+        <button
+          type="button"
+          data-no-drag
+          aria-label={`Resize ${slide.pageTitle || 'this finding'}`}
+          title="Drag to resize"
+          onPointerDown={onResizePointerDown}
+          className="absolute bottom-1 right-1 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded text-white/20 transition-colors hover:text-accent-400"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M11 1 1 11M11 5 5 11M11 9 9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
       )}
     </Wrapper>
   );
