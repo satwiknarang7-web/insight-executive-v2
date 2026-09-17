@@ -35,6 +35,7 @@ import {
   TABLE,
 } from '../../lib/pipeline.js';
 import { planKpis } from '../../lib/analystPlanner.js';
+import { filterWhere } from '../../lib/filters.js';
 import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
@@ -1314,7 +1315,7 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
  * the Ask page. Filtering the deck the worker last planned would quietly undo
  * all of that.
  */
-function refilter(id, { specs = [], where = '' } = {}) {
+function refilter(id, { specs = [], filters = [] } = {}) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
@@ -1322,21 +1323,37 @@ function refilter(id, { specs = [], where = '' } = {}) {
 
   const context = state.analysisContext || {};
   const all = state.view.rows;
-  let rows = all;
 
-  if (where) {
-    // The filter is a query over the analysis view, run the same way every
-    // other number here is — so the rows behind a filtered figure can be
-    // reproduced by anybody with the SQL the page is showing them.
+  /**
+   * The rows a filter set leaves, as a query.
+   *
+   * Run the same way every other number here is, so the rows behind a filtered
+   * figure can be reproduced by anybody holding the SQL the page is showing
+   * them. Cached by clause because the board asks for two or three different
+   * ones: the whole filter for the charts, and the filter minus its own column
+   * for each slicer.
+   */
+  const cache = new Map();
+  const rowsWhere = (clause) => {
+    if (!clause) return all;
+    if (cache.has(clause)) return cache.get(clause);
     const mounted = mountTables({ tables: sourceRows(), view: all });
     try {
-      rows = runSql(`SELECT * FROM ${TABLE} WHERE ${where}`);
-    } catch (e) {
+      const rows = runSql(`SELECT * FROM ${TABLE} WHERE ${clause}`);
+      cache.set(clause, rows);
+      return rows;
+    } finally {
       unmountTables(mounted);
-      reply(id, 'error', { message: `That filter could not be applied: ${e.message}` });
-      return;
     }
-    unmountTables(mounted);
+  };
+
+  const where = filterWhere(filters);
+  let rows;
+  try {
+    rows = rowsWhere(where);
+  } catch (e) {
+    reply(id, 'error', { message: `That filter could not be applied: ${e.message}` });
+    return;
   }
 
   // Nothing left is not an error — it is an answer, and the dashboard says so
@@ -1348,10 +1365,31 @@ function refilter(id, { specs = [], where = '' } = {}) {
 
   const mounted = mountTables({ tables: sourceRows(), view: rows });
   try {
-    const charts = executeCharts(
-      specs.map((c, i) => ({ ...c, id: c.id || `slide_${i + 1}` })),
-      rows
-    );
+    const ready = specs.map((c, i) => ({ ...c, id: c.id || `slide_${i + 1}` }));
+
+    /**
+     * A filter tile is not filtered by itself.
+     *
+     * Its rows ARE its checkboxes, so running it under its own filter leaves
+     * one ticked value and no way back to the others. Every other filter still
+     * applies to it — which is what makes the counts beside the boxes true of
+     * what is on screen.
+     */
+    const slicers = ready.filter((c) => c.chart_type === 'slicer' && c.xAxisKey);
+    const others = ready.filter((c) => !slicers.includes(c));
+
+    const charts = executeCharts(others, rows);
+    for (const slicer of slicers) {
+      const clause = filterWhere(filters.filter((f) => f.column !== slicer.xAxisKey));
+      const own = clause === where ? rows : rowsWhere(clause);
+      const mountedOwn = mountTables({ tables: sourceRows(), view: own });
+      try {
+        charts.push(...executeCharts([slicer], own));
+      } finally {
+        unmountTables(mountedOwn);
+      }
+    }
+
     const { perChart } = analyzeStoryboard(charts, rows, context.confidence || null);
     const kpis = planKpis(rows, {
       provenance: context.provenance || {},

@@ -83,6 +83,13 @@ export default function DonutChart({
           // clicked, which is what a filter needs anyway.
           onClick={onSelect ? (entry) => onSelect(entry?.payload?.[nameKey] ?? entry?.[nameKey]) : undefined}
           cursor={onSelect ? 'pointer' : undefined}
+          // One duration across the filterable charts, so a filter looks like
+          // one movement rather than each tile easing at its own speed.
+          // Recharts interpolates from the bars that were there, which is what
+          // makes a filter readable: the height that changed is the answer.
+          animationBegin={0}
+          animationDuration={420}
+          animationEasing="ease-out"
           data={data}
           dataKey={valueKey}
           nameKey={nameKey}

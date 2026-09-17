@@ -156,6 +156,7 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
     setVals((current) => {
       const next = {};
       req.measures.forEach((slot, i) => {
+        if (slot.fixed) return;
         next[slot.key] = current[slot.key] || pickMeasure(i, measures);
       });
       return next;
@@ -390,7 +391,9 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
       )}
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {requirement.measures.map((slot) => (
+        {/* A fixed slot is not a choice — a filter tile counts rows and there is
+            nothing to ask. See `fixed` in lib/chartSpecs.js. */}
+        {requirement.measures.filter((slot) => !slot.fixed).map((slot) => (
           <MeasureField
             key={slot.key}
             slot={slot}

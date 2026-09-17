@@ -30,7 +30,7 @@ import ProgressPanel from '../../../components/panels/ProgressPanel';
 import { exclusionNotice } from '../../../lib/voidRows';
 import PageFrame from '../../../components/shell/PageFrame';
 import FilterBar from '../../../components/panels/FilterBar';
-import { applyClick, clickTarget, isSelected } from '../../../lib/filters';
+import { applyClick, clearColumn, clickTarget, selectedValues } from '../../../lib/filters';
 import Collapse from '../../../components/shell/Collapse';
 import { usePlan } from '../../../lib/store/PlanProvider';
 import LazyChart from '../../../components/charts/LazyChart';
@@ -46,11 +46,12 @@ import NarrationNote from '../../../components/panels/NarrationNote';
 import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
-import { SLIDE_SIZES, slideSize } from '../../../lib/slideSize';
+import { slideLayout, slideStyle } from '../../../lib/slideSize';
+import CardResizer from '../../../components/panels/CardResizer';
 
 export default function DashboardPage() {
   const { dataset, status, preparation } = useDataset();
-  const { analysis, narrating, filters } = useAnalysis();
+  const { analysis, narrating, filters, filtering } = useAnalysis();
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
   const customMeasures = useMeasures();
@@ -337,7 +338,12 @@ export default function DashboardPage() {
       {/* KPI strip. Kept on screen while editing even when empty, so deleting
           the last card does not also remove the way to add one back. */}
       {(kpis?.length > 0 || editing) && (
-        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4" data-tutorial="dashboard-kpis">
+        <div
+          className={`mb-8 grid grid-cols-2 gap-3 transition-opacity duration-200 lg:grid-cols-4 ${
+            filtering ? 'opacity-60' : 'opacity-100'
+          }`}
+          data-tutorial="dashboard-kpis"
+        >
           {(kpis || []).map((k, i) => (
             <KpiCard
               key={`${k.origLabel || k.label}-${i}`}
@@ -623,8 +629,22 @@ export default function DashboardPage() {
         {/* Six columns on a desktop, and each card claims a share of them —
             see `lib/slideSize.js`. A deck that sets no size lays out two
             across, exactly as every deck did before sizing existed. */}
+        {/*
+          * The deck stays put while a filter is recomputing.
+          *
+          * Nothing is unmounted and nothing is replaced by a spinner: the charts
+          * on screen are the previous slice's, they are about to become this
+          * one's, and a chart that vanishes and comes back has thrown away the
+          * one thing that makes a filter readable — seeing the bars move. The
+          * whole grid just loses a little contrast while the numbers are in
+          * flight, which is the only honest signal that they are.
+          */}
         {showFindings && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <div
+          className={`grid grid-cols-1 gap-4 transition-opacity duration-200 md:grid-cols-2 xl:grid-cols-6 ${
+            filtering ? 'opacity-60' : 'opacity-100'
+          }`}
+        >
           {storyboard.map((slide, i) => (
             <FindingCard
               key={slide.id || i}
@@ -635,6 +655,7 @@ export default function DashboardPage() {
               filters={filters}
               filterContext={filterContext}
               onSelect={selectValue}
+              onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
               onDelete={() => deleteSlide(slide.id)}
               onEdit={(patch) => editSlide(slide.id, patch)}
             />
@@ -831,7 +852,7 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
  * the first click into a text field would navigate away from the page. In edit
  * mode the same markup is wrapped in a plain div instead.
  */
-function FindingCard({ slide, index, total, editing, filters, filterContext, onSelect, onDelete, onEdit }) {
+function FindingCard({ slide, index, total, editing, filters, filterContext, onSelect, onClearFilter, onDelete, onEdit }) {
   /**
    * Can a click on this chart be turned into a filter?
    *
@@ -840,18 +861,31 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
    * at a text field.
    */
   const target = editing ? null : clickTarget(slide.chart, filterContext);
-  const picked =
-    target && target.kind === 'values'
-      ? (filters || []).find((f) => f.column === target.column && f.kind === 'values')?.values?.[0] ?? null
-      : null;
-  const size = slideSize(slide.size);
-  // The span class carries the card's share of the row at every breakpoint.
+  const layout = slideLayout(slide.size);
+  // A filter tile is a control, not a claim. It still runs a query and still
+  // gets a finding written about it — "Month-to-month leads contract types on
+  // record count" — and that sentence under a row of checkboxes is the app
+  // reading its own furniture back to the reader.
+  const isSlicer = slide.chart?.chart_type === 'slicer';
+  // A slicer shows every value it is keeping; a bar chart shows the one that
+  // was clicked, so the others can be dimmed rather than listed.
+  const kept = target?.kind === 'values' ? selectedValues(filters || [], target.column) : [];
+  const picked = target?.multi ? kept : kept[0] ?? null;
+  // The tile's share of the row travels as two custom properties; the class
+  // decides which one this viewport can honour. See globals.css.
   const Wrapper = editing ? 'div' : Link;
   const wrapperProps = editing
-    ? { className: `card relative flex flex-col overflow-hidden p-5 ${size.span}` }
+    ? {
+        'data-card': true,
+        style: slideStyle(layout),
+        className: 'card slide-tile relative flex flex-col overflow-hidden p-5',
+      }
     : {
+        'data-card': true,
+        style: slideStyle(layout),
         href: `/insight/${slide.id || `slide_${index + 1}`}`,
-        className: `group card relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035] ${size.span}`,
+        className:
+          'group card slide-tile relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
       };
 
   return (
@@ -867,10 +901,12 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
             {slide.custom && <span className="text-accent-400/70">· yours</span>}
             {!slide.custom && slide.edits?.length > 0 && <span className="text-accent-400/70">· edited</span>}
             {slide.analystNotes && <StickyNote size={10} className="text-amber-400/70" />}
-            <EvidenceBadge
-              tier={slide.findings?.metrics?.evidence}
-              notes={slide.findings?.metrics?.evidenceNotes}
-            />
+            {!isSlicer && (
+              <EvidenceBadge
+                tier={slide.findings?.metrics?.evidence}
+                notes={slide.findings?.metrics?.evidenceNotes}
+              />
+            )}
           </div>
           <EditableText
             as="h3"
@@ -887,22 +923,6 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
               does not navigate — which also removed the only route to the chart
               editor, where what a chart measures can be changed. This is that
               route, and it is a link rather than a second copy of the editor. */}
-          {editing && (
-            <label className="flex items-center" title="How much of the row this finding takes">
-              <span className="sr-only">Card size for {slide.pageTitle}</span>
-              <select
-                value={size.id}
-                onChange={(e) => onEdit({ size: e.target.value })}
-                className="rounded-lg border border-white/10 bg-white/5 px-1.5 py-1 text-[11px] font-medium text-white/60 outline-none focus:border-accent-500/50"
-              >
-                {SLIDE_SIZES.map((s) => (
-                  <option key={s.id} value={s.id} className="bg-surface">
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
           {editing && (
             <Link
               href={`/insight/${slide.id || `slide_${index + 1}`}`}
@@ -940,7 +960,15 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
         * write-up, which is where that behaviour was worth keeping.
         */}
       <div
-        className={`mt-4 ${size.height}`}
+        // `flex-none`: the card is a flex column, and a flex item's height is a
+        // suggestion until it is told not to grow or shrink. Without it a
+        // dragged height was ignored in favour of whatever the row's tallest
+        // card had settled on.
+        className="mt-4 flex-none"
+        // A dragged height, so it is a number rather than a class. The
+        // transition is what makes a drag feel like it is moving the edge
+        // rather than redrawing the card at each step.
+        style={{ height: layout.height, transition: 'height 120ms ease-out' }}
         onClick={
           target
             ? (e) => {
@@ -967,19 +995,14 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
             yLabel={slide.chart?.yAxisLabel}
             compact
             eager={index < 2}
-            onSelect={
-              target
-                ? (value) => {
-                    onSelect(target, value);
-                  }
-                : null
-            }
+            onSelect={target ? (value) => onSelect(target, value) : null}
             selected={picked}
+            onClearSelection={target?.multi ? () => onClearFilter(target.column) : null}
           />
         </ChartBoundary>
       </div>
 
-      {(slide.insight_anchor || editing) && (
+      {!isSlicer && (slide.insight_anchor || editing) && (
         <EditableText
           as="p"
           editing={editing}
@@ -991,6 +1014,15 @@ function FindingCard({ slide, index, total, editing, filters, filterContext, onS
           multiline
           rows={2}
           className={`mt-4 text-[13px] leading-relaxed text-white/45 ${editing ? '' : 'line-clamp-2'}`}
+        />
+      )}
+
+      {/* Sizing lives in edit mode with every other change to the deck. */}
+      {editing && (
+        <CardResizer
+          layout={layout}
+          label={slide.pageTitle || 'this finding'}
+          onResize={(next) => onEdit({ size: next })}
         />
       )}
     </Wrapper>

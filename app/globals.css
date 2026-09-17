@@ -515,25 +515,30 @@ body {
  * On a phone everything is the full width, because at 375px there is no such
  * thing as a third of a row.
  * --------------------------------------------------------------------------- */
-.slide-small,
-.slide-medium,
-.slide-large,
-.slide-full {
+/*
+ * How wide one dashboard card is.
+ *
+ * The card carries its width as two custom properties rather than as a class,
+ * because the width is now dragged rather than chosen from a list and there is
+ * no class for "four columns at one breakpoint and two at the next". JS writes
+ * both numbers — see `slideStyle` in lib/slideSize.js — and this picks the one
+ * the viewport can honour: every card is full width on a phone, at most half on
+ * a tablet, and as many of the six columns as it was given on a desktop.
+ */
+.slide-tile {
   grid-column: span 1;
 }
 
 @media (min-width: 768px) {
-  .slide-large,
-  .slide-full {
-    grid-column: span 2;
+  .slide-tile {
+    grid-column: span var(--span-md, 2);
   }
 }
 
 @media (min-width: 1280px) {
-  .slide-small { grid-column: span 2; }
-  .slide-medium { grid-column: span 3; }
-  .slide-large { grid-column: span 4; }
-  .slide-full { grid-column: span 6; }
+  .slide-tile {
+    grid-column: span var(--span-xl, 3);
+  }
 }
 
 /*

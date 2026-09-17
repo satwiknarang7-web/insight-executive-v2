@@ -56,6 +56,7 @@ export default function LazyChart({
   // cannot name the column behind its axis — see `clickTarget` in lib/filters.
   onSelect = null,
   selected = null,
+  onClearSelection = null,
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
@@ -104,10 +105,13 @@ export default function LazyChart({
     () => (onSelect ? (value) => onSelect(back.get(String(value)) ?? value) : null),
     [onSelect, back]
   );
-  const shownSelected = useMemo(
-    () => (selected === null || selected === undefined ? null : (labels?.[selected] || selected)),
-    [selected, labels]
-  );
+  const shownSelected = useMemo(() => {
+    if (selected === null || selected === undefined) return null;
+    // A slicer's selection is a list of the column's own values, which are
+    // exactly what its rows hold — nothing to map back.
+    if (Array.isArray(selected)) return selected;
+    return labels?.[selected] || selected;
+  }, [selected, labels]);
 
   useEffect(() => {
     if (eager || visible) return;
@@ -156,6 +160,7 @@ export default function LazyChart({
             compact={compact}
             onSelect={select}
             selected={shownSelected}
+            onClearSelection={onClearSelection}
           />
         </ChartPalette>
       ) : (

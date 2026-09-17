@@ -122,7 +122,7 @@ export default function BarChart({
           maxBarSize={40}
           name={yKey}
           animationBegin={0}
-          animationDuration={450}
+          animationDuration={420}
           animationEasing="ease-out"
           // The click handler belongs on the series, not on the Cell.
           //

@@ -21,6 +21,7 @@ import {
   MatrixVisual,
   GeoMap,
 } from './index';
+import SlicerTile from './SlicerTile';
 import { pivotSeries } from '../../lib/chartSeries';
 import { MAX_SERIES, foldToOther } from '../../lib/chartPalette';
 import { resolveChart } from '../../lib/chartResolver';
@@ -55,6 +56,7 @@ export default function DynamicChart({
   // asked.
   onSelect = null,
   selected = null,
+  onClearSelection = null,
 }) {
   if (!data || data.length === 0) return null;
 
@@ -149,6 +151,21 @@ export default function DynamicChart({
       return <KpiVisual data={data} xKey={x} yKey={y} target={target} />;
     case 'table':
       return <TableVisual data={data} />;
+    /* A filter tile. `selected` is a list here rather than one value — a slicer
+       keeps several — and `onSelect` ticks one box. Outside the dashboard both
+       are absent, which is the same tile, read-only: a deck being presented
+       shows what was filtered, it does not offer to change it. */
+    case 'slicer':
+      return (
+        <SlicerTile
+          data={data}
+          nameKey={x}
+          valueKey={y}
+          selected={Array.isArray(selected) ? selected : []}
+          onToggle={onSelect}
+          onClear={onClearSelection}
+        />
+      );
     case 'matrix':
       return <MatrixVisual data={data} xKey={x} yKey={y} columnKey={seriesKey || secondaryKey} />;
     case 'radial':
