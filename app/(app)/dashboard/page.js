@@ -76,6 +76,41 @@ export default function DashboardPage() {
     (target, value) => applyFilters(applyClick(filters || [], target, value)),
     [applyFilters, filters]
   );
+
+  /**
+   * Everything on the board, as one list.
+   *
+   * The cards and the findings are different things to render and the same
+   * thing to place, so the canvas is handed one list and told how to size it.
+   * A card carries `kpiIndex` because that is how it is edited — the KPI list
+   * is an array and its entries have no ids of their own until one is composed
+   * for them.
+   */
+  const tiles = useMemo(() => {
+    const cards = (analysis?.kpis || []).map((kpi, i) => ({
+      ...kpi,
+      id: kpi.id || `kpi_${i + 1}`,
+      kpiIndex: i,
+      layout: kpi.layout || null,
+    }));
+    return [...cards, ...(analysis?.storyboard || [])];
+  }, [analysis?.kpis, analysis?.storyboard]);
+
+  // Which finding a card is, for the "3 of 9" on its header. Counted over the
+  // findings alone: a KPI card is not one of them.
+  const findingIndex = useMemo(
+    () => new Map((analysis?.storyboard || []).map((slide, i) => [slide.id, i])),
+    [analysis?.storyboard]
+  );
+
+  const moveTile = useCallback(
+    (id, box) => {
+      const card = (analysis?.kpis || []).findIndex((kpi, i) => (kpi.id || `kpi_${i + 1}`) === id);
+      if (card > -1) editKpi(card, { layout: box });
+      else editSlide(id, { layout: box });
+    },
+    [analysis?.kpis, editKpi, editSlide]
+  );
   const router = useRouter();
   const { can: planAllows } = usePlan();
   const [building, setBuilding] = useState(false);
@@ -249,6 +284,14 @@ export default function DashboardPage() {
           >
             <Plus size={13} /> New chart
           </button>
+          {/* A card is a tile now, so it is added the way a chart is rather
+              than from a slot at the end of a strip that no longer exists. */}
+          <button
+            onClick={() => createKpi()}
+            className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white sm:min-h-0"
+          >
+            <Plus size={13} /> New card
+          </button>
           <button
             onClick={() => setSaving(true)}
             className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
@@ -300,43 +343,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* KPI strip. Kept on screen while editing even when empty, so deleting
-          the last card does not also remove the way to add one back. */}
-      {(kpis?.length > 0 || editing) && (
-        <div
-          className={`mb-8 grid grid-cols-2 gap-3 transition-opacity duration-200 lg:grid-cols-4 ${
-            filtering ? 'opacity-60' : 'opacity-100'
-          }`}
-          data-tutorial="dashboard-kpis"
-        >
-          {(kpis || []).map((k, i) => (
-            <KpiCard
-              key={`${k.origLabel || k.label}-${i}`}
-              kpi={k}
-              index={i}
-              editing={editing}
-              measures={measures}
-              customMeasures={customMeasures}
-              onEdit={(patch) => editKpi(i, patch)}
-              onCompute={(source) => computeKpi(i, source)}
-              onDelete={() => deleteKpi(i)}
-            />
-          ))}
-
-          {editing && (
-            <button
-              type="button"
-              aria-label="Add a card"
-              title="Add a card"
-              onClick={() => createKpi()}
-              className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 p-4 text-white/35 transition-colors hover:border-accent-500/40 hover:bg-accent-500/[0.06] hover:text-accent-300"
-            >
-              <Plus size={16} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Add a card</span>
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Chart grid */}
       <section data-tutorial="dashboard-findings">
@@ -368,31 +374,50 @@ export default function DashboardPage() {
         {showFindings && (
         <div className={`transition-opacity duration-200 ${filtering ? 'opacity-60' : 'opacity-100'}`}>
           <DashboardCanvas
-            slides={storyboard}
-            sizeOf={(slide) => slideLayout(slide.size)}
+            slides={tiles}
+            sizeOf={(tile) => slideLayout(tile.size)}
             editing={editing}
-            onMove={(id, box) => editSlide(id, { layout: box })}
+            onMove={moveTile}
           >
-            {({ slide, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown }) => (
-              <FindingCard
-                key={slide.id || index}
-                slide={slide}
-                index={index}
-                total={storyboard.length}
-                editing={editing}
-                filters={filters}
-                filterContext={filterContext}
-                box={box}
-                dragging={dragging}
-                stacked={stacked}
-                onCardPointerDown={onCardPointerDown}
-                onResizePointerDown={onResizePointerDown}
-                onSelect={selectValue}
-                onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
-                onDelete={() => deleteSlide(slide.id)}
-                onEdit={(patch) => editSlide(slide.id, patch)}
-              />
-            )}
+            {({ slide: tile, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown }) =>
+              tile.kpiIndex === undefined ? (
+                <FindingCard
+                  key={tile.id || index}
+                  slide={tile}
+                  index={findingIndex.get(tile.id) ?? 0}
+                  total={storyboard.length}
+                  editing={editing}
+                  filters={filters}
+                  filterContext={filterContext}
+                  box={box}
+                  dragging={dragging}
+                  stacked={stacked}
+                  onCardPointerDown={onCardPointerDown}
+                  onResizePointerDown={onResizePointerDown}
+                  onSelect={selectValue}
+                  onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
+                  onDelete={() => deleteSlide(tile.id)}
+                  onEdit={(patch) => editSlide(tile.id, patch)}
+                />
+              ) : (
+                <KpiTile
+                  key={tile.id || index}
+                  kpi={tile}
+                  index={tile.kpiIndex}
+                  editing={editing}
+                  measures={measures}
+                  customMeasures={customMeasures}
+                  box={box}
+                  dragging={dragging}
+                  stacked={stacked}
+                  onCardPointerDown={onCardPointerDown}
+                  onResizePointerDown={onResizePointerDown}
+                  onEdit={(patch) => editKpi(tile.kpiIndex, patch)}
+                  onCompute={(source) => computeKpi(tile.kpiIndex, source)}
+                  onDelete={() => deleteKpi(tile.kpiIndex)}
+                />
+              )
+            }
           </DashboardCanvas>
         </div>
         )}
@@ -440,7 +465,29 @@ export default function DashboardPage() {
  * "renamed" and "redrawn" are what happened, and a reader who sees a heading
  * they did not write needs to be told which of the two it was.
  */
-function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, onCompute, onDelete }) {
+/**
+ * One number, as a tile on the board.
+ *
+ * It was a card in a strip above the canvas, which meant the one part of a
+ * dashboard people arrange first — the row of numbers along the top — was the
+ * one part that could not be arranged at all. It is placed, sized and dragged
+ * like every other tile now; what is inside it has not changed.
+ */
+function KpiTile({
+  kpi,
+  index,
+  editing,
+  measures,
+  customMeasures = [],
+  box,
+  dragging = false,
+  stacked = false,
+  onCardPointerDown,
+  onResizePointerDown,
+  onEdit,
+  onCompute,
+  onDelete,
+}) {
   // One dropdown covers both kinds of source, so a measure is picked exactly
   // where a plain aggregate is. Measures are prefixed to keep the two apart.
   const [metric, setMetric] = useState(kpi.source?.measureId ? `measure:${kpi.source.measureId}` : kpi.source?.metric || '');
@@ -475,11 +522,23 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
     compute(metric, value);
   };
 
+  const placement = stacked
+    ? { position: 'relative', height: box?.h }
+    : { position: 'absolute', left: box?.x, top: box?.y, width: box?.w, height: box?.h };
+
   return (
-    <div className="card relative p-4">
+    <div
+      data-card
+      style={placement}
+      onPointerDown={editing && !stacked ? onCardPointerDown : undefined}
+      className={`card relative flex flex-col justify-center overflow-hidden p-4 ${
+        editing && !stacked ? 'cursor-grab select-none' : ''
+      } ${dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : ''}`}
+    >
       {editing && (
         <button
           type="button"
+          data-no-drag
           aria-label={`Delete the ${kpi.label} card`}
           title="Delete this card"
           onClick={onDelete}
@@ -561,6 +620,22 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
 
           {error && <p className="text-[10px] leading-snug text-rose-400">{error}</p>}
         </div>
+      )}
+
+      {/* The same corner as every other tile. */}
+      {editing && !stacked && (
+        <button
+          type="button"
+          data-no-drag
+          aria-label={`Resize the ${kpi.label} card`}
+          title="Drag to resize"
+          onPointerDown={onResizePointerDown}
+          className="absolute bottom-1 right-1 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded text-white/20 transition-colors hover:text-accent-400"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M11 1 1 11M11 5 5 11M11 9 9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
       )}
     </div>
   );

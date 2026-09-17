@@ -114,34 +114,68 @@ const charts = [
   { id: 'c4', chart_type: 'card' },
 ];
 
-test('the lead finding takes the top of the board, and shape decides the rest', () => {
+test('the board is a grid: full rows, equal cards, equal gutters', () => {
   const boxes = composeBoard(charts, []);
   const lead = boxes.get('c1');
   assert.equal(lead.x, 0);
   assert.equal(lead.y, 0);
   assert.equal(lead.w, CANVAS_WIDTH, 'a trend leading the deck is read across the room');
 
-  // A donut is square whatever else is true; a card is a corner. They share a
-  // width — a quarter each — so it is the heights that separate them: one
-  // number needs less room than a ring with a legend round it.
-  assert.ok(boxes.get('c2').w < lead.w);
-  assert.ok(boxes.get('c4').h < boxes.get('c2').h, 'one number needs less height than a ring');
-  assert.ok(boxes.get('c3').w > boxes.get('c4').w, 'and a bar chart needs more width than a card');
+  // Everything on a row shares its height and its width, and the row ends flush
+  // with the edge — the ragged right and the three different heights are what
+  // this replaced.
+  const rest = ['c2', 'c3', 'c4'].map((id) => boxes.get(id)).filter(Boolean);
+  const rows = new Map();
+  for (const box of rest) {
+    if (!rows.has(box.y)) rows.set(box.y, []);
+    rows.get(box.y).push(box);
+  }
+  for (const row of rows.values()) {
+    assert.equal(new Set(row.map((b) => b.h)).size, 1, 'a row of different heights');
+    // Equal to the pixel the row cannot divide: the last card takes the
+    // rounding so the row ends flush rather than a pixel or two short.
+    const widths = row.map((b) => b.w);
+    assert.ok(Math.max(...widths) - Math.min(...widths) <= 1, 'a row of different widths');
+    const right = Math.max(...row.map((b) => b.x + b.w));
+    assert.equal(right, CANVAS_WIDTH, 'the row does not reach the edge');
+  }
   for (const box of boxes.values()) assert.ok(box.x + box.w <= CANVAS_WIDTH);
+});
+
+test('the cards go across the top, all of them the same', () => {
+  const cards = [{ id: 'k1' }, { id: 'k2' }, { id: 'k3' }, { id: 'k4' }];
+  const boxes = composeBoard(charts, [], cards);
+  const row = cards.map((c) => boxes.get(c.id));
+  assert.ok(row.every((b) => b.y === 0), 'the numbers open the board');
+  assert.equal(new Set(row.map((b) => b.w)).size, 1);
+  assert.equal(new Set(row.map((b) => b.h)).size, 1);
+  assert.ok(boxes.get('c1').y > row[0].h, 'and the charts start under them');
 });
 
 test('a donut leading the deck is not stretched across it', () => {
   const boxes = composeBoard([{ id: 'only', chart_type: 'donut' }], []);
-  assert.ok(boxes.get('only').w < CANVAS_WIDTH, 'a very large donut is not a lead finding');
+  assert.equal(boxes.get('only').w, CANVAS_WIDTH, 'a row of one still fills its row');
+  assert.ok(boxes.get('only').h < 400, 'but it is not given a lead finding’s height');
 });
 
-test('filters go in a rail, and the charts move over to make room', () => {
-  const slicers = [{ id: 'f1', chart_type: 'slicer' }];
-  const boxes = composeBoard(charts, slicers);
-  assert.equal(boxes.get('f1').x, 0);
-  assert.equal(boxes.get('f1').y, 0);
-  assert.ok(boxes.get('c1').x > boxes.get('f1').x, 'the board starts to the right of the rail');
-  assert.ok(boxes.get('c1').w < CANVAS_WIDTH, 'and the lead is narrower for it');
+test('the filters are a strip across the top, like every other row', () => {
+  const slicers = [
+    { id: 'f1', chart_type: 'slicer', values: 3 },
+    { id: 'f2', chart_type: 'slicer', values: 4 },
+  ];
+  const boxes = composeBoard(charts, slicers, [{ id: 'k1' }, { id: 'k2' }]);
+  const strip = slicers.map((s) => boxes.get(s.id));
+
+  assert.ok(strip.every((b) => b.y === 0), 'the filters open the board');
+  assert.equal(new Set(strip.map((b) => b.h)).size, 1, 'and share a height like any row');
+  assert.equal(Math.max(...strip.map((b) => b.x + b.w)), CANVAS_WIDTH, 'the strip reaches the edge');
+
+  // A rail down the side was the other arrangement, and the wrong one: two
+  // filters beside a board 1400 tall either stretch over all of it or stop
+  // somewhere up the side.
+  assert.ok(boxes.get('k1').y >= strip[0].h, 'the numbers sit under the filters');
+  assert.ok(boxes.get('c1').y > boxes.get('k1').y, 'and the charts under those');
+  assert.equal(boxes.get('c1').x, 0, 'nothing is indented around a rail any more');
 });
 
 test('a filter is offered for a column the deck actually breaks numbers down by', () => {

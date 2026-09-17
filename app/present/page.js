@@ -79,6 +79,21 @@ export default function PresentPage() {
   const findings = useMemo(() => board.filter((slide) => slide?.chart?.chart_type !== 'slicer'), [board]);
 
   /**
+   * Everything the board holds: its cards and its findings.
+   *
+   * The card strip used to be drawn above the board here, which put the same
+   * four numbers in a different place in the deck than they are on the
+   * dashboard. They are tiles on the board now, so they arrive with it.
+   */
+  const tiles = useMemo(
+    () => [
+      ...(analysis?.kpis || []).map((kpi, i) => ({ ...kpi, id: kpi.id || `kpi_${i + 1}`, kpiCard: true })),
+      ...board,
+    ],
+    [analysis?.kpis, board]
+  );
+
+  /**
    * And the board is as many slides as it takes.
    *
    * Shrinking a tall board to fit one slide put it in the top-left corner at a
@@ -88,9 +103,9 @@ export default function PresentPage() {
    * knows how long it is before anything has been measured.
    */
   const boardPages = useMemo(() => {
-    const boxes = layoutMap(board, (slide) => slideLayout(slide.size));
+    const boxes = layoutMap(tiles, (tile) => slideLayout(tile.size));
     return paginateBoard([...boxes.entries()].map(([id, box]) => ({ id, box })));
-  }, [board]);
+  }, [tiles]);
 
   const total = findings.length + 1 + boardPages.length;
   const firstBoardPage = findings.length + 1;
@@ -334,7 +349,7 @@ export default function PresentPage() {
         {page === 0 ? (
           <SummarySlide slideZero={analysis.slideZero} />
         ) : onDashboard ? (
-          <DashboardSlide analysis={analysis} fileName={dataset?.fileName} page={boardPage} pages={boardPages} />
+          <DashboardSlide analysis={analysis} tiles={tiles} fileName={dataset?.fileName} page={boardPage} pages={boardPages} />
         ) : (
           <ChartSlide slide={slide} />
         )}
@@ -523,9 +538,8 @@ function useNarrowViewport(query = '(max-width: 767px)') {
   return narrow;
 }
 
-function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
-  const board = analysis.storyboard || [];
-  const kpis = analysis.kpis || [];
+function DashboardSlide({ analysis, tiles = [], fileName, page = 0, pages = [] }) {
+  const board = tiles;
 
   /**
    * The board, at the size the slide can give it.
@@ -602,24 +616,6 @@ function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
         </span>
       </div>
 
-      {/*
-        * The numbers belong with the charts, and once.
-        *
-        * This is where /dashboard keeps them, so it is where the deck keeps
-        * them. On the first page only: a strip repeated on page two is sixty
-        * pixels of every board page spent saying the same four numbers again,
-        * and height is the thing this slide has least of.
-        */}
-      {page === 0 && kpis.length > 0 && (
-        <div className="mb-3 grid shrink-0 grid-cols-2 gap-3 md:grid-cols-4">
-          {kpis.map((k, i) => (
-            <div key={`${k.label}-${i}`} className="card px-3 py-2">
-              <div className="text-lg font-black text-white md:text-xl">{k.value}</div>
-              <div className="label mt-0.5 truncate">{k.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/*
         * The arrangement the dashboard was left in, not a grid of its charts.
@@ -750,6 +746,16 @@ function ChartSlide({ slide }) {
 
 /** One finding on the board: its name, and its chart under it. */
 function BoardTile({ item }) {
+  // A card is a number and its name, and it is on the board like anything else.
+  if (item.kpiCard) {
+    return (
+      <div className="flex h-full flex-col justify-center">
+        <div className="text-2xl font-black text-white md:text-3xl">{item.value}</div>
+        <div className="label mt-1 truncate">{item.label}</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="mb-2 truncate text-[13px] font-black text-white/85" title={item.pageTitle}>

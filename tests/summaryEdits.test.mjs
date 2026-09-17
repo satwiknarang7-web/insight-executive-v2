@@ -107,7 +107,15 @@ test('a card can be added to the strip, blank or filled', () => {
   assert.equal(next[2].custom, true);
 
   const filled = addKpi([], { label: 'Churn', value: '4.2%' });
-  assert.deepEqual(filled, [{ label: 'Churn', value: '4.2%', custom: true }]);
+  assert.equal(filled.length, 1);
+  assert.equal(filled[0].label, 'Churn');
+  assert.equal(filled[0].value, '4.2%');
+  assert.equal(filled[0].custom, true);
+  // A card is a tile on the board, so it is identified rather than counted:
+  // the index it sits at changes the moment one before it is deleted, and its
+  // box would then follow the wrong card.
+  assert.match(filled[0].id, /^kpi_/);
+  assert.notEqual(addKpi([]) [0].id, undefined);
   assert.equal(addKpi(undefined).length, 1, 'an absent strip is still addable');
 });
 
