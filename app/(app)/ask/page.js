@@ -54,13 +54,6 @@ async function mapProblem(spec, sample) {
   }
 }
 
-const GENERIC_EXAMPLES = [
-  'Which category brings in the most revenue?',
-  'How has volume changed over time?',
-  'What is the share of each region?',
-  'Is there a relationship between price and units sold?',
-];
-
 /**
  * Starter questions this dataset can actually answer.
  *
@@ -68,23 +61,42 @@ const GENERIC_EXAMPLES = [
  * and campaigns samples the app ships with were offered a question about
  * revenue and unit price, columns neither of them has. A suggestion that fails
  * on the app's own sample data is worse than no suggestion.
+ *
+ * Writing them from the columns was not enough on its own: a phrasing can name
+ * real columns and still be a shape this page cannot build — "is there a
+ * relationship between A and B" asks for a scatter, and a scatter needs a
+ * column saying what one point is, which that sentence never says. So every
+ * candidate is planned before it is offered, and the ones that come back with a
+ * refusal are not shown. Whatever is on this list, clicking it draws a chart.
  */
-function starterQuestions(profile) {
+function starterQuestions(context) {
+  const profile = context?.profile;
   const measures = profile?.measures || [];
   const temporal = profile?.temporal || [];
   // A date column is listed as a dimension as well as a temporal one, and
   // "Which order_date has the highest revenue?" is not a question anybody asks.
   const dimensions = (profile?.dimensions || []).filter((d) => !temporal.includes(d));
-  const out = [];
+  const candidates = [];
 
-  if (measures[0] && dimensions[0]) out.push(`Which ${dimensions[0]} has the highest ${measures[0]}?`);
-  if (measures[0] && temporal[0]) out.push(`How has ${measures[0]} changed over ${temporal[0]}?`);
-  if (measures[0] && dimensions[1]) out.push(`What is the share of ${measures[0]} by ${dimensions[1]}?`);
-  else if (measures[1] && dimensions[0]) out.push(`What is the share of ${measures[1]} by ${dimensions[0]}?`);
-  if (measures[0] && measures[1]) out.push(`Is there a relationship between ${measures[0]} and ${measures[1]}?`);
-  if (out.length === 0 && dimensions[0]) out.push(`How many rows are there for each ${dimensions[0]}?`);
+  if (measures[0] && dimensions[0]) candidates.push(`Which ${dimensions[0]} has the highest ${measures[0]}?`);
+  if (measures[0] && temporal[0]) candidates.push(`How has ${measures[0]} changed over ${temporal[0]}?`);
+  if (measures[0] && dimensions[1]) candidates.push(`What is the share of ${measures[0]} by ${dimensions[1]}?`);
+  else if (measures[1] && dimensions[0]) candidates.push(`What is the share of ${measures[1]} by ${dimensions[0]}?`);
+  if (measures[0] && measures[1]) candidates.push(`Is there a relationship between ${measures[0]} and ${measures[1]}?`);
+  // Spares, for when one of the above is refused.
+  if (measures[1] && dimensions[0]) candidates.push(`What is the average ${measures[1]} by ${dimensions[0]}?`);
+  if (dimensions[0]) candidates.push(`How many rows are there for each ${dimensions[0]}?`);
 
-  return out.length > 0 ? out.slice(0, 4) : GENERIC_EXAMPLES;
+  return candidates.filter((q) => plannable(q, context)).slice(0, 4);
+}
+
+/** Would this question draw something, asked offline? */
+function plannable(question, context) {
+  try {
+    return Boolean(planQuestion(question, context).spec);
+  } catch {
+    return false;
+  }
 }
 
 export default function AskPage() {
@@ -97,7 +109,16 @@ export default function AskPage() {
   const [answers, setAnswers] = useState([]);
   const [error, setError] = useState(null);
 
-  const examples = useMemo(() => starterQuestions(dataset?.profile), [dataset?.profile]);
+  const examples = useMemo(
+    () =>
+      starterQuestions({
+        columns: dataset?.columns || [],
+        profile: dataset?.profile,
+        sample: dataset?.preview || [],
+        measures,
+      }),
+    [dataset?.columns, dataset?.profile, dataset?.preview, measures]
+  );
 
   const ask = useCallback(
     async (text) => {
@@ -224,7 +245,7 @@ export default function AskPage() {
             </div>
           )}
 
-          {answers.length === 0 && !busy && (
+          {answers.length === 0 && !busy && examples.length > 0 && (
             <div className="card p-6">
               <div className="label mb-3">Try one of these</div>
               <div className="flex flex-col gap-2">

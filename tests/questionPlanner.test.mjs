@@ -149,3 +149,35 @@ test('a shape that needs a grouping the question never named is refused', () => 
   assert.equal(spec, null);
   assert.match(error, /needs/);
 });
+
+test('a column spelled the way the file spells it is read', () => {
+  // `\b` counts an underscore as a word character, so `\bcharge\b` never
+  // matched inside "monthly_charge" and this refused every question that named
+  // a column verbatim — which is how the Ask page writes its own starters.
+  const snake = {
+    columns: ['region', 'contract_type', 'monthly_charge', 'tenure_months'],
+    profile: {
+      dimensions: ['region', 'contract_type'],
+      measures: ['monthly_charge', 'tenure_months'],
+      temporal: [],
+      cardinality: { region: 4, contract_type: 3 },
+    },
+    sample: [{ region: 'North', monthly_charge: 32 }],
+    measures: [],
+  };
+
+  const highest = planQuestion('Which region has the highest monthly_charge?', snake);
+  assert.equal(highest.error, null);
+  assert.match(highest.spec.sql, /\[monthly_charge\]/);
+  assert.match(highest.spec.sql, /GROUP BY \[region\]/);
+
+  const share = planQuestion('What is the share of monthly_charge by contract_type?', snake);
+  assert.equal(share.error, null);
+  assert.equal(share.spec.chart_type, 'donut');
+  assert.match(share.spec.sql, /GROUP BY \[contract_type\]/);
+
+  // Spelling it as separate words still works, and a fragment still does not:
+  // "age" sits inside "average" and is not a mention of an `age` column.
+  assert.equal(planQuestion('monthly charge by region', snake).error, null);
+  assert.match(plan('average monthly tenure by category').error, /matches what you asked to measure/);
+});
