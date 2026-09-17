@@ -193,7 +193,7 @@ export default function ReportPage() {
         {storyboard.map((slide, i) => (
           <section key={slide.id || i} className="mb-10 break-inside-avoid border-t border-white/8 pt-8">
             <div className="label">Finding {i + 1}</div>
-            <h2 className="mt-1.5 text-2xl font-black leading-tight tracking-tight">{slide.pageTitle}</h2>
+            <h2 className="display mt-1.5 text-[27px] leading-snug">{slide.pageTitle}</h2>
 
             <div className="mt-5 h-72 w-full rounded-2xl border border-white/7 bg-white/[0.02] p-3">
               <ChartBoundary resetKey={slide.id}>
@@ -265,7 +265,7 @@ function SectionTitle({ icon: Icon, children }) {
   return (
     <div className="flex items-center gap-3">
       <Icon size={14} className="text-accent-400" />
-      <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">{children}</h2>
+      <h2 className="label">{children}</h2>
       <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
     </div>
   );

@@ -104,14 +104,14 @@ export default function LandingPage() {
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-7 md:px-10">
         <header className="flex items-center gap-3">
           <Logo size="xl" />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1">
             <Link
-              href="/home"
-              className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
+              href="/sign-in"
+              className="rounded-lg px-3 py-2 text-[13px] font-medium text-white/50 transition-colors hover:text-white/85"
             >
-              Open the app <ArrowRight size={13} />
+              Sign in
             </Link>
-            <ThemeToggle />
+            <ThemeToggle compact />
           </div>
         </header>
 
@@ -136,9 +136,9 @@ export default function LandingPage() {
               * evenly, rather than leaving "defend." stranded on a line of its
               * own. On a wide screen the second line now fits whole.
               */}
-            <h1 className="text-4xl font-black leading-[1.04] tracking-tight md:text-5xl lg:text-[2.5rem]">
-              <span className="block text-white/40">Analyse your data.</span>
-              <span className="block text-balance">
+            <h1 className="display text-[38px] leading-[1.07] md:text-[54px] lg:text-[46px]">
+              <span className="block text-white/35">Analyse your data.</span>
+              <span className="block text-balance text-white/95">
                 Get insights you can{' '}
                 {/*
                   * Underlined rather than coloured.
@@ -216,24 +216,28 @@ export default function LandingPage() {
 
           {/* The invitation, opposite the argument. Anyone reading this far has
               read enough. */}
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-white/[0.02] p-6">
-            <div className="label">Get started</div>
-            <p className="text-[13px] leading-relaxed text-white/50">
-              Upload a spreadsheet, photograph a table, or connect a database. The analysis runs in
-              your browser and every figure keeps the query that produced it.
-            </p>
-            <Link
-              href="/home"
-              className="mt-1 flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
-            >
-              Open the app <ArrowRight size={14} />
-            </Link>
-            <Link
-              href="/sign-in"
-              className="text-center text-[12px] text-white/40 transition-colors hover:text-white/70"
-            >
-              Sign in, or create an account
-            </Link>
+          <div className="card flex flex-col gap-4 p-7">
+            <div>
+              <div className="label">Get started</div>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-white/55">
+                Upload a spreadsheet, photograph a table, or connect a database. The analysis runs in
+                your browser, and every figure keeps the query that produced it.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Link
+                href="/home"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-5 py-2.5 text-[13.5px] font-semibold text-on-accent transition-colors hover:bg-accent-400"
+              >
+                Open the app <ArrowRight size={15} />
+              </Link>
+              <Link
+                href="/sign-in"
+                className="text-[12.5px] text-white/40 transition-colors hover:text-white/70"
+              >
+                or sign in
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -245,10 +249,8 @@ export default function LandingPage() {
           */}
         <section className="border-t border-white/6 py-14">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-lg font-black tracking-tight text-white/85">See it in action</h2>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">
-              how it works
-            </span>
+            <h2 className="display text-[22px] leading-tight text-white/90 md:text-[26px]">See it in action</h2>
+            <span className="label">How it works</span>
           </div>
           <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-white/40">
             Upload a file, and in seconds you have a full analytics dashboard, a data explorer, an
@@ -268,14 +270,10 @@ export default function LandingPage() {
                 }`}
               >
                 <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-colors duration-300 group-hover:border-accent-500/30">
-                  <div className="flex items-center gap-2 border-b border-white/6 px-3 py-2">
-                    <div className="flex gap-1.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                    </div>
-                    <span className="ml-2 text-[9px] font-bold uppercase tracking-[0.2em] text-white/25">
-                      {item.title}
+                  <div className="flex items-center gap-2 border-b border-white/6 px-3.5 py-2">
+                    <span className="label">{item.title}</span>
+                    <span className="ml-auto font-mono text-[10px] text-white/20">
+                      insight/{item.title.toLowerCase().replace(' ', '-')}
                     </span>
                   </div>
                   <div className={`relative ${i === 0 ? 'aspect-[21/8]' : 'aspect-video'}`}>
@@ -294,7 +292,7 @@ export default function LandingPage() {
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <div className="text-sm font-bold text-white/85">{item.title}</div>
+                    <div className="text-[15px] font-semibold text-white/85">{item.title}</div>
                     <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{item.desc}</p>
                   </div>
                 </div>

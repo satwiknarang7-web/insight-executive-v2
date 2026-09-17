@@ -195,7 +195,7 @@ export default function DashboardPage() {
         <div className="card flex max-w-xl flex-col items-start gap-4 p-8">
           <BarChart3 size={28} className="text-accent-400" />
           <div>
-            <h2 className="text-lg font-black">Nothing analysed yet</h2>
+            <h2 className="display text-[21px]">Nothing analysed yet</h2>
             <p className="mt-2 text-sm leading-relaxed text-white/45">
               {dataset?.rowCount.toLocaleString()} rows are loaded and cleaned.{' '}
               {planAllows('autoAnalysis')
@@ -343,7 +343,7 @@ export default function DashboardPage() {
             onCommit={(text) => editSummary({ title: text })}
             ariaLabel="Summary title"
             placeholder="Executive summary"
-            className="text-xs font-black uppercase tracking-[0.28em] text-white/45"
+            className="label"
           />
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
           <Collapse open={showSummary} onToggle={() => setShowSummary((v) => !v)} label="executive summary" />
@@ -565,7 +565,7 @@ export default function DashboardPage() {
       <section data-tutorial="dashboard-findings">
         <div className="mb-3 flex items-center gap-3">
           <BarChart3 size={14} className="text-accent-400" />
-          <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">
+          <h2 className="label">
             Findings ({storyboard.length})
           </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
@@ -708,7 +708,7 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
         onCommit={(text) => onEdit({ value: text, source: null })}
         ariaLabel="Card value"
         placeholder="Value"
-        className="mt-2 text-2xl font-black tracking-tight text-white"
+        className="display mt-2 text-[26px] leading-snug text-white"
       />
 
       {editing && (
@@ -812,7 +812,7 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
             onCommit={(text) => onEdit({ pageTitle: text })}
             ariaLabel="Finding title"
             placeholder="Title"
-            className="mt-1.5 text-base font-black leading-tight text-white group-hover:text-accent-300"
+            className="display mt-1.5 text-[17px] leading-snug text-white group-hover:text-accent-300"
           />
         </div>
         <div className="flex shrink-0 items-center gap-1">

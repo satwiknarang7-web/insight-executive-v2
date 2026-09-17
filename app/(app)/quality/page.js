@@ -57,7 +57,7 @@ export default function QualityPage() {
         <section className="mb-6">
           <div className="mb-3 flex items-center gap-3">
             <AlertTriangle size={14} className="text-amber-400" />
-            <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">
+            <h2 className="label">
               Notices ({notices.length})
             </h2>
             <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
@@ -266,7 +266,7 @@ export default function QualityPage() {
         <section>
           <div className="mb-3 flex items-center gap-3">
             <Code2 size={14} className="text-accent-400" />
-            <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">Query audit</h2>
+            <h2 className="label">Query audit</h2>
             <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
           </div>
           <p className="mb-4 max-w-2xl text-[12px] leading-relaxed text-white/35">

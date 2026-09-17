@@ -459,6 +459,41 @@ body {
   .text-\[10px\].font-black,
   .text-\[11px\].font-black { font-weight: 650; }
 
+  /*
+   * Action labels in sentence case.
+   *
+   * Every button in the app was set in 10px capitals at weight 900 with wide
+   * tracking. On a section label that is a device; on the control somebody is
+   * about to press it is shouting, and it is the single thing that made the
+   * calls to action read as an advertisement rather than as software. The size
+   * stays — these are small controls — and weight does the work instead.
+   *
+   * Matched on the element as well as the classes, so it reaches buttons and
+   * links and leaves the `<span>` labels beside them alone.
+   */
+  button.uppercase.font-black,
+  a.uppercase.font-black,
+  button.uppercase.font-bold,
+  a.uppercase.font-bold {
+    text-transform: none;
+    letter-spacing: 0.005em;
+    font-weight: 600;
+  }
+
+  /*
+   * Except a column header, which stays a column header.
+   *
+   * A table's headings are capitals by convention, and dropping the transform
+   * there would show the raw column name — `order_date` rather than ORDER
+   * DATE — in the one place the tidied form is what a reader expects.
+   */
+  th button.uppercase.font-black,
+  th button.uppercase.font-bold {
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 650;
+  }
+
   /* Figures that sit in a column have to line up in that column. */
   .tabular,
   table,

@@ -138,7 +138,7 @@ function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove, o
     <section>
       <div className="mb-3 flex items-center gap-2">
         <Icon size={14} className="text-accent-400" />
-        <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">{title}</h2>
+        <h2 className="label">{title}</h2>
         <span className="text-[11px] text-white/25">{items.length}</span>
       </div>
 
@@ -223,7 +223,7 @@ function ShareDialog({ analysis, onClose }) {
         <div className="mb-4 flex items-center gap-3">
           <Share2 size={16} className="text-accent-400" />
           <div className="min-w-0">
-            <h2 className="truncate text-base font-black text-white">{analysis.title}</h2>
+            <h2 className="display truncate text-[17px] text-white">{analysis.title}</h2>
             <p className="text-[11px] text-white/35">Anyone here can open it, present it, and read the query behind every number.</p>
           </div>
           <button

@@ -83,7 +83,7 @@ function Block({ title, blurb, children }) {
     <section className="flex flex-col gap-4">
       <div>
         <div className="flex items-center gap-3">
-          <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">{title}</h2>
+          <h2 className="label">{title}</h2>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
         </div>
         <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-white/35">{blurb}</p>

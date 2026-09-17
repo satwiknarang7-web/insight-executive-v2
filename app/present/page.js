@@ -667,7 +667,7 @@ function ChartSlide({ slide }) {
     // column below already knows how to scroll — to the text.
     <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_minmax(190px,45%)] gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:grid-rows-1">
       <div className="flex min-h-0 flex-col overflow-y-auto">
-        <h2 className="text-2xl font-black leading-tight tracking-tight md:text-3xl">{slide.pageTitle}</h2>
+        <h2 className="display text-[28px] leading-tight md:text-[36px]">{slide.pageTitle}</h2>
 
         {slide.insight_anchor && (
           <div className="mt-5 rounded-2xl border border-accent-500/20 bg-accent-500/[0.06] p-4">

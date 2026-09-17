@@ -165,7 +165,7 @@ export default function InsightPage() {
       {/* Header: title, position, navigation, and the drawer switch. */}
       <header className="mb-3 flex shrink-0 flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1 basis-full lg:basis-auto">
-          <h1 className="truncate text-xl font-black tracking-tight md:text-2xl">{slide.pageTitle}</h1>
+          <h1 className="display truncate text-[22px] md:text-[27px]">{slide.pageTitle}</h1>
           <p className="mt-0.5 text-[12px] text-white/40">
             Finding {index + 1} of {analysis.storyboard.length}
             {chart.resultData?.length ? ` · ${chart.resultData.length} data points` : ''}
