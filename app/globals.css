@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* What a surface is made of — glass, clay or neumorphic. Imported here rather
+   than written below so the material sits in one file of its own; the palette
+   and the typography stay in this one. */
+@import "./appearance.css";
 
 /* Brand accent — single source of truth. Swap these to re-theme the whole app. */
 /*
@@ -31,7 +35,31 @@
   --color-ink-700: #0d0f11;
   --color-ink-600: #14171a;
 
-  --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /*
+   * Three faces, each doing one job.
+   *
+   * The app used to set everything in Outfit — a geometric sans, at black
+   * weight, in wide letter-spaced capitals. It is a perfectly good typeface and
+   * it was doing all four jobs at once, which is why every screen read as the
+   * same screen: a heading and a table header and a button differed only in
+   * size.
+   *
+   * `--font-display` is a serif, and it is the decision that carries the most.
+   * A page title set in a serif with real optical sizing says a person chose it;
+   * a title set in the same geometric sans as the buttons under it says nobody
+   * did. It is used for page titles and headline figures and nowhere else.
+   *
+   * `--font-sans` is the interface: labels, controls, body copy. Plex Sans has
+   * the slightly squared, engineering-drawing quality that suits a product whose
+   * whole claim is that it shows its working.
+   *
+   * `--font-mono` is for the things that must line up — SQL, column names, and
+   * every figure in a table. It was inheriting the system monospace, which is a
+   * different face on every machine the app runs on.
+   */
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* Dark is the default and needs no attribute. */
@@ -220,6 +248,7 @@
  * with the classes actually used in the app.
  */
 @layer utilities {
+  :where(:root[data-theme='light']) .text-white\/95,
   :where(:root[data-theme='light']) .text-white\/90,
   :where(:root[data-theme='light']) .text-white\/85,
   :where(:root[data-theme='light']) .text-white\/80 { color: var(--ink-1); }
@@ -327,10 +356,20 @@ body {
   background-clip: content-box;
 }
 
+/*
+ * One definition of a card, expressed entirely in tokens.
+ *
+ * The radius, the lift and the blur all come from `appearance.css`, which sets
+ * them per material. That is what makes the three surfaces a set of values
+ * rather than three competing definitions of what a card is — and it is why
+ * a component never needs to know which material is on.
+ */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-panel);
+  box-shadow: var(--lift-panel);
+  backdrop-filter: var(--panel-blur);
 }
 
 /* An opaque raised panel for modals. `card`'s background is a near-transparent
@@ -339,7 +378,8 @@ body {
 .panel {
   background: var(--surface);
   border: 1px solid var(--card-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-panel);
+  box-shadow: var(--lift-panel);
 }
 
 /* A code/query block that follows the theme instead of hardcoding a dark box. */
@@ -348,12 +388,24 @@ body {
   color: var(--code-fg);
 }
 
+/*
+ * The section label, dialled back.
+ *
+ * It was 9px, weight 800, with 0.28em of tracking. That combination — tiny,
+ * very heavy, very wide capitals — is the house style of every generated
+ * dashboard, and the app had 230 more instances of it spelled out inline. At
+ * 0.28em the letters stop reading as a word and start reading as a texture,
+ * and weight 800 on 9px text is a smear rather than emphasis.
+ *
+ * 10px at 600 with 0.09em is still unmistakably a label and is legible as
+ * language. The utility remap further down does the same to the inline copies.
+ */
 .label {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.28em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-white) 35%, transparent);
+  color: color-mix(in oklab, var(--color-white) 42%, transparent);
 }
 
 /* Same reason as the utility remap above: 35% navy over a white page is a grey.
@@ -361,6 +413,92 @@ body {
    that needs the contrast most. */
 :root[data-theme='light'] .label {
   color: var(--ink-5);
+}
+
+/* ---------------------------------------------------------------------------
+ * Craft.
+ *
+ * Small things, none of which anybody notices individually, and which together
+ * are most of the difference between an interface somebody drew and an
+ * interface somebody generated.
+ * --------------------------------------------------------------------------- */
+@layer utilities {
+  /*
+   * Tracking, brought back to something a person would set.
+   *
+   * There are 230 inline `tracking-[0.2em]`-style classes in the app, nearly
+   * all of them on 10px uppercase text. Wide tracking on capitals is a real
+   * typographic device and 0.2em is roughly twice where it stops helping: past
+   * about 0.1em the word comes apart into letters. Remapped here rather than
+   * edited in 230 places, on the same cascade footing as the utility each rule
+   * replaces — a `md:` or `hover:` variant still wins.
+   */
+  :where(html) .tracking-\[0\.12em\] { letter-spacing: 0.055em; }
+  :where(html) .tracking-\[0\.15em\],
+  :where(html) .tracking-\[0\.16em\] { letter-spacing: 0.07em; }
+  :where(html) .tracking-\[0\.18em\],
+  :where(html) .tracking-\[0\.2em\] { letter-spacing: 0.085em; }
+  :where(html) .tracking-\[0\.25em\],
+  :where(html) .tracking-\[0\.28em\],
+  :where(html) .tracking-\[0\.3em\] { letter-spacing: 0.1em; }
+  :where(html) .tracking-\[0\.35em\],
+  :where(html) .tracking-\[0\.38em\],
+  :where(html) .tracking-\[0\.4em\],
+  :where(html) .tracking-\[0\.5em\],
+  :where(html) .tracking-\[0\.6em\] { letter-spacing: 0.14em; }
+
+  /*
+   * Weight 900 belongs on a headline figure, not on a 10px caption.
+   *
+   * Compound selectors, so only *small* black text is softened: a KPI set in
+   * `text-2xl font-black` is untouched, and the button label beside it stops
+   * being a smear. Two classes outrank the single `.font-black` utility, so
+   * this needs no guard to win.
+   */
+  .text-\[9px\].font-black,
+  .text-\[10px\].font-black,
+  .text-\[11px\].font-black { font-weight: 650; }
+
+  /* Figures that sit in a column have to line up in that column. */
+  .tabular,
+  table,
+  .font-mono,
+  [class*='tabular-nums'] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * A focus ring that follows the accent, and only for the keyboard.
+ *
+ * The app relied on each control's own `focus:border-accent-500/50`, which is
+ * invisible on anything borderless — every icon button, and every control under
+ * the clay and neumorphic materials. This is the floor under all of them.
+ */
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-accent-400) 70%, transparent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+/*
+ * Page titles, in the serif.
+ *
+ * Fraunces is a variable face with optical sizing, so at display sizes it wants
+ * lower contrast and a little less wonk than its defaults — `opsz` does most of
+ * that on its own once it is told how big the text actually is.
+ */
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 40;
+  letter-spacing: -0.015em;
+}
+
+/* Prose that is meant to be read rather than scanned. */
+.readable {
+  max-width: 68ch;
+  line-height: 1.65;
 }
 
 /* Scroll-triggered fade-in for the landing page walkthrough. The stagger is set

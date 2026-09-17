@@ -1,0 +1,404 @@
+/* ---------------------------------------------------------------------------
+ * What the surfaces are made of.
+ *
+ * `globals.css` owns the palette: the ground, the ink, the accent, and how all
+ * three flip between dark and light. This file owns something orthogonal to
+ * that — the *material* a panel is made of. Three are offered, and they are
+ * genuinely different constructions rather than three shadow presets:
+ *
+ *   glass  a translucent plane over a lit ground, held by a hairline edge
+ *   clay   an opaque moulded plane, lit from above, with no edge at all
+ *   neu    no plane: the ground itself, pushed out or pressed in
+ *
+ * Each is selected by `data-surface` on <html>. Glass carries no attribute
+ * because it is the default, which is what lets the blocking script do nothing
+ * at all in the common case.
+ *
+ * ## Why this reaches into utility classes
+ *
+ * Most of the app draws its own controls with `border-white/10` and
+ * `bg-white/5`. Under glass that is exactly right. Under neumorphism it is
+ * fatal: the whole effect is that there are no lines, and a hairline border on
+ * every button puts them all back. So the few utilities the app leans on are
+ * neutralised per material, using the same cascade trick `globals.css` already
+ * documents for light-mode ink — `@layer utilities` so unlayered rules are not
+ * outranked, and `:where()` so each rule weighs exactly what the utility it
+ * replaces weighs and wins only on source order.
+ *
+ * Element rules for `input`, `select` and `textarea` are written against
+ * `:root[data-surface=…] input`, which is one attribute plus one element and so
+ * outranks a single utility class — but is still beaten by any `focus:` or
+ * `hover:` variant, which carries a pseudo-class of its own. That is the
+ * behaviour wanted: the material dresses the control, and the interaction
+ * states still win.
+ * --------------------------------------------------------------------------- */
+
+/* Defaults, which glass then confirms and the other two overwrite. Declared on
+   :root so a component can read a radius or a lift without knowing the skin. */
+:root {
+  --radius-panel: 1rem;
+  --radius-control: 0.625rem;
+  --radius-pill: 999px;
+
+  /* The lift a panel has off the page, and the one a control has off a panel. */
+  --lift-panel: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 20px 40px -28px rgba(0, 0, 0, 0.85);
+  --lift-control: none;
+  --press-control: none;
+  --panel-blur: blur(16px) saturate(135%);
+}
+
+:root[data-theme='light'] {
+  --lift-panel: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 16px 32px -26px rgba(11, 37, 69, 0.45);
+}
+
+/* ---------------------------------------------------------------------------
+ * Glass — the default.
+ *
+ * A translucent plane needs three things to read as glass rather than as a
+ * washed-out box: something behind it worth seeing (the ambient wash), a
+ * hairline that catches the light at the top edge, and blur strong enough to
+ * separate it from the ground without smearing the text on it.
+ * --------------------------------------------------------------------------- */
+/* `.card` and `.panel` themselves are defined once, in globals.css, against the
+   tokens above — so a material is a set of values here rather than a second
+   definition of what a card is. Clay and neumorphism switch the blur off by
+   setting `--panel-blur: none`; neither is a plane you see through. */
+
+/* ---------------------------------------------------------------------------
+ * Clay.
+ *
+ * Opaque, wide-radiused, and lit from directly above: a highlight along the top
+ * edge, a long soft shadow below. No border — a moulded object does not have an
+ * outline, and drawing one is the single most common way this material is got
+ * wrong. The ground lifts away from black so the shadow has somewhere to fall.
+ * --------------------------------------------------------------------------- */
+:root[data-surface='clay'] {
+  --canvas: #15171c;
+  --canvas-raised: #191c22;
+  --surface: #22262e;
+  --card-bg: #20242b;
+  --card-border: rgba(255, 255, 255, 0.05);
+  --code-bg: rgba(0, 0, 0, 0.28);
+
+  --radius-panel: 1.375rem;
+  --radius-control: 0.875rem;
+  --lift-panel:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 2px 1px -1px rgba(255, 255, 255, 0.04) inset,
+    0 18px 34px -20px rgba(0, 0, 0, 0.8);
+  --lift-control:
+    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 6px 12px -8px rgba(0, 0, 0, 0.7);
+  --press-control: 0 2px 6px -4px rgba(0, 0, 0, 0.8) inset;
+  --wash-a: rgba(20, 184, 166, 0.06);
+  --wash-b: rgba(56, 89, 248, 0.05);
+  --veil: rgba(255, 255, 255, 0.018);
+  --scrollbar: rgba(255, 255, 255, 0.16);
+  --panel-blur: none;
+}
+
+:root[data-surface='clay'][data-theme='light'] {
+  /* Warm paper rather than pure white: clay on #fff has nothing to cast onto,
+     and the whole material collapses into a flat rectangle. */
+  --canvas: #f2efe9;
+  --canvas-raised: #f7f5f1;
+  --surface: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: rgba(43, 33, 24, 0.05);
+  --code-bg: #f1efe9;
+
+  --lift-panel:
+    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 26px -18px rgba(62, 48, 33, 0.38);
+  --lift-control:
+    0 1px 0 0 rgba(255, 255, 255, 0.85) inset,
+    0 5px 10px -7px rgba(62, 48, 33, 0.3);
+  --press-control: 0 2px 5px -3px rgba(62, 48, 33, 0.35) inset;
+  --wash-a: rgba(15, 48, 87, 0.05);
+  --wash-b: rgba(120, 80, 40, 0.05);
+  --veil: rgba(43, 33, 24, 0.028);
+}
+
+/* ---------------------------------------------------------------------------
+ * Neumorphic.
+ *
+ * The card and the page are the same colour; the only thing separating them is
+ * light. That is what makes the ground mid-tone rather than near-black — an
+ * extrusion needs somewhere darker AND somewhere lighter to go, and #030303 has
+ * no darker. It also means no borders anywhere, which the utility block at the
+ * bottom of this file enforces.
+ * --------------------------------------------------------------------------- */
+:root[data-surface='neu'] {
+  --canvas: #1e2127;
+  --canvas-raised: #1e2127;
+  --surface: #1e2127;
+  --card-bg: #1e2127;
+  --card-border: transparent;
+  --code-bg: rgba(0, 0, 0, 0.22);
+
+  --radius-panel: 1.25rem;
+  --radius-control: 0.75rem;
+  --lift-panel: 7px 7px 15px rgba(0, 0, 0, 0.45), -7px -7px 15px rgba(255, 255, 255, 0.035);
+  --lift-control: 4px 4px 9px rgba(0, 0, 0, 0.4), -4px -4px 9px rgba(255, 255, 255, 0.035);
+  --press-control:
+    inset 3px 3px 7px rgba(0, 0, 0, 0.5),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.04);
+  /* No wash and no grid: both sit *behind* a surface that is the same colour as
+     the page, so they show through as dirt rather than as depth. */
+  --wash-a: transparent;
+  --wash-b: transparent;
+  --veil: transparent;
+  --scrollbar: rgba(255, 255, 255, 0.14);
+  --panel-blur: none;
+}
+
+:root[data-surface='neu'][data-theme='light'] {
+  --canvas: #e8ecf2;
+  --canvas-raised: #e8ecf2;
+  --surface: #e8ecf2;
+  --card-bg: #e8ecf2;
+  --card-border: transparent;
+  --code-bg: rgba(11, 37, 69, 0.05);
+
+  --lift-panel: 7px 7px 15px rgba(163, 177, 198, 0.55), -7px -7px 15px rgba(255, 255, 255, 0.95);
+  --lift-control: 4px 4px 9px rgba(163, 177, 198, 0.5), -4px -4px 9px rgba(255, 255, 255, 0.9);
+  --press-control:
+    inset 3px 3px 7px rgba(163, 177, 198, 0.6),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.95);
+  --wash-a: transparent;
+  --wash-b: transparent;
+  --veil: transparent;
+}
+
+/* A pressed-out panel has no edge and no blur; the shadows are the whole of it. */
+:root[data-surface='neu'] .card,
+:root[data-surface='neu'] .panel {
+  border-color: transparent;
+  backdrop-filter: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Controls, dressed in whatever the surface is made of.
+ *
+ * One attribute plus one element outranks a single utility class, so these
+ * reach the inputs the app draws with `bg-white/5 border-white/10` — and are
+ * still outranked by the `focus:` variants on those same inputs, which is the
+ * order wanted.
+ * --------------------------------------------------------------------------- */
+:root[data-surface='clay'] input:not([type='checkbox']):not([type='radio']),
+:root[data-surface='clay'] select,
+:root[data-surface='clay'] textarea {
+  background-color: rgba(0, 0, 0, 0.22);
+  border-color: transparent;
+  border-radius: var(--radius-control);
+  box-shadow: var(--press-control);
+}
+
+:root[data-surface='clay'][data-theme='light'] input:not([type='checkbox']):not([type='radio']),
+:root[data-surface='clay'][data-theme='light'] select,
+:root[data-surface='clay'][data-theme='light'] textarea {
+  background-color: #f4f1ec;
+}
+
+:root[data-surface='neu'] input:not([type='checkbox']):not([type='radio']),
+:root[data-surface='neu'] select,
+:root[data-surface='neu'] textarea {
+  background-color: transparent;
+  border-color: transparent;
+  border-radius: var(--radius-control);
+  box-shadow: var(--press-control);
+}
+
+/*
+ * A control that asked for an edge, given the material's edge instead.
+ *
+ * Removing the hairlines is right for clay and neumorphism and costs something
+ * real on its own: a chip, a segmented control and a secondary button are all
+ * drawn here as "text inside a bordered box", and with the border gone they
+ * read as loose text. The border is not decoration on those — it is the
+ * affordance. So wherever an interactive element explicitly asked for one, it
+ * gets the material's own lift in its place.
+ *
+ * Matched on the element as well as the class, so this reaches buttons and
+ * links that opted into a border and leaves bordered containers alone.
+ */
+:root[data-surface='clay'] button.border,
+:root[data-surface='clay'] a.border,
+:root[data-surface='clay'] label.border,
+:root[data-surface='neu'] button.border,
+:root[data-surface='neu'] a.border,
+:root[data-surface='neu'] label.border {
+  box-shadow: var(--lift-control);
+}
+
+/* Except where the border was dashed: an empty slot waiting to be filled is a
+   well, not a raised key. */
+:root[data-surface='clay'] button.border-dashed,
+:root[data-surface='neu'] button.border-dashed {
+  box-shadow: var(--press-control);
+}
+
+/* The one button that is a solid block of accent, given the material's
+   geometry without touching its colour. */
+:root[data-surface='clay'] .bg-accent-500,
+:root[data-surface='neu'] .bg-accent-500 {
+  border-radius: var(--radius-control);
+  box-shadow: var(--lift-control);
+}
+
+/* ---------------------------------------------------------------------------
+ * The utilities the app draws its own controls with.
+ *
+ * Neutralised per material rather than edited out of forty components. Layered
+ * and `:where()`-guarded so each rule weighs exactly what it replaces: a
+ * `hover:` or `focus:` variant carries one more pseudo-class and still wins.
+ * --------------------------------------------------------------------------- */
+@layer utilities {
+  /* Clay and neumorphism are both borderless materials. Under either, the
+     hairline edges the glass design leans on are removed everywhere at once. */
+  :where(:root[data-surface='clay']) .border-white\/4,
+  :where(:root[data-surface='clay']) .border-white\/6,
+  :where(:root[data-surface='clay']) .border-white\/7,
+  :where(:root[data-surface='clay']) .border-white\/8,
+  :where(:root[data-surface='clay']) .border-white\/10,
+  :where(:root[data-surface='clay']) .border-white\/12,
+  :where(:root[data-surface='neu']) .border-white\/4,
+  :where(:root[data-surface='neu']) .border-white\/6,
+  :where(:root[data-surface='neu']) .border-white\/7,
+  :where(:root[data-surface='neu']) .border-white\/8,
+  :where(:root[data-surface='neu']) .border-white\/10,
+  :where(:root[data-surface='neu']) .border-white\/12,
+  :where(:root[data-surface='neu']) .border-white\/15,
+  :where(:root[data-surface='neu']) .border-white\/16,
+  :where(:root[data-surface='neu']) .border-white\/20 {
+    border-color: transparent;
+  }
+
+  /* A dashed "add something here" outline is an affordance rather than a
+     decoration, so it survives — as a soft inset well instead of a line. */
+  :where(:root[data-surface='neu']) .border-dashed {
+    border-color: transparent;
+    box-shadow: var(--press-control);
+  }
+
+  /* Under neumorphism a faint white fill reads as a smudge, because there is no
+     edge to explain it. The shadow does that work instead. */
+  :where(:root[data-surface='neu']) .bg-white\/5,
+  :where(:root[data-surface='neu']) .bg-white\/\[0\.02\],
+  :where(:root[data-surface='neu']) .bg-white\/\[0\.03\],
+  :where(:root[data-surface='neu']) .bg-white\/\[0\.035\] {
+    background-color: transparent;
+  }
+
+  /* Row separators in a table are structure, not decoration: without them the
+     rows run together. Under a borderless material they become the faintest
+     wash the ground will hold rather than disappearing. */
+  :where(:root[data-surface='clay']) tbody tr.border-b,
+  :where(:root[data-surface='neu']) tbody tr.border-b,
+  :where(:root[data-surface='clay']) thead th.border-b,
+  :where(:root[data-surface='neu']) thead th.border-b {
+    border-bottom-color: color-mix(in oklab, var(--color-white) 8%, transparent);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Swatches, for choosing between the three.
+ *
+ * A preview has to show the material it is offering rather than the one that
+ * is currently on, so these are written out in full instead of reading the
+ * tokens above. They do follow the light/dark mode, because what somebody
+ * wants to see is what clay would look like *in their room* — not what it
+ * looks like in the dark when they are working in daylight.
+ *
+ * Each swatch carries its own ground, which glass needs: a translucent plane
+ * over nothing is just a pale rectangle.
+ * --------------------------------------------------------------------------- */
+.swatch {
+  position: relative;
+  display: block;
+  height: 78px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.swatch-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.swatch-bar + .swatch-bar {
+  margin-top: 7px;
+  width: 62%;
+  opacity: 0.3;
+}
+
+.swatch-ground {
+  border-radius: 14px;
+  padding: 14px;
+  background: #050607;
+  background-image: radial-gradient(28rem 18rem at 10% -20%, rgba(20, 184, 166, 0.14), transparent 60%);
+}
+
+.swatch[data-preview='glass'] {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px) saturate(135%);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 16px 30px -24px rgba(0, 0, 0, 0.9);
+}
+
+.swatch-ground[data-preview='clay'] {
+  background: #15171c;
+  background-image: none;
+}
+
+.swatch[data-preview='clay'] {
+  border-radius: 18px;
+  background: #20242b;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 14px 26px -16px rgba(0, 0, 0, 0.85);
+}
+
+.swatch-ground[data-preview='neu'] {
+  background: #1e2127;
+  background-image: none;
+}
+
+.swatch[data-preview='neu'] {
+  border-radius: 16px;
+  background: #1e2127;
+  border: 1px solid transparent;
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.45), -6px -6px 12px rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme='light'] .swatch-ground {
+  background: #f6f8fb;
+  background-image: radial-gradient(28rem 18rem at 10% -20%, rgba(15, 48, 87, 0.12), transparent 60%);
+}
+
+:root[data-theme='light'] .swatch[data-preview='glass'] {
+  background: rgba(11, 37, 69, 0.03);
+  border-color: rgba(11, 37, 69, 0.22);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 14px 26px -22px rgba(11, 37, 69, 0.5);
+}
+
+:root[data-theme='light'] .swatch-ground[data-preview='clay'] {
+  background: #f2efe9;
+}
+
+:root[data-theme='light'] .swatch[data-preview='clay'] {
+  background: #ffffff;
+  border-color: rgba(43, 33, 24, 0.05);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 12px 22px -14px rgba(62, 48, 33, 0.4);
+}
+
+:root[data-theme='light'] .swatch-ground[data-preview='neu'] {
+  background: #e8ecf2;
+}
+
+:root[data-theme='light'] .swatch[data-preview='neu'] {
+  background: #e8ecf2;
+  box-shadow: 6px 6px 12px rgba(163, 177, 198, 0.55), -6px -6px 12px rgba(255, 255, 255, 0.95);
+}

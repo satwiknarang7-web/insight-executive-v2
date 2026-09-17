@@ -21,6 +21,7 @@ import {
   GitBranch,
   Home,
   Compass,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import { useTutorial } from '../../lib/store/TutorialProvider';
@@ -63,7 +64,26 @@ const NAV = [
     icon: UserRound,
     hint: 'Your username, your library, saved connections and your account',
   },
+  {
+    href: '/settings',
+    label: 'Settings',
+    icon: SlidersHorizontal,
+    hint: 'How the app looks: lighting, and what its surfaces are made of',
+    // Appearance is not a view onto a dataset, and somebody who has just
+    // arrived should be able to set it before loading anything.
+    standalone: true,
+  },
 ];
+
+/**
+ * Pages that stand without a dataset.
+ *
+ * Read from the nav rather than written out again: the guard below used to
+ * compare against the literal `/home`, so every page added that did not need
+ * data had to remember to be added here too, and the one that forgot bounced
+ * its visitor to Home.
+ */
+const STANDALONE = new Set(NAV.filter((item) => item.standalone).map((item) => item.href));
 
 function NavLink({ item, active, onNavigate, collapsed = false }) {
   const Icon = item.icon;
@@ -155,7 +175,7 @@ export default function AppShell({ children }) {
    * So the guard is per page rather than shell-wide. Anything that needs data
    * and has none goes to Home; Home always stands.
    */
-  const needsData = pathname !== '/home';
+  const needsData = !STANDALONE.has(pathname);
 
   useEffect(() => {
     if (needsData && status !== 'booting' && !dataset) router.replace('/home');

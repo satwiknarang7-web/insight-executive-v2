@@ -159,6 +159,7 @@ the same guards the database connectors use, for the same reason.
 | `/ask` | Ask a question in plain English; includes a SQL console |
 | `/measures` | Name a calculation once — described in plain English — and reuse it on cards and charts |
 | `/quality` | Cleaning report, per-column stats, full query audit |
+| `/settings` | Lighting and material — how the app looks on this device |
 | `/present` | Full-screen slide deck (arrow keys, space to autoplay) |
 | `/report` | Print-ready long-form report |
 
@@ -239,6 +240,43 @@ says what was done and links to the steps, each with its query.
 
 Without a key the table is analysed as it arrived, which is what every
 analysis did until now.
+
+## How it looks
+
+Two independent choices, both kept in the browser rather than on the account,
+and both set on `/settings`.
+
+**Lighting** is dark or light, and decides the ground, the ink and the accent
+ramp. **Material** is what a panel is made of, and is the one worth looking at:
+
+| Material | What it is |
+| --- | --- |
+| Glass | A translucent plane over a lit ground, held by a hairline edge. The default. |
+| Clay | An opaque moulded plane, lit from above, with no edge at all. |
+| Neumorphic | No plane: the ground itself, pushed out or pressed in by light. |
+
+They are orthogonal on purpose — somebody who likes clay and turns the lights
+on should get light clay, not lose their material — so each lives on `<html>` as
+its own attribute, `data-theme` and `data-surface`, applied by a blocking script
+before first paint. Dark and glass carry no attribute at all, which is what lets
+that script do nothing in the common case.
+
+`lib/appearance.js` owns the model, `app/appearance.css` owns the materials, and
+`.card` is defined once in `globals.css` entirely in tokens the materials set —
+so a component never knows which material is on. Where a material is borderless,
+the hairline utilities the app draws its own controls with are neutralised for
+it, and anything interactive that asked for a border is given that material's
+lift instead: the border on a chip is an affordance, not a decoration.
+
+### Typography
+
+Three faces, each doing one job: a serif for page titles, a humanist sans for
+the interface, and a monospace for the things that have to line up. The app
+previously set all four jobs in one geometric sans at black weight in wide
+letter-spaced capitals, which is why every screen read as the same screen — a
+heading and a table header differed only in size. Tracking and weight on small
+uppercase text are also dialled back centrally rather than in the 230 places
+they were spelled out inline.
 
 ## Getting started
 

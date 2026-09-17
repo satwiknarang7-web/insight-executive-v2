@@ -1,57 +1,53 @@
 'use client';
 
 /**
- * Light / dark switching.
+ * The light / dark switch, and the script that applies an appearance before
+ * anything paints.
  *
- * The theme is a single `data-theme` attribute on <html>; everything else is CSS
- * variables (see globals.css). Dark is the default and carries no attribute, so
- * a first-time visitor gets the original look with nothing applied.
+ * Both the mode and the material live on `<html>` as data attributes and are
+ * decided by `lib/appearance.js`; this file is the button and the injection
+ * point. The button only changes the mode — the material is a bigger choice
+ * with three options and a preview, and belongs in settings rather than on a
+ * toggle somebody presses in passing.
  *
- * The preference is written to localStorage and re-applied by a blocking script
- * in the document head — see `ThemeScript`. Doing it in a React effect instead
- * would paint the dark theme first and then snap to light, which is the flash
- * every themed app is judged by.
+ * It listens for `insight:appearance` so that changing the mode in settings
+ * updates the icon here without a reload, and vice versa.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
-
-const STORAGE_KEY = 'insight.theme';
+import { APPEARANCE_SCRIPT, applyAppearance, currentAppearance } from '../../lib/appearance';
 
 /**
  * Runs before first paint. Kept as a plain string so it can be injected with
  * `dangerouslySetInnerHTML` in the root layout — it must execute synchronously,
- * which a normal component cannot do.
+ * which a normal component cannot do. Anything decided after hydration shows
+ * the wrong theme for a frame on every single load.
  */
-export const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');if(t==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();`;
-
-export function ThemeScript() {
-  return <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />;
+export function AppearanceScript() {
+  return <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />;
 }
 
 export default function ThemeToggle({ compact = false }) {
-  const [theme, setTheme] = useState('dark');
+  const [mode, setMode] = useState('dark');
 
-  // Read back what the blocking script already applied, so the button's icon
-  // matches the page it is sitting on.
+  // Read back what the blocking script already applied, and follow any later
+  // change made from the settings panel.
   useEffect(() => {
-    setTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+    setMode(currentAppearance().mode);
+    const follow = (event) => setMode(event.detail?.mode || currentAppearance().mode);
+    window.addEventListener('insight:appearance', follow);
+    return () => window.removeEventListener('insight:appearance', follow);
   }, []);
 
   const toggle = useCallback(() => {
-    setTheme((prev) => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
-      else document.documentElement.removeAttribute('data-theme');
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        /* private browsing — the choice just won't persist */
-      }
-      return next;
-    });
+    const next = currentAppearance().mode === 'light' ? 'dark' : 'light';
+    // The material is read from the document rather than assumed, so switching
+    // the lights does not quietly put somebody back on glass.
+    applyAppearance({ ...currentAppearance(), mode: next });
+    setMode(next);
   }, []);
 
-  const label = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+  const label = mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
 
   return (
     <button
@@ -65,8 +61,8 @@ export default function ThemeToggle({ compact = false }) {
           : 'flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors hover:bg-white/5 hover:text-white sm:min-h-0'
       }
     >
-      {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-      {!compact && <span>{theme === 'light' ? 'Dark' : 'Light'}</span>}
+      {mode === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+      {!compact && <span>{mode === 'light' ? 'Dark' : 'Light'}</span>}
     </button>
   );
 }
