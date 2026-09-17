@@ -15,6 +15,8 @@
  */
 import {
   AGGREGATES,
+  DEFAULT_SLICER_MODE,
+  SLICER_MODES,
   aggregateLabel,
   buildChartSpec,
   chartRequirement,
@@ -30,7 +32,7 @@ import { prettyLabel } from '../charts/axis';
 
 // Everything DynamicChart can render. 'column' is the vertical bar under the
 // name people expect from Power BI; the resolver maps it back to 'bar'.
-const TYPES = ['auto', 'bar', 'hbar', 'column', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap', 'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar', 'card', 'multicard', 'kpi', 'table', 'matrix', 'filledmap', 'bubblemap', 'shapemap'];
+const TYPES = ['auto', 'slicer', 'bar', 'hbar', 'column', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap', 'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar', 'card', 'multicard', 'kpi', 'table', 'matrix', 'filledmap', 'bubblemap', 'shapemap'];
 
 /** Names that read better than the internal key. */
 const TYPE_LABEL = {
@@ -73,6 +75,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
       colors: chart.colors || null,
       labels: chart.labels || null,
       colorBy: chart.colorBy || 'series',
+      slicerMode: chart.slicerMode || DEFAULT_SLICER_MODE,
       xAxisLabel: chart.xAxisLabel ?? '',
       yAxisLabel: chart.yAxisLabel ?? '',
     }),
@@ -84,6 +87,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
       chart.colors,
       chart.labels,
       chart.colorBy,
+      chart.slicerMode,
       chart.xAxisLabel,
       chart.yAxisLabel,
     ]
@@ -134,6 +138,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
       colors: draft.colors,
       labels: draft.labels,
       colorBy: draft.colorBy,
+      slicerMode: draft.slicerMode,
       xAxisLabel: draft.xAxisLabel,
       yAxisLabel: draft.yAxisLabel,
     });
@@ -145,6 +150,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
     draft.chartType !== saved.chartType ||
     (draft.colors || []).join() !== (saved.colors || []).join() ||
     draft.colorBy !== saved.colorBy ||
+    draft.slicerMode !== saved.slicerMode ||
     draft.xAxisLabel !== saved.xAxisLabel ||
     draft.yAxisLabel !== saved.yAxisLabel ||
     JSON.stringify(draft.labels || {}) !== JSON.stringify(saved.labels || {});
@@ -228,6 +234,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
         colors: draft.colors,
         labels: draft.labels,
         colorBy: draft.colorBy,
+        slicerMode: draft.slicerMode,
         // Blank means "no override" — the chart falls back to naming the axis
         // after its column, rather than persisting an empty title.
         xAxisLabel: draft.xAxisLabel.trim() || null,
@@ -463,6 +470,35 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
               </button>
             ))}
           </div>
+
+          {/* A slicer has no palette to spend — it has boxes. What it has
+              instead is a choice about how much room it takes: every value on
+              show, or one line that opens them. */}
+          {draft.chartType === 'slicer' && (
+            <div className="mt-1 flex flex-col gap-1.5">
+              <span className="label">Values</span>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(SLICER_MODES).map(([mode, meta]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    title={meta.blurb}
+                    onClick={() => set({ slicerMode: mode })}
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                      draft.slicerMode === mode
+                        ? 'border-accent-500/50 bg-accent-500/15 text-accent-200'
+                        : 'border-white/10 text-white/50 hover:border-accent-500/30 hover:text-accent-300'
+                    }`}
+                  >
+                    {meta.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] leading-relaxed text-white/30">
+                {SLICER_MODES[draft.slicerMode]?.blurb}
+              </p>
+            </div>
+          )}
 
           {/* Bar charts can spend the palette across the bars instead of across
               series, which is the only way to choose each bar's colour. */}

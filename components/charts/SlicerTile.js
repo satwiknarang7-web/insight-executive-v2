@@ -19,14 +19,24 @@
  * query, which is the one place that rule lives.
  */
 import { useMemo, useState } from 'react';
-import { Check, Search } from 'lucide-react';
+import { Check, ChevronDown, Search } from 'lucide-react';
 import { formatNumber } from '../../lib/format';
+import { DEFAULT_SLICER_MODE } from '../../lib/chartSpecs';
 
 /** Above this many values, finding one by eye stops working. */
 const SEARCHABLE = 8;
 
-export default function SlicerTile({ data, nameKey, valueKey, selected = [], onToggle = null, onClear = null }) {
+export default function SlicerTile({
+  data,
+  nameKey,
+  valueKey,
+  selected = [],
+  onToggle = null,
+  onClear = null,
+  mode = DEFAULT_SLICER_MODE,
+}) {
   const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
   const chosen = useMemo(() => new Set((selected || []).map((v) => String(v))), [selected]);
 
   const rows = useMemo(() => {
@@ -38,8 +48,49 @@ export default function SlicerTile({ data, nameKey, valueKey, selected = [], onT
 
   if (!data?.length) return null;
 
+  /**
+   * Closed, a dropdown says what it is filtering to rather than what it could.
+   *
+   * "3 of 4" would be arithmetic about a control; the values themselves are
+   * what a reader needs to see without opening anything, and the count is only
+   * reached for when there are too many of them to read.
+   */
+  if (mode === 'dropdown' && !open) {
+    const chosenList = [...chosen];
+    const summary =
+      chosenList.length === 0
+        ? 'All'
+        : chosenList.length <= 2
+          ? chosenList.join(', ')
+          : `${chosenList.length} selected`;
+    return (
+      <div className="flex h-full flex-col justify-start">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] transition-colors hover:border-accent-500/40 ${
+            chosenList.length ? 'border-accent-500/30 bg-accent-500/10 text-accent-300' : 'border-white/10 bg-white/5 text-white/70'
+          }`}
+        >
+          <span className="min-w-0 flex-1 truncate font-semibold">{summary}</span>
+          <ChevronDown size={14} className="shrink-0 opacity-50" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col">
+      {mode === 'dropdown' && (
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="mb-1.5 flex shrink-0 items-center justify-between rounded-lg border border-accent-500/30 bg-accent-500/10 px-3 py-1.5 text-[12px] font-semibold text-accent-300"
+        >
+          <span>Done</span>
+          <ChevronDown size={14} className="rotate-180 opacity-50" />
+        </button>
+      )}
       {data.length > SEARCHABLE && (
         <div className="relative mb-1.5 shrink-0">
           <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-white/25" />

@@ -27,15 +27,16 @@ import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
 import useNarration from '../../lib/useNarration';
 import { dashboardScript, slideScript, summaryScript, pickVoice } from '../../lib/speech';
-import { CANVAS_WIDTH, MIN_CANVAS_HEIGHT, canvasHeight, layoutMap, readingOrder } from '../../lib/canvasLayout';
+import { CANVAS_WIDTH, MIN_CANVAS_HEIGHT, layoutMap, paginateBoard, readingOrder } from '../../lib/canvasLayout';
 import { slideLayout } from '../../lib/slideSize';
 
-/**
- * Slides that are not one of the findings: the summary in front, and the board
- * behind. Both exist because a deck that is only findings has no beginning and
- * no end — you open on chart one and stop on chart nine.
+/*
+ * The deck is the summary, then a slide per finding, then the board — which is
+ * as many slides as the arrangement needs. Both ends exist because a deck that
+ * is only findings has no beginning and no end: you open on chart one and stop
+ * on chart nine. The count lives in `total`, which is computed rather than
+ * fixed now that the board can run to more than one page.
  */
-const EXTRA_SLIDES = 2;
 
 const SPEEDS = [
   { label: '1x', ms: 9000 },
@@ -66,10 +67,35 @@ export default function PresentPage() {
   const { speak, stop, speaking, voices, supported } = useNarration();
 
   const board = analysis?.storyboard || [];
-  const total = board.length + EXTRA_SLIDES;
-  // The closing board: every chart at once, after they have been walked
-  // through one at a time.
-  const onDashboard = total > EXTRA_SLIDES && page === total - 1;
+
+  /**
+   * A filter tile is not a finding.
+   *
+   * It belongs on the board — it is how the board is looked at — but it has
+   * nothing to say on a slide of its own, and it was getting one: "Finding 8 of
+   * 9", a heading, and three empty checkboxes filling a screen. Walked slides
+   * are the findings; the board at the end is everything.
+   */
+  const findings = useMemo(() => board.filter((slide) => slide?.chart?.chart_type !== 'slicer'), [board]);
+
+  /**
+   * And the board is as many slides as it takes.
+   *
+   * Shrinking a tall board to fit one slide put it in the top-left corner at a
+   * third of its size with the rest of the screen empty beside it. It is cut
+   * into pages instead, each one a screenful of the arrangement, each filling
+   * the width. The count comes from the board's own coordinates, so the deck
+   * knows how long it is before anything has been measured.
+   */
+  const boardPages = useMemo(() => {
+    const boxes = layoutMap(board, (slide) => slideLayout(slide.size));
+    return paginateBoard([...boxes.entries()].map(([id, box]) => ({ id, box })));
+  }, [board]);
+
+  const total = findings.length + 1 + boardPages.length;
+  const firstBoardPage = findings.length + 1;
+  const onDashboard = page >= firstBoardPage;
+  const boardPage = Math.max(0, page - firstBoardPage);
 
   const go = useCallback(
     (delta) => {
@@ -110,10 +136,10 @@ export default function PresentPage() {
         rowCount: dataset?.rowCount,
       });
     }
-    if (page === total - 1) return dashboardScript(analysis, avatar, { fileName: dataset?.fileName });
-    const current = analysis.storyboard[page - 1];
-    return slideScript(current, avatar, { index: page - 1, total: analysis.storyboard.length });
-  }, [analysis, avatar, page, dataset, total]);
+    if (page >= firstBoardPage) return dashboardScript(analysis, avatar, { fileName: dataset?.fileName });
+    const current = findings[page - 1];
+    return slideScript(current, avatar, { index: page - 1, total: findings.length });
+  }, [analysis, avatar, page, dataset, findings, firstBoardPage]);
 
   const advance = useCallback(() => {
     setPlaying((isPlaying) => {
@@ -183,7 +209,7 @@ export default function PresentPage() {
     );
   }
 
-  const slide = page === 0 || onDashboard ? null : analysis.storyboard[page - 1];
+  const slide = page === 0 || onDashboard ? null : findings[page - 1];
 
   return (
     <div ref={rootRef} className="relative flex h-screen flex-col overflow-hidden bg-canvas">
@@ -205,8 +231,10 @@ export default function PresentPage() {
             {page === 0
               ? 'Executive summary'
               : onDashboard
-                ? 'Everything together'
-                : `Finding ${page} of ${total - EXTRA_SLIDES}`}
+                ? boardPages.length > 1
+                  ? `Everything together · ${boardPage + 1} of ${boardPages.length}`
+                  : 'Everything together'
+                : `Finding ${page} of ${findings.length}`}
           </div>
           <div className="mt-0.5 truncate text-sm font-bold text-white/60">
             {dataset?.fileName}
@@ -306,7 +334,7 @@ export default function PresentPage() {
         {page === 0 ? (
           <SummarySlide slideZero={analysis.slideZero} kpis={analysis.kpis} />
         ) : onDashboard ? (
-          <DashboardSlide analysis={analysis} fileName={dataset?.fileName} />
+          <DashboardSlide analysis={analysis} fileName={dataset?.fileName} page={boardPage} pages={boardPages} />
         ) : (
           <ChartSlide slide={slide} />
         )}
@@ -497,7 +525,7 @@ function useNarrowViewport(query = '(max-width: 767px)') {
   return narrow;
 }
 
-function DashboardSlide({ analysis, fileName }) {
+function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
   const board = analysis.storyboard || [];
   const kpis = analysis.kpis || [];
   const card = analysis.slideZero?.strategicScorecard || {};
@@ -525,13 +553,22 @@ function DashboardSlide({ analysis, fileName }) {
   }, []);
 
   const sizeOf = useCallback((item) => slideLayout(item.size), []);
-  const boardBoxes = useMemo(() => layoutMap(board, sizeOf), [board, sizeOf]);
-  const boardHeight = useMemo(() => canvasHeight([...boardBoxes.values()]), [boardBoxes]);
+  const current = pages[page] || pages[0] || { boxes: new Map(), height: MIN_CANVAS_HEIGHT };
+  const boardBoxes = current.boxes;
+  const boardHeight = Math.max(1, current.height);
+
+  /**
+   * Width first, and height only if the page still will not fit.
+   *
+   * A page is cut to about the shape of a slide, so the width is normally what
+   * decides — which is the whole point of paginating: the board fills the slide
+   * instead of sitting small in the corner of it. The height is a backstop for
+   * a page holding one very tall card, where there is nothing else to do.
+   */
   const boardScale = Math.min(room.width / CANVAS_WIDTH, room.height / boardHeight) || 1;
 
-  // How many rows the arrangement occupies, which is all the chrome below needs
-  // to know: a board two rows deep leaves less for the title and the scorecard.
-  const rows = boardHeight > MIN_CANVAS_HEIGHT * 0.75 ? 2 : 1;
+  // A page with more than one row of cards in it leaves less for the chrome.
+  const rows = boardHeight > 400 ? 2 : 1;
 
   /**
    * A phone is not a projector.
@@ -613,6 +650,7 @@ function DashboardSlide({ analysis, fileName }) {
             className="relative"
           >
             {board.map((item) => {
+              // Only the cards this page holds: the rest are on another slide.
               const box = boardBoxes.get(String(item.id));
               if (!box) return null;
               return (

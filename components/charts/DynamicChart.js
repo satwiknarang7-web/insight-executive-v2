@@ -57,6 +57,7 @@ export default function DynamicChart({
   onSelect = null,
   selected = null,
   onClearSelection = null,
+  slicerMode = undefined,
 }) {
   if (!data || data.length === 0) return null;
 
@@ -164,6 +165,7 @@ export default function DynamicChart({
           selected={Array.isArray(selected) ? selected : []}
           onToggle={onSelect}
           onClear={onClearSelection}
+          mode={slicerMode}
         />
       );
     case 'matrix':

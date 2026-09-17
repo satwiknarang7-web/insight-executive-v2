@@ -57,6 +57,7 @@ export default function LazyChart({
   onSelect = null,
   selected = null,
   onClearSelection = null,
+  slicerMode = undefined,
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
@@ -161,6 +162,7 @@ export default function LazyChart({
             onSelect={select}
             selected={shownSelected}
             onClearSelection={onClearSelection}
+            slicerMode={slicerMode}
           />
         </ChartPalette>
       ) : (

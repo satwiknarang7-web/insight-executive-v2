@@ -35,7 +35,14 @@ const NAV = [
     // comes from. Everything below it is a view onto data that already exists.
     standalone: true,
   },
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'The charts and the executive summary' },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'The board: every chart, arranged, with the filters' },
+  {
+    href: '/summary',
+    label: 'Summary',
+    icon: FileText,
+    // Split off the dashboard, because a board is scanned and this is read.
+    hint: 'What the analysis says: the takeaways, the focus, the risk',
+  },
   {
     href: '/explore',
     label: 'Data table',

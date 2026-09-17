@@ -76,6 +76,7 @@ export default function InsightPage() {
   const shownColors = draft ? draft.colors : chart.colors;
   const shownLabels = draft ? draft.labels : chart.labels;
   const shownColorBy = (draft ? draft.colorBy : chart.colorBy) || 'series';
+  const shownSlicerMode = (draft ? draft.slicerMode : chart.slicerMode) || undefined;
   // Blank in the draft means "no override", which must fall through to the
   // column-derived name rather than render an empty title.
   const shownXLabel = (draft ? draft.xAxisLabel : chart.xAxisLabel) || null;
@@ -232,6 +233,7 @@ export default function InsightPage() {
                 colors={shownColors}
                 labels={shownLabels}
                 colorBy={shownColorBy}
+                slicerMode={shownSlicerMode}
                 xLabel={shownXLabel}
                 yLabel={shownYLabel}
                 eager
