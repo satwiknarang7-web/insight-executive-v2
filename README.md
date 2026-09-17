@@ -127,11 +127,20 @@ which is stated on screen because it is a different promise.
 
 | Group | Sources |
 | --- | --- |
-| Files | CSV, TSV and delimited text · Excel and ODS workbooks · JSON and NDJSON · XML · HTML pages · Parquet · SQLite · PDFs and photographs of tables · pasted text |
+| Files | CSV, TSV and delimited text · Excel and ODS workbooks · JSON and NDJSON · XML · HTML pages · Parquet · SQLite · pasted text |
 | Web and APIs | any file behind a link · Google Sheets · a REST endpoint returning JSON · an OData feed · the tables on a web page |
 | Databases | PostgreSQL · Neon · Supabase · Amazon Redshift · CockroachDB · Timescale · AlloyDB · RDS and Aurora · MySQL · MariaDB · TiDB · PlanetScale · SingleStore · SQL Server · Azure SQL · Oracle |
 | Warehouses and lakehouses | Snowflake · Databricks SQL · ClickHouse · Trino, Presto and Starburst · Microsoft Fabric |
 | Platforms | Tableau published data sources · MongoDB · Airtable |
+
+**A photograph or a PDF is its own way in**, not one file kind among nine. It
+reads several pages at once, and what comes back is shown as an editable grid
+before anything is loaded: every cell can be typed over, columns renamed and
+rows removed. The cells the model marked as unsure are highlighted, and
+correcting one clears its doubt — a cell somebody has typed over is a cell they
+have vouched for. Whatever doubt is left travels with the data and caps the
+findings that rest on it. A model reading a photographed table is right most of
+the time, and most of the time is not a basis for a total.
 
 Several of these are flavours of a driver that already existed — Redshift and
 Timescale speak Postgres, PlanetScale speaks MySQL — and they exist as separate

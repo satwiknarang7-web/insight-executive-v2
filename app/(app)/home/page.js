@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import {
   UploadCloud,
   FileSpreadsheet,
+  FileImage,
+  ChevronDown,
   ShieldCheck,
   ArrowRight,
   AlertTriangle,
@@ -27,7 +29,8 @@ import PageFrame from '../../../components/shell/PageFrame';
 import { SAMPLES } from '../../../lib/samples';
 import { acceptFor, sourceById } from '../../../lib/sources';
 import ConnectSource from '../../../components/panels/ConnectSource';
-import SourceCatalog from '../../../components/panels/SourceCatalog';
+import SourcePicker from '../../../components/panels/SourcePicker';
+import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
 import Image from 'next/image';
@@ -60,7 +63,7 @@ export default function LandingPage() {
   const router = useRouter();
   const { dataset, status, error } = useDataset();
   const { analysis } = useAnalysis();
-  const { ingestFile, ingestText, ingestDocument, analyze, startBlank, setError, reset } = useActions();
+  const { ingestFile, ingestText, analyze, startBlank, setError, reset } = useActions();
   const [dragging, setDragging] = useState(false);
   // Two-step, because discarding a loaded dataset also discards any analysis of
   // it and there is no undo — but a modal for one button is heavier than this.
@@ -73,6 +76,8 @@ export default function LandingPage() {
   const [source, setSource] = useState('file');
   const chosen = sourceById(source) || sourceById('file');
   const [pasted, setPasted] = useState('');
+  // Whether the document reader is open. Its own feature, its own screen.
+  const [documents, setDocuments] = useState(false);
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
   const { start: startTutorial } = useTutorial();
@@ -150,22 +155,21 @@ export default function LandingPage() {
        * vision call on the reader's own key, and batching them would spend
        * several before anyone has seen whether the first came back sensibly.
        */
-      const documents = list.filter(isExtractable);
+      // A photograph dropped on the file zone is almost always a mistake — the
+      // reading of it needs checking, and this path loads straight through. It
+      // is sent to the screen that can check it rather than quietly refused.
+      if (list.some(isExtractable)) {
+        setDocuments(true);
+        setError('A photograph or a PDF is read below, where you can check what it says before it is loaded.');
+        return;
+      }
       try {
-        if (documents.length) {
-          if (!planAllows('model')) {
-            router.push('/upgrade');
-            return;
-          }
-          await ingestDocument(documents[0]);
-          return;
-        }
         await ingestFile(list);
       } catch {
         /* surfaced through context error */
       }
     },
-    [ingestFile, ingestDocument, planAllows, router]
+    [ingestFile, setError]
   );
 
   const onDrop = useCallback(
@@ -443,6 +447,55 @@ export default function LandingPage() {
                   />
                 </div>
 
+                {/*
+                  * Reading a table out of a photograph, on its own.
+                  *
+                  * It was one tile among nine in the source catalogue, which
+                  * put it beside CSV as though the two were the same kind of
+                  * act. They are not: one is parsed and the other is read by a
+                  * model that is right most of the time, and the difference is
+                  * a screen where you check it. Several pages at once, every
+                  * cell editable.
+                  */}
+                <div className="card p-4">
+                  <button
+                    type="button"
+                    onClick={() => setDocuments((v) => !v)}
+                    aria-expanded={documents}
+                    className="flex w-full items-center gap-2.5 text-left"
+                  >
+                    <FileImage size={15} className="shrink-0 text-accent-400" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-semibold text-white/85">
+                        Photograph or PDF of a table
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-white/35">
+                        Several pages at once, read by a model and checked by you before anything loads.
+                      </span>
+                    </span>
+                    {!planAllows('model') && (
+                      <span className="shrink-0 rounded-full border border-accent-500/30 bg-accent-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-accent-400">
+                        Pro
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={15}
+                      className={`shrink-0 text-white/30 transition-transform ${documents ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {documents &&
+                    (planAllows('model') ? (
+                      <div className="mt-4 border-t border-white/6 pt-4">
+                        <DocumentImport onLoaded={() => setDocuments(false)} />
+                      </div>
+                    ) : (
+                      <p className="mt-4 border-t border-white/6 pt-4 text-[12px] leading-relaxed text-white/40">
+                        Reading a document needs a model, which is on the Pro plan — every other source
+                        here works without one.
+                      </p>
+                    ))}
+                </div>
+
                 <div className="card p-4" data-tutorial="sample-datasets">
                   <div className="label mb-2.5">Or try a sample</div>
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -470,7 +523,7 @@ export default function LandingPage() {
                   <span className="label">Get data</span>
                   <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
                 </div>
-                <SourceCatalog value={source} onChange={setSource} allowsModel={planAllows('model')} />
+                <SourcePicker value={source} onChange={setSource} allowsModel={planAllows('model')} />
 
                 {chosen.kind === 'connector' && (
                   <div className="mt-4 border-t border-white/6 pt-4">

@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { acceptFor, allSources, searchSources, sourceById, sourceGroups } from '../lib/sources.js';
+import { acceptFor, allSources, brandFor, searchSources, sourceById, sourceGroups } from '../lib/sources.js';
 import { availableConnectors } from '../lib/connectors/registry.js';
 import { WEB_SOURCES } from '../lib/webSources.js';
 
@@ -46,7 +46,25 @@ test('a file source says which files it takes, and the drop zone takes all of th
   assert.match(acceptFor('parquet'), /\.parquet/);
   assert.match(acceptFor('sqlite'), /\.db/);
   const all = acceptFor();
-  for (const ext of ['.csv', '.xlsx', '.json', '.xml', '.parquet', '.sqlite', '.pdf']) assert.ok(all.includes(ext), `${ext} not accepted`);
-  assert.equal(sourceById('document').needs, 'model');
+  for (const ext of ['.csv', '.xlsx', '.json', '.xml', '.parquet', '.sqlite']) assert.ok(all.includes(ext), `${ext} not accepted`);
   assert.equal(sourceById('nope'), null);
+});
+
+test('a photographed table is not one file kind among nine', () => {
+  // It is its own way in, with a screen of its own, because it is the only
+  // source that has to be read back before it can be trusted. A drop zone that
+  // quietly accepted a PDF alongside a CSV would skip that entirely.
+  assert.equal(sourceById('document'), null, 'documents are still in the file catalog');
+  assert.ok(!acceptFor().includes('.pdf'), 'the file drop zone still swallows PDFs');
+});
+
+test('every source carries a mark that can be drawn', () => {
+  for (const s of allSources()) {
+    const brand = brandFor(s);
+    assert.ok(brand.mark && brand.mark.length <= 3, `${s.id} has no usable mark`);
+    if (brand.color) assert.match(brand.color, /^#[0-9a-f]{6}$/i, `${s.id} has a colour nothing can render`);
+  }
+  // A source nobody has chosen a mark for still gets one from its name.
+  assert.equal(brandFor({ id: 'nothing', label: 'Some Warehouse' }).mark, 'SW');
+  assert.equal(brandFor({ id: 'postgres' }).mark, 'Pg');
 });
