@@ -332,7 +332,7 @@ export default function PresentPage() {
       {/* Slide */}
       <div key={page} className="slide-in relative z-10 flex min-h-0 flex-1 flex-col px-6 pb-2 md:px-12">
         {page === 0 ? (
-          <SummarySlide slideZero={analysis.slideZero} kpis={analysis.kpis} />
+          <SummarySlide slideZero={analysis.slideZero} />
         ) : onDashboard ? (
           <DashboardSlide analysis={analysis} fileName={dataset?.fileName} page={boardPage} pages={boardPages} />
         ) : (
@@ -410,7 +410,16 @@ export default function PresentPage() {
   );
 }
 
-function SummarySlide({ slideZero, kpis }) {
+/**
+ * The words, and only the words.
+ *
+ * The card strip moved to the board, where the app puts it: /summary carries
+ * what the analysis SAYS and /dashboard carries its numbers and its charts, and
+ * a deck that split them differently would be a third arrangement of the same
+ * two things. What is left here is the headline, the takeaways and the
+ * scorecard — the three that are written rather than computed.
+ */
+function SummarySlide({ slideZero }) {
   /**
    * A summary slide that fits on the screen it is presented from.
    *
@@ -449,17 +458,6 @@ function SummarySlide({ slideZero, kpis }) {
         >
           {cleanFloatingPoints(slideZero.headline)}
         </p>
-      )}
-
-      {kpis?.length > 0 && (
-        <div className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${long ? 'mb-4' : 'mb-7'}`}>
-          {kpis.map((k, i) => (
-            <div key={`${k.label}-${i}`} className={long ? 'card p-3' : 'card p-4'}>
-              <div className={`font-black text-white ${long ? 'text-xl' : 'text-2xl'}`}>{k.value}</div>
-              <div className="label mt-1 truncate">{k.label}</div>
-            </div>
-          ))}
-        </div>
       )}
 
       <ul className={`flex flex-col ${long ? 'mb-4 gap-2.5' : 'mb-7 gap-4'}`}>
@@ -527,6 +525,7 @@ function useNarrowViewport(query = '(max-width: 767px)') {
 
 function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
   const board = analysis.storyboard || [];
+  const kpis = analysis.kpis || [];
 
   /**
    * The board, at the size the slide can give it.
@@ -602,6 +601,25 @@ function DashboardSlide({ analysis, fileName, page = 0, pages = [] }) {
           {fileName ? ` · ${fileName}` : ''}
         </span>
       </div>
+
+      {/*
+        * The numbers belong with the charts, and once.
+        *
+        * This is where /dashboard keeps them, so it is where the deck keeps
+        * them. On the first page only: a strip repeated on page two is sixty
+        * pixels of every board page spent saying the same four numbers again,
+        * and height is the thing this slide has least of.
+        */}
+      {page === 0 && kpis.length > 0 && (
+        <div className="mb-3 grid shrink-0 grid-cols-2 gap-3 md:grid-cols-4">
+          {kpis.map((k, i) => (
+            <div key={`${k.label}-${i}`} className="card px-3 py-2">
+              <div className="text-lg font-black text-white md:text-xl">{k.value}</div>
+              <div className="label mt-0.5 truncate">{k.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/*
         * The arrangement the dashboard was left in, not a grid of its charts.
