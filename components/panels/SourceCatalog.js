@@ -105,7 +105,7 @@ export default function SourceCatalog({ value, onChange, allowsModel = true }) {
 
       {results ? (
         results.length ? (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{results.map((item) => tile(item, null))}</div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">{results.map((item) => tile(item, null))}</div>
         ) : (
           <p className="rounded-lg border border-white/6 px-3 py-4 text-center text-[12px] text-white/35">
             Nothing called “{query}”. A file of almost any kind can be dropped in; a database not listed here
@@ -120,7 +120,7 @@ export default function SourceCatalog({ value, onChange, allowsModel = true }) {
                 {g.label}
                 <span className="font-normal text-white/20">{g.items.length}</span>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{g.items.map((item) => tile(item, g.id))}</div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">{g.items.map((item) => tile(item, g.id))}</div>
             </section>
           ))}
         </div>

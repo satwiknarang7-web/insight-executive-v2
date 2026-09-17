@@ -240,7 +240,7 @@ export default function LandingPage() {
         <div>
 
 
-        <div className="w-full max-w-2xl py-2">
+        <div className="w-full max-w-5xl py-2">
           {/*
             * Right: the actual workflow.
             *
@@ -400,6 +400,70 @@ export default function LandingPage() {
               </div>
             )}
 
+            {!busy && !dataset && chosen.kind === 'file' && (
+              <>
+                <div
+                  data-tutorial="upload-dropzone"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                  }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={onDrop}
+                  onClick={() => inputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
+                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+                    dragging
+                      ? 'border-accent-500 bg-accent-500/8'
+                      : 'border-white/12 bg-white/[0.02] hover:border-accent-500/40 hover:bg-white/[0.035]'
+                  }`}
+                >
+                  <UploadCloud size={26} className={dragging ? 'text-accent-400' : 'text-white/30'} />
+                  <div className="text-sm font-bold text-white/80">
+                    {chosen.id === 'file' ? 'Drop a file, or several' : `Drop a ${chosen.label.replace(/ workbook| database| page/, '').toLowerCase()} file`}
+                  </div>
+                  <div className="text-xs text-white/35">
+                    {chosen.id === 'document'
+                      ? 'A PDF or a photograph, read by a model on your own key'
+                      : 'CSV, Excel, JSON, XML, Parquet, SQLite — nothing leaves your browser'}
+                  </div>
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    multiple
+                    accept={acceptFor(chosen.id)}
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length) handleFiles(files);
+                      e.target.value = '';
+                    }}
+                  />
+                </div>
+
+                <div className="card p-4" data-tutorial="sample-datasets">
+                  <div className="label mb-2.5">Or try a sample</div>
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    {SAMPLES.map((s) => (
+                      <button
+                        key={s.key}
+                        onClick={() => loadSample(s)}
+                        className="group flex items-start justify-between gap-2 rounded-xl border border-white/7 bg-white/[0.02] px-3.5 py-3 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.05]"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-bold text-white/85 group-hover:text-accent-300">{s.title}</div>
+                          <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/35">{s.description}</div>
+                        </div>
+                        <ArrowRight size={14} className="mt-0.5 shrink-0 text-white/20 group-hover:text-accent-400" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             {!busy && !dataset && (
               <div className="card p-4" data-tutorial="source-catalog">
                 <div className="mb-3 flex items-center gap-2">
@@ -454,70 +518,6 @@ export default function LandingPage() {
                   </div>
                 )}
               </div>
-            )}
-
-            {!busy && !dataset && chosen.kind === 'file' && (
-              <>
-                <div
-                  data-tutorial="upload-dropzone"
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragging(true);
-                  }}
-                  onDragLeave={() => setDragging(false)}
-                  onDrop={onDrop}
-                  onClick={() => inputRef.current?.click()}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
-                    dragging
-                      ? 'border-accent-500 bg-accent-500/8'
-                      : 'border-white/12 bg-white/[0.02] hover:border-accent-500/40 hover:bg-white/[0.035]'
-                  }`}
-                >
-                  <UploadCloud size={26} className={dragging ? 'text-accent-400' : 'text-white/30'} />
-                  <div className="text-sm font-bold text-white/80">
-                    {chosen.id === 'file' ? 'Drop a file, or several' : `Drop a ${chosen.label.replace(/ workbook| database| page/, '').toLowerCase()} file`}
-                  </div>
-                  <div className="text-xs text-white/35">
-                    {chosen.id === 'document'
-                      ? 'A PDF or a photograph, read by a model on your own key'
-                      : 'CSV, Excel, JSON, XML, Parquet, SQLite — nothing leaves your browser'}
-                  </div>
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    multiple
-                    accept={acceptFor(chosen.id)}
-                    className="hidden"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      if (files.length) handleFiles(files);
-                      e.target.value = '';
-                    }}
-                  />
-                </div>
-
-                <div className="card p-4" data-tutorial="sample-datasets">
-                  <div className="label mb-2">Or try a sample</div>
-                  <div className="flex flex-col gap-2">
-                    {SAMPLES.map((s) => (
-                      <button
-                        key={s.key}
-                        onClick={() => loadSample(s)}
-                        className="group flex items-center justify-between gap-3 rounded-xl border border-white/7 bg-white/[0.02] px-3.5 py-2.5 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.05]"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-bold text-white/85 group-hover:text-accent-300">{s.title}</div>
-                          <div className="truncate text-[11px] text-white/35">{s.description}</div>
-                        </div>
-                        <ArrowRight size={15} className="shrink-0 text-white/20 group-hover:text-accent-400" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
             )}
 
             {/*

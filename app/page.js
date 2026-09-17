@@ -7,6 +7,7 @@ import { ArrowRight, Compass } from 'lucide-react';
 import Logo from '../components/shell/Logo';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import { availableConnectors } from '../lib/connectors/registry';
+import { sourceGroups } from '../lib/sources';
 
 /**
  * What this is, for somebody deciding whether to use it.
@@ -44,6 +45,15 @@ const SHOWCASE = [
     src: '/screenshots/present.jpg',
   },
 ];
+
+/** The file kinds the catalog offers, as one line. */
+function fileSourceLabels() {
+  const files = sourceGroups().find((g) => g.id === 'files');
+  return (files?.items || [])
+    .filter((i) => i.kind === 'file')
+    .map((i) => i.label.replace(/ workbook| database| page| or photo of a table/, ''))
+    .join(', ');
+}
 
 export default function LandingPage() {
   const revealRefs = useRef([]);
@@ -188,7 +198,10 @@ export default function LandingPage() {
               */}
             <dl className="mt-6 max-w-md space-y-1.5 text-[12px]">
               {[
-                ['Files', 'CSV, Excel'],
+                // Read from the catalog, for the same reason the live sources below
+                // are: the claim drifted the moment a format was added, and this one
+                // had been wrong since Parquet, SQLite, JSON, XML and HTML arrived.
+                ['Files', fileSourceLabels()],
                 ['Live sources', availableConnectors().map((c) => c.label).join(' · ')],
               ].map(([term, list]) => (
                 <div key={term} className="flex gap-4">

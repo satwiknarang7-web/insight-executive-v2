@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Target,
   AlertTriangle,
@@ -21,6 +21,7 @@ import {
   Check,
   Info,
   HelpCircle,
+  ChevronDown,
   SlidersHorizontal,
   Wand2,
 } from 'lucide-react';
@@ -94,8 +95,46 @@ export default function DashboardPage() {
   // difference between scrolling to find something and it being on screen.
   const [showSummary, setShowSummary] = useState(true);
   const [showFindings, setShowFindings] = useState(true);
+  /**
+   * The working notes: what the deck did not reach, and what was repaired
+   * before anyone saw it.
+   *
+   * Closed. These are honest and they are ours — a reader opening a report
+   * wants the findings, not four lines about a claim that was removed from a
+   * slide they never saw. Kept on the page rather than deleted, because the
+   * whole product rests on being able to see what was done; put behind one
+   * line, because being able to see it is not the same as being shown it.
+   */
+  const [showNotes, setShowNotes] = useState(false);
 
   const run = useCallback(() => analyze().catch(() => {}), [analyze]);
+
+  /**
+   * The notes, each kind folded to one line per distinct thing said.
+   *
+   * The same repair applied to four slides produced four identical sentences,
+   * which reads as a stutter rather than as four fixes. Folded to one line
+   * with a count: same information, and it is legible.
+   */
+  const notes = useMemo(() => {
+    const fold = (items, key) => {
+      const seen = new Map();
+      for (const item of items || []) {
+        const text = key(item);
+        if (!text) continue;
+        const at = seen.get(text);
+        if (at) at.count += 1;
+        else seen.set(text, { ...item, text, count: 1 });
+      }
+      return [...seen.values()];
+    };
+    const questions = fold(analysis?.critique, (q) => q?.question);
+    const edits = fold(analysis?.analystEdits, (e) => {
+      const what = describeEdit(e);
+      return e?.why ? `${what} — ${e.why}` : what;
+    });
+    return { questions, edits, total: questions.length + edits.length };
+  }, [analysis?.critique, analysis?.analystEdits]);
 
   const summary = analysis?.slideZero;
   // Only numeric columns can be summed or averaged. Count needs none of them,
@@ -387,84 +426,106 @@ export default function DashboardPage() {
               </ul>
             )}
 
-            {/* What the deck does not say.
-                Kept visually apart from the findings above it and never styled
-                like one: these are questions with nothing behind them, and a
-                reader has to be able to tell them from the sentences that
-                carry a query. Every expensive mistake in this project has been
-                an absence — a chart that is not there leaves no mark on the
-                page — so the absences get a place to appear. */}
-            {analysis?.critique?.length > 0 && (
+            {/*
+              * What the deck does not say, and what was repaired before anyone
+              * saw it — behind one line.
+              *
+              * Both lists are worth keeping and neither is a finding. They used
+              * to sit open at the foot of the executive summary, so the last
+              * thing a reader saw was four questions the analysis could not
+              * answer and four notes about slides it had edited. That is our
+              * working, and a reader is owed the ability to see it rather than
+              * the obligation to read it.
+              */}
+            {notes.total > 0 && (
               <div className="mt-5 border-t border-white/8 pt-4">
-                <div className="flex items-center gap-2">
-                  <HelpCircle size={12} className="shrink-0 text-white/30" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                    Open questions
+                <button
+                  type="button"
+                  onClick={() => setShowNotes((v) => !v)}
+                  aria-expanded={showNotes}
+                  className="flex w-full items-center gap-2 text-left text-[11px] text-white/30 transition-colors hover:text-white/55"
+                >
+                  <HelpCircle size={12} className="shrink-0" />
+                  <span className="font-semibold">How this deck was checked</span>
+                  <span className="text-white/25">
+                    {notes.questions.length > 0 &&
+                      `${notes.questions.length} open question${notes.questions.length === 1 ? '' : 's'}`}
+                    {notes.questions.length > 0 && notes.edits.length > 0 && ' · '}
+                    {notes.edits.length > 0 && `${notes.edits.length} edit${notes.edits.length === 1 ? '' : 's'}`}
                   </span>
-                  <span className="text-[10px] text-white/20">nothing here is a finding</span>
-                </div>
-                <ul className="mt-3 flex flex-col gap-2">
-                  {analysis.critique.map((q, i) => (
-                    <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
-                      {/* Which questions were found in the data and which were
-                          thought up about it. Both are questions and neither is
-                          a finding, but a reader is owed the difference: one
-                          was measured, the other was imagined by a model that
-                          was shown no numbers. */}
-                      {q.source === 'model' && (
-                        <span
-                          title="Suggested by a language model, which was shown the column names and no values"
-                          className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-black uppercase tracking-[0.15em] text-white/25"
-                        >
-                          AI
-                        </span>
-                      )}
-                      <span>{q.question}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                  <ChevronDown
+                    size={13}
+                    className={`ml-auto shrink-0 transition-transform ${showNotes ? 'rotate-180' : ''}`}
+                  />
+                </button>
 
-            {/* What the editing agent changed.
-                Shown for the same reason the AI badge above exists: a reader
-                who finds a heading they did not write is owed the sentence
-                explaining who wrote it and why. Every one of these is a change
-                a person could have made by hand through the same whitelist, is
-                recorded on the slide as an edit, and can be typed over. */}
-            {analysis?.analystEdits?.length > 0 && (
-              <div className="mt-5 border-t border-white/8 pt-4">
-                <div className="flex items-center gap-2">
-                  <Wand2 size={12} className="shrink-0 text-white/30" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                    Edits made
-                  </span>
-                  <span className="text-[10px] text-white/20">before you saw it — no number changed</span>
-                </div>
-                <ul className="mt-3 flex flex-col gap-2">
-                  {analysis.analystEdits.map((e, i) => (
-                    <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
-                      {/* Which fixes were measured and which were written.
-                          A donut of two slices is arithmetic; a shorter
-                          heading is a judgement, and a reader deciding how
-                          much to trust a change is owed the difference. */}
-                      <span
-                        title={
-                          e.source === 'audit'
-                            ? 'Found and fixed by a deterministic check — no model involved'
-                            : "Made by a language model, which was shown the deck's structure and no values"
-                        }
-                        className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-black uppercase tracking-[0.15em] text-white/25"
-                      >
-                        {e.source === 'audit' ? 'CHECK' : 'AI'}
-                      </span>
-                      <span>
-                        <span className="text-white/55">{describeEdit(e)}</span>
-                        {e.why ? ` — ${e.why}` : ''}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                {showNotes && (
+                  <div className="mt-4 flex flex-col gap-5">
+                    {notes.questions.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="label">Open questions</span>
+                          <span className="text-[10px] text-white/20">nothing here is a finding</span>
+                        </div>
+                        <ul className="mt-2.5 flex flex-col gap-2">
+                          {notes.questions.map((q) => (
+                            <li key={q.text} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
+                              {/* Which questions were found in the data and which
+                                  were thought up about it. Both are questions and
+                                  neither is a finding, but a reader is owed the
+                                  difference: one was measured, the other was
+                                  imagined by a model shown no numbers. */}
+                              {q.source === 'model' && (
+                                <span
+                                  title="Suggested by a language model, which was shown the column names and no values"
+                                  className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-bold uppercase tracking-[0.15em] text-white/25"
+                                >
+                                  AI
+                                </span>
+                              )}
+                              <span>{q.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {notes.edits.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="label">Edits made</span>
+                          <span className="text-[10px] text-white/20">before you saw it — no number changed</span>
+                        </div>
+                        <ul className="mt-2.5 flex flex-col gap-2">
+                          {notes.edits.map((e) => (
+                            <li key={e.text} className="flex gap-2 text-[12px] leading-relaxed text-white/40">
+                              {/* Which fixes were measured and which were written.
+                                  A donut of two slices is arithmetic; a shorter
+                                  heading is a judgement, and a reader deciding how
+                                  much to trust a change is owed the difference. */}
+                              <span
+                                title={
+                                  e.source === 'audit'
+                                    ? 'Found and fixed by a deterministic check — no model involved'
+                                    : "Made by a language model, which was shown the deck's structure and no values"
+                                }
+                                className="mt-[3px] shrink-0 rounded border border-white/10 px-1 text-[8px] font-bold uppercase tracking-[0.15em] text-white/25"
+                              >
+                                {e.source === 'audit' ? 'CHECK' : 'AI'}
+                              </span>
+                              <span className="text-white/45">
+                                {e.text}
+                                {e.count > 1 && (
+                                  <span className="ml-1.5 text-white/25">×{e.count}</span>
+                                )}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
