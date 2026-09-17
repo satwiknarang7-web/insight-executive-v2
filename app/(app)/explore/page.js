@@ -15,6 +15,7 @@ import {
   Fingerprint,
   Sigma,
   Wand2,
+  ChevronDown,
 } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
@@ -53,15 +54,22 @@ export default function ExplorePage() {
   const [filter, setFilter] = useState('');
   const [anomaliesOnly, setAnomaliesOnly] = useState(false);
   /**
-   * Both working sections start open and can be put away.
+   * The two tools, and which one is open.
    *
-   * This page now holds four things — what the columns are, how they are being
+   * This page holds four things — what the columns are, how they are being
    * reshaped, the calculations defined over them, and the rows themselves —
-   * and the rows are what most visits are for. Neither panel may stand between
-   * a reader and the table for longer than they want it to.
+   * and the rows are what most visits are for. They were last: a pager, then
+   * two full-height panels, then the table the pager belonged to, which put
+   * roughly seven hundred pixels between a control and the thing it controlled
+   * and pushed the first row off the screen.
+   *
+   * So the tools are a pair of chips above the table and one is open at a
+   * time. Closed by default, because arriving at Explore and seeing the data
+   * is the whole point of arriving at Explore — and each chip carries a count,
+   * so a list of applied steps is visible without opening anything.
    */
-  const [showShape, setShowShape] = useState(true);
-  const [showMeasures, setShowMeasures] = useState(false);
+  const [tool, setTool] = useState(null);
+  const [showColumns, setShowColumns] = useState(true);
 
   // null means the joined analysis view — the table every chart and measure
   // runs against. The source sheets are browsable in their own right, which
@@ -180,6 +188,9 @@ export default function ExplorePage() {
   const sourceTable = (dataset.tables || []).find((t) => t.name === table) || null;
   const columns = sourceTable ? sourceTable.columns : dataset.columns;
   const profile = dataset.profile?.columns || {};
+  // Shown on the chip, so a list of applied steps is visible without opening
+  // the panel that holds it.
+  const appliedSteps = (dataset.transforms || []).filter((t) => t?.enabled !== false).length;
   const pageStart = total === 0 ? 0 : offset + 1;
   const pageEnd = Math.min(offset + PAGE_SIZE, total);
 
@@ -297,10 +308,60 @@ export default function ExplorePage() {
         </section>
       )}
 
+      {/*
+        * The tools, above the rows they act on.
+        *
+        * Each panel carries its own heading and its own actions, so this row
+        * is a switch and not a second title — the page used to print "Shape
+        * the data" twice, once here and once inside the panel.
+        */}
+      {table === null && (
+        <section className="mb-5" data-tutorial="explore-tools">
+          <div className="flex flex-wrap items-center gap-2">
+            <ToolChip
+              icon={Wand2}
+              label="Shape the data"
+              count={appliedSteps}
+              open={tool === 'shape'}
+              onClick={() => setTool((t) => (t === 'shape' ? null : 'shape'))}
+            />
+            <ToolChip
+              icon={Sigma}
+              label="Measures"
+              count={measures.length}
+              open={tool === 'measures'}
+              onClick={() => setTool((t) => (t === 'measures' ? null : 'measures'))}
+            />
+          </div>
+
+          {tool === 'shape' && (
+            <div className="mt-3">
+              {/* Keyed on the dataset: a staged list written against a file
+                  that is gone must not survive into the next one. */}
+              <TransformPanel key={dataset.ingestedAt} />
+            </div>
+          )}
+          {tool === 'measures' && (
+            <div className="mt-3 card p-5">
+              <MeasuresPanel />
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Column profile */}
-      <section className="mb-6">
-        <div className="label mb-3">Columns</div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <section className="mb-5">
+        <div className="mb-2.5 flex items-center gap-3">
+          <span className="label">Columns</span>
+          <span className="text-[11px] text-white/30">{columns.length}</span>
+          <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
+          <Collapse open={showColumns} onToggle={() => setShowColumns((v) => !v)} label="the column profile" />
+        </div>
+        <div
+          className={`grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 ${
+            showColumns ? '' : 'hidden'
+          }`}
+        >
           {columns.map((col) => {
             const p = profile[col] || {};
             const Icon = ROLE_ICON[p.role] || Type;
@@ -364,36 +425,6 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* Shaping belongs beside the rows it shapes: the columns are named
-            here, the values are visible here, and the effect of a step is
-            legible the moment it is applied. Measures sit with it because they
-            are the other half of the same question — what this data should say
-            that the file does not — even though one changes the table and the
-            other does not. */}
-        <div className="mb-5 flex flex-col gap-3">
-          <div>
-            <div className="mb-2 flex items-center gap-3">
-              <Wand2 size={14} className="text-accent-400" />
-              <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">Shape the data</h2>
-              <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-              <Collapse open={showShape} onToggle={() => setShowShape((v) => !v)} label="the shaping steps" />
-            </div>
-            {/* Keyed on the dataset: a staged list written against a file that
-                is gone must not survive into the next one. */}
-            {showShape && <TransformPanel key={dataset.ingestedAt} />}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center gap-3">
-              <Sigma size={14} className="text-accent-400" />
-              <h2 className="text-xs font-black uppercase tracking-[0.28em] text-white/45">Measures</h2>
-              <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-              <Collapse open={showMeasures} onToggle={() => setShowMeasures((v) => !v)} label="the measures" />
-            </div>
-            {showMeasures && <MeasuresPanel />}
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs">
             <thead className="sticky top-0 bg-canvas-raised">
@@ -452,6 +483,41 @@ export default function ExplorePage() {
         </div>
       </section>
     </PageFrame>
+  );
+}
+
+/**
+ * One of the two tools, as a chip.
+ *
+ * It carries a count rather than only a name: "Shape the data · 3" says the
+ * table on screen is not the table in the file, which is the one thing about
+ * this page somebody must never have to open a panel to discover.
+ */
+function ToolChip({ icon: Icon, label, count, open, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-[12px] font-semibold transition-colors ${
+        open
+          ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+          : 'border-white/10 text-white/55 hover:bg-white/5 hover:text-white'
+      }`}
+    >
+      <Icon size={14} className={open ? 'text-accent-400' : 'text-white/35'} />
+      {label}
+      {count > 0 && (
+        <span
+          className={`rounded-full px-1.5 py-px text-[10px] font-bold tabular-nums ${
+            open ? 'bg-accent-500/20 text-accent-200' : 'bg-white/8 text-white/50'
+          }`}
+        >
+          {count}
+        </span>
+      )}
+      <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''} text-white/25`} />
+    </button>
   );
 }
 
