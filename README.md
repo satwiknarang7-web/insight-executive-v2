@@ -159,7 +159,7 @@ the same guards the database connectors use, for the same reason.
 | `/ask` | Ask a question in plain English; includes a SQL console |
 | `/measures` | Name a calculation once — described in plain English — and reuse it on cards and charts |
 | `/quality` | Cleaning report, per-column stats, full query audit |
-| `/settings` | Lighting and material — how the app looks on this device |
+| `/settings` | Lighting, material, and the guided tour |
 | `/present` | Full-screen slide deck (arrow keys, space to autoplay) |
 | `/report` | Print-ready long-form report |
 
@@ -242,6 +242,17 @@ Without a key the table is analysed as it arrived, which is what every
 analysis did until now.
 
 ## How it looks
+
+Each finding on the dashboard can be sized: a third of the row, a half, two
+thirds, or the whole row on its own. Every card used to be the same rectangle,
+which said every finding mattered equally — a twelve-month trend and a two-slice
+donut beside it are not the same thing. The size is a share of a row rather than
+a pixel width, because a dashboard is read at every width between a phone and a
+wall display, and it carries the chart's height with it: a full-width chart left
+at a third-width height is a letterbox, which is the one shape a trend line
+cannot be read in. A deck that sets no size lays out two across, exactly as
+every deck did before sizing existed.
+
 
 Two independent choices, both kept in the browser rather than on the account,
 and both set on `/settings`.

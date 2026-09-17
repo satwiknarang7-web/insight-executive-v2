@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Presentation,
   Download,
-  RotateCcw,
   Menu,
   X,
   PanelLeftClose,
@@ -20,13 +19,10 @@ import {
   UserRound,
   GitBranch,
   Home,
-  Compass,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
-import { useTutorial } from '../../lib/store/TutorialProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
-import ThemeToggle from './ThemeToggle';
 import Logo, { PRODUCT_NAME } from './Logo';
 
 const NAV = [
@@ -134,8 +130,7 @@ const actionClass = (rail) =>
 export default function AppShell({ children }) {
   const { dataset, status } = useDataset();
   const { analysis } = useAnalysis();
-  const { exportCsv, reset } = useActions();
-  const { start: startTutorial } = useTutorial();
+  const { exportCsv } = useActions();
   const { can: planAllows, loading: planLoading } = usePlan();
   // A page whose whole content needs a capability this plan lacks is left out
   // rather than shown disabled: the sidebar is navigation, not a price list.
@@ -280,15 +275,17 @@ export default function AppShell({ children }) {
         )}
       </nav>
 
+      {/*
+        * Two actions, and they are the two that produce something.
+        *
+        * This footer had grown to five: a tour, a theme switch, the report, the
+        * cleaned CSV and a reset. Three of those are settings or navigation
+        * wearing the costume of an action, and a column of five equal buttons
+        * gives no clue which one matters. The tour and the theme live in
+        * Settings; starting over is on Home, where the dataset card that would
+        * be discarded is visible while you decide.
+        */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
-        <button
-          onClick={() => startTutorial()}
-          title="Take a guided tour"
-          className={`${actionClass(rail)} border-white/10 bg-white/[0.03] text-white/50 hover:bg-accent-500/10 hover:text-accent-300`}
-        >
-          <Compass size={14} /> {!rail && 'Tutorial'}
-        </button>
-        <ThemeToggle compact={rail} />
         {analysis?.storyboard?.length > 0 && (
           <Link
             href="/report"
@@ -304,16 +301,6 @@ export default function AppShell({ children }) {
           className={`${actionClass(rail)} border-white/10 bg-white/[0.03] text-white/50 hover:bg-white/8 hover:text-white`}
         >
           <Download size={14} /> {!rail && 'Cleaned CSV'}
-        </button>
-        <button
-          onClick={async () => {
-            await reset();
-            router.push('/home');
-          }}
-          title="Start over with a new dataset"
-          className={`${actionClass(rail)} border-white/10 bg-transparent text-white/35 hover:bg-white/5 hover:text-white/70`}
-        >
-          <RotateCcw size={14} /> {!rail && 'New dataset'}
         </button>
       </div>
     </div>

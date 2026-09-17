@@ -44,6 +44,7 @@ import NarrationNote from '../../../components/panels/NarrationNote';
 import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
+import { SLIDE_SIZES, slideSize } from '../../../lib/slideSize';
 
 export default function DashboardPage() {
   const { dataset, status, preparation } = useDataset();
@@ -572,8 +573,11 @@ export default function DashboardPage() {
           <Collapse open={showFindings} onToggle={() => setShowFindings((v) => !v)} label="findings" />
         </div>
 
+        {/* Six columns on a desktop, and each card claims a share of them —
+            see `lib/slideSize.js`. A deck that sets no size lays out two
+            across, exactly as every deck did before sizing existed. */}
         {showFindings && (
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
           {storyboard.map((slide, i) => (
             <FindingCard
               key={slide.id || i}
@@ -778,13 +782,14 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
  * mode the same markup is wrapped in a plain div instead.
  */
 function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
+  const size = slideSize(slide.size);
+  // The span class carries the card's share of the row at every breakpoint.
   const Wrapper = editing ? 'div' : Link;
   const wrapperProps = editing
-    ? { className: 'card relative flex flex-col overflow-hidden p-5' }
+    ? { className: `card relative flex flex-col overflow-hidden p-5 ${size.span}` }
     : {
         href: `/insight/${slide.id || `slide_${index + 1}`}`,
-        className:
-          'group card relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
+        className: `group card relative flex flex-col overflow-hidden p-5 transition-colors hover:border-accent-500/30 hover:bg-white/[0.035] ${size.span}`,
       };
 
   return (
@@ -821,6 +826,22 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
               editor, where what a chart measures can be changed. This is that
               route, and it is a link rather than a second copy of the editor. */}
           {editing && (
+            <label className="flex items-center" title="How much of the row this finding takes">
+              <span className="sr-only">Card size for {slide.pageTitle}</span>
+              <select
+                value={size.id}
+                onChange={(e) => onEdit({ size: e.target.value })}
+                className="rounded-lg border border-white/10 bg-white/5 px-1.5 py-1 text-[11px] font-medium text-white/60 outline-none focus:border-accent-500/50"
+              >
+                {SLIDE_SIZES.map((s) => (
+                  <option key={s.id} value={s.id} className="bg-surface">
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {editing && (
             <Link
               href={`/insight/${slide.id || `slide_${index + 1}`}`}
               aria-label={`Edit the chart for ${slide.pageTitle}`}
@@ -848,7 +869,7 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
         </div>
       </div>
 
-      <div className="mt-4 h-48">
+      <div className={`mt-4 ${size.height}`}>
         <ChartBoundary resetKey={`${slide.id}-${slide.chart?.chart_type}`}>
           <LazyChart
             data={slide.chart?.resultData}

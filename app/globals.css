@@ -503,6 +503,39 @@ body {
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * How much of a dashboard row one finding takes.
+ *
+ * The grid is one column on a phone, two on a tablet and six on a desktop, and
+ * each size claims a share of those six. Written here rather than as Tailwind
+ * spans on the card because the span has to change at each breakpoint, and a
+ * class per size per breakpoint is twelve class names threaded through the
+ * component for something that is one idea.
+ *
+ * On a phone everything is the full width, because at 375px there is no such
+ * thing as a third of a row.
+ * --------------------------------------------------------------------------- */
+.slide-small,
+.slide-medium,
+.slide-large,
+.slide-full {
+  grid-column: span 1;
+}
+
+@media (min-width: 768px) {
+  .slide-large,
+  .slide-full {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1280px) {
+  .slide-small { grid-column: span 2; }
+  .slide-medium { grid-column: span 3; }
+  .slide-large { grid-column: span 4; }
+  .slide-full { grid-column: span 6; }
+}
+
 /*
  * A focus ring that follows the accent, and only for the keyboard.
  *
