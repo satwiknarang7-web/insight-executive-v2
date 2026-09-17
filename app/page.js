@@ -46,6 +46,19 @@ const SHOWCASE = [
   },
 ];
 
+/**
+ * The live sources, as one line.
+ *
+ * All thirty names wrapped to six lines and read as a wall. The first few plus
+ * a count carries the same claim — that the list is long — in one line, and it
+ * still comes from the registry, so it cannot drift.
+ */
+function liveSourceSummary() {
+  const all = availableConnectors().map((c) => c.label);
+  const shown = all.slice(0, 6).join(' · ');
+  return all.length > 6 ? `${shown}, and ${all.length - 6} more` : shown;
+}
+
 /** The file kinds the catalog offers, as one line. */
 function fileSourceLabels() {
   const files = sourceGroups().find((g) => g.id === 'files');
@@ -115,7 +128,7 @@ export default function LandingPage() {
           </div>
         </header>
 
-        <div className="grid flex-1 content-center items-start gap-8 py-10 lg:grid-cols-[1fr_minmax(0,420px)] lg:gap-14">
+        <div className="grid items-start gap-8 py-9 lg:grid-cols-[1fr_minmax(0,430px)] lg:gap-14">
           {/* Left: pitch */}
           <div className="flex flex-col lg:pt-4">
             {/*
@@ -187,36 +200,18 @@ export default function LandingPage() {
               ))}
             </ol>
 
-            {/*
-              * Read from the registry rather than retyped.
-              *
-              * The hand-written list here had already drifted: it omitted
-              * Supabase entirely and renamed three of the others, so the page
-              * was advertising something different from what the dropdown on
-              * the right offers. Nine equal-weight pills also wrapped 7-and-2
-              * and made a file look like the same kind of thing as a warehouse.
-              */}
-            <dl className="mt-6 max-w-md space-y-1.5 text-[12px]">
-              {[
-                // Read from the catalog, for the same reason the live sources below
-                // are: the claim drifted the moment a format was added, and this one
-                // had been wrong since Parquet, SQLite, JSON, XML and HTML arrived.
-                ['Files', fileSourceLabels()],
-                ['Live sources', availableConnectors().map((c) => c.label).join(' · ')],
-              ].map(([term, list]) => (
-                <div key={term} className="flex gap-4">
-                  <dt className="w-24 shrink-0 pt-px text-[9px] font-black uppercase tracking-[0.18em] text-white/30">
-                    {term}
-                  </dt>
-                  <dd className="leading-relaxed text-white/45">{list}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
 
-          {/* The invitation, opposite the argument. Anyone reading this far has
-              read enough. */}
-          <div className="card flex flex-col gap-4 p-7">
+          {/*
+            * The invitation, and what it is an invitation to.
+            *
+            * The card alone left four hundred pixels of nothing beneath it while
+            * the pitch column towered beside it. What the product reads is the
+            * other half of the offer, so it belongs here rather than at the foot
+            * of the argument — and the two columns end at roughly the same place.
+            */}
+          <div className="flex flex-col gap-5">
+            <div className="card flex flex-col gap-4 p-7">
             <div>
               <div className="label">Get started</div>
               <p className="mt-2 text-[13.5px] leading-relaxed text-white/55">
@@ -237,7 +232,24 @@ export default function LandingPage() {
               >
                 or sign in
               </Link>
+              </div>
             </div>
+
+            <dl className="space-y-2 px-1 text-[12px]">
+              {[
+                // Read from the catalog rather than retyped. The hand-written
+                // list had already drifted — it omitted Supabase and renamed
+                // three others — and the file line had been wrong since Parquet,
+                // SQLite, JSON, XML and HTML arrived.
+                ['Files', fileSourceLabels()],
+                ['Live sources', liveSourceSummary()],
+              ].map(([term, list]) => (
+                <div key={term}>
+                  <dt className="label">{term}</dt>
+                  <dd className="mt-1 leading-relaxed text-white/45">{list}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
 
