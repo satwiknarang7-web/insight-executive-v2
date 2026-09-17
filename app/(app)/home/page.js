@@ -389,8 +389,19 @@ export default function LandingPage() {
               * once somebody picks Postgres. Choose the source, then fill in what
               * that source needs.
               */}
+            {/*
+              * `relative z-20` is what keeps the open dropdown on top.
+              *
+              * `.card` carries a backdrop-filter, and a backdrop-filter makes
+              * a stacking context — so the picker's `z-30` only ever competed
+              * inside this card, never with the cards after it. Those cards
+              * are also backdrop-filtered, so they painted over the open list
+              * by virtue of coming later in the document. Lifting the whole
+              * card is the fix; raising the panel further would not have
+              * touched it.
+              */}
             {!busy && !dataset && (
-              <div className="card p-4" data-tutorial="source-catalog">
+              <div className="card relative z-20 p-4" data-tutorial="source-catalog">
                 <div className="mb-3 flex items-center gap-2">
                   <span className="label">Source</span>
                   <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
