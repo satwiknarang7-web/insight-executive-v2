@@ -5,6 +5,7 @@ import {
   MAX_SERIES,
   OTHER_COLOR,
   PALETTES,
+  categoryColor,
   foldToOther,
   ordinalRamp,
   paletteFor,
@@ -121,4 +122,51 @@ test('the ramp runs in opposite directions on the two surfaces', () => {
     assert.ok(dark[i] > dark[i - 1], 'on the dark surface it lightens');
   }
   assert.notDeepEqual(ordinalRamp(5, 'light'), ordinalRamp(5, 'dark'));
+});
+
+test('a bar chart coloured per category cycles instead of going neutral', () => {
+  const palette = paletteFor('default', 'dark');
+
+  // The first lap is the palette itself, untouched.
+  for (let i = 0; i < MAX_SERIES; i++) {
+    assert.equal(categoryColor(palette, i, 'dark'), palette[i], `bar ${i}`);
+  }
+
+  // The ninth bar is not grey, and not the first bar's colour either. The bug
+  // this replaces: bars nine and ten were both OTHER_COLOR, so two unrelated
+  // categories were painted the same on a chart where colour is decoration.
+  const ninth = categoryColor(palette, MAX_SERIES, 'dark');
+  assert.notEqual(ninth, OTHER_COLOR.dark);
+  assert.notEqual(ninth, palette[0]);
+  assert.notEqual(ninth, categoryColor(palette, MAX_SERIES + 1, 'dark'));
+  assert.match(ninth, /^#[0-9a-f]{6}$/);
+
+  // Sixteen bars, sixteen colours.
+  const colours = Array.from({ length: 16 }, (_, i) => categoryColor(palette, i, 'dark'));
+  assert.equal(new Set(colours).size, 16);
+});
+
+test('the second lap moves away from the surface it is drawn on', () => {
+  const luminance = (hex) =>
+    [1, 3, 5].reduce((sum, at) => sum + parseInt(hex.slice(at, at + 2), 16), 0);
+
+  const dark = paletteFor('default', 'dark');
+  assert.ok(
+    luminance(categoryColor(dark, MAX_SERIES, 'dark')) > luminance(dark[0]),
+    'on a dark surface the second lap is lighter'
+  );
+
+  const light = paletteFor('default', 'light');
+  assert.ok(
+    luminance(categoryColor(light, MAX_SERIES, 'light')) < luminance(light[0]),
+    'on a light surface the second lap is darker'
+  );
+});
+
+test('colour still names the series everywhere colour is the only name', () => {
+  // categoryColor is the exception, not a replacement: a legend, a donut and a
+  // stack still go neutral past the eighth, because there the colour is the
+  // only thing tying a mark to its label.
+  const palette = paletteFor('default', 'dark');
+  assert.equal(seriesColor(palette, MAX_SERIES, 'dark'), OTHER_COLOR.dark);
 });

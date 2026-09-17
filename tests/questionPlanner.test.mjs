@@ -181,3 +181,27 @@ test('a column spelled the way the file spells it is read', () => {
   assert.equal(planQuestion('monthly charge by region', snake).error, null);
   assert.match(plan('average monthly tenure by category').error, /matches what you asked to measure/);
 });
+
+test('a grouping that names nothing is refused, not quietly dropped', () => {
+  // "Which Payment_Mode has the highest Quantity?" over a table with no such
+  // column was answered with one card holding the total quantity, described as
+  // "100.0% of the total" — true of any number against itself, and an answer to
+  // a question nobody asked.
+  const { spec, error } = plan('Which Payment_Mode has the highest Total_Amount?');
+  assert.equal(spec, null);
+  assert.match(error, /Payment_Mode/);
+  assert.match(error, /group by/);
+
+  // The same for an explicit "by".
+  assert.match(plan('total amount by Payment_Mode').error, /Payment_Mode/);
+});
+
+test('a phrase after "by" that is not a grouping is still left alone', () => {
+  // A period is read as a bucket, and a measure named after "by" is the thing
+  // being measured or sorted on — neither is a missing column.
+  assert.equal(plan('total amount over time by month').error, null);
+  assert.equal(plan('total amount by category by year').error, null);
+  assert.equal(plan('top categories by total amount').error, null);
+  // "per" is how an average is asked for, so it never refuses on its own.
+  assert.equal(plan('average total amount per order').error, null);
+});

@@ -372,7 +372,7 @@ export default function TransformPanel() {
     <div className="card p-4">
       <div className="mb-1 flex flex-wrap items-center gap-2">
         <Wand2 size={14} className="text-accent-400" />
-        <span className="label">Shape the data</span>
+        <span className="label">Transform data</span>
         <div className="ml-auto flex items-center gap-3">
           {can('model') && (
             <button

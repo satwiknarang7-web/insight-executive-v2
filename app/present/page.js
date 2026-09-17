@@ -665,8 +665,17 @@ function ChartSlide({ slide }) {
     // the chart card was left with about 20px of a phone-sized slide. Naming
     // the rows gives the chart a floor and hands the remainder — which the
     // column below already knows how to scroll — to the text.
-    <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_minmax(190px,45%)] gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:grid-rows-1">
-      <div className="flex min-h-0 flex-col overflow-y-auto">
+    //
+    // On a phone the slide scrolls as one page instead, the way the opening
+    // slide already does. Dividing 812px between a finding, what it means, the
+    // verified facts and a chart left every one of them in a box too small for
+    // it, and the text in a scroller of its own inside a slide that did not
+    // scroll — two scrolling regions on a screen held in one hand, with the
+    // sentence cut mid-line in the smaller of them. A deck read from a phone is
+    // read, not projected, and the rule about never scrolling a slide is a rule
+    // about the room.
+    <div className="flex h-full min-h-0 flex-col gap-6 overflow-y-auto md:grid md:grid-rows-[minmax(0,1fr)_minmax(190px,45%)] md:overflow-hidden lg:grid-cols-[380px_minmax(0,1fr)] lg:grid-rows-1">
+      <div className="flex flex-col md:min-h-0 md:overflow-y-auto">
         <h2 className="display text-[28px] leading-tight md:text-[36px]">{slide.pageTitle}</h2>
 
         {slide.insight_anchor && (
@@ -696,7 +705,10 @@ function ChartSlide({ slide }) {
         )}
       </div>
 
-      <div className="card min-h-0 p-4">
+      {/* A height rather than a share of the slide, because in a scrolling
+          column there is no share to take: `flex-1` of an auto-height parent
+          is nothing, and the chart collapsed to its axis labels. */}
+      <div className="card h-[320px] shrink-0 p-4 md:h-auto md:min-h-0">
         <ChartBoundary resetKey={`${slide.id}-${chart.chart_type}`}>
           <LazyChart
             data={chart.resultData}

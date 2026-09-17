@@ -11,7 +11,12 @@
  * the PDF print route and any bare render get.
  */
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { DEFAULT_PALETTE, paletteFor, seriesColor as pickColor } from '../../lib/chartPalette';
+import {
+  DEFAULT_PALETTE,
+  categoryColor as pickCategoryColor,
+  paletteFor,
+  seriesColor as pickColor,
+} from '../../lib/chartPalette';
 
 const PaletteCtx = createContext(null);
 const ModeCtx = createContext('dark');
@@ -78,6 +83,21 @@ export function useSeriesColor() {
 /** Whether this chart paints per category rather than per series. */
 export function useColorBy() {
   return useContext(ColorByCtx);
+}
+
+/**
+ * The colour for the `index`th bar when the chart paints one per bar.
+ *
+ * Not `useSeriesColor`: that one goes neutral past the eighth, which is right
+ * when colour is the only name a mark has, and wrong here — every bar has its
+ * name written under it, so the ninth bar and the tenth were both grey and
+ * looked like one category. See `categoryColor` for why cycling is safe here
+ * and nowhere else.
+ */
+export function useCategoryColor() {
+  const palette = usePalette();
+  const mode = useContext(ModeCtx);
+  return useMemo(() => (index) => pickCategoryColor(palette, index, mode), [palette, mode]);
 }
 
 /**

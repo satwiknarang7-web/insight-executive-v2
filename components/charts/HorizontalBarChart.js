@@ -10,7 +10,7 @@
  * with real names, and the column chart is right for time.
  */
 import { Bar, BarChart, CartesianGrid, Cell, Label, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { usePalette, useSeriesColor, useColorBy } from './palette';
+import { usePalette, useSeriesColor, useCategoryColor, useColorBy } from './palette';
 import { formatNumber } from '../../lib/format';
 import { chartMargin, clip, prettyLabel, axisTitleProps, legendProps } from './axis';
 
@@ -49,6 +49,8 @@ export default function HorizontalBarChart({
 }) {
   const CHART_COLORS = usePalette();
   const seriesColor = useSeriesColor();
+  // Per-bar colouring cycles instead of going neutral: see useCategoryColor.
+  const categoryColor = useCategoryColor();
   const perCategory = useColorBy() === 'category';
   if (!data?.length) return null;
 
@@ -115,7 +117,7 @@ export default function HorizontalBarChart({
                 entry.isAnomaly
                   ? '#f43f5e'
                   : perCategory
-                  ? seriesColor(i)
+                  ? categoryColor(i)
                   : CHART_COLORS[0]
               }
             />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { modelHeaders } from '../../../lib/geminiKey';
 import { Send, Loader2, Sparkles, Code2, ChevronRight, Terminal, Info, ShieldCheck } from 'lucide-react';
 import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
@@ -90,6 +91,31 @@ function starterQuestions(context) {
   return candidates.filter((q) => plannable(q, context)).slice(0, 4);
 }
 
+/**
+ * Why the model did not write this query, in words, from the route's reason.
+ *
+ * `no_provider` is the one that is not a failure at all: this deployment holds
+ * no key of its own on purpose (see lib/llm.server.js), so a browser that has
+ * not saved one never reaches a model, and every answer comes from the offline
+ * reader. That is a setting, and it is one screen away, so it gets a link
+ * rather than a sentence about being unavailable.
+ */
+function fellBackBecause(reason) {
+  if (reason === 'no_provider') {
+    return { settings: true, text: 'No model key is saved in this browser, so the question was read here instead.' };
+  }
+  if (reason === 'generation_failed') {
+    return { text: 'The model did not return a usable query, so the question was read here instead.' };
+  }
+  if (reason === 'error') {
+    return { text: 'The model call failed, so the question was read here instead.' };
+  }
+  // Anything else is the validator's own sentence about the query the model
+  // wrote — the most useful thing on this list, and the one worth repeating
+  // verbatim rather than summarising.
+  return reason ? { text: `The query the model wrote was refused: ${reason}` } : null;
+}
+
 /** Would this question draw something, asked offline? */
 function plannable(question, context) {
   try {
@@ -142,8 +168,16 @@ export default function AskPage() {
       try {
         // 1. Ask the model for a chart specification. Only the schema goes over
         //    the wire — never any rows.
+        //
+        //    Why it did not answer is kept. The badge used to say "Matched
+        //    offline" and stop there, which reads as a property of the question
+        //    rather than what it is: this browser has no key saved, or the plan
+        //    does not include a model, or the model wrote a query that was
+        //    refused. Those want three different things done about them, and
+        //    the first one wants a link to Settings.
         let spec = null;
         let source = 'model';
+        let why = null;
         try {
           const res = await fetch('/api/ask', {
             method: 'POST',
@@ -152,8 +186,9 @@ export default function AskPage() {
           });
           const json = await res.json();
           if (!json.unavailable && json.sql) spec = json;
+          else why = res.status === 402 ? { plan: true, text: json.error } : fellBackBecause(json.reason);
         } catch {
-          /* fall through to the offline path */
+          why = { text: 'The model could not be reached, so the question was read here instead.' };
         }
 
         // 2. No model (or it failed): read the question ourselves and compose
@@ -200,7 +235,10 @@ export default function AskPage() {
           throw new Error('That query returned no rows. Try rephrasing, or check the column names in Explore.');
         }
 
-        setAnswers((prev) => [{ id: Date.now(), question: q, chart, finding, source, interpretation: spec.interpretation }, ...prev]);
+        setAnswers((prev) => [
+          { id: Date.now(), question: q, chart, finding, source, why, interpretation: spec.interpretation },
+          ...prev,
+        ]);
         setQuestion('');
       } catch (e) {
         setError(e.message);
@@ -295,7 +333,7 @@ export default function AskPage() {
 }
 
 function Answer({ answer }) {
-  const { question, chart, finding, source, interpretation } = answer;
+  const { question, chart, finding, source, why, interpretation } = answer;
   return (
     <div className="card overflow-hidden">
       <div className="border-b border-white/7 px-5 py-4">
@@ -304,10 +342,29 @@ function Answer({ answer }) {
           <div className="min-w-0">
             <p className="text-sm font-bold text-white/85">{question}</p>
             {source !== 'model' && (
-              <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.15em] text-amber-400/70">
-                <Info size={10} />
-                Matched offline
-              </span>
+              <div className="mt-1.5 flex flex-col gap-1">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.15em] text-amber-400/70">
+                  <Info size={10} />
+                  Read offline
+                </span>
+                {/* The badge alone reads as a verdict on the question. The
+                    reason says whose decision it actually was, and the one
+                    that is a setting rather than a failure says where. */}
+                {why?.text && (
+                  <p className="text-[11px] leading-relaxed text-white/40">
+                    {why.text}
+                    {why.settings && (
+                      <>
+                        {' '}
+                        <Link href="/home#model-key" className="text-accent-400 underline-offset-2 hover:underline">
+                          Add one on the Get data page
+                        </Link>
+                        .
+                      </>
+                    )}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -583,8 +583,10 @@ export default function LandingPage() {
               * the writing reads like. It sits below the upload rather than
               * above it because uploading is the task and this is a setting.
               */}
+            {/* The id is a link target: the Ask page sends anyone whose
+                question was read offline for want of a key straight here. */}
             {planAllows('model') && (
-              <div data-tutorial="gemini-key-panel">
+              <div id="model-key" data-tutorial="gemini-key-panel" className="scroll-mt-6">
                 <GeminiKeyPanel />
               </div>
             )}

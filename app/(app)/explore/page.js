@@ -312,15 +312,15 @@ export default function ExplorePage() {
         * The tools, above the rows they act on.
         *
         * Each panel carries its own heading and its own actions, so this row
-        * is a switch and not a second title — the page used to print "Shape
-        * the data" twice, once here and once inside the panel.
+        * is a switch and not a second title — the page used to print
+        * "Transform data" twice, once here and once inside the panel.
         */}
       {table === null && (
         <section className="mb-5" data-tutorial="explore-tools">
           <div className="flex flex-wrap items-center gap-2">
             <ToolChip
               icon={Wand2}
-              label="Shape the data"
+              label="Transform data"
               count={appliedSteps}
               open={tool === 'shape'}
               onClick={() => setTool((t) => (t === 'shape' ? null : 'shape'))}
@@ -489,7 +489,7 @@ export default function ExplorePage() {
 /**
  * One of the two tools, as a chip.
  *
- * It carries a count rather than only a name: "Shape the data · 3" says the
+ * It carries a count rather than only a name: "Transform data · 3" says the
  * table on screen is not the table in the file, which is the one thing about
  * this page somebody must never have to open a panel to discover.
  */
