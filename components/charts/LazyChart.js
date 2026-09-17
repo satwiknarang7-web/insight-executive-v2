@@ -52,6 +52,10 @@ export default function LazyChart({
   xLabel = null,
   yLabel = null,
   compact = false,
+  // Clicking a mark filters the dashboard to it. Absent for a chart that
+  // cannot name the column behind its axis — see `clickTarget` in lib/filters.
+  onSelect = null,
+  selected = null,
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(eager);
@@ -83,6 +87,27 @@ export default function LazyChart({
   // Renaming happens here rather than at each call site so the axis, the legend
   // and the tooltip all show the user's wording from one place.
   const shown = useMemo(() => renameCategories(data, xKey, labels), [data, xKey, labels]);
+
+  /**
+   * A click carries the value in the DATA, not the one on the axis.
+   *
+   * The labels above are a display name for a category — "Month-to-month"
+   * renamed to "Rolling" — and a filter written from the renamed one would name
+   * a value the column does not contain. So the display name is mapped back
+   * here, where both halves are in hand, rather than in every chart.
+   */
+  const back = useMemo(() => {
+    const pairs = Object.entries(labels || {}).filter(([, to]) => typeof to === 'string' && to.trim());
+    return new Map(pairs.map(([from, to]) => [to.trim(), from]));
+  }, [labels]);
+  const select = useMemo(
+    () => (onSelect ? (value) => onSelect(back.get(String(value)) ?? value) : null),
+    [onSelect, back]
+  );
+  const shownSelected = useMemo(
+    () => (selected === null || selected === undefined ? null : (labels?.[selected] || selected)),
+    [selected, labels]
+  );
 
   useEffect(() => {
     if (eager || visible) return;
@@ -129,6 +154,8 @@ export default function LazyChart({
             xLabel={xLabel}
             yLabel={yLabel}
             compact={compact}
+            onSelect={select}
+            selected={shownSelected}
           />
         </ChartPalette>
       ) : (

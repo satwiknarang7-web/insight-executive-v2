@@ -49,6 +49,12 @@ export default function DynamicChart({
   seriesKey = null,
   seriesSort = 'value-desc',
   target = null,
+  // Cross-filtering. Only the forms where one mark is one category take it: a
+  // click on a line's point, a scatter's dot or a matrix cell means something
+  // less obvious, and guessing is how a dashboard answers a question nobody
+  // asked.
+  onSelect = null,
+  selected = null,
 }) {
   if (!data || data.length === 0) return null;
 
@@ -64,6 +70,8 @@ export default function DynamicChart({
   // others — `dense` was computed correctly, threaded correctly, and silently
   // dropped by the branch that draws an ordinary bar chart.
   const axes = { xLabel, yLabel, compact, dense };
+  // Passed only to the charts below that draw one mark per category.
+  const picking = { onSelect, selected };
 
   /**
    * A share-of-a-whole chart gets at most as many slices as there are colours.
@@ -109,7 +117,7 @@ export default function DynamicChart({
     case 'shapemap':
       return <GeoMap data={data} xKey={x} yKey={y} variant="shape" xLabel={xLabel} yLabel={yLabel} />;
     case 'hbar':
-      return <HorizontalBarChart data={data} xKey={x} yKey={y} {...axes} />;
+      return <HorizontalBarChart data={data} xKey={x} yKey={y} {...axes} {...picking} />;
     case 'waterfall':
       return <WaterfallChart data={data} xKey={x} yKey={y} {...axes} />;
     case 'funnel':
@@ -132,7 +140,7 @@ export default function DynamicChart({
     case 'gauge':
       return <GaugeChart data={data} xKey={x} yKey={y} target={target} />;
     case 'pie':
-      return <DonutChart data={rows} nameKey={x} valueKey={y} variant="pie" compact={compact} />;
+      return <DonutChart data={rows} nameKey={x} valueKey={y} variant="pie" compact={compact} {...picking} />;
     case 'card':
       return <CardVisual data={data} xKey={x} yKey={y} label={yLabel} />;
     case 'multicard':
@@ -168,9 +176,9 @@ export default function DynamicChart({
     case 'area':
       return <AreaChart data={data} xKey={x} yKey={y} {...axes} />;
     case 'donut':
-      return <DonutChart data={rows} nameKey={x} valueKey={y} compact={compact} />;
+      return <DonutChart data={rows} nameKey={x} valueKey={y} compact={compact} {...picking} />;
     case 'bar':
     default:
-      return <BarChart data={data} xKey={x} yKey={y} {...axes} />;
+      return <BarChart data={data} xKey={x} yKey={y} {...axes} {...picking} />;
   }
 }

@@ -46,6 +46,8 @@ export default function HorizontalBarChart({
   compact = false,
   // One bar per legend value, grouped against each category.
   seriesKeys = null,
+  onSelect = null,
+  selected = null,
 }) {
   const CHART_COLORS = usePalette();
   const seriesColor = useSeriesColor();
@@ -109,7 +111,22 @@ export default function HorizontalBarChart({
             />
           ))
         ) : (
-        <Bar dataKey={yKey} name={yKey} radius={[0, 6, 6, 0]} maxBarSize={compact ? 18 : 26}>
+        <Bar
+          dataKey={yKey}
+          name={yKey}
+          radius={[0, 6, 6, 0]}
+          maxBarSize={compact ? 18 : 26}
+          // The click handler belongs on the series, not on the Cell.
+          //
+          // A Cell's props reach the rendered shape, but Recharts routes
+          // pointer events through its own layer: an `onClick` on a Cell is
+          // simply never called, which is a silent failure rather than an
+          // error — the bar highlights, the cursor is a pointer, and nothing
+          // happens. The series-level handler is given the datum that was
+          // clicked, which is what a filter needs anyway.
+          onClick={onSelect ? (entry) => onSelect(entry?.payload?.[xKey] ?? entry?.[xKey]) : undefined}
+          cursor={onSelect ? 'pointer' : undefined}
+        >
           {data.map((entry, i) => (
             <Cell
               key={i}
@@ -120,6 +137,7 @@ export default function HorizontalBarChart({
                   ? categoryColor(i)
                   : CHART_COLORS[0]
               }
+              opacity={selected == null || String(entry?.[xKey]) === String(selected) ? 1 : 0.28}
             />
           ))}
         </Bar>

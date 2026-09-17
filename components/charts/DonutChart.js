@@ -31,7 +31,16 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function DonutChart({ data, nameKey, valueKey, variant = 'donut', compact = false }) {
+export default function DonutChart({
+  data,
+  nameKey,
+  valueKey,
+  variant = 'donut',
+  compact = false,
+  // Cross-filtering: a slice is a category, so a click on one is a filter.
+  onSelect = null,
+  selected = null,
+}) {
   const legend = legendProps({ seriesCount: (data || []).length, compact });
   const solid = variant === 'pie';
   // Palette for this chart: a per-slide override, or the default.
@@ -63,10 +72,20 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut',
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={120}>
       <PieChart margin={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-        <Pie 
-          data={data} 
-          dataKey={valueKey} 
-          nameKey={nameKey} 
+        <Pie
+          // The click handler belongs on the series, not on the Cell.
+          //
+          // A Cell's props reach the rendered shape, but Recharts routes
+          // pointer events through its own layer: an `onClick` on a Cell is
+          // simply never called, which is a silent failure rather than an
+          // error — the bar highlights, the cursor is a pointer, and nothing
+          // happens. The series-level handler is given the datum that was
+          // clicked, which is what a filter needs anyway.
+          onClick={onSelect ? (entry) => onSelect(entry?.payload?.[nameKey] ?? entry?.[nameKey]) : undefined}
+          cursor={onSelect ? 'pointer' : undefined}
+          data={data}
+          dataKey={valueKey}
+          nameKey={nameKey}
           cx="50%" 
           cy="50%" 
           innerRadius={solid ? 0 : '60%'}
@@ -106,7 +125,12 @@ export default function DonutChart({ data, nameKey, valueKey, variant = 'donut',
           }}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={seriesColor(index)} className="hover:brightness-110 transition-all cursor-pointer" />
+            <Cell
+              key={`cell-${index}`}
+              fill={seriesColor(index)}
+              opacity={selected == null || String(entry?.[nameKey]) === String(selected) ? 1 : 0.28}
+              className="hover:brightness-110 transition-all cursor-pointer"
+            />
           ))}
           <Label
             position="center"

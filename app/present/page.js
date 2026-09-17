@@ -206,7 +206,17 @@ export default function PresentPage() {
                 ? 'Everything together'
                 : `Finding ${page} of ${total - EXTRA_SLIDES}`}
           </div>
-          <div className="mt-0.5 truncate text-sm font-bold text-white/60">{dataset?.fileName}</div>
+          <div className="mt-0.5 truncate text-sm font-bold text-white/60">
+            {dataset?.fileName}
+            {/* A deck presented on a slice names the slice. Without it the room
+                is shown a chart of some of the rows and told it is the
+                business. */}
+            {analysis?.filter?.description && (
+              <span className="ml-2 font-semibold text-amber-300/80">
+                · {analysis.filter.description} ({analysis.filter.rowCount.toLocaleString()} rows)
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button

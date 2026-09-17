@@ -34,6 +34,7 @@ import {
   executeCharts,
   TABLE,
 } from '../../lib/pipeline.js';
+import { planKpis } from '../../lib/analystPlanner.js';
 import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
@@ -1277,7 +1278,92 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
     confidence: state.metrics?.confidence || null,
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
+  // What the analysis decided, kept for the filter pass.
+  //
+  // Re-deciding it on every click would mean re-profiling and re-detecting
+  // repeated measures over the filtered rows — five seconds of full passes on a
+  // large table, twice, to answer a question the whole table already answered.
+  // Worse, it would let a click change which columns may be summed: the
+  // semantics of a column are a property of the data, not of the slice being
+  // looked at, and a card that becomes summable because a filter narrowed the
+  // rows would be the deck contradicting itself.
+  state.analysisContext = {
+    provenance: state.view.provenance,
+    roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
+    profile: state.viewProfile,
+    claims,
+    voidClaim,
+    includeVoid,
+    confidence: state.metrics?.confidence || null,
+  };
   reply(id, 'analyzed', result);
+}
+
+/**
+ * The deck again, over a narrower table.
+ *
+ * The same specs, in the same order — a click filters a dashboard, it does not
+ * rebuild one, and a reader who clicks a bar to look closer must not have the
+ * charts around it replaced by different charts. So nothing is re-planned here:
+ * every chart's own SQL is run again against the rows the filter leaves, and
+ * every finding is computed again from those results, because a finding is a
+ * reading of a result set and not a caption on it.
+ *
+ * The specs come from the caller rather than from here, because the board on
+ * screen is the one that has been edited: charts retitled, dropped, added from
+ * the Ask page. Filtering the deck the worker last planned would quietly undo
+ * all of that.
+ */
+function refilter(id, { specs = [], where = '' } = {}) {
+  if (!state) {
+    reply(id, 'error', { message: 'No dataset loaded.' });
+    return;
+  }
+
+  const context = state.analysisContext || {};
+  const all = state.view.rows;
+  let rows = all;
+
+  if (where) {
+    // The filter is a query over the analysis view, run the same way every
+    // other number here is — so the rows behind a filtered figure can be
+    // reproduced by anybody with the SQL the page is showing them.
+    const mounted = mountTables({ tables: sourceRows(), view: all });
+    try {
+      rows = runSql(`SELECT * FROM ${TABLE} WHERE ${where}`);
+    } catch (e) {
+      unmountTables(mounted);
+      reply(id, 'error', { message: `That filter could not be applied: ${e.message}` });
+      return;
+    }
+    unmountTables(mounted);
+  }
+
+  // Nothing left is not an error — it is an answer, and the dashboard says so
+  // rather than drawing empty charts under sentences about them.
+  if (!rows.length) {
+    reply(id, 'filtered', { charts: [], perChart: [], kpis: [], rowCount: 0, empty: true });
+    return;
+  }
+
+  const mounted = mountTables({ tables: sourceRows(), view: rows });
+  try {
+    const charts = executeCharts(
+      specs.map((c, i) => ({ ...c, id: c.id || `slide_${i + 1}` })),
+      rows
+    );
+    const { perChart } = analyzeStoryboard(charts, rows, context.confidence || null);
+    const kpis = planKpis(rows, {
+      provenance: context.provenance || {},
+      roles: context.roles || {},
+      claims: context.claims || null,
+      // The shape of the whole table, deliberately: see above.
+      profile: context.profile || null,
+    });
+    reply(id, 'filtered', { charts, perChart, kpis, rowCount: rows.length, empty: false });
+  } finally {
+    unmountTables(mounted);
+  }
 }
 
 /** Execute an ad-hoc chart spec (from the Ask page) against the dataset. */
@@ -1458,19 +1544,38 @@ function measureValues(id, { items = [], filter = '', anomaliesOnly = false, tab
 }
 
 /** Serialise a cleaned table (the joined view by default) to CSV for download. */
-function exportCsv(id, { table = null } = {}) {
+function exportCsv(id, { table = null, where = '' } = {}) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
   }
   const t = target(table);
+
+  // A filtered dashboard hands over the rows behind it. Downloading the whole
+  // table from a page showing a slice would be the export disagreeing with
+  // every figure the person was looking at when they pressed it — and the file
+  // name says which it is, because a CSV outlives the screen it came from.
+  let rows = t.rows;
+  let filtered = false;
+  if (where && t.key === TABLE) {
+    const mounted = mountTables({ tables: sourceRows(), view: t.rows });
+    try {
+      rows = runSql(`SELECT * FROM ${TABLE} WHERE ${where}`);
+      filtered = true;
+    } catch {
+      rows = t.rows;
+    } finally {
+      unmountTables(mounted);
+    }
+  }
+
   const csv = Papa.unparse(
-    t.rows.map(({ isAnomaly, ...rest }) => rest),
+    rows.map(({ isAnomaly, ...rest }) => rest),
     { columns: t.columns }
   );
   const base = String(state.fileName).replace(/\.(csv|tsv|txt|xlsx?|xlsm)$/i, '');
   const suffix = t.key === TABLE ? 'cleaned' : `${t.key}_cleaned`;
-  reply(id, 'csv', { csv, fileName: `${base}_${suffix}.csv` });
+  reply(id, 'csv', { csv, fileName: `${base}_${suffix}${filtered ? '_filtered' : ''}.csv` });
 }
 
 async function reset(id) {
@@ -1503,6 +1608,8 @@ self.onmessage = async (e) => {
         return analyze(id, payload);
       case 'ask':
         return askExecute(id, payload);
+      case 'filter':
+        return refilter(id, payload);
       case 'sql':
         return sql(id, payload);
       case 'page':

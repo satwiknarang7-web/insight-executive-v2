@@ -150,10 +150,21 @@ export default function ReportPage() {
           <h1 className="mt-2 text-4xl font-black tracking-tight">{slideZero.title}</h1>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-white/40">
             <span>Source: {dataset.fileName}</span>
-            <span>{dataset.rowCount.toLocaleString()} rows analysed</span>
+            <span>
+              {(analysis.filter ? analysis.filter.rowCount : dataset.rowCount).toLocaleString()} rows analysed
+            </span>
             <span>{storyboard.length} findings</span>
             <span>{generated.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
+          {/* A report of a slice says so on its cover. Everything below was
+              computed over these rows, and a reader who is handed the file
+              tomorrow has no other way to find that out. */}
+          {analysis.filter?.description && (
+            <p className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 text-[12px] leading-relaxed text-amber-200/80">
+              Filtered: {analysis.filter.description} — {analysis.filter.rowCount.toLocaleString()} of{' '}
+              {dataset.rowCount.toLocaleString()} rows.
+            </p>
+          )}
         </header>
 
         {/* Summary */}

@@ -57,6 +57,10 @@ export default function BarChart({
   // row per category with one key per series, and each series gets its own bar
   // grouped alongside the others.
   seriesKeys = null,
+  // Cross-filtering: one click is one category. `selected` dims the rest so the
+  // chart says which slice the dashboard is showing.
+  onSelect = null,
+  selected = null,
 }) {
   // Palette for this chart: a per-slide override, or the default.
   const CHART_COLORS = usePalette();
@@ -111,15 +115,25 @@ export default function BarChart({
             />
           ))
         ) : (
-        <Bar 
-          dataKey={yKey} 
+        <Bar
+          dataKey={yKey}
           fill={CHART_COLORS[0]}
-          radius={[6, 6, 0, 0]} 
+          radius={[6, 6, 0, 0]}
           maxBarSize={40}
           name={yKey}
           animationBegin={0}
           animationDuration={450}
           animationEasing="ease-out"
+          // The click handler belongs on the series, not on the Cell.
+          //
+          // A Cell's props reach the rendered shape, but Recharts routes
+          // pointer events through its own layer: an `onClick` on a Cell is
+          // simply never called, which is a silent failure rather than an
+          // error — the bar highlights, the cursor is a pointer, and nothing
+          // happens. The series-level handler is given the datum that was
+          // clicked, which is what a filter needs anyway.
+          onClick={onSelect ? (entry) => onSelect(entry?.payload?.[xKey] ?? entry?.[xKey]) : undefined}
+          cursor={onSelect ? 'pointer' : undefined}
         >
           {data.length <= 100 && data.map((entry, index) => (
             <Cell
@@ -133,6 +147,10 @@ export default function BarChart({
               }
               stroke={entry.isAnomaly ? '#f43f5e' : 'none'}
               strokeWidth={entry.isAnomaly ? 2 : 0}
+              // Dimmed, not hidden: a filtered chart still shows the bars it is
+              // no longer about, because the one that was clicked means nothing
+              // without them beside it.
+              opacity={selected == null || String(entry?.[xKey]) === String(selected) ? 1 : 0.28}
               className="transition-all duration-300 hover:opacity-80 cursor-pointer"
             />
           ))}

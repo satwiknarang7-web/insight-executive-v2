@@ -29,6 +29,8 @@ import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/s
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import { exclusionNotice } from '../../../lib/voidRows';
 import PageFrame from '../../../components/shell/PageFrame';
+import FilterBar from '../../../components/panels/FilterBar';
+import { applyClick, clickTarget, isSelected } from '../../../lib/filters';
 import Collapse from '../../../components/shell/Collapse';
 import { usePlan } from '../../../lib/store/PlanProvider';
 import LazyChart from '../../../components/charts/LazyChart';
@@ -48,12 +50,28 @@ import { SLIDE_SIZES, slideSize } from '../../../lib/slideSize';
 
 export default function DashboardPage() {
   const { dataset, status, preparation } = useDataset();
-  const { analysis, narrating } = useAnalysis();
+  const { analysis, narrating, filters } = useAnalysis();
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
   const customMeasures = useMeasures();
-  const { analyze, startBlank, setVoidRowsIncluded, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
+  const { analyze, startBlank, setVoidRowsIncluded, applyFilters, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
     useActions();
+
+  /**
+   * What a click on a chart is allowed to mean.
+   *
+   * The columns as they are now — a filter on a column a transform has since
+   * removed is a filter the engine would refuse — and which of them are dates,
+   * because a click on a bucketed month is a span of days rather than a value.
+   */
+  const filterContext = useMemo(
+    () => ({ columns: dataset?.columns || [], temporal: dataset?.profile?.temporal || [] }),
+    [dataset?.columns, dataset?.profile?.temporal]
+  );
+  const selectValue = useCallback(
+    (target, value) => applyFilters(applyClick(filters || [], target, value)),
+    [applyFilters, filters]
+  );
   const router = useRouter();
   const { can: planAllows } = usePlan();
   const [building, setBuilding] = useState(false);
@@ -233,11 +251,14 @@ export default function DashboardPage() {
   }
 
   const { storyboard, kpis } = analysis;
+  // What the deck is a deck OF. A filtered dashboard that still says "from
+  // 250,000 rows" is the one sentence on the page that would be false.
+  const shownRows = analysis.filter ? analysis.filter.rowCount : dataset.rowCount;
 
   return (
     <PageFrame
       title="Dashboard"
-      subtitle={`${storyboard.length} findings from ${dataset.rowCount.toLocaleString()} rows`}
+      subtitle={`${storyboard.length} findings from ${(shownRows || 0).toLocaleString()} rows`}
       action={
         <div className="flex flex-wrap items-center gap-2">
           {narrating && (
@@ -300,6 +321,19 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* The slice, above the numbers that are numbers of it. `relative` so the
+          picker it opens has something to hang from. */}
+      <div className="relative">
+        <FilterBar />
+      </div>
+
+      {analysis.filter?.empty && (
+        <div className="mb-6 rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] p-4 text-[13px] leading-relaxed text-amber-200/80">
+          No rows match that filter, so there is nothing to compute. The charts below are the last ones that
+          had rows behind them — clear a filter to bring the deck back.
+        </div>
+      )}
+
       {/* KPI strip. Kept on screen while editing even when empty, so deleting
           the last card does not also remove the way to add one back. */}
       {(kpis?.length > 0 || editing) && (
@@ -333,8 +367,16 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Executive summary */}
-      <section className="mb-8" data-tutorial="dashboard-summary">
+      {/* Executive summary.
+          Dimmed while a filter is on, and labelled. Every sentence in it was
+          written about the whole table: the figures under the charts are
+          recomputed on a filter because they are readings of a result set, and
+          these are not — they are prose, and prose cannot be recomputed. Saying
+          so is the only honest thing left to do with it. */}
+      <section
+        className={`mb-8 transition-opacity ${analysis.filter ? 'opacity-45' : ''}`}
+        data-tutorial="dashboard-summary"
+      >
         <div className="mb-3 flex items-center gap-3">
           <Sparkles size={14} className="text-accent-400" />
           <EditableText
@@ -346,6 +388,11 @@ export default function DashboardPage() {
             placeholder="Executive summary"
             className="label"
           />
+          {analysis.filter && (
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-amber-300/80">
+              Written for all {(dataset.rowCount || 0).toLocaleString()} rows
+            </span>
+          )}
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
           <Collapse open={showSummary} onToggle={() => setShowSummary((v) => !v)} label="executive summary" />
         </div>
@@ -585,6 +632,9 @@ export default function DashboardPage() {
               index={i}
               total={storyboard.length}
               editing={editing}
+              filters={filters}
+              filterContext={filterContext}
+              onSelect={selectValue}
               onDelete={() => deleteSlide(slide.id)}
               onEdit={(patch) => editSlide(slide.id, patch)}
             />
@@ -781,7 +831,19 @@ function KpiCard({ kpi, index, editing, measures, customMeasures = [], onEdit, o
  * the first click into a text field would navigate away from the page. In edit
  * mode the same markup is wrapped in a plain div instead.
  */
-function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
+function FindingCard({ slide, index, total, editing, filters, filterContext, onSelect, onDelete, onEdit }) {
+  /**
+   * Can a click on this chart be turned into a filter?
+   *
+   * Only where the column behind the axis can be named — see `clickTarget`.
+   * While editing, no: the card is a form then, and a click inside it is aimed
+   * at a text field.
+   */
+  const target = editing ? null : clickTarget(slide.chart, filterContext);
+  const picked =
+    target && target.kind === 'values'
+      ? (filters || []).find((f) => f.column === target.column && f.kind === 'values')?.values?.[0] ?? null
+      : null;
   const size = slideSize(slide.size);
   // The span class carries the card's share of the row at every breakpoint.
   const Wrapper = editing ? 'div' : Link;
@@ -869,7 +931,26 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
         </div>
       </div>
 
-      <div className={`mt-4 ${size.height}`}>
+      {/*
+        * Outside edit mode the whole card is a link to the write-up, and a
+        * chart inside a link is a chart whose clicks navigate: the first bar
+        * clicked opened the finding page instead of filtering. Where a mark can
+        * be filtered on, the plot swallows the click; everywhere else on the
+        * card — the title, the sentence, the chevron — still opens the
+        * write-up, which is where that behaviour was worth keeping.
+        */}
+      <div
+        className={`mt-4 ${size.height}`}
+        onClick={
+          target
+            ? (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            : undefined
+        }
+        title={target ? 'Click a bar to filter the dashboard to it' : undefined}
+      >
         <ChartBoundary resetKey={`${slide.id}-${slide.chart?.chart_type}`}>
           <LazyChart
             data={slide.chart?.resultData}
@@ -886,6 +967,14 @@ function FindingCard({ slide, index, total, editing, onDelete, onEdit }) {
             yLabel={slide.chart?.yAxisLabel}
             compact
             eager={index < 2}
+            onSelect={
+              target
+                ? (value) => {
+                    onSelect(target, value);
+                  }
+                : null
+            }
+            selected={picked}
           />
         </ChartBoundary>
       </div>
