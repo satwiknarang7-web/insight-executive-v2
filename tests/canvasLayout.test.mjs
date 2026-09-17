@@ -2,17 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CANVAS_WIDTH,
-  MIN_CANVAS_HEIGHT,
+  CANVAS_HEIGHT,
   MIN_CARD_HEIGHT,
   MIN_CARD_WIDTH,
-  PAGE_HEIGHT,
   arrange,
   canvasHeight,
   canvasScale,
   cardBox,
   layoutMap,
   moveBox,
-  paginateBoard,
   readingOrder,
   resizeBox,
 } from '../lib/canvasLayout.js';
@@ -42,17 +40,27 @@ test('a card is bounded to the canvas, and to a size a chart can be drawn in', (
   assert.deepEqual(cardBox({ x: 'left', y: null, w: undefined, h: NaN }), empty);
 });
 
-test('the canvas grows to hold what is on it, and never shrinks below a slide', () => {
-  assert.equal(canvasHeight([]), MIN_CANVAS_HEIGHT);
-  assert.equal(canvasHeight([{ y: 0, h: 300 }]), MIN_CANVAS_HEIGHT, 'a short board is still a board');
-  assert.ok(canvasHeight([{ y: 900, h: 400 }]) > 1300, 'and a long one is as long as it needs');
+test('the board is one page, and a card cannot leave it', () => {
+  assert.equal(canvasHeight(), CANVAS_HEIGHT, 'the page has one height');
+  assert.equal(canvasHeight([{ y: 900, h: 400 }]), CANVAS_HEIGHT, 'whatever it is asked about');
+
+  // The page is what makes the dashboard and the slide show the same thing, so
+  // nothing may be arranged outside it.
+  const low = cardBox({ x: 0, y: 5000, w: 400, h: 300 });
+  assert.equal(low.y + low.h, CANVAS_HEIGHT, 'a card dragged off the bottom stops at it');
+  assert.equal(cardBox({ x: 0, y: 0, w: 400, h: 5000 }).h, CANVAS_HEIGHT, 'and none is taller than the page');
 });
 
-test('it scales down to fit and never magnifies', () => {
+test('it scales to fit, and to fit both ways when both are bounded', () => {
   assert.equal(canvasScale(CANVAS_WIDTH), 1);
   assert.equal(canvasScale(CANVAS_WIDTH / 2), 0.5);
   assert.equal(canvasScale(CANVAS_WIDTH * 3), 1, 'a wide screen shows the board, not a blown-up board');
   assert.equal(canvasScale(0), 1, 'and an unmeasured container does not divide by zero');
+
+  // A slide is bounded in both directions, and the page must not run off the
+  // bottom of one. There the width is allowed to go past 1 to fill the room.
+  assert.equal(canvasScale(CANVAS_WIDTH * 2, CANVAS_HEIGHT), 1, 'height decides when it is the tighter');
+  assert.equal(canvasScale(CANVAS_WIDTH, CANVAS_HEIGHT / 2), 0.5);
 });
 
 test('a deck that has never been arranged is flowed across the canvas', () => {
@@ -70,8 +78,12 @@ test('a deck that has never been arranged is flowed across the canvas', () => {
   assert.equal(placed[1].box.y, placed[0].box.y, 'on the same row');
   assert.equal(placed[2].box.x, 0, 'and the full-width one starts a new row');
   assert.ok(placed[2].box.y > placed[0].box.y);
-  // Nothing runs off the edge.
-  for (const { box } of placed) assert.ok(box.x + box.w <= CANVAS_WIDTH, 'a card overhangs the canvas');
+  // Nothing runs off any edge: an arrangement taller than the page is squeezed
+  // into it rather than stacked at the bottom of it.
+  for (const { box } of placed) {
+    assert.ok(box.x + box.w <= CANVAS_WIDTH, 'a card overhangs the canvas');
+    assert.ok(box.y + box.h <= CANVAS_HEIGHT, 'a card hangs off the page');
+  }
 });
 
 test('a card that has been placed is left exactly where it was put', () => {
@@ -152,10 +164,15 @@ test('the cards go across the top, all of them the same', () => {
   assert.ok(boxes.get('c1').y > row[0].h, 'and the charts start under them');
 });
 
-test('a donut leading the deck is not stretched across it', () => {
-  const boxes = composeBoard([{ id: 'only', chart_type: 'donut' }], []);
-  assert.equal(boxes.get('only').w, CANVAS_WIDTH, 'a row of one still fills its row');
-  assert.ok(boxes.get('only').h < 400, 'but it is not given a lead finding’s height');
+test('a donut leading the deck is not given the lead finding’s row', () => {
+  // On a page every row fills the height it is given, so the difference a lead
+  // makes is which row it is in and how much of the page that row claims —
+  // not, as it was on a scrolling board, a taller box for the same chart.
+  const donut = composeBoard([{ id: 'only', chart_type: 'donut' }], []);
+  const trend = composeBoard([{ id: 'only', chart_type: 'line' }], []);
+  assert.equal(donut.get('only').w, CANVAS_WIDTH, 'a row of one still fills its row');
+  assert.equal(donut.get('only').y, 0, 'and with nothing else on the board it opens it');
+  assert.equal(trend.get('only').h, donut.get('only').h, 'one chart is one page either way');
 });
 
 test('the filters are a strip across the top, like every other row', () => {
@@ -213,35 +230,4 @@ test('a filter is offered for a column the deck actually breaks numbers down by'
 test('a deck that breaks nothing down offers no filters', () => {
   assert.deepEqual(planSlicers([{ chart_type: 'card' }], { profile: { cardinality: {} } }), []);
   assert.deepEqual(planSlicers([], {}), []);
-});
-
-/* And the board, cut to fit a slide. */
-
-test('a board taller than a page is cut between cards, never through one', () => {
-  const entries = [
-    { id: 'rail', box: { x: 0, y: 0, w: 240, h: 300 } },
-    { id: 'lead', box: { x: 256, y: 0, w: 1184, h: 340 } },
-    { id: 'a', box: { x: 256, y: 356, w: 375, h: 300 } },
-    { id: 'b', box: { x: 256, y: 700, w: 375, h: 280 } },
-  ];
-  const pages = paginateBoard(entries, PAGE_HEIGHT);
-  assert.equal(pages.length, 2);
-  assert.deepEqual([...pages[0].boxes.keys()].sort(), ['a', 'lead', 'rail']);
-  assert.deepEqual([...pages[1].boxes.keys()], ['b']);
-
-  // Every page opens at its own top-left: a page below the rail must not begin
-  // with an empty column where the rail is not.
-  for (const page of pages) {
-    const boxes = [...page.boxes.values()];
-    assert.equal(Math.min(...boxes.map((b) => b.y)), 0, 'a page starts at its top');
-    assert.equal(Math.min(...boxes.map((b) => b.x)), 0, 'and at its left');
-  }
-  // Relative positions inside a page survive the lift.
-  assert.equal(pages[0].boxes.get('lead').x - pages[0].boxes.get('rail').x, 256);
-});
-
-test('a board that fits is one page, and an empty one is still a page', () => {
-  const entries = [{ id: 'only', box: { x: 0, y: 0, w: 600, h: 300 } }];
-  assert.equal(paginateBoard(entries).length, 1);
-  assert.equal(paginateBoard([]).length, 1, 'a deck with nothing on the board still has a slide');
 });

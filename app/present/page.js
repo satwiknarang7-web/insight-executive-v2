@@ -27,7 +27,7 @@ import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
 import useNarration from '../../lib/useNarration';
 import { dashboardScript, slideScript, summaryScript, pickVoice } from '../../lib/speech';
-import { CANVAS_WIDTH, MIN_CANVAS_HEIGHT, layoutMap, paginateBoard, readingOrder } from '../../lib/canvasLayout';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, canvasScale, layoutMap, readingOrder } from '../../lib/canvasLayout';
 import { slideLayout } from '../../lib/slideSize';
 
 /*
@@ -93,24 +93,17 @@ export default function PresentPage() {
     [analysis?.kpis, board]
   );
 
-  /**
-   * And the board is as many slides as it takes.
+  /*
+   * And the board is one slide, because the board is one page.
    *
-   * Shrinking a tall board to fit one slide put it in the top-left corner at a
-   * third of its size with the rest of the screen empty beside it. It is cut
-   * into pages instead, each one a screenful of the arrangement, each filling
-   * the width. The count comes from the board's own coordinates, so the deck
-   * knows how long it is before anything has been measured.
+   * It was cut into pages for a while, which is what a board that grew
+   * downwards needed. A dashboard nobody can see at once is not a dashboard,
+   * so the canvas is a page of fixed size now — and this slide shows it whole,
+   * exactly as it was arranged on the dashboard tab.
    */
-  const boardPages = useMemo(() => {
-    const boxes = layoutMap(tiles, (tile) => slideLayout(tile.size));
-    return paginateBoard([...boxes.entries()].map(([id, box]) => ({ id, box })));
-  }, [tiles]);
-
-  const total = findings.length + 1 + boardPages.length;
+  const total = findings.length + 2;
   const firstBoardPage = findings.length + 1;
   const onDashboard = page >= firstBoardPage;
-  const boardPage = Math.max(0, page - firstBoardPage);
 
   const go = useCallback(
     (delta) => {
@@ -246,9 +239,7 @@ export default function PresentPage() {
             {page === 0
               ? 'Executive summary'
               : onDashboard
-                ? boardPages.length > 1
-                  ? `Everything together · ${boardPage + 1} of ${boardPages.length}`
-                  : 'Everything together'
+                ? 'Everything together'
                 : `Finding ${page} of ${findings.length}`}
           </div>
           <div className="mt-0.5 truncate text-sm font-bold text-white/60">
@@ -349,7 +340,7 @@ export default function PresentPage() {
         {page === 0 ? (
           <SummarySlide slideZero={analysis.slideZero} />
         ) : onDashboard ? (
-          <DashboardSlide analysis={analysis} tiles={tiles} fileName={dataset?.fileName} page={boardPage} pages={boardPages} />
+          <DashboardSlide analysis={analysis} tiles={tiles} fileName={dataset?.fileName} />
         ) : (
           <ChartSlide slide={slide} />
         )}
@@ -538,7 +529,7 @@ function useNarrowViewport(query = '(max-width: 767px)') {
   return narrow;
 }
 
-function DashboardSlide({ analysis, tiles = [], fileName, page = 0, pages = [] }) {
+function DashboardSlide({ analysis, tiles = [], fileName }) {
   const board = tiles;
 
   /**
@@ -551,12 +542,12 @@ function DashboardSlide({ analysis, tiles = [], fileName, page = 0, pages = [] }
    * bottom of the one surface in this product nobody can scroll.
    */
   const boardRef = useRef(null);
-  const [room, setRoom] = useState({ width: CANVAS_WIDTH, height: MIN_CANVAS_HEIGHT });
+  const [room, setRoom] = useState({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
 
   useLayoutEffect(() => {
     const el = boardRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return undefined;
-    const measure = () => setRoom({ width: el.clientWidth || CANVAS_WIDTH, height: el.clientHeight || MIN_CANVAS_HEIGHT });
+    const measure = () => setRoom({ width: el.clientWidth || CANVAS_WIDTH, height: el.clientHeight || CANVAS_HEIGHT });
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
@@ -564,19 +555,12 @@ function DashboardSlide({ analysis, tiles = [], fileName, page = 0, pages = [] }
   }, []);
 
   const sizeOf = useCallback((item) => slideLayout(item.size), []);
-  const current = pages[page] || pages[0] || { boxes: new Map(), height: MIN_CANVAS_HEIGHT };
-  const boardBoxes = current.boxes;
-  const boardHeight = Math.max(1, current.height);
+  const boardBoxes = useMemo(() => layoutMap(board, sizeOf), [board, sizeOf]);
 
-  /**
-   * Width first, and height only if the page still will not fit.
-   *
-   * A page is cut to about the shape of a slide, so the width is normally what
-   * decides — which is the whole point of paginating: the board fills the slide
-   * instead of sitting small in the corner of it. The height is a backstop for
-   * a page holding one very tall card, where there is nothing else to do.
-   */
-  const boardScale = Math.min(room.width / CANVAS_WIDTH, room.height / boardHeight) || 1;
+  // The page is sixteen by nine and so, near enough, is the room it is given,
+  // so this is usually the width. The height is what stops a slide area that is
+  // taller than that from pushing the bottom row off the screen.
+  const boardScale = canvasScale(room.width, room.height);
 
   /**
    * A phone is not a projector.
@@ -611,7 +595,6 @@ function DashboardSlide({ analysis, tiles = [], fileName, page = 0, pages = [] }
         </h1>
         <span className="text-[13px] text-white/40">
           {board.length} {board.length === 1 ? 'finding' : 'findings'}
-          {pages.length > 1 ? ` · ${page + 1} of ${pages.length}` : ''}
           {fileName ? ` · ${fileName}` : ''}
         </span>
       </div>
@@ -643,7 +626,7 @@ function DashboardSlide({ analysis, tiles = [], fileName, page = 0, pages = [] }
           <div
             style={{
               width: CANVAS_WIDTH,
-              height: boardHeight,
+              height: CANVAS_HEIGHT,
               transform: `scale(${boardScale})`,
               transformOrigin: 'top left',
             }}

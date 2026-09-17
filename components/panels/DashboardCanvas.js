@@ -22,11 +22,15 @@
  * phone puts a chart at four hundred pixels wide and its labels below legibility,
  * so the cards stack in the order the arrangement reads in — down the page, then
  * across — at full width, each keeping the height it was given.
+ *
+ * **The page is a fixed size**, and this is the same page the deck's closing
+ * slide shows. That is the point of it: what is arranged here is what is
+ * presented, at whatever size the screen it is presented on happens to be.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  canvasHeight,
   canvasScale,
   cardBox,
   layoutMap,
@@ -98,7 +102,7 @@ export default function DashboardCanvas({ slides = [], sizeOf = null, editing = 
 
   const boxes = layoutMap(slides, sizeOf);
   const scale = canvasScale(width);
-  const height = canvasHeight([...boxes.values()]);
+  const height = CANVAS_HEIGHT;
 
   /**
    * A press on a card, which may become a move.
