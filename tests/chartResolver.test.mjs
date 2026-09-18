@@ -229,3 +229,32 @@ test('a result with no numbers in it is shown as a table, not an empty axis', ()
   const some = [...nulls.slice(0, 2), { Region: 'East', Revenue: 12 }];
   assert.equal(resolveChart(some, { type: 'bar', xKey: 'Region', yKey: 'Revenue' }).type, 'bar');
 });
+
+test('a radar is refused when its measures cannot share one axis', () => {
+  /*
+   * From a real report: total revenue (~718,000), units sold (~2,100) and unit
+   * price (~127) on one radar. A radar has a single radial axis, so revenue
+   * filled the web and the other two collapsed into a dot at the centre —
+   * three metrics plotted, one visible, under a caption that correctly said
+   * leadership was split between them. The reader sees one dominant shape and
+   * a sentence describing a split that is nowhere on the chart.
+   */
+  const rows = [
+    { category: 'Electronics', total_revenue: 718000, units_sold: 2100, unit_price: 127 },
+    { category: 'Home & Garden', total_revenue: 190000, units_sold: 2400, unit_price: 79 },
+    { category: 'Sports', total_revenue: 150000, units_sold: 1900, unit_price: 82 },
+    { category: 'Apparel', total_revenue: 140000, units_sold: 2600, unit_price: 54 },
+  ];
+  const spec = resolveChart(rows, { type: 'radar', xKey: 'category', yKey: 'total_revenue' });
+  assert.notEqual(spec.type, 'radar', 'drew a radar whose measures differ by four orders of magnitude');
+
+  // The same question asked of measures that really are comparable: four scores
+  // out of ten is what a radar is for, and it still gets one.
+  const scores = [
+    { team: 'North', speed: 7, quality: 8, cost: 6, reach: 9 },
+    { team: 'South', speed: 5, quality: 9, cost: 8, reach: 4 },
+    { team: 'East', speed: 8, quality: 5, cost: 7, reach: 6 },
+  ];
+  const ok = resolveChart(scores, { type: 'radar', xKey: 'team', yKey: 'speed' });
+  assert.equal(ok.type, 'radar', `refused a radar of four comparable scores (got ${ok.type})`);
+});
