@@ -21,8 +21,8 @@
  * **Opened, the list leaves the tile.** A dropdown is chosen precisely when the
  * board cannot spare the height for a list, so drawing the list inside the tile
  * puts it in the one box guaranteed to be too short for it — what a reader saw
- * was "Done", one value, and a scrollbar. The open list is a panel in the body
- * instead, positioned against the button it belongs to. A portal rather than an
+ * was "Done", one value, and a scrollbar. The open list is a panel outside the
+ * board instead, positioned against the button it belongs to. A portal rather than an
  * absolute child because the tile clips its overflow, and `position: fixed`
  * inside the deck's scaled board would be measured against the transform rather
  * than the window.
@@ -41,6 +41,33 @@ const PANEL_MAX_HEIGHT = 280;
 
 /** Clearance the panel wants below the button before it flips above it. */
 const PANEL_GAP = 4;
+
+/**
+ * Which element an escaped panel has to be a child of.
+ *
+ * `document.body` is the obvious answer and it is wrong in a deck. Fullscreen
+ * paints the subtree of the fullscreen element and nothing else, so a panel
+ * portalled to the body while `/present` holds the screen is a sibling of the
+ * only branch being rendered: it is in the DOM, it is positioned, it is
+ * painted nowhere. From the presenter's side the filter simply stops working —
+ * the chevron turns, `aria-expanded` goes true, and no list appears — which is
+ * indistinguishable from a dead button and was reported as one.
+ *
+ * Watched rather than read once, because the panel can be open across a
+ * fullscreen toggle, and the element it needs to live in changes underneath it.
+ */
+function usePortalRoot() {
+  const [root, setRoot] = useState(null);
+
+  useEffect(() => {
+    const read = () => setRoot(document.fullscreenElement || document.body);
+    read();
+    document.addEventListener('fullscreenchange', read);
+    return () => document.removeEventListener('fullscreenchange', read);
+  }, []);
+
+  return root;
+}
 
 /**
  * Where an opened list goes, in window coordinates.
@@ -103,6 +130,7 @@ export default function SlicerTile({
   const anchorRef = useRef(null);
   const panelRef = useRef(null);
   const panelAt = useAnchoredPanel(open && mode === 'dropdown', anchorRef);
+  const portalRoot = usePortalRoot();
 
   // A panel in the body is outside everything that would otherwise dismiss it,
   // so it listens for the two gestures that mean "I am done here".
@@ -242,7 +270,7 @@ export default function SlicerTile({
 
         {open &&
           panelAt &&
-          typeof document !== 'undefined' &&
+          portalRoot &&
           createPortal(
             <div
               ref={panelRef}
@@ -261,7 +289,7 @@ export default function SlicerTile({
             >
               {list}
             </div>,
-            document.body
+            portalRoot
           )}
       </div>
     );
