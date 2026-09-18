@@ -26,3 +26,10 @@ scratch/
 
 # Supabase CLI cache
 supabase/.temp/
+
+# Written by `next dev` on every start, from
+# node_modules/next/dist/server/lib/generate-agent-files.js. Not authored here,
+# and not instructions this project has adopted — deleting them only makes the
+# next dev run recreate them, so they are ignored rather than committed.
+AGENTS.md
+CLAUDE.md

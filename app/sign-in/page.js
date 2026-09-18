@@ -289,8 +289,14 @@ function SignInForm() {
 
   return (
     <main className="relative min-h-screen bg-canvas lg:grid lg:grid-cols-[1.1fr_1fr]">
-      {/* Left: the pitch, on its own raised panel. */}
-      <section className="relative flex flex-col overflow-hidden bg-canvas-raised px-7 py-8 lg:px-12 lg:py-12">
+      {/* Left: the pitch, on its own raised panel.
+        *
+        * The panel needs an edge. `bg-canvas-raised` is #050607 against the
+        * page's #030303 — a two-value difference nobody can see as a change of
+        * surface, so the boundary read as a hard seam down the middle of the
+        * screen rather than as the side of anything. A hairline makes it the
+        * edge it was always meant to be. */}
+      <section className="relative flex flex-col overflow-hidden border-white/6 bg-canvas-raised px-7 py-8 lg:border-r lg:px-12 lg:py-12">
         <div className="ambient-wash" />
         <Link href="/sign-in" className="relative z-10 flex w-fit items-center gap-3">
           <Logo size="md" />
@@ -299,8 +305,17 @@ function SignInForm() {
       </section>
 
       {/* Right: the form, centred, on the plain page. */}
-      <section className="relative flex items-center justify-center px-6 py-10 lg:px-10">
-        <div className="absolute right-5 top-5 z-20">
+      <section className="relative flex flex-col items-center justify-center px-6 py-10 lg:px-10">
+        {/*
+          * In the corner of the page on a wide screen, and above the form on a
+          * narrow one.
+          *
+          * It was absolutely positioned at all widths. Below `lg` this column
+          * starts underneath the pitch rather than beside it, so "top right of
+          * the column" is the middle of the page — and the button was drawn on
+          * top of the corner of the card it sits above.
+          */}
+        <div className="z-20 mb-4 self-end lg:absolute lg:right-5 lg:top-5 lg:mb-0">
           <ThemeToggle />
         </div>
 
@@ -616,53 +631,72 @@ function SignInForm() {
  * to phrase findings it was handed.
  */
 function Pitch() {
+  /*
+   * Enough of the list to prove the point, and not the whole catalogue.
+   *
+   * All thirty-odd names filled six ragged rows and became the largest object
+   * on a page whose only job is a sign-in form. The landing page is where the
+   * breadth belongs and it now shows every one of them; here the list is
+   * supporting evidence, so it stops at a dozen and says how many follow.
+   */
+  const shown = SOURCES.slice(0, 12);
+  const rest = SOURCES.length - shown.length;
+
   return (
-    <div className="relative z-10 mt-12 flex flex-1 flex-col justify-center lg:mt-0">
-      <h2 className="max-w-md text-[2rem] font-black leading-[1.12] tracking-tight lg:text-[2.6rem]">
+    /*
+     * Flows down from the logo rather than centring against it.
+     *
+     * This was `flex-1 justify-center`, and the column's content is taller than
+     * the viewport at every width below a very tall one. Centring overflowing
+     * flex content overflows it in *both* directions, so the top of the
+     * headline was drawn over the logo above it — a collision that got worse
+     * the more sources the registry gained.
+     */
+    <div className="relative z-10 mt-10 flex flex-col lg:mt-14">
+      <h2 className="display max-w-[22ch] text-[2rem] leading-[1.06] text-white/90 lg:text-[2.6rem]">
         Every number on the dashboard traces back to a{' '}
         {/*
-          * Underlined rather than coloured, as on the landing page.
+          * Weight, as on the landing page, rather than a rule under the words.
           *
-          * `text-accent-400` reads as teal in the dark and disappears in the
-          * light, where the accent ramp is deliberately remapped to navy: the
-          * emphasis came out #123a63 against #0b2545 ink, which is the same
-          * word twice. The rule takes whichever accent is on and shows in both.
+          * Colour was tried first and cannot work: light mode remaps the accent
+          * ramp to navy, so the emphasis came out #123a63 against #0b2545 ink —
+          * the same word twice. The underline that replaced it reads as a
+          * hyperlink, and here it was worse than on the landing page, because
+          * the emphasised phrase wraps: three separate teal rules stacked down
+          * the headline, which reads as a spellchecker rather than as stress.
+          * Fraunces carries 300 to 900, so the stress can be the letterforms.
           */}
-        <span className="underline decoration-accent-400 decoration-[3px] underline-offset-[7px]">
+        <span style={{ fontVariationSettings: "'SOFT' 0, 'WONK' 0, 'opsz' 40, 'wght' 900" }}>
           query you can read
         </span>
         .
       </h2>
 
-      <p className="mt-4 text-sm font-bold text-white/55">Analysis you can defend.</p>
+      <p className="mt-4 text-[15px] text-white/65">Analysis you can defend.</p>
 
-      <div className="mt-9 flex max-w-lg flex-col gap-5">
+      <div className="mt-8 flex max-w-lg flex-col gap-5">
         {HIGHLIGHTS.map((h) => (
           <div key={h.title} className="flex gap-3.5">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/8 bg-white/[0.04] text-accent-400">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-accent-400">
               <h.icon size={14} />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-bold text-white/85">{h.title}</div>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{h.body}</p>
+              <div className="text-[15px] font-semibold text-white/90">{h.title}</div>
+              <p className="mt-1 text-[13.5px] leading-relaxed text-white/65">{h.body}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-10 max-w-lg border-t border-white/6 pt-6">
-        <span className="text-[9px] font-black uppercase tracking-[0.28em] text-white/30">
-          Supported integrations
-        </span>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {SOURCES.map((name) => (
-            <span
-              key={name}
-              className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[11px] font-bold text-white/55"
-            >
+      <div className="mt-9 max-w-lg border-t border-white/6 pt-6">
+        <span className="label">Supported integrations</span>
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {shown.map((name) => (
+            <span key={name} className="chip text-white/65">
               {name}
             </span>
           ))}
+          {rest > 0 && <span className="text-[13px] text-white/45">and {rest} more</span>}
         </div>
       </div>
     </div>

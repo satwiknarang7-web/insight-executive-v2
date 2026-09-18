@@ -415,6 +415,30 @@ body {
   color: var(--ink-5);
 }
 
+/*
+ * One name in a list of names — a connector, a file kind, an integration.
+ *
+ * Both public pages answer "what can this read?" and each had answered it its
+ * own way: the landing page as a comma-run of six names and a count, sign-in as
+ * a grid of pills spelled out inline. One of them was a wall of fine print and
+ * the other was the only styling for it, so neither could be improved without
+ * the two drifting further apart. This is that styling, named once.
+ *
+ * The colour goes through a remapped alpha step rather than a token, so light
+ * mode picks it up with the rest of the ink.
+ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--card-border);
+  border-radius: 7px;
+  padding: 0.3rem 0.6rem;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 /* ---------------------------------------------------------------------------
  * Craft.
  *

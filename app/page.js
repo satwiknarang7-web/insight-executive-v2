@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Compass } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Logo from '../components/shell/Logo';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import { availableConnectors } from '../lib/connectors/registry';
@@ -21,6 +21,20 @@ import { sourceGroups } from '../lib/sources';
  *
  * Everything that *works* lives behind sign-in, in the app shell. This page
  * holds no data, reads none, and offers nothing but a way in.
+ *
+ * The order is the product first.
+ *
+ * It used to be an argument first: a two-column hero with the pitch on the left
+ * and a panel of explanatory text on the right, and the dashboard — the one
+ * asset that shows rather than claims — a full screen further down. At 1440x900
+ * the right column ran out at 610px and the left at 790, so the fold ended on
+ * two hundred and fifty pixels of nothing. A stranger's first screen was a
+ * headline and an empty quadrant.
+ *
+ * So the hero is one column and says its piece, and the screenshot follows
+ * immediately and wide enough to read. What is left of the argument — the three
+ * things the pipeline does, and the thirty sources it reads — comes after the
+ * proof rather than in place of it.
  */
 /** The four screens an analysis produces, in the order they arrive. */
 const SHOWCASE = [
@@ -46,26 +60,56 @@ const SHOWCASE = [
   },
 ];
 
+/** What the pipeline does, in the order it does it. */
+const STAGES = [
+  ['Cleaned', 'Types coerced, blanks counted, personal fields redacted — in your browser.'],
+  ['Analysed', 'A dashboard of charts the data chose, under an executive summary.'],
+  ['Presented', 'The findings as a slide deck, each one traceable to its query.'],
+];
+
 /**
- * The live sources, as one line.
+ * Every source, by name, read from the catalog rather than retyped.
  *
- * All thirty names wrapped to six lines and read as a wall. The first few plus
- * a count carries the same claim — that the list is long — in one line, and it
- * still comes from the registry, so it cannot drift.
+ * The hand-written list had already drifted — it omitted Supabase and renamed
+ * three others — and the file line had been wrong since Parquet, SQLite, JSON,
+ * XML and HTML arrived. Showing all of them rather than six and a count is the
+ * point of the section: the breadth *is* the claim, and "and 19 more" asks the
+ * reader to take it on trust while occupying the same space.
  */
-function liveSourceSummary() {
-  const all = availableConnectors().map((c) => c.label);
-  const shown = all.slice(0, 6).join(' · ');
-  return all.length > 6 ? `${shown}, and ${all.length - 6} more` : shown;
+function liveSourceNames() {
+  return availableConnectors().map((c) => c.label);
 }
 
-/** The file kinds the catalog offers, as one line. */
-function fileSourceLabels() {
+/** The file kinds the catalog offers, each as its own name. */
+function fileSourceNames() {
   const files = sourceGroups().find((g) => g.id === 'files');
   return (files?.items || [])
     .filter((i) => i.kind === 'file')
-    .map((i) => i.label.replace(/ workbook| database| page| or photo of a table/, ''))
-    .join(', ');
+    .map((i) => i.label.replace(/ workbook| database| page| or photo of a table/, ''));
+}
+
+/** The framed screenshot, at whatever proportion the slot it sits in wants. */
+function Screen({ title, src, aspect, priority = false, sizes }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-colors duration-300 group-hover:border-accent-500/30">
+      <div className="flex items-center gap-2 border-b border-white/6 px-3.5 py-2">
+        <span className="label">{title}</span>
+        <span className="ml-auto font-mono text-[10px] text-white/25">
+          insight/{title.toLowerCase().replace(' ', '-')}
+        </span>
+      </div>
+      <div className={`relative ${aspect}`}>
+        <Image
+          src={src}
+          alt={`The ${title.toLowerCase()} screen`}
+          fill
+          priority={priority}
+          className="object-cover object-top"
+          sizes={sizes}
+        />
+      </div>
+    </div>
+  );
 }
 
 export default function LandingPage() {
@@ -78,35 +122,34 @@ export default function LandingPage() {
    * The cards render visible and this hides them before revealing them, rather
    * than the other way round: a section that starts at opacity 0 in the
    * stylesheet and waits for JavaScript is a section that is silently missing
-   * whenever that JavaScript does not run. The floor below does the same job
-   * for an observer that never delivers.
+   * for anybody it never runs for.
    */
   useEffect(() => {
-    const cards = revealRefs.current.filter(Boolean);
-    if (!cards.length || typeof IntersectionObserver === 'undefined') return;
+    const nodes = revealRefs.current.filter(Boolean);
+    if (!nodes.length) return;
+    if (typeof IntersectionObserver === 'undefined') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
 
-    setHiddenCards(new Set(cards.map((_, i) => i)));
+    setHiddenCards(new Set(nodes.map((_, i) => i)));
+
     const observer = new IntersectionObserver(
-      (entries) =>
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          observer.unobserve(e.target);
-          const i = cards.indexOf(e.target);
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const index = nodes.indexOf(entry.target);
           setHiddenCards((prev) => {
-            if (!prev?.has(i)) return prev;
+            if (!prev?.has(index)) return prev;
             const next = new Set(prev);
-            next.delete(i);
+            next.delete(index);
             return next;
           });
-        }),
-      { threshold: 0.15 }
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: '0px 0px -12% 0px' }
     );
-    cards.forEach((el) => observer.observe(el));
-    const floor = setTimeout(() => setHiddenCards(null), 4000);
-    return () => {
-      clearTimeout(floor);
-      observer.disconnect();
-    };
+    for (const node of nodes) observer.observe(node);
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -114,13 +157,13 @@ export default function LandingPage() {
       <div className="ambient-wash" />
       <div className="grid-veil" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-7 md:px-10">
-        <header className="flex items-center gap-3">
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <header className="mx-auto flex w-full max-w-6xl items-center gap-3 px-6 py-6 md:px-10">
           <Logo size="xl" />
           <div className="ml-auto flex items-center gap-1">
             <Link
               href="/sign-in"
-              className="rounded-lg px-3 py-2 text-[13px] font-medium text-white/50 transition-colors hover:text-white/85"
+              className="rounded-lg px-3 py-2 text-[14px] font-medium text-white/65 transition-colors hover:text-white/80"
             >
               Sign in
             </Link>
@@ -128,148 +171,99 @@ export default function LandingPage() {
           </div>
         </header>
 
-        <div className="grid items-start gap-8 py-9 lg:grid-cols-[1fr_minmax(0,430px)] lg:gap-14">
-          {/* Left: pitch */}
-          <div className="flex flex-col lg:pt-4">
+        {/*
+          * The hero says one thing, at a size that carries.
+          *
+          * The two lines used to be one headline of equal halves, and the
+          * emphasis was on the wrong one: "Analyse your data." was the largest
+          * text on the page and, at 35% white, also the faintest — a heading
+          * competing with itself. It is the setup, so it is sized like one, and
+          * the promise underneath gets the room.
+          *
+          * The size also used to step *down* at `lg` (54px to 46px) because the
+          * headline had to share the row with a panel. Nothing shares the row
+          * now, so it grows with the viewport the way a display size should.
+          */}
+        <section className="mx-auto w-full max-w-4xl px-6 pb-10 pt-12 text-center md:px-10">
+          <p className="display text-[19px] text-white/45 md:text-[22px]">Analyse your data.</p>
+          <h1
+            className="display mt-1 text-balance text-[42px] leading-[1.03] text-white/90 md:text-[64px] lg:text-[74px]"
+            style={{ fontVariationSettings: "'SOFT' 0, 'WONK' 0, 'opsz' 96, 'wght' 600" }}
+          >
+            Get insights you can{' '}
             {/*
-              * The promise carries the emphasis, not the setup.
+              * Weight, not colour, and not a rule under the word.
               *
-              * Both halves were the same size and the second one was the greyer
-              * of the two, which put the least contrast on the only sentence
-              * that says what the product is for. Recessing the mundane half
-              * keeps the two-beat rhythm and lets the payoff land.
-              */}
-            {/*
-              * The size steps down when the grid splits, and the wrap is balanced.
+              * It was an underline in the accent — which reads as a hyperlink,
+              * on the one word the sentence is built around. Colour had been
+              * tried before that and could not work: light mode remaps the
+              * whole accent ramp to navy, so the accent and the ink around it
+              * came out as the same navy and the emphasis vanished.
               *
-              * `md` is still one column, so the headline has the full width and
-              * can afford 5xl. At `lg` the upload panel takes 470px and leaves
-              * the pitch column about 450, where 5xl wrapped badly — so it
-              * steps down and `text-balance` splits whatever still has to wrap
-              * evenly, rather than leaving "defend." stranded on a line of its
-              * own. On a wide screen the second line now fits whole.
+              * Fraunces is a variable face carrying 300 through 900, so the
+              * emphasis can be the letterforms themselves. 900 against the
+              * headline's 600 is unmistakable at this size, costs no colour,
+              * and means the same thing in both themes.
               */}
-            <h1 className="display text-[38px] leading-[1.07] md:text-[54px] lg:text-[46px]">
-              <span className="block text-white/35">Analyse your data.</span>
-              <span className="block text-balance text-white/95">
-                Get insights you can{' '}
-                {/*
-                  * Underlined rather than coloured.
-                  *
-                  * `text-accent-400` looked right in the dark and vanished in
-                  * the light: light mode deliberately remaps the whole accent
-                  * ramp to navy, so the accent and the ink around it came out
-                  * #123a63 against #0b2545 — the same word, no emphasis. A rule
-                  * under the word is drawn in the accent of whichever theme is
-                  * on and reads in both.
-                  */}
-                <span className="underline decoration-accent-400 decoration-[3px] underline-offset-[7px]">
-                  defend
-                </span>
-                .
-              </span>
-            </h1>
-            <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-white/55">
-              Insight profiles your data, builds the charts an analyst would build, and computes every
-              statistic itself — so each claim on screen traces back to a query you can read.
-            </p>
+            <span style={{ fontVariationSettings: "'SOFT' 0, 'WONK' 0, 'opsz' 96, 'wght' 900" }}>
+              defend
+            </span>
+            .
+          </h1>
+          <p className="mx-auto mt-6 max-w-[54ch] text-[17px] leading-relaxed text-white/65 md:text-[18px]">
+            Insight profiles your data, builds the charts an analyst would build, and computes every
+            statistic itself — so each claim on screen traces back to a query you can read.
+          </p>
 
-            {/*
-              * What you get, which the page never actually said.
-              *
-              * The three cards further down argue that the output can be
-              * trusted; none of them says what the output *is*. These are the
-              * three surfaces the app really has — the cleaning report, the
-              * dashboard, the deck — in the order they arrive.
-              */}
-            <ol className="mt-6 max-w-md divide-y divide-white/6 border-y border-white/6">
-              {[
-                ['Cleaned', 'Types coerced, blanks counted, personal fields redacted — in your browser.'],
-                ['Analysed', 'A dashboard of charts the data chose, under an executive summary.'],
-                ['Presented', 'The findings as a slide deck, each one traceable to its query.'],
-              ].map(([step, body], index) => (
-                <li key={step} className="flex gap-4 py-3">
-                  <span className="mt-px w-4 shrink-0 text-[11px] font-black tabular-nums text-accent-400/70">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-white/85">{step}</div>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
+            <Link
+              href="/home"
+              className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3 text-[15px] font-semibold text-on-accent transition-colors hover:bg-accent-400"
+            >
+              Open the app <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/sign-in"
+              className="text-[14px] text-white/45 transition-colors hover:text-white/70"
+            >
+              or sign in
+            </Link>
           </div>
 
-          {/*
-            * The invitation, and what it is an invitation to.
-            *
-            * The card alone left four hundred pixels of nothing beneath it while
-            * the pitch column towered beside it. What the product reads is the
-            * other half of the offer, so it belongs here rather than at the foot
-            * of the argument — and the two columns end at roughly the same place.
-            */}
-          <div className="flex flex-col gap-5">
-            <div className="card flex flex-col gap-4 p-7">
-            <div>
-              <div className="label">Get started</div>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-white/55">
-                Upload a spreadsheet, photograph a table, or connect a database. The analysis runs in
-                your browser, and every figure keeps the query that produced it.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Link
-                href="/home"
-                className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-5 py-2.5 text-[13.5px] font-semibold text-on-accent transition-colors hover:bg-accent-400"
-              >
-                Open the app <ArrowRight size={15} />
-              </Link>
-              <Link
-                href="/sign-in"
-                className="text-[12.5px] text-white/40 transition-colors hover:text-white/70"
-              >
-                or sign in
-              </Link>
-              </div>
-            </div>
-
-            <dl className="space-y-2 px-1 text-[12px]">
-              {[
-                // Read from the catalog rather than retyped. The hand-written
-                // list had already drifted — it omitted Supabase and renamed
-                // three others — and the file line had been wrong since Parquet,
-                // SQLite, JSON, XML and HTML arrived.
-                ['Files', fileSourceLabels()],
-                ['Live sources', liveSourceSummary()],
-              ].map(([term, list]) => (
-                <div key={term}>
-                  <dt className="label">{term}</dt>
-                  <dd className="mt-1 leading-relaxed text-white/45">{list}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
+          <p className="mx-auto mt-6 max-w-[58ch] text-[14px] leading-relaxed text-white/45">
+            <span className="label mr-1.5">Get started</span>
+            Upload a spreadsheet, photograph a table, or connect a database. The analysis runs in
+            your browser, and every figure keeps the query that produced it.
+          </p>
+        </section>
 
         {/* See it in action — the four screens the analysis produces.
           *
           * Not a 2x2 of equal tiles: the dashboard is the product and the other
           * three are what you do with it, so it takes the full width and they
           * share the row beneath. Equal tiles said they were equal things.
+          *
+          * It leads the page now rather than following the argument, so the
+          * dashboard reaches the first screen instead of sitting a scroll below
+          * it. The section heading had a right-aligned "How it works" beside it,
+          * which read as a stray tag on a heading that needed no help; it has
+          * gone to the band it actually describes.
           */}
-        <section className="border-t border-white/6 py-14">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="display text-[22px] leading-tight text-white/90 md:text-[26px]">See it in action</h2>
-            <span className="label">How it works</span>
+        <section className="mx-auto w-full max-w-6xl px-6 pb-16 md:px-10">
+          <div className="border-t border-white/6 pt-7">
+            <div className="flex items-baseline gap-4">
+              <h2 className="display text-[26px] leading-tight text-white/90 md:text-[30px]">
+                See it in action
+              </h2>
+              <span className="label">How it works</span>
+            </div>
+            <p className="mt-2.5 max-w-[72ch] text-[15px] leading-relaxed text-white/65">
+              Upload a file, and in seconds you have a full analytics dashboard, a data explorer, an
+              AI question console, and a presentation deck — each one traceable and editable.
+            </p>
           </div>
-          <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-white/40">
-            Upload a file, and in seconds you have a full analytics dashboard, a data explorer, an
-            AI question console, and a presentation deck — each one traceable and editable.
-          </p>
 
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-7 grid gap-7 md:grid-cols-3">
             {SHOWCASE.map((item, i) => (
               <div
                 key={item.title}
@@ -281,31 +275,33 @@ export default function LandingPage() {
                   i === 0 ? 'md:col-span-3' : ''
                 }`}
               >
-                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-colors duration-300 group-hover:border-accent-500/30">
-                  <div className="flex items-center gap-2 border-b border-white/6 px-3.5 py-2">
-                    <span className="label">{item.title}</span>
-                    <span className="ml-auto font-mono text-[10px] text-white/20">
-                      insight/{item.title.toLowerCase().replace(' ', '-')}
-                    </span>
-                  </div>
-                  <div className={`relative ${i === 0 ? 'aspect-[21/8]' : 'aspect-video'}`}>
-                    <Image
-                      src={item.src}
-                      alt={`The ${item.title.toLowerCase()} screen`}
-                      fill
-                      priority={i === 0}
-                      className="object-cover object-top"
-                      sizes={i === 0 ? '(max-width: 768px) 100vw, 1100px' : '(max-width: 768px) 100vw, 33vw'}
-                    />
-                  </div>
-                </div>
-                <div className="mt-3 flex gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-accent-500/25 bg-accent-500/8 text-[10px] font-black tabular-nums text-accent-400">
+                <Screen
+                  title={item.title}
+                  src={item.src}
+                  priority={i === 0}
+                  // The wide crop only works once there is width to spend on it:
+                  // at 390px a 5:2 slot is 143px tall and the dashboard in it is
+                  // a grey smudge. The phone gets a taller box and loses some
+                  // width instead, which is the half of the screenshot worth
+                  // keeping.
+                  aspect={i === 0 ? 'aspect-video sm:aspect-[5/2]' : 'aspect-video'}
+                  sizes={i === 0 ? '(max-width: 768px) 100vw, 1100px' : '(max-width: 768px) 100vw, 33vw'}
+                />
+                <div className="mt-4 flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-accent-500/25 bg-accent-500/8 text-[11px] font-bold tabular-nums text-accent-400">
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[15px] font-semibold text-white/85">{item.title}</div>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-white/40">{item.desc}</p>
+                    <div className={`font-semibold text-white/90 ${i === 0 ? 'text-[19px]' : 'text-[16px]'}`}>
+                      {item.title}
+                    </div>
+                    <p
+                      className={`mt-1 leading-relaxed text-white/65 ${
+                        i === 0 ? 'max-w-[62ch] text-[15px]' : 'text-[14px]'
+                      }`}
+                    >
+                      {item.desc}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -313,14 +309,81 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <footer className="mt-auto flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-white/6 pt-4 text-[11px] text-white/25">
-          <span>
-            Parsed, cleaned and queried in your browser. Only summary statistics reach a model —
-            never your rows.
-          </span>
-          <Link href="/sign-in" className="ml-auto font-bold uppercase tracking-[0.15em] text-white/35 transition-colors hover:text-accent-400">
-            Sign in
-          </Link>
+        {/*
+          * What the output is, which the pictures above show and do not name.
+          *
+          * Three stages, across the page rather than stacked in a column beside
+          * the hero — where they were 12px grey between hairlines and read as
+          * the fine print of the panel next to them rather than as the three
+          * things the product does.
+          */}
+        <section className="border-t border-white/6">
+          <div className="mx-auto w-full max-w-6xl px-6 py-14 md:px-10">
+            <ol className="grid gap-x-8 gap-y-8 sm:grid-cols-3">
+              {STAGES.map(([step, body], index) => (
+                <li key={step} className="border-t border-white/10 pt-4">
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-[13px] font-bold tabular-nums text-accent-400">
+                      {index + 1}
+                    </span>
+                    <div className="display text-[21px] text-white/90">{step}</div>
+                  </div>
+                  <p className="mt-2 text-[14px] leading-relaxed text-white/65">{body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/*
+          * And what it reads — every name, rather than six and a promise.
+          *
+          * This was two runs of comma-separated grey at 12px, tucked under the
+          * upload panel: thirty connectors and nine file kinds, rendered as the
+          * least legible text on the page. It is the widest claim the product
+          * makes and it was set as fine print, while the sign-in page showed the
+          * same list as a grid of pills. One answer now, in the shared style.
+          */}
+        <section className="border-t border-white/6">
+          <div className="mx-auto w-full max-w-6xl px-6 py-14 md:px-10">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_1fr]">
+              <div>
+                <div className="label">Files</div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {fileSourceNames().map((name) => (
+                    <span key={name} className="chip text-white/65">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="label">Live sources</div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {liveSourceNames().map((name) => (
+                    <span key={name} className="chip text-white/65">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="mt-auto border-t border-white/6">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6 text-[13px] text-white/45 md:px-10">
+            <span>
+              Parsed, cleaned and queried in your browser. Only summary statistics reach a model —
+              never your rows.
+            </span>
+            <Link
+              href="/sign-in"
+              className="ml-auto font-semibold uppercase tracking-[0.12em] text-white/45 transition-colors hover:text-accent-400"
+            >
+              Sign in
+            </Link>
+          </div>
         </footer>
       </div>
     </div>
