@@ -1123,3 +1123,38 @@ test('a segment at zero is compared to, not multiplied by', () => {
   });
   assert.match(withRatio, /15\.5x Two year at 3\.3%/);
 });
+
+test('a dimension that is not a noun does not get an s bolted onto it', () => {
+  // From a real report: "1 has the highest churn rate of any is churned at
+  // 100%, 2.0× the 50% average across 2 is churneds." A derived boolean column
+  // prettifies to a predicate, and `plural` assumed every dimension was a noun.
+  const chart = {
+    title: 'Revenue by flag',
+    chart_type: 'bar',
+    xAxisKey: 'is_churned',
+    yAxisKey: 'revenue',
+    resultData: [
+      { is_churned: 'yes', revenue: 900 },
+      { is_churned: 'no', revenue: 300 },
+    ],
+  };
+  const f = analyzeChart(chart);
+  const prose = [f.headline, f.detail, f.recommendation].filter(Boolean).join(' ');
+  assert.ok(!/is churneds/i.test(prose), `pluralised a predicate: ${prose}`);
+  assert.ok(!/\bchurneds\b/i.test(prose), `pluralised a participle: ${prose}`);
+
+  // A genuine noun is still pluralised, which is the behaviour worth keeping.
+  const byRegion = analyzeChart({
+    title: 'Revenue by region',
+    chart_type: 'bar',
+    xAxisKey: 'region',
+    yAxisKey: 'revenue',
+    resultData: [
+      { region: 'North', revenue: 900 },
+      { region: 'South', revenue: 300 },
+      { region: 'East', revenue: 220 },
+    ],
+  });
+  const regionProse = [byRegion.headline, byRegion.detail].filter(Boolean).join(' ');
+  assert.ok(/regions/i.test(regionProse), `expected "regions" somewhere in: ${regionProse}`);
+});

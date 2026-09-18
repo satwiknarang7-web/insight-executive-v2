@@ -304,3 +304,34 @@ test('the outcome chart the planner writes actually returns rates', async () => 
   assert.equal(Math.round(bySport.A), 40);
   assert.equal(Math.round(bySport.B), 10);
 });
+
+test('the outcome is never charted against a column that restates it', () => {
+  /*
+   * The defect this exists for, from a real report: a card headed "Churn Rate
+   * by Churn Status" holding one bar at 100% and one at 0%, tagged STRONG
+   * EVIDENCE. The table carried the outcome twice — `Churn` as Yes/No and
+   * `Churn_Status` as 1/0 — and the planner refused only the column it had
+   * named as the outcome, so it charted the rate against the other copy. Every
+   * figure on it was correct and it said that customers who churned churned.
+   *
+   * It scored well *because* it was a tautology: the separation between the
+   * groups is total, which is what the outcome signal rewards.
+   */
+  const rows = churnRows().map((r) => ({ ...r, Churn_Status: r.Churn === 'Yes' ? 1 : 0 }));
+  const charts = planCharts(rows);
+
+  const restating = charts.filter((c) => c.xAxisKey === 'Churn_Status');
+  assert.equal(
+    restating.length,
+    0,
+    `charted the outcome against its own restatement: ${restating.map((c) => c.title).join(', ')}`
+  );
+
+  // And the real driver is still charted, which is the whole point of the
+  // outcome path: a guard that threw away the useful chart with the useless
+  // one would be the worse bug.
+  const byContract = charts.find(
+    (c) => c.xAxisKey === 'Contract_Type' && /rate/i.test(c.yAxisKey || '')
+  );
+  assert.ok(byContract, `expected churn rate by contract type, got: ${charts.map((c) => c.title).join(' | ')}`);
+});

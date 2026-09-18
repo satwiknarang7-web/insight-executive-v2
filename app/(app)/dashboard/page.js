@@ -555,7 +555,10 @@ export default function DashboardPage() {
               <FindingCard
                 key={slide.id || i}
                 slide={slide}
-                index={i}
+                // Its place among the findings, not its place in the list. The
+                // list also holds the slicers, and they sit at the top of it,
+                // so counting positions here numbered the first finding "2 of 6".
+                index={findingIndex.get(slide.id) ?? 0}
                 total={findings.length}
                 editing={editing}
                 filters={filters}
