@@ -29,6 +29,7 @@ import {
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import { exclusionNotice } from '../../../lib/voidRows';
+import { findingsOnly } from '../../../lib/storyboard';
 import PageFrame from '../../../components/shell/PageFrame';
 import FilterBar from '../../../components/panels/FilterBar';
 import { applyClick, clearColumn, clickTarget, selectedValues } from '../../../lib/filters';
@@ -99,11 +100,21 @@ export default function DashboardPage() {
     return [...cards, ...(analysis?.storyboard || [])];
   }, [analysis?.kpis, analysis?.storyboard]);
 
-  // Which finding a card is, for the "3 of 9" on its header. Counted over the
-  // findings alone: a KPI card is not one of them.
+  /**
+   * How many findings there are, and which number each one is.
+   *
+   * A slicer is a control, not a finding: it filters the board rather than
+   * saying anything about the data. It was counted as one anyway, so a deck of
+   * six charts and one filter announced "7 findings from 720 rows", the filter
+   * card was headed "SLICER · 7 OF 7", and the numbering skipped whatever
+   * position the slicer occupied. `/present` already numbered over the findings
+   * alone, so the same chart read "3 of 9" on the board and "2 of 7" in the
+   * deck — from one storyboard, counted two ways.
+   */
+  const findings = useMemo(() => findingsOnly(analysis?.storyboard || []), [analysis?.storyboard]);
   const findingIndex = useMemo(
-    () => new Map((analysis?.storyboard || []).map((slide, i) => [slide.id, i])),
-    [analysis?.storyboard]
+    () => new Map(findings.map((slide, i) => [slide.id, i])),
+    [findings]
   );
 
   /**
@@ -286,7 +297,7 @@ export default function DashboardPage() {
   return (
     <PageFrame
       title="Dashboard"
-      subtitle={`${storyboard.length} findings from ${(shownRows || 0).toLocaleString()} rows`}
+      subtitle={`${findings.length} ${findings.length === 1 ? 'finding' : 'findings'} from ${(shownRows || 0).toLocaleString()} rows`}
       action={
         <div className="flex flex-wrap items-center gap-2">
           {narrating && (
@@ -451,7 +462,10 @@ export default function DashboardPage() {
         <div className="mb-3 flex items-center gap-3">
           <BarChart3 size={14} className="text-accent-400" />
           <h2 className="label">
-            {boardView ? `The board (${tiles.length} tiles)` : `Findings (${storyboard.length})`}
+            {/* Findings, not tiles: the board counts everything it places, and
+                this counts what the page is about. They differ by the slicers
+                and the KPI cards, which is why the two say different words. */}
+            {boardView ? `The board (${tiles.length} tiles)` : `Findings (${findings.length})`}
           </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
           <Collapse open={showFindings} onToggle={() => setShowFindings((v) => !v)} label="findings" />
@@ -491,7 +505,7 @@ export default function DashboardPage() {
                     key={tile.id || index}
                     slide={tile}
                     index={findingIndex.get(tile.id) ?? 0}
-                    total={storyboard.length}
+                    total={findings.length}
                     editing={editing}
                     filters={filters}
                     filterContext={filterContext}
@@ -542,7 +556,7 @@ export default function DashboardPage() {
                 key={slide.id || i}
                 slide={slide}
                 index={i}
-                total={storyboard.length}
+                total={findings.length}
                 editing={editing}
                 filters={filters}
                 filterContext={filterContext}
@@ -904,8 +918,11 @@ function FindingCard({
           <div className="label flex flex-wrap items-center gap-2">
             {/* The reader gets the chart's name, not its internal id: the card
                 used to read "hbar · 3 of 9". */}
+            {/* A slicer has a type and no number: it is not one of the
+                findings, so "of 7" would be counting it among them again. */}
             <span>
-              {chartTypeLabel(slide.chart?.chart_type || 'bar')} · {index + 1} of {total}
+              {chartTypeLabel(slide.chart?.chart_type || 'bar')}
+              {!isSlicer && ` · ${index + 1} of ${total}`}
             </span>
             {slide.custom && <span className="text-accent-400/70">· yours</span>}
             {!slide.custom && slide.edits?.length > 0 && <span className="text-accent-400/70">· edited</span>}

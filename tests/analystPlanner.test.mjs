@@ -129,6 +129,39 @@ test('planKpis returns labelled KPI cards, business numbers first', () => {
   assert.equal(kpis[kpis.length - 1].label, 'Records Analyzed');
 });
 
+test('the biggest total leads the strip, whatever order the columns are in', () => {
+  // `units` before `revenue`, which is the order the retail sample has them in
+  // and the order that used to decide the strip: it took the first summable
+  // column in file order, so the cards opened with "Total Units Sold 11.9K"
+  // and the total revenue — the number a reader looks for first — was not on
+  // the dashboard at all.
+  const rows = [];
+  for (let i = 0; i < 240; i++) {
+    rows.push({
+      ordered_on: `2025-${String((i % 12) + 1).padStart(2, '0')}-14`,
+      region: ['North', 'South', 'East', 'West'][i % 4],
+      units: (i % 7) + 1,
+      // Genuinely continuous. A revenue column with only a couple of dozen
+      // distinct values repeating across rows is read as a pre-aggregate —
+      // a lifetime total joined onto order rows — and correctly refused a sum.
+      revenue: Number((137.5 + i * 7.31 + (i % 13) * 3.77).toFixed(2)),
+    });
+  }
+  const labels = planKpis(rows).map((k) => k.label);
+  const revenue = labels.indexOf('Total Revenue');
+  const units = labels.indexOf('Total Units');
+  assert.ok(revenue > -1, `expected a revenue total, got: ${labels.join(', ')}`);
+  assert.ok(units > -1, `expected a units total too, got: ${labels.join(', ')}`);
+  assert.ok(revenue < units, `revenue sums to far more than units, so it leads: ${labels.join(', ')}`);
+
+  // And a distinct-value count does not take a card while real measures are
+  // still unreported.
+  assert.ok(
+    !labels.some((l) => /Segments$/.test(l)),
+    `a cardinality count displaced a measure: ${labels.join(', ')}`
+  );
+});
+
 test('an outcome rate is the first thing the cards say', () => {
   // The same telco rows with the column the file is named after.
   const rows = telco(300).map((r, i) => ({
