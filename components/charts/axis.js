@@ -62,6 +62,21 @@ export function axisTitleProps(title, { axis = 'x', fontSize = 11, skip = false 
 export const AXIS_TITLE_SPACE = 22;
 
 /**
+ * What a category axis costs on a tile with no height to spare.
+ *
+ * One flat line and the gap above it. Small enough that a 110px tile can afford
+ * it, which is the whole point: the alternative was an unlabelled axis.
+ */
+export const DENSE_AXIS_HEIGHT = 18;
+export const DENSE_FONT_SIZE = 9;
+
+/** Past this many categories a single flat line has to start dropping them. */
+export const DENSE_MAX_TICKS = 7;
+
+/** And each one is clipped to about what fits under a bar at this size. */
+export const DENSE_MAX_CHARS = 9;
+
+/**
  * X-axis geometry for a categorical or temporal axis.
  *
  * Returns props to spread onto `<XAxis>`, the `bottom` margin the chart should
@@ -97,41 +112,61 @@ export function xAxisGeometry(
    */
   const titleProps = compact || dense ? null : axisTitleProps(title, { axis: 'x' });
   /**
-   * A tile too short to hold both an axis and a plot keeps the plot.
+   * A tile too short to hold both an axis and a plot spends a line on the axis.
    *
-   * On the closing slide a chart can end up with 140 pixels. Fifty-four of them
-   * went to the category labels and the rest to the card's own title, leaving a
-   * plot area of nothing — which is how a board of seven charts came out as
-   * seven sets of rotated labels with empty space where the data should be. The
-   * labels are the part that can go: the card is titled "Total Amount by
-   * Category" directly above them, so their names are already on screen, and
-   * the shape of the bars is what a thumbnail is for.
+   * It used to drop the categories entirely below about two hundred pixels, on
+   * the reasoning that the card above is titled "Average Monthly Charge by Plan
+   * Tier" and so already names them. It names the *dimension*. It does not say
+   * which bar is Basic and which is Enterprise, and four anonymous bars over an
+   * unlabelled axis is not a chart anybody can read — which is what the deck's
+   * board slide was showing.
+   *
+   * So a dense axis is a cheap one rather than no one: flat, small, and clipped
+   * hard. Fifty-four pixels went on rotated labels, and rotation is the
+   * expensive part; one flat line of nine-point text costs eighteen and tells
+   * the reader what they are looking at.
    */
+  const denseHeight = DENSE_AXIS_HEIGHT;
   const height = dense
-    ? 0
+    ? denseHeight
     : Math.min(compact ? 54 : 130, Math.max(fontSize + 14, projected + 14)) +
       (titleProps ? AXIS_TITLE_SPACE : 0);
 
   return {
     title: titleProps,
-    // Recharts' own `hide` leaves the axis in the layout, so the caller skips
-    // rendering it altogether rather than asking the library to pretend.
-    hidden: dense,
+    // Nothing is hidden any more; the caller still reads this so a future
+    // surface with truly no room has somewhere to say so.
+    hidden: false,
     props: {
       dataKey: xKey,
       axisLine: false,
       tickLine: false,
-      tick: { fill: 'var(--chart-axis, #94a3b8)', fontSize, fontWeight: 700 },
-      tickFormatter: (v) => clip(formatDateLabel(v), HARD_MAX),
-      interval: count > 24 ? 'preserveStartEnd' : 0,
-      angle,
-      textAnchor: angle ? 'end' : 'middle',
+      tick: {
+        fill: 'var(--chart-axis, #94a3b8)',
+        fontSize: dense ? DENSE_FONT_SIZE : fontSize,
+        fontWeight: 700,
+      },
+      // Clipped much harder when dense: a name that does not fit is better as
+      // its first few letters than as a smear across its neighbour's.
+      tickFormatter: (v) => clip(formatDateLabel(v), dense ? DENSE_MAX_CHARS : HARD_MAX),
+      /*
+       * Every category, unless there are more than a row can hold.
+       *
+       * `preserveStartEnd` keeps the two that bound the axis and drops the
+       * middle, which is the right answer for a histogram — the range is the
+       * information — and the only answer that avoids overprinting when a dozen
+       * names share one flat line.
+       */
+      interval: count > (dense ? DENSE_MAX_TICKS : 24) ? 'preserveStartEnd' : 0,
+      // Rotation needs room to project into, and a dense axis has none.
+      angle: dense ? 0 : angle,
+      textAnchor: dense || !angle ? 'middle' : 'end',
       height,
-      dy: angle ? 4 : 8,
-      minTickGap: angle ? 0 : 6,
+      dy: dense ? 6 : angle ? 4 : 8,
+      minTickGap: dense ? 2 : angle ? 0 : 6,
     },
     bottom: height,
-    rotated: !!angle,
+    rotated: !dense && !!angle,
   };
 }
 

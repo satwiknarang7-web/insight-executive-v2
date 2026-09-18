@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xAxisGeometry, yAxisGeometry, legendProps, chartMargin, LEGEND_H, clip } from '../components/charts/axis.js';
+import {
+  xAxisGeometry,
+  yAxisGeometry,
+  legendProps,
+  chartMargin,
+  LEGEND_H,
+  DENSE_AXIS_HEIGHT,
+  DENSE_MAX_TICKS,
+  clip,
+} from '../components/charts/axis.js';
 
 const rows = (labels, key = 'region', value = 'Total') =>
   labels.map((l, i) => ({ [key]: l, [value]: (i + 1) * 1000 }));
@@ -105,4 +114,42 @@ test('the margin never reserves axis space', () => {
 test('empty data does not throw', () => {
   assert.doesNotThrow(() => xAxisGeometry([], 'region'));
   assert.doesNotThrow(() => yAxisGeometry(null, 'Total'));
+});
+
+test('a dense axis is a cheap one, not an absent one', () => {
+  // A tile too short for a rotated gutter used to drop its categories outright,
+  // which left four anonymous bars under a title that names the dimension and
+  // not the values — "Average Monthly Charge by Plan Tier" does not say which
+  // bar is Basic. One flat, small, hard-clipped line is affordable and says it.
+  const labels = ['Basic', 'Standard', 'Premium', 'Enterprise'];
+  const dense = xAxisGeometry(rows(labels), 'region', { dense: true });
+
+  assert.equal(dense.hidden, false, 'the categories have to be on screen');
+  assert.equal(dense.props.angle, 0, 'rotation is the expensive part');
+  assert.equal(dense.rotated, false);
+  assert.equal(dense.bottom, DENSE_AXIS_HEIGHT);
+  assert.ok(dense.bottom <= 20, `a dense gutter of ${dense.bottom}px is not dense`);
+
+  const roomy = xAxisGeometry(rows(labels), 'region');
+  assert.ok(dense.props.tick.fontSize < roomy.props.tick.fontSize, 'and smaller type');
+  assert.ok(dense.bottom < roomy.bottom, 'and a shallower gutter than a tile with room');
+});
+
+test('a dense axis thins its ticks rather than overprinting them', () => {
+  const few = xAxisGeometry(rows(['A', 'B', 'C', 'D']), 'region', { dense: true });
+  assert.equal(few.props.interval, 0, 'four categories all fit on one line');
+
+  const many = xAxisGeometry(
+    rows(Array.from({ length: DENSE_MAX_TICKS + 5 }, (_, i) => `Bucket ${i}`)),
+    'region',
+    { dense: true }
+  );
+  assert.equal(many.props.interval, 'preserveStartEnd', 'a dozen do not, so the axis keeps its ends');
+});
+
+test('a dense label is clipped to what fits under a bar', () => {
+  const geo = xAxisGeometry(rows(['Month-to-month', 'One year', 'Two year']), 'region', { dense: true });
+  const shown = geo.props.tickFormatter('Month-to-month');
+  assert.ok(String(shown).length <= 10, `"${shown}" will not fit under a bar`);
+  assert.ok(String(shown).startsWith('Month'), 'and it is the start of the name that is kept');
 });

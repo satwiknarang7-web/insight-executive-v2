@@ -176,6 +176,21 @@ export default function DashboardCanvas({ slides = [], sizeOf = null, editing = 
   if (narrow) {
     return (
       <div ref={hostRef} className="flex flex-col gap-4">
+        {/*
+          * Said rather than silently done.
+          *
+          * The arrangement is a position on a page, and there is no page at
+          * this width — so the tiles are shown in the order the arrangement
+          * reads and nothing can be dragged. Somebody who opened the board to
+          * move a card deserves to be told that is not available here, instead
+          * of tapping a tile that will not move.
+          */}
+        {editing && (
+          <p className="rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2 text-[12px] leading-relaxed text-white/45">
+            This screen is too narrow for the board, so the tiles are listed in the order the arrangement
+            reads. Open it on a wider screen to move or resize them.
+          </p>
+        )}
         {readingOrder(slides, sizeOf).map((slide, index) => render(slide, index, { stacked: true }))}
       </div>
     );

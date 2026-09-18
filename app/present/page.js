@@ -18,7 +18,8 @@ import {
   Users,
   Info,
 } from 'lucide-react';
-import { useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
+import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
+import { applyClick, clearColumn, clickTarget, selectedValues } from '../../lib/filters';
 import LazyChart from '../../components/charts/LazyChart';
 import ChartBoundary from '../../components/charts/ChartBoundary';
 import { cleanFloatingPoints } from '../../lib/dataCleaner';
@@ -49,7 +50,31 @@ const SPEEDS = [
 export default function PresentPage() {
   const router = useRouter();
   const { dataset, status } = useDataset();
-  const { analysis } = useAnalysis();
+  const { analysis, filters, filtering } = useAnalysis();
+  const { applyFilters } = useActions();
+
+  /**
+   * The board on a slide is the board, not a picture of it.
+   *
+   * A filter tile that cannot be ticked is a screenshot of a control, and the
+   * deck was showing one: a presenter asked "what does this look like for
+   * enterprise?" had to leave the deck, filter the dashboard and come back. The
+   * same click that filters on the dashboard filters here, through the same
+   * query — the numbers on the slide are the slice, and the header already says
+   * which slice they are.
+   */
+  const filterContext = useMemo(
+    () => ({ columns: dataset?.columns || [], temporal: dataset?.profile?.temporal || [] }),
+    [dataset?.columns, dataset?.profile?.temporal]
+  );
+  const selectValue = useCallback(
+    (target, value) => applyFilters(applyClick(filters || [], target, value)),
+    [applyFilters, filters]
+  );
+  const clearFilter = useCallback(
+    (column) => applyFilters(clearColumn(filters || [], column)),
+    [applyFilters, filters]
+  );
 
   const [page, setPage] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -361,7 +386,16 @@ export default function PresentPage() {
         {page === 0 ? (
           <SummarySlide slideZero={analysis.slideZero} />
         ) : onDashboard ? (
-          <DashboardSlide analysis={analysis} tiles={tiles} fileName={dataset?.fileName} />
+          <DashboardSlide
+            analysis={analysis}
+            tiles={tiles}
+            fileName={dataset?.fileName}
+            filters={filters}
+            filtering={filtering}
+            filterContext={filterContext}
+            onSelect={selectValue}
+            onClearFilter={clearFilter}
+          />
         ) : (
           <ChartSlide slide={slide} />
         )}
@@ -554,7 +588,16 @@ function useNarrowViewport(query = '(max-width: 767px)') {
   return narrow;
 }
 
-function DashboardSlide({ analysis, tiles = [], fileName }) {
+function DashboardSlide({
+  analysis,
+  tiles = [],
+  fileName,
+  filters = [],
+  filtering = false,
+  filterContext = null,
+  onSelect = null,
+  onClearFilter = null,
+}) {
   const board = tiles;
 
   /**
@@ -639,12 +682,27 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
         * On a phone it stacks, in the order the arrangement reads. See
         * lib/canvasLayout.js.
         */}
-      <div className="relative min-h-0 flex-1 overflow-hidden" ref={boardRef}>
+      {/* Dimmed while the slice is recomputing, and never unmounted: the charts
+          on screen are the previous slice's and they are about to become this
+          one's. A chart that vanishes and comes back has thrown away the one
+          thing that makes a filter readable — seeing the bars move. */}
+      <div
+        className={`relative min-h-0 flex-1 overflow-hidden transition-opacity duration-200 ${
+          filtering ? 'opacity-60' : 'opacity-100'
+        }`}
+        ref={boardRef}
+      >
         {narrow ? (
           <div className="flex h-full flex-col gap-3 overflow-y-auto">
             {readingOrder(board, sizeOf).map((item) => (
               <div key={item.id} className="card flex min-h-[210px] flex-col p-3">
-                <BoardTile item={item} />
+                <BoardTile
+                  item={item}
+                  filters={filters}
+                  filterContext={filterContext}
+                  onSelect={onSelect}
+                  onClearFilter={onClearFilter}
+                />
               </div>
             ))}
           </div>
@@ -682,7 +740,13 @@ function DashboardSlide({ analysis, tiles = [], fileName }) {
                   }}
                   className="card flex flex-col p-3"
                 >
-                  <BoardTile item={item} />
+                  <BoardTile
+                    item={item}
+                    filters={filters}
+                    filterContext={filterContext}
+                    onSelect={onSelect}
+                    onClearFilter={onClearFilter}
+                  />
                 </div>
               );
             })}
@@ -768,7 +832,18 @@ function ChartSlide({ slide }) {
 }
 
 /** One finding on the board: its name, and its chart under it. */
-function BoardTile({ item }) {
+function BoardTile({ item, filters = [], filterContext = null, onSelect = null, onClearFilter = null }) {
+  /**
+   * What a click on this tile is allowed to mean.
+   *
+   * The same rule as the dashboard's: only where the column behind the axis can
+   * be named. A tile that cannot answer that is drawn without a handler, so it
+   * stays a picture rather than offering a click that does nothing.
+   */
+  const target = onSelect && filterContext ? clickTarget(item.chart, filterContext) : null;
+  const kept = target?.kind === 'values' ? selectedValues(filters || [], target.column) : [];
+  const picked = target?.multi ? kept : kept[0] ?? null;
+
   // A card is a number and its name, and it is on the board like anything else.
   if (item.kpiCard) {
     return (
@@ -804,6 +879,9 @@ function BoardTile({ item }) {
             yLabel={item.chart?.yAxisLabel}
             compact
             eager
+            onSelect={target ? (value) => onSelect(target, value) : null}
+            selected={picked}
+            onClearSelection={target?.multi ? () => onClearFilter?.(target.column) : null}
           />
         </ChartBoundary>
       </div>

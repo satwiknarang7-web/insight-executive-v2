@@ -17,14 +17,75 @@
  * would show one ticked value and nothing else, and there would be no way back
  * to the others — the worker leaves this column out when it runs this tile's
  * query, which is the one place that rule lives.
+ *
+ * **Opened, the list leaves the tile.** A dropdown is chosen precisely when the
+ * board cannot spare the height for a list, so drawing the list inside the tile
+ * puts it in the one box guaranteed to be too short for it — what a reader saw
+ * was "Done", one value, and a scrollbar. The open list is a panel in the body
+ * instead, positioned against the button it belongs to. A portal rather than an
+ * absolute child because the tile clips its overflow, and `position: fixed`
+ * inside the deck's scaled board would be measured against the transform rather
+ * than the window.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { formatNumber } from '../../lib/format';
 import { DEFAULT_SLICER_MODE } from '../../lib/chartSpecs';
 
 /** Above this many values, finding one by eye stops working. */
 const SEARCHABLE = 8;
+
+/** The tallest the opened list gets before it scrolls inside itself. */
+const PANEL_MAX_HEIGHT = 280;
+
+/** Clearance the panel wants below the button before it flips above it. */
+const PANEL_GAP = 4;
+
+/**
+ * Where an opened list goes, in window coordinates.
+ *
+ * Measured from the button rather than laid out beside it, because the panel is
+ * rendered into the body: that is what lets it escape a tile that clips its
+ * overflow and a board that is drawn under a CSS transform. Re-measured on
+ * scroll and resize, since neither moves the panel on its own.
+ */
+function useAnchoredPanel(open, anchorRef) {
+  const [rect, setRect] = useState(null);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setRect(null);
+      return undefined;
+    }
+    const measure = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const box = el.getBoundingClientRect();
+      const below = window.innerHeight - box.bottom - PANEL_GAP;
+      const above = box.top - PANEL_GAP;
+      // Below unless there is more room above, which is where a filter along
+      // the bottom edge of a board ends up.
+      const flip = below < Math.min(PANEL_MAX_HEIGHT, above);
+      setRect({
+        left: box.left,
+        width: box.width,
+        top: flip ? undefined : box.bottom + PANEL_GAP,
+        bottom: flip ? window.innerHeight - box.top + PANEL_GAP : undefined,
+        maxHeight: Math.max(120, Math.min(PANEL_MAX_HEIGHT, flip ? above : below)),
+      });
+    };
+    measure();
+    window.addEventListener('scroll', measure, true);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('scroll', measure, true);
+      window.removeEventListener('resize', measure);
+    };
+  }, [open, anchorRef]);
+
+  return rect;
+}
 
 export default function SlicerTile({
   data,
@@ -39,6 +100,30 @@ export default function SlicerTile({
   const [open, setOpen] = useState(false);
   const chosen = useMemo(() => new Set((selected || []).map((v) => String(v))), [selected]);
 
+  const anchorRef = useRef(null);
+  const panelRef = useRef(null);
+  const panelAt = useAnchoredPanel(open && mode === 'dropdown', anchorRef);
+
+  // A panel in the body is outside everything that would otherwise dismiss it,
+  // so it listens for the two gestures that mean "I am done here".
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (event) => {
+      if (panelRef.current?.contains(event.target) || anchorRef.current?.contains(event.target)) return;
+      setOpen(false);
+    };
+    const onKey = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown, true);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+
   const rows = useMemo(() => {
     const all = (data || []).filter((row) => row && row[nameKey] !== null && row[nameKey] !== undefined);
     const text = query.trim().toLowerCase();
@@ -48,51 +133,17 @@ export default function SlicerTile({
 
   if (!data?.length) return null;
 
-  /**
-   * Closed, a dropdown says what it is filtering to rather than what it could.
-   *
-   * "3 of 4" would be arithmetic about a control; the values themselves are
-   * what a reader needs to see without opening anything, and the count is only
-   * reached for when there are too many of them to read.
-   */
-  if (mode === 'dropdown' && !open) {
-    const chosenList = [...chosen];
-    const summary =
-      chosenList.length === 0
-        ? 'All'
-        : chosenList.length <= 2
-          ? chosenList.join(', ')
-          : `${chosenList.length} selected`;
-    return (
-      // Centred: closed, this tile is one control, and pinned to the top it
-      // read as a card that had failed to draw the rest of itself.
-      <div className="flex h-full flex-col justify-center">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] transition-colors hover:border-accent-500/40 ${
-            chosenList.length ? 'border-accent-500/30 bg-accent-500/10 text-accent-300' : 'border-white/10 bg-white/5 text-white/70'
-          }`}
-        >
-          <span className="min-w-0 flex-1 truncate font-semibold">{summary}</span>
-          <ChevronDown size={14} className="shrink-0 opacity-50" />
-        </button>
-      </div>
-    );
-  }
+  const chosenList = [...chosen];
 
-  return (
-    <div className="flex h-full flex-col">
-      {mode === 'dropdown' && (
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="mb-1.5 flex shrink-0 items-center justify-between rounded-lg border border-accent-500/30 bg-accent-500/10 px-3 py-1.5 text-[12px] font-semibold text-accent-300"
-        >
-          <span>Done</span>
-          <ChevronDown size={14} className="rotate-180 opacity-50" />
-        </button>
-      )}
+  /**
+   * The values, as a list of tick-boxes.
+   *
+   * One definition, used in the tile when the board can spare the height for a
+   * list and in the panel when it cannot — two copies of a checkbox row is two
+   * places for them to drift apart.
+   */
+  const list = (
+    <>
       {data.length > SEARCHABLE && (
         <div className="relative mb-1.5 shrink-0">
           <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-white/25" />
@@ -152,6 +203,69 @@ export default function SlicerTile({
           Clear
         </button>
       )}
-    </div>
+    </>
   );
+
+  /**
+   * A dropdown is a button in the tile and a list over the page.
+   *
+   * Closed, the button says what it is filtering to rather than what it could:
+   * "3 of 4" would be arithmetic about a control, and the values themselves are
+   * what a reader needs to see without opening anything.
+   */
+  if (mode === 'dropdown') {
+    const summary =
+      chosenList.length === 0
+        ? 'All'
+        : chosenList.length <= 2
+          ? chosenList.join(', ')
+          : `${chosenList.length} selected`;
+    return (
+      // Centred: closed, this tile is one control, and pinned to the top it
+      // read as a card that had failed to draw the rest of itself.
+      <div className="flex h-full flex-col justify-center">
+        <button
+          ref={anchorRef}
+          type="button"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          onClick={() => setOpen((v) => !v)}
+          className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] transition-colors hover:border-accent-500/40 ${
+            chosenList.length || open
+              ? 'border-accent-500/30 bg-accent-500/10 text-accent-300'
+              : 'border-white/10 bg-white/5 text-white/70'
+          }`}
+        >
+          <span className="min-w-0 flex-1 truncate font-semibold">{summary}</span>
+          <ChevronDown size={14} className={`shrink-0 opacity-50 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+
+        {open &&
+          panelAt &&
+          typeof document !== 'undefined' &&
+          createPortal(
+            <div
+              ref={panelRef}
+              role="listbox"
+              aria-label={String(nameKey).replace(/_/g, ' ')}
+              style={{
+                position: 'fixed',
+                left: panelAt.left,
+                top: panelAt.top,
+                bottom: panelAt.bottom,
+                width: Math.max(panelAt.width, 180),
+                maxHeight: panelAt.maxHeight,
+                zIndex: 60,
+              }}
+              className="panel flex flex-col overflow-hidden p-2"
+            >
+              {list}
+            </div>,
+            document.body
+          )}
+      </div>
+    );
+  }
+
+  return <div className="flex h-full flex-col">{list}</div>;
 }
