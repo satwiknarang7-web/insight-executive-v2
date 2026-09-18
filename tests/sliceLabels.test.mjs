@@ -124,3 +124,27 @@ test('a legend earns a second row and never a third', () => {
   assert.equal(legendRows(12), 2);
   assert.equal(legendRows(40), 2, 'past two rows it scrolls rather than eating the plot');
 });
+
+test('the gap is measured in pixels, so the radius of the ring decides it', () => {
+  // The collision test asks whether two labels land within `MIN_LABEL_GAP` of
+  // each other, which is a question about pixels — so it has to be asked at the
+  // radius the labels will really sit at. Given a fixed guess of 100 while the
+  // ring was drawn at a third of that, labels a couple of pixels apart were
+  // measured as comfortably separated, kept, and drawn on top of each other.
+  const tail = [420, 210, 150, 90, 60, 20, 12, 9, 7, 5, 4, 3];
+  const roomy = labelledSlices(tail, { radius: 400 });
+  const cramped = labelledSlices(tail, { radius: 30 });
+
+  assert.ok(cramped.size < roomy.size, 'a smaller ring has to cost labels, not overprint them');
+  assert.ok(cramped.has(0), 'and the biggest slice is the one that keeps its number');
+});
+
+test('shrinking the ring never adds a label', () => {
+  const tail = [420, 210, 150, 90, 60, 20, 12, 9, 7, 5, 4, 3];
+  let previous = Infinity;
+  for (const radius of [400, 200, 100, 60, 40, 30, 20]) {
+    const kept = labelledSlices(tail, { radius }).size;
+    assert.ok(kept <= previous, `radius ${radius} labelled more slices than the size above it`);
+    previous = kept;
+  }
+});
