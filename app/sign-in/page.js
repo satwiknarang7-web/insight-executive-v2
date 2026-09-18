@@ -21,6 +21,7 @@ import { availableConnectors } from '../../lib/connectors/registry';
 import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
 import { MIN_PASSWORD } from '../../lib/auth/otp';
+import { safeNext } from '../../lib/auth/redirectTarget';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 import Logo, { PRODUCT_NAME } from '../../components/shell/Logo';
 import PlanChoice from '../../components/panels/PlanChoice';
@@ -53,12 +54,10 @@ function SignInForm() {
   const params = useSearchParams();
   // Where the middleware turned them away from, so they land where they meant
   // to go. Relative paths only — an absolute URL here is an open redirect.
-  const nextPath = (() => {
-    const raw = params.get('next');
-    // `/` is the landing page now, and somebody who has just signed in has
-    // read the pitch. The app is where they were going.
-    return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/home';
-  })();
+  // `/` is the landing page now, and somebody who has just signed in has read
+  // the pitch. The app is where they were going. Shared with the OAuth
+  // callback, which hands out a session around the same parameter.
+  const nextPath = safeNext(params.get('next'));
   const [mode, setMode] = useState('sign-in'); // sign-in | sign-up | recover
   // The password being SET during a reset, as opposed to the one being checked
   // at sign-in. Kept apart so a half-typed reset cannot be submitted as a
@@ -74,7 +73,28 @@ function SignInForm() {
   const [remember, setRemember] = useState(true);
   const [challengeId, setChallengeId] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  /**
+   * Opens carrying whatever the OAuth callback sent back.
+   *
+   * A failed round trip used to land here as a bare sign-in form, which reads
+   * as "nothing happened" to somebody who just approved a consent screen. The
+   * reasons are a fixed set written by our own callback, so they are mapped to
+   * sentences here rather than printed: the provider's own text can name the
+   * project and the grant type.
+   */
+  const [error, setError] = useState(() => {
+    switch (params.get('error')) {
+      case 'provider':
+        return 'Google did not complete the sign-in. You can try again, or use your email address.';
+      case 'exchange':
+      case 'no-code':
+        return 'That sign-in link could not be completed. Try again, or use your email address.';
+      case 'not-configured':
+        return 'This deployment has no account system configured, so there is nothing to sign in to.';
+      default:
+        return null;
+    }
+  });
   const [notice, setNotice] = useState(null);
   const [cooldown, setCooldown] = useState(0);
   // A correction the user can accept with one click, from either side: the
@@ -183,6 +203,37 @@ function SignInForm() {
     router.replace(nextPath);
     router.refresh();
   }, [router, nextPath, refreshPlan]);
+
+  /**
+   * Hand the browser to Google, and ask for it back at our callback.
+   *
+   * `redirectTo` is an absolute URL because it is sent to Google, which has no
+   * idea what this origin is. It is built from `window.location.origin` rather
+   * than an environment variable so a preview deployment returns to itself, and
+   * `next` rides along so somebody the middleware turned away from `/explore`
+   * lands there rather than on the home page.
+   *
+   * There is no `await` worth having after this: on success the browser leaves
+   * for Google's consent screen and this page is gone. Only the failure path
+   * stays, which is why `busy` is cleared there and nowhere else.
+   */
+  const signInWithGoogle = useCallback(async () => {
+    const supabase = supabaseBrowser();
+    if (!supabase) return;
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    const callback = new URL('/api/auth/callback', window.location.origin);
+    callback.searchParams.set('next', nextPath);
+    const { error: failed } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: callback.toString() },
+    });
+    if (failed) {
+      setBusy(false);
+      setError('Google sign-in could not be started. Try your email address instead.');
+    }
+  }, [nextPath]);
 
   const submitCredentials = useCallback(
     async (e) => {
@@ -519,6 +570,31 @@ function SignInForm() {
             </button>
             )}
 
+            {/*
+              * Google, for people who would rather not have another password.
+              *
+              * Offered only when the provider is actually reachable: without
+              * Supabase keys this deployment has nothing to sign in to at all,
+              * and a button that opens a consent screen belonging to no project
+              * is worse than no button. Below the form rather than above it,
+              * because the account this product is built around is the one with
+              * the six-digit code — this is the shortcut, not the front door.
+              */}
+            {available && mode !== 'recover' && (
+              <div className="flex flex-col gap-3 border-t border-white/6 pt-4">
+                <span className="text-center text-[11px] text-white/30">or</span>
+                <button
+                  type="button"
+                  onClick={signInWithGoogle}
+                  disabled={busy}
+                  className="flex items-center justify-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+                >
+                  <GoogleMark />
+                  Continue with Google
+                </button>
+              </div>
+            )}
+
             {/* The operator door, named as one. It is a different credential
                 and a different portal, and the whole reason it is here is that
                 a person holding those credentials was otherwise left typing
@@ -720,6 +796,38 @@ function Pitch() {
 
 
 
+
+/**
+ * Google's mark, inline.
+ *
+ * Their brand guidelines require the four-colour G rather than a recolourable
+ * glyph, so it carries its own hex values and is the one thing on this page
+ * that does not follow the theme — a two-tone Google mark is a modified Google
+ * mark. Small enough to inline; a network request for 24 pixels of logo on the
+ * sign-in path is a request that can fail.
+ */
+function GoogleMark() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62Z"
+      />
+      <path
+        fill="#34A853"
+        d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M3.97 10.71a5.41 5.41 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.33Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z"
+      />
+    </svg>
+  );
+}
 
 function Feedback({ error, notice }) {
   if (error) {
