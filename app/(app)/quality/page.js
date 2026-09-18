@@ -7,6 +7,33 @@ import DatasetNotices from '../../../components/panels/DatasetNotices';
 import { formatSql } from '../../../lib/sqlFormat';
 import { REASON_TEXT, summarizeConfidence } from '../../../lib/cellConfidence';
 
+/**
+ * The profiler's own words, in everybody else's.
+ *
+ * "Dimension" and "Measure" are what this table has always said, and they are
+ * the right words in a data warehouse. On the one page written for somebody
+ * who does not work in one, they are two columns of vocabulary a reader has to
+ * look up before the table tells them anything. The distinction survives; only
+ * the naming changes.
+ */
+const ROLE_WORDS = {
+  identifier: 'Names each row',
+  dimension: 'Groups the rows',
+  // Not "gets totalled": the role only says the column holds numbers. Whether
+  // those numbers may be added up is a separate question the planner answers
+  // per column, and a satisfaction score is exactly the case where the answer
+  // is no.
+  measure: 'A number to compare',
+  time: 'Marks when',
+};
+
+const TYPE_WORDS = {
+  string: 'Text',
+  number: 'Numbers',
+  date: 'Dates',
+  boolean: 'Yes / no',
+};
+
 export default function QualityPage() {
   const { dataset } = useDataset();
   const { analysis } = useAnalysis();
@@ -66,21 +93,43 @@ export default function QualityPage() {
         </section>
       )}
 
-      {/* Integrity headline */}
+      {/*
+        * The verdict first, in a sentence, and the number as its evidence.
+        *
+        * This led with "Integrity score — 99.3%", which is a number with
+        * nothing to compare it to: a reader who does not already know what
+        * counts as a good score cannot tell whether they have a problem, and
+        * the sentence explaining it used "statistically extreme" and "type
+        * coercion" to do so. Most people opening this page are not going to
+        * translate that, and the thing they came to find out is whether their
+        * file is all right.
+        */}
       <section className="card mb-6 p-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="label">Integrity score</div>
-            <div className={`mt-1 text-4xl font-black tracking-tight ${good ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {integrity.toFixed(1)}%
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="min-w-0">
+            <div className="label">Is your data all right?</div>
+            <div
+              className={`display mt-1.5 text-[26px] leading-tight md:text-[30px] ${
+                good ? 'text-emerald-400' : 'text-amber-400'
+              }`}
+            >
+              {good ? 'Yes — this file is in good shape.' : 'Mostly, but some of it needs a look.'}
             </div>
+            <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-white/65">
+              <strong className="font-semibold text-white/90">{integrity.toFixed(1)}%</strong> of the
+              cells in your file were filled in and within a normal range for their column.{' '}
+              {good
+                ? 'Nothing here needs your attention before reading the dashboard.'
+                : 'The sections below say exactly which columns are involved.'}
+            </p>
           </div>
-          <p className="max-w-md text-[12px] leading-relaxed text-white/35">
-            The share of cells that are present and not statistically extreme. Type coercion (turning
-            &quot;$1,200&quot; into 1200) is normal cleaning and is not counted against the score.
+          <p className="max-w-xs text-[13px] leading-relaxed text-white/45">
+            Tidying a value up does not count against this. Reading
+            <span className="mx-1 font-semibold text-white/65">$1,200</span>
+            as the number 1200 is just recognising what it always was.
           </p>
         </div>
-        <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/6">
+        <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-white/6">
           <div
             className={`h-full rounded-full ${good ? 'bg-emerald-500' : 'bg-amber-500'}`}
             style={{ width: `${integrity}%` }}
@@ -90,26 +139,42 @@ export default function QualityPage() {
 
       {/* Ingestion metrics */}
       <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <Metric icon={Database} label="Rows read" value={m.totalRows} />
-        <Metric icon={ShieldCheck} label="Rows kept" value={m.cleanRows ?? dataset.rowCount} tone="emerald" />
-        <Metric icon={EyeOff} label="PII redacted" value={m.redactedPII} tone="accent" />
-        <Metric icon={Wand2} label="Values coerced" value={m.typesCoerced} />
-        <Metric icon={AlertTriangle} label="Blank cells" value={m.nullsFound} tone="amber" />
-        <Metric icon={Trash2} label="Empty rows dropped" value={m.droppedRows} tone="rose" />
+        {/*
+          * Named for what happened, not for the operation that did it.
+          *
+          * "PII redacted" and "Values coerced" are the words an engineer uses
+          * about this step. A reader who does not know that PII means personal
+          * information, or that coercion means reading "$1,200" as a number,
+          * learns nothing from a tile counting them.
+          */}
+        <Metric icon={Database} label="Rows in your file" value={m.totalRows} />
+        <Metric icon={ShieldCheck} label="Rows we could use" value={m.cleanRows ?? dataset.rowCount} tone="emerald" />
+        <Metric icon={EyeOff} label="Personal details hidden" value={m.redactedPII} tone="accent" />
+        <Metric icon={Wand2} label="Numbers and dates recognised" value={m.typesCoerced} />
+        <Metric icon={AlertTriangle} label="Cells left empty" value={m.nullsFound} tone="amber" />
+        <Metric icon={Trash2} label="Blank rows removed" value={m.droppedRows} tone="rose" />
       </section>
 
       {/* What was done */}
       <section className="card mb-8 p-6">
-        <div className="label mb-4">What the cleaner did</div>
+        <div className="label mb-4">What we changed on the way in</div>
         <ul className="grid gap-3 md:grid-cols-2">
-          <Bullet title="Redacted personal data">
-            Email addresses, phone numbers and SSN- or card-shaped identifiers were replaced with
-            <code className="mx-1 rounded bg-white/6 px-1.5 py-0.5 font-mono text-[11px]">[REDACTED_*]</code>
-            before anything else ran. {m.redactedPII.toLocaleString()} cells were affected.
+          <Bullet title="Hid personal details">
+            Anything that looked like an email address, a phone number, a social security number or a
+            card number was replaced with a placeholder before anything else happened, so none of it
+            reached the charts.{' '}
+            {m.redactedPII > 0
+              ? `${m.redactedPII.toLocaleString()} ${m.redactedPII === 1 ? 'cell was' : 'cells were'} covered up this way.`
+              : 'Nothing in this file looked like personal information.'}
           </Bullet>
-          <Bullet title="Normalised types">
-            Currency symbols, thousands separators, percentages and accounting negatives were parsed into
-            numbers; date-shaped strings became ISO dates. {m.typesCoerced.toLocaleString()} values changed type.
+          <Bullet title="Recognised numbers and dates">
+            Values written for people to read — <span className="text-white/75">$1,200</span>,{' '}
+            <span className="text-white/75">45%</span>, <span className="text-white/75">(300)</span> for
+            minus three hundred — were read as the numbers they stand for, and dates written in any of the
+            usual ways were all put in one order.{' '}
+            {m.typesCoerced > 0
+              ? `${m.typesCoerced.toLocaleString()} ${m.typesCoerced === 1 ? 'value' : 'values'} were read this way. Nothing was rounded or altered.`
+              : 'Every value in this file was already a plain number, date or word.'}
           </Bullet>
           {decimalComma.length > 0 && (
             <Bullet title="Read commas as decimal points">
@@ -127,11 +192,12 @@ export default function QualityPage() {
               wrong. Fix the source column to include them in the analysis.
             </Bullet>
           )}
-          <Bullet title="Standardised blanks">
-            Tokens like <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">N/A</code>,{' '}
-            <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">null</code> and{' '}
-            <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">-</code> became true blanks so
-            they are excluded from averages instead of skewing them.
+          <Bullet title="Treated empty markers as empty">
+            Cells holding <span className="text-white/75">N/A</span>,{' '}
+            <span className="text-white/75">null</span> or a lone{' '}
+            <span className="text-white/75">-</span> are ways of writing &ldquo;nothing here&rdquo;, so they
+            are now counted as nothing rather than as a value. That keeps them out of averages, which they
+            would otherwise drag down.
           </Bullet>
           {malformedRows > 0 && (
             <Bullet title="Rows that did not match the header">
@@ -143,16 +209,21 @@ export default function QualityPage() {
               A stray unquoted comma is the usual cause.
             </Bullet>
           )}
-          <Bullet title="Flagged outliers">
-            {outlierRows === null
-              ? `${m.outliersCount.toLocaleString()} values sit more than 2.5 standard deviations from their column's mean.`
-              : `${m.outliersCount.toLocaleString()} extreme values across ${outlierRows.toLocaleString()} ${
-                  outlierRows === 1 ? 'row' : 'rows'
-                } sit more than 2.5 standard deviations from their column's mean.`}
-            {outlierMethod === 'log-z' || outlierMethod === 'mixed'
-              ? ' The skewed columns among them are measured on a log scale, so the fence is not dragged outward by the very values it exists to catch.'
+          <Bullet title="Marked unusually large or small values">
+            {m.outliersCount === 0
+              ? 'Every value sits within the normal range for its column — nothing stood out as unusual.'
+              : `${m.outliersCount.toLocaleString()} ${m.outliersCount === 1 ? 'value is' : 'values are'} far
+                 from the typical value for their column${
+                   outlierRows === null
+                     ? ''
+                     : `, across ${outlierRows.toLocaleString()} ${outlierRows === 1 ? 'row' : 'rows'}`
+                 }. They may be real, or they may be typing mistakes — only you can say.`}
+            {m.outliersCount > 0 && (outlierMethod === 'log-z' || outlierMethod === 'mixed')
+              ? ' Columns with a few very large values are judged on a sliding scale, so one big number does not make the next one look normal.'
               : ''}{' '}
-            They are kept, marked, and shown in red in Explore — never silently deleted.
+            {m.outliersCount > 0
+              ? 'Nothing was deleted. They are kept, counted, and shown in red on the Data table page so you can check them.'
+              : ''}
           </Bullet>
         </ul>
       </section>
@@ -162,15 +233,15 @@ export default function QualityPage() {
         <section className="card mb-8 p-6">
           <div className="mb-1 flex items-center gap-2">
             <HelpCircle size={14} className="text-amber-400" />
-            <span className="label">Cells the cleaner had to guess at</span>
+            <span className="label">Cells we had to make a judgement call on</span>
           </div>
-          <p className="mb-5 max-w-3xl text-[12px] leading-relaxed text-white/40">
-            Not the same as the {m.typesCoerced.toLocaleString()} values that changed type above.
-            Reading <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">1234</code> as
-            a number is unambiguous; these are cells where two readings were equally defensible and one
-            had to be chosen. Findings built on a column below carry that doubt in their evidence, and a
-            column that is mostly guesswork cannot support a strong claim however clean its arithmetic
-            looks.
+          <p className="mb-5 max-w-3xl text-[14px] leading-relaxed text-white/65">
+            These are not the values recognised above. Reading{' '}
+            <span className="text-white/80">1234</span> as a number is not a judgement — there is only
+            one thing it can mean. These are cells where two readings were equally reasonable and one had
+            to be picked. Anything the dashboard says about a column listed here is marked as less
+            certain because of it, and a column that is mostly guesswork cannot support a confident
+            claim however tidy the arithmetic looks.
           </p>
 
           <ul className="flex flex-col gap-2">
@@ -215,18 +286,18 @@ export default function QualityPage() {
       {/* Column detail */}
       <section className="card mb-8 overflow-hidden">
         <div className="border-b border-white/7 px-5 py-3">
-          <span className="label">Per column</span>
+          <span className="label">Every column, one by one</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="text-[10px] font-black uppercase tracking-[0.15em] text-white/35">
                 <th className="px-4 py-2.5">Column</th>
-                <th className="px-4 py-2.5">Role</th>
-                <th className="px-4 py-2.5">Type</th>
-                <th className="px-4 py-2.5 text-right">Distinct</th>
-                <th className="px-4 py-2.5 text-right">Blank</th>
-                <th className="px-4 py-2.5 text-right">Redacted</th>
+                <th className="px-4 py-2.5">How it is used</th>
+                <th className="px-4 py-2.5">What it holds</th>
+                <th className="px-4 py-2.5 text-right">Different values</th>
+                <th className="px-4 py-2.5 text-right">Empty</th>
+                <th className="px-4 py-2.5 text-right">Hidden</th>
               </tr>
             </thead>
             <tbody>
@@ -239,9 +310,11 @@ export default function QualityPage() {
                     <td className="max-w-[220px] truncate px-4 py-2.5 font-bold text-white/75" title={col}>
                       {col}
                     </td>
-                    <td className="px-4 py-2.5 capitalize text-accent-300/70">{p.role || '—'}</td>
+                    <td className="px-4 py-2.5 text-accent-300/70">{ROLE_WORDS[p.role] || p.role || '—'}</td>
                     <td className="px-4 py-2.5 text-white/45">
-                      {p.role === 'time' && p.type === 'string' ? 'date' : p.type || '—'}
+                      {p.role === 'time' && p.type === 'string'
+                        ? 'Dates'
+                        : TYPE_WORDS[p.type] || p.type || '—'}
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono text-white/55">
                       {(p.distinctCount || 0).toLocaleString()}
@@ -266,12 +339,13 @@ export default function QualityPage() {
         <section>
           <div className="mb-3 flex items-center gap-3">
             <Code2 size={14} className="text-accent-400" />
-            <h2 className="label">Query audit</h2>
+            <h2 className="label">For the technical reader: every query</h2>
             <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
           </div>
-          <p className="mb-4 max-w-2xl text-[12px] leading-relaxed text-white/35">
-            Every chart on the dashboard is backed by one of these queries, run against your cleaned rows in
-            the browser. Nothing on screen is generated without a query behind it.
+          <p className="mb-4 max-w-2xl text-[14px] leading-relaxed text-white/65">
+            You do not need to read this part. It is here so that anybody who wants to check our working
+            can: every chart on the dashboard came from one of the questions below, asked of your cleaned
+            rows inside your own browser. Nothing on screen was written without one of these behind it.
           </p>
 
           <div className="flex flex-col gap-2">
@@ -312,11 +386,19 @@ function Metric({ icon: Icon, label, value, tone }) {
     amber: 'text-amber-400',
     rose: 'text-rose-400',
   };
+  /*
+   * Zero reads as "none", because on a clean file most of these are zero and a
+   * strip of four 0s tells a reader nothing — least of all that the zeros are
+   * the good news. The word also stops "0" being read as a failure to measure.
+   */
+  const n = value || 0;
   return (
     <div className="card p-4">
       <Icon size={14} className={colors[tone] || 'text-white/30'} />
-      <div className="mt-2.5 text-xl font-black tracking-tight text-white">{(value || 0).toLocaleString()}</div>
-      <div className="mt-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/30">{label}</div>
+      <div className={`mt-2.5 tracking-tight ${n === 0 ? 'text-lg font-semibold text-white/55' : 'text-xl font-black text-white'}`}>
+        {n === 0 ? 'None' : n.toLocaleString()}
+      </div>
+      <div className="mt-1 text-[11px] font-semibold leading-tight text-white/65">{label}</div>
     </div>
   );
 }
