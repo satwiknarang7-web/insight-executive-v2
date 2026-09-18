@@ -39,14 +39,6 @@ import { slideLayout } from '../../lib/slideSize';
  * fixed now that the board can run to more than one page.
  */
 
-/**
- * How long the controls linger after the presenter stops moving the mouse.
- *
- * Long enough to reach for them, short enough that a room looking at the board
- * is looking at the board.
- */
-const CHROME_LINGER = 2500;
-
 const SPEEDS = [
   { label: '1x', ms: 9000 },
   { label: '1.5x', ms: 6000 },
@@ -64,28 +56,6 @@ export default function PresentPage() {
   const [speedIdx, setSpeedIdx] = useState(0);
   const [narrating, setNarrating] = useState(true);
   const [choosing, setChoosing] = useState(false);
-  /**
-   * Whether the chrome has got out of the way.
-   *
-   * On a sixteen-by-nine screen a sixteen-by-nine board and a visible header
-   * and footer cannot both have the whole page: the hundred and twenty pixels
-   * of chrome cost thirteen percent of the height, and because the board keeps
-   * its shape, thirteen percent of the width with it. So on the board slide the
-   * chrome floats over the board rather than pushing it, and fades out when the
-   * presenter stops moving — which means the board is drawn at the full size of
-   * the screen and nothing is ever covering it while anyone is reading it. It
-   * comes back on the first movement, the way a video player's controls do.
-   *
-   * The board is fitted to the whole screen either way, so nothing re-scales
-   * when the chrome appears: a board that resized every time the mouse moved
-   * would redraw nine charts to do it.
-   *
-   * Faded, never removed. The controls keep their box and keep taking clicks,
-   * and they come back on `:hover` as well as on the timer — a presenter who
-   * reaches for the bottom of the screen finds the controls there whatever the
-   * listeners did.
-   */
-  const [idle, setIdle] = useState(false);
   const rootRef = useRef(null);
 
   // Where "exit" goes. A restored analysis has no dataset, and the dashboard
@@ -165,29 +135,6 @@ export default function PresentPage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [go, router, exitTo]);
-
-  // Only on the board slide, and never while the presenter picker is open.
-  useEffect(() => {
-    if (!onDashboard || choosing) {
-      setIdle(false);
-      return undefined;
-    }
-    let timer = null;
-    const wake = () => {
-      setIdle(false);
-      clearTimeout(timer);
-      timer = setTimeout(() => setIdle(true), CHROME_LINGER);
-    };
-    wake();
-    // `mousemove` as well as `pointermove`: not every environment that moves a
-    // cursor emits both, and the cost of listening twice is one no-op.
-    const events = ['pointermove', 'mousemove', 'pointerdown', 'keydown', 'wheel', 'touchstart'];
-    for (const name of events) window.addEventListener(name, wake, { passive: true });
-    return () => {
-      clearTimeout(timer);
-      for (const name of events) window.removeEventListener(name, wake);
-    };
-  }, [onDashboard, choosing]);
 
   // The script for whatever slide is on screen, in the chosen avatar's voice.
   const script = useMemo(() => {
@@ -287,15 +234,17 @@ export default function PresentPage() {
       )}
 
       {/* Top bar */}
-      {/* On the board slide the chrome floats over the board and fades away;
-          everywhere else it is a row of the page like any other. */}
+      {/* Thinner on the board slide, and never over it.
+          *
+          * The board is the one slide that could use the whole screen, and the
+          * only way to give it that is to let the header and footer float above
+          * it — which puts the controls over the top and bottom of the very
+          * thing they are there to present. A board with nothing on top of it,
+          * a little smaller, is the better trade: the chrome keeps its row and
+          * just takes less of one here. */}
       <header
-        className={`z-30 flex items-center justify-between gap-4 px-6 transition-opacity duration-300 ${
-          onDashboard
-            ? `chrome-scrim-top absolute inset-x-0 top-0 pb-6 pt-2 ${
-                idle ? 'opacity-0 hover:opacity-100 focus-within:opacity-100' : 'opacity-100'
-              }`
-            : 'relative py-4'
+        className={`relative z-20 flex items-center justify-between gap-4 px-6 ${
+          onDashboard ? 'py-2' : 'py-4'
         }`}
       >
         <div className="min-w-0">
@@ -400,14 +349,13 @@ export default function PresentPage() {
       )}
 
       {/* Slide */}
-      {/* The board slide is given the whole page — the chrome above and below is
-          out of the flow there. The other two are prose and want a margin; the
-          board is the thing the deck exists to show, and every pixel of padding
-          around it is a pixel off every chart on it. */}
+      {/* The board slide is given all of the slide area. The other two are prose
+          and want a margin; the board is the thing the deck exists to show, and
+          every pixel of padding around it is a pixel off every chart on it. */}
       <div
         key={page}
         className={`slide-in relative z-10 flex min-h-0 flex-1 flex-col ${
-          onDashboard ? 'p-1.5' : 'px-6 pb-2 md:px-12'
+          onDashboard ? 'px-1.5 pb-1.5' : 'px-6 pb-2 md:px-12'
         }`}
       >
         {page === 0 ? (
@@ -421,12 +369,8 @@ export default function PresentPage() {
 
       {/* Controls */}
       <footer
-        className={`z-30 flex items-center justify-center gap-3 px-6 transition-opacity duration-300 ${
-          onDashboard
-            ? `chrome-scrim-bottom absolute inset-x-0 bottom-0 pb-2 pt-6 ${
-                idle ? 'opacity-0 hover:opacity-100 focus-within:opacity-100' : 'opacity-100'
-              }`
-            : 'relative py-4'
+        className={`relative z-20 flex items-center justify-center gap-3 px-6 ${
+          onDashboard ? 'py-2' : 'py-4'
         }`}
       >
         <button

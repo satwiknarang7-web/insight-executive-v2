@@ -295,22 +295,6 @@ body {
 
 /* Semantic surfaces, so no component hardcodes a hex. */
 .bg-canvas { background-color: var(--canvas); }
-
-/*
- * A scrim for chrome that floats over content.
- *
- * The deck's board slide gives the board the whole screen and lets the header
- * and footer hover above it, which is the only way a fixed-shape board and
- * visible controls can both have the full page. Controls drawn straight onto a
- * chart are controls you have to read twice — this fades the page's own colour
- * in behind them, strongest at the edge where they sit.
- */
-.chrome-scrim-top {
-  background: linear-gradient(to bottom, var(--canvas) 0%, color-mix(in oklab, var(--canvas) 80%, transparent) 55%, transparent 100%);
-}
-.chrome-scrim-bottom {
-  background: linear-gradient(to top, var(--canvas) 0%, color-mix(in oklab, var(--canvas) 80%, transparent) 55%, transparent 100%);
-}
 .bg-canvas-raised { background-color: var(--canvas-raised); }
 .bg-surface { background-color: var(--surface); }
 .text-on-accent { color: var(--on-accent); }
