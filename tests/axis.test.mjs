@@ -8,6 +8,7 @@ import {
   LEGEND_H,
   DENSE_AXIS_HEIGHT,
   DENSE_MAX_TICKS,
+  DENSE_FONT_SIZE,
   clip,
 } from '../components/charts/axis.js';
 
@@ -145,6 +146,19 @@ test('a dense axis thins its ticks rather than overprinting them', () => {
     { dense: true }
   );
   assert.equal(many.props.interval, 'preserveStartEnd', 'a dozen do not, so the axis keeps its ends');
+
+  /**
+   * `preserveStartEnd` only thins what `minTickGap` tells it is too close.
+   *
+   * At two pixels it thinned nothing: a histogram of eleven bands rendered
+   * `76-1.5K1.5K-3.0K3.0K-4.4K…` as one unbroken string, every label present
+   * and none of them readable. The gap has to be large enough at nine-point
+   * type to be a gap.
+   */
+  assert.ok(
+    many.props.minTickGap >= DENSE_FONT_SIZE - 2,
+    `a ${many.props.minTickGap}px gap between ${DENSE_FONT_SIZE}px labels is not a gap`
+  );
 });
 
 test('a dense label is clipped to what fits under a bar', () => {

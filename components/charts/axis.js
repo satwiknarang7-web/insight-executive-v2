@@ -163,7 +163,22 @@ export function xAxisGeometry(
       textAnchor: dense || !angle ? 'middle' : 'end',
       height,
       dy: dense ? 6 : angle ? 4 : 8,
-      minTickGap: dense ? 2 : angle ? 0 : 6,
+      /*
+       * How close two labels may come before one of them goes.
+       *
+       * Two pixels, at nine-point type, is no gap: it is the width of the
+       * space either side of a full stop. A histogram of eleven bands drew
+       * `76-1.5K1.5K-3.0K3.0K-4.4K…` as one unbroken string across the bottom
+       * of the card — every label present, none of them readable, which is
+       * worse than the unlabelled axis the dense mode exists to replace.
+       *
+       * Recharts uses this to decide which ticks to drop under
+       * `preserveStartEnd`, so the fix is to ask for a real gap and let it
+       * thin them: the labels that remain are whole and legible, and the
+       * range is still bounded by its first and last. Rotation would fit more,
+       * and rotation is the one thing a tile this short cannot pay for.
+       */
+      minTickGap: dense ? 8 : angle ? 0 : 6,
     },
     bottom: height,
     rotated: !dense && !!angle,
