@@ -502,12 +502,29 @@ function SummarySlide({ slideZero }) {
   const long = bullets.reduce((n, b) => n + String(b).length, 0) > 520;
   const bulletText = long ? 'text-[15px] md:text-base' : 'text-lg md:text-xl';
 
-  // A slide is a fixed box, and on a phone the summary does not fit in one: at
-  // 375x812 the content ran 806px inside a 648px box and the scorecards were
-  // simply cut off. A deck read from a phone is read, not projected, so below
-  // the tablet breakpoint it scrolls instead.
+  /*
+   * A slide is a fixed box, and on a phone the summary does not fit in one: at
+   * 375x812 the content ran 806px inside a 648px box and the scorecards were
+   * simply cut off. A deck read from a phone is read, not projected, so below
+   * the tablet breakpoint it scrolls instead.
+   *
+   * Above it, the same thing was happening to anybody not in fullscreen.
+   * `justify-center` centres the column, and centred content that outgrows an
+   * `overflow-hidden` box is clipped at BOTH ends — so a windowed deck lost the
+   * top of its own title and the bottom of its scorecards at the same time,
+   * symmetrically, which reads as a broken render rather than as too much text.
+   * Browser chrome is about two hundred pixels: enough to cross the line on a
+   * summary that fits perfectly once fullscreen.
+   *
+   * `safe center` is the alignment that means what was wanted here: centre it
+   * while it fits, and fall back to the start when it does not, so the title
+   * is never the half that goes. The overflow can then scroll rather than be
+   * discarded — a scrollbar on a projected slide is what the bullet cap and
+   * the type step exist to avoid, and it is strictly better than losing the
+   * heading.
+   */
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-start overflow-y-auto py-4 md:justify-center md:overflow-hidden">
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-start overflow-y-auto py-4 md:[justify-content:safe_center]">
       <div className={`flex items-center gap-3 ${long ? 'mb-3' : 'mb-6'}`}>
         <Sparkles size={18} className="text-accent-400" />
         <h1 className={`font-black tracking-tight ${long ? 'text-2xl md:text-4xl' : 'text-3xl md:text-5xl'}`}>
