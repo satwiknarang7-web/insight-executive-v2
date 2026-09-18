@@ -23,6 +23,7 @@ import {
   HelpCircle,
   ChevronDown,
   SlidersHorizontal,
+  LayoutGrid,
   Wand2,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
@@ -46,7 +47,8 @@ import NarrationNote from '../../../components/panels/NarrationNote';
 import EvidenceBadge from '../../../components/panels/EvidenceBadge';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
-import { slideLayout } from '../../../lib/slideSize';
+import { slideLayout, slideStyle } from '../../../lib/slideSize';
+import CardResizer from '../../../components/panels/CardResizer';
 import { KPI_TILE } from '../../../lib/canvasLayout';
 
 /** The least room a plot can be drawn in, whatever is above and below it. */
@@ -161,6 +163,17 @@ export default function DashboardPage() {
   // One switch for the whole page. A pencil beside every field would put an
   // affordance next to every sentence on a dashboard whose job is to be read.
   const [editing, setEditing] = useState(false);
+  /**
+   * Which of the two the page is showing.
+   *
+   * The list, by default. The board is a fixed 16:9 rectangle, and a finding
+   * given a third of one is a chart about 400 by 200 — which is the size at
+   * which an axis stops having labels. That is the right shape for the thing
+   * the deck projects and the wrong one for the page somebody reads their own
+   * analysis on, so the page they read is a document again and the board is a
+   * view you open when you want to arrange it.
+   */
+  const [boardView, setBoardView] = useState(false);
   // The two long sections fold away. A dashboard with nine findings is several
   // screens whatever else is done to it, and the summary and the grid are read
   // at different moments — collapsing the one you are not reading is the
@@ -292,6 +305,27 @@ export default function DashboardPage() {
           >
             {editing ? <Check size={13} /> : <Pencil size={13} />} {editing ? 'Done' : 'Edit'}
           </button>
+          {/* The arrangement editor, behind a door of its own. Opening it turns
+              editing on, because arranging is the only thing it is for — a
+              board you can look at but not move is the slide, and that is one
+              click away under Present. */}
+          <button
+            onClick={() => {
+              setBoardView((v) => {
+                if (!v) setEditing(true);
+                return !v;
+              });
+            }}
+            aria-pressed={boardView}
+            title="Arrange the board: drag each tile, drag its corner to size it"
+            className={`flex items-center gap-2 rounded-lg border min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 transition-colors ${
+              boardView
+                ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            <LayoutGrid size={13} /> Dashboard view
+          </button>
           <button
             onClick={() => setBuilding(true)}
             className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
@@ -366,82 +400,160 @@ export default function DashboardPage() {
       )}
 
 
+      {/*
+        * The numbers, back in a strip of their own.
+        *
+        * They were tiles on the canvas, which is where they still are when the
+        * board is open. In the list they are what they have always been: four
+        * figures across the top, read before anything under them.
+        */}
+      {!boardView && (kpis?.length > 0 || editing) && (
+        <div
+          className={`mb-8 grid grid-cols-2 gap-3 transition-opacity duration-200 lg:grid-cols-4 ${
+            filtering ? 'opacity-60' : 'opacity-100'
+          }`}
+          data-tutorial="dashboard-kpis"
+        >
+          {(kpis || []).map((card, i) => (
+            <KpiTile
+              key={card.id || `${card.origLabel || card.label}-${i}`}
+              kpi={card}
+              index={i}
+              editing={editing}
+              measures={measures}
+              customMeasures={customMeasures}
+              flow
+              onEdit={(patch) => editKpi(i, patch)}
+              onCompute={(source) => computeKpi(i, source)}
+              onDelete={() => deleteKpi(i)}
+            />
+          ))}
+
+          {/* Kept on screen while editing even when empty, so deleting the last
+              card does not also remove the way to add one back. */}
+          {editing && (
+            <button
+              type="button"
+              aria-label="Add a card"
+              title="Add a card"
+              onClick={() => createKpi()}
+              className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 p-4 text-white/35 transition-colors hover:border-accent-500/40 hover:bg-accent-500/[0.06] hover:text-accent-300"
+            >
+              <Plus size={16} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Add a card</span>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Chart grid */}
       <section data-tutorial="dashboard-findings">
         <div className="mb-3 flex items-center gap-3">
           <BarChart3 size={14} className="text-accent-400" />
           <h2 className="label">
-            Findings ({storyboard.length})
+            {boardView ? `The board (${tiles.length} tiles)` : `Findings (${storyboard.length})`}
           </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
           <Collapse open={showFindings} onToggle={() => setShowFindings((v) => !v)} label="findings" />
         </div>
 
         {/*
-          * The board, as an arrangement rather than a queue.
+          * Two ways to read the same deck, and they are different jobs.
           *
-          * Cards carry coordinates on a canvas of fixed logical width and the
-          * canvas is scaled to the room available — see lib/canvasLayout.js. A
-          * deck that has never been arranged is flowed across it at the widths
-          * its cards already had, so an existing dashboard opens as the
-          * dashboard it was and is a canvas from the first drag.
+          * **The list** is the page as a document: every finding in order, each
+          * one as wide as it asked to be, down a column that can be as long as
+          * the analysis is. It is what a reader wants — a chart given a third of
+          * a 16:9 page is a chart at 400x200, and the labels go before the
+          * plot does.
           *
-          * It stays put while a filter is recomputing. Nothing is unmounted and
-          * nothing is replaced by a spinner: the charts on screen are the
+          * **The board** is the page as a page: one fixed rectangle, everything
+          * placed on it, which is the thing the deck projects and the thing
+          * worth arranging. It is an editor, so it is opened deliberately
+          * rather than being the only way to look at your own findings.
+          *
+          * Both stay put while a filter is recomputing. Nothing is unmounted
+          * and nothing is replaced by a spinner: the charts on screen are the
           * previous slice's and they are about to become this one's, and a
           * chart that vanishes and comes back has thrown away the one thing
-          * that makes a filter readable — seeing the bars move. The board just
-          * loses a little contrast while the numbers are in flight.
+          * that makes a filter readable — seeing the bars move.
           */}
-        {showFindings && (
-        <div className={`transition-opacity duration-200 ${filtering ? 'opacity-60' : 'opacity-100'}`}>
-          <DashboardCanvas
-            slides={tiles}
-            sizeOf={tileSize}
-            editing={editing}
-            onMove={moveTile}
+        {showFindings && boardView && (
+          <div className={`transition-opacity duration-200 ${filtering ? 'opacity-60' : 'opacity-100'}`}>
+            <DashboardCanvas
+              slides={tiles}
+              sizeOf={tileSize}
+              editing={editing}
+              onMove={moveTile}
+            >
+              {({ slide: tile, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown }) =>
+                tile.kpiIndex === undefined ? (
+                  <FindingCard
+                    key={tile.id || index}
+                    slide={tile}
+                    index={findingIndex.get(tile.id) ?? 0}
+                    total={storyboard.length}
+                    editing={editing}
+                    filters={filters}
+                    filterContext={filterContext}
+                    box={box}
+                    dragging={dragging}
+                    stacked={stacked}
+                    onCardPointerDown={onCardPointerDown}
+                    onResizePointerDown={onResizePointerDown}
+                    onSelect={selectValue}
+                    onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
+                    onDelete={() => deleteSlide(tile.id)}
+                    onEdit={(patch) => editSlide(tile.id, patch)}
+                  />
+                ) : (
+                  <KpiTile
+                    key={tile.id || index}
+                    kpi={tile}
+                    index={tile.kpiIndex}
+                    editing={editing}
+                    measures={measures}
+                    customMeasures={customMeasures}
+                    box={box}
+                    dragging={dragging}
+                    stacked={stacked}
+                    onCardPointerDown={onCardPointerDown}
+                    onResizePointerDown={onResizePointerDown}
+                    onEdit={(patch) => editKpi(tile.kpiIndex, patch)}
+                    onCompute={(source) => computeKpi(tile.kpiIndex, source)}
+                    onDelete={() => deleteKpi(tile.kpiIndex)}
+                  />
+                )
+              }
+            </DashboardCanvas>
+          </div>
+        )}
+
+        {/* Six columns on a desktop, and each card claims a share of them —
+            see lib/slideSize.js. A deck that sets no size lays out two across,
+            exactly as every deck did before the board existed. */}
+        {showFindings && !boardView && (
+          <div
+            className={`grid grid-cols-1 gap-4 transition-opacity duration-200 md:grid-cols-2 xl:grid-cols-6 ${
+              filtering ? 'opacity-60' : 'opacity-100'
+            }`}
           >
-            {({ slide: tile, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown }) =>
-              tile.kpiIndex === undefined ? (
-                <FindingCard
-                  key={tile.id || index}
-                  slide={tile}
-                  index={findingIndex.get(tile.id) ?? 0}
-                  total={storyboard.length}
-                  editing={editing}
-                  filters={filters}
-                  filterContext={filterContext}
-                  box={box}
-                  dragging={dragging}
-                  stacked={stacked}
-                  onCardPointerDown={onCardPointerDown}
-                  onResizePointerDown={onResizePointerDown}
-                  onSelect={selectValue}
-                  onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
-                  onDelete={() => deleteSlide(tile.id)}
-                  onEdit={(patch) => editSlide(tile.id, patch)}
-                />
-              ) : (
-                <KpiTile
-                  key={tile.id || index}
-                  kpi={tile}
-                  index={tile.kpiIndex}
-                  editing={editing}
-                  measures={measures}
-                  customMeasures={customMeasures}
-                  box={box}
-                  dragging={dragging}
-                  stacked={stacked}
-                  onCardPointerDown={onCardPointerDown}
-                  onResizePointerDown={onResizePointerDown}
-                  onEdit={(patch) => editKpi(tile.kpiIndex, patch)}
-                  onCompute={(source) => computeKpi(tile.kpiIndex, source)}
-                  onDelete={() => deleteKpi(tile.kpiIndex)}
-                />
-              )
-            }
-          </DashboardCanvas>
-        </div>
+            {storyboard.map((slide, i) => (
+              <FindingCard
+                key={slide.id || i}
+                slide={slide}
+                index={i}
+                total={storyboard.length}
+                editing={editing}
+                filters={filters}
+                filterContext={filterContext}
+                flow
+                onSelect={selectValue}
+                onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
+                onDelete={() => deleteSlide(slide.id)}
+                onEdit={(patch) => editSlide(slide.id, patch)}
+              />
+            ))}
+          </div>
         )}
       </section>
 
@@ -504,6 +616,7 @@ function KpiTile({
   box,
   dragging = false,
   stacked = false,
+  flow = false,
   onCardPointerDown,
   onResizePointerDown,
   onEdit,
@@ -544,23 +657,32 @@ function KpiTile({
     compute(metric, value);
   };
 
-  const placement = stacked
-    ? { position: 'relative', height: box?.h }
-    : { position: 'absolute', left: box?.x, top: box?.y, width: box?.w, height: box?.h };
+  /**
+   * Where this card is.
+   *
+   * In the strip it is a cell in a grid and takes whatever height its contents
+   * need — that is the shape the numbers have always had, and the one they go
+   * back to when the board is closed. On the canvas it is an absolute box;
+   * stacked on a narrow screen it keeps its height and takes the width.
+   */
+  const placed = !flow && !stacked;
+  const placement = flow
+    ? undefined
+    : stacked
+      ? { position: 'relative', height: box?.h }
+      : { position: 'absolute', left: box?.x, top: box?.y, width: box?.w, height: box?.h };
 
   return (
     <div
       data-card
       style={placement}
-      onPointerDown={editing && !stacked ? onCardPointerDown : undefined}
+      onPointerDown={editing && placed ? onCardPointerDown : undefined}
       // The editor hangs off the bottom of the card, so while it is open the
       // card must not clip its own children. `z-30` keeps it above the tiles it
       // hangs over — a panel drawn under the next card is a panel nobody can
-      // use.
-      className={`card relative flex flex-col justify-center p-4 ${
-        editing && !stacked ? 'z-30 overflow-visible' : 'overflow-hidden'
-      } ${
-        editing && !stacked ? 'cursor-grab select-none' : ''
+      // use. Only on the board: in the strip the card grows instead.
+      className={`card relative flex flex-col justify-center p-4 ${flow ? 'min-h-[92px]' : ''} ${
+        editing && placed ? 'z-30 cursor-grab select-none overflow-visible' : 'overflow-hidden'
       } ${dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : ''}`}
     >
       {editing && (
@@ -610,11 +732,12 @@ function KpiTile({
         <div
           data-no-drag
           className={
-            stacked
-              ? // Stacked there is no canvas and no fixed height to escape, so
-                // the panel stays in the card where it reads better.
+            placed
+              ? 'panel absolute left-0 right-0 top-full z-30 mt-1.5 flex flex-col gap-1.5 p-2'
+              : // In the strip, and stacked on a phone, there is no fixed height
+                // to escape, so the panel stays in the card where it reads
+                // better.
                 'mt-3 flex flex-col gap-1.5 border-t border-white/8 pt-3'
-              : 'panel absolute left-0 right-0 top-full z-30 mt-1.5 flex flex-col gap-1.5 p-2'
           }
         >
           <div className="flex items-center gap-1.5">
@@ -669,8 +792,9 @@ function KpiTile({
         </div>
       )}
 
-      {/* The same corner as every other tile. */}
-      {editing && !stacked && (
+      {/* The same corner as every other tile — and only on the board, which is
+          the only place a card has a box to drag. */}
+      {editing && placed && (
         <button
           type="button"
           data-no-drag
@@ -707,6 +831,7 @@ function FindingCard({
   box,
   dragging = false,
   stacked = false,
+  flow = false,
   onCardPointerDown,
   onResizePointerDown,
   onSelect,
@@ -734,24 +859,36 @@ function FindingCard({
   /**
    * Where this card is.
    *
-   * On the canvas that is an absolute box in canvas units; stacked on a narrow
-   * screen it is a card in a column that keeps its height and takes whatever
+   * In the list it is a cell in a six-column grid: its share of the row travels
+   * as two custom properties and `.slide-tile` in globals.css decides which one
+   * this viewport can honour, because the cap at each breakpoint is a media
+   * query and an inline style has no media queries. Its height is its own.
+   *
+   * On the board it is an absolute box in canvas units; stacked on a narrow
+   * board it is a card in a column that keeps its height and takes whatever
    * width there is. The wrapper is a link to the write-up outside edit mode and
    * a plain div inside it, because a card full of text fields cannot also be a
    * link.
    */
-  const placement = stacked
-    ? { position: 'relative', height: box?.h }
-    : { position: 'absolute', left: box?.x, top: box?.y, width: box?.w, height: box?.h };
+  const layout = slideLayout(slide.size);
+  const placed = !flow && !stacked;
+  const placement = flow
+    ? slideStyle(slide.size)
+    : stacked
+      ? { position: 'relative', height: box?.h }
+      : { position: 'absolute', left: box?.x, top: box?.y, width: box?.w, height: box?.h };
 
   const Wrapper = editing ? 'div' : Link;
   const wrapperProps = {
     'data-card': true,
     style: placement,
-    onPointerDown: editing && !stacked ? onCardPointerDown : undefined,
+    onPointerDown: editing && placed ? onCardPointerDown : undefined,
     className: [
-      'card relative flex flex-col overflow-hidden p-5',
-      editing && !stacked ? 'cursor-grab select-none' : '',
+      // A filter tile is a title and a control, and at that height `p-5` is
+      // most of the card.
+      `card relative flex flex-col overflow-hidden ${isSlicer ? 'p-3.5' : 'p-5'}`,
+      flow ? 'slide-tile' : '',
+      editing && placed ? 'cursor-grab select-none' : '',
       dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : '',
       editing ? '' : 'group transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
     ]
@@ -844,12 +981,26 @@ function FindingCard({
           sentence have had theirs, because on a canvas the card's height is the
           thing being dragged and the chart is what that height is for. */}
       <div
-        className={`min-h-0 flex-1 ${isSlicer ? 'mt-2.5' : 'mt-4'}`}
+        /*
+         * In the list the plot carries a dragged height and the card grows
+         * around it — `flex-none`, because a flex item's height is a suggestion
+         * until it is told not to grow or shrink, and without it a dragged
+         * height was ignored in favour of whatever the row's tallest card had
+         * settled on. On the board it is the other way round: the card's height
+         * is the thing being dragged and the plot takes what is left.
+         */
+        className={`${flow ? 'flex-none' : 'min-h-0 flex-1'} ${isSlicer ? 'mt-2.5' : 'mt-4'}`}
         // A filter is a control, not a plot: a list of tick-boxes or one line
         // that opens them. Holding 120px of plot open underneath it pushed the
         // control itself past the bottom edge of a tile sized for a control,
         // and what a reader saw was a filter card with its filter cut off.
-        style={isSlicer ? undefined : { minHeight: MIN_PLOT_HEIGHT }}
+        style={
+          isSlicer
+            ? undefined
+            : flow
+              ? { height: layout.height, transition: 'height 120ms ease-out' }
+              : { minHeight: MIN_PLOT_HEIGHT }
+        }
         onClick={
           target
             ? (e) => {
@@ -899,9 +1050,18 @@ function FindingCard({
         />
       )}
 
-      {/* The corner. Sizing lives in edit mode with every other change to the
-          deck, and the canvas owns the gesture — this is the grip it reads. */}
-      {editing && !stacked && (
+      {/* Sizing lives in edit mode with every other change to the deck. In the
+          list the corner snaps the card's width to the grid's columns and takes
+          the arrow keys — see CardResizer. On the board the canvas owns the
+          gesture and this is only the grip it reads. */}
+      {editing && flow && (
+        <CardResizer
+          layout={slide.size}
+          label={slide.pageTitle || 'this finding'}
+          onResize={(next) => onEdit({ size: next })}
+        />
+      )}
+      {editing && placed && (
         <button
           type="button"
           data-no-drag

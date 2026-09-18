@@ -64,7 +64,9 @@ export default function SlicerTile({
           ? chosenList.join(', ')
           : `${chosenList.length} selected`;
     return (
-      <div className="flex h-full flex-col justify-start">
+      // Centred: closed, this tile is one control, and pinned to the top it
+      // read as a card that had failed to draw the rest of itself.
+      <div className="flex h-full flex-col justify-center">
         <button
           type="button"
           onClick={() => setOpen(true)}

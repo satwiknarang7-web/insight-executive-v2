@@ -299,6 +299,20 @@ test('a filter opens as a list while the charts can still breathe', () => {
   assert.equal(tight[0].slicerMode, 'dropdown');
 });
 
+test('however tight the page, a filter keeps room for the card around it', () => {
+  // The regression this guards: a filter planned at 96px, drawn inside a card
+  // whose padding, type label and title take about a hundred on their own, so
+  // the control the tile exists to show hung off the bottom edge.
+  const tight = fitFilters([{ id: 'f1', values: 3 }], { charts: 9, cards: 4 });
+  assert.equal(tight.mode, 'dropdown', 'nine charts cannot afford a list');
+  assert.ok(tight.height >= 110, `a filter given ${tight.height}px is a filter you cannot read`);
+
+  // And a list is at least its chrome plus a row for every value it holds.
+  const list = fitFilters([{ id: 'f1', values: 4 }], { charts: 1, cards: 0 });
+  assert.equal(list.mode, 'list');
+  assert.ok(list.height >= 100 + 4 * 20, 'a list of four values has to fit four values');
+});
+
 test('a mode somebody chose is never overruled by the room', () => {
   const chosen = [{ id: 'f1', values: 3, slicerMode: 'list' }];
   fitFilters(chosen, { charts: 9, cards: 4 });
