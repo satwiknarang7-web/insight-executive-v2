@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeChart, analyzeStoryboard } from '../lib/insightEngine.js';
-import { enforceChartDiversity, executeCharts, mountTable, runAnalysis, runSql, unmountTable } from '../lib/pipeline.js';
+import { enforceChartDiversity, executeCharts, mountTable, runAnalysis, runSql, titleForDrawn, unmountTable } from '../lib/pipeline.js';
 
 // A histogram: the x labels are value ranges, not named segments.
 const histogram = {
@@ -311,4 +311,42 @@ test('a chart still heals when the first row happens to be empty', () => {
   } finally {
     unmountTable();
   }
+});
+
+test('a downgraded chart does not keep a title for the shape it lost', () => {
+  /*
+   * The radar case, from a real deck: three measures the resolver could not
+   * draw on one radial axis, reduced to a donut of the one it could, still
+   * headed "Product Category Profile Across Key Metrics" — a promise of key
+   * metrics, over a chart of one.
+   */
+  assert.equal(
+    titleForDrawn('Product Category Profile Across Key Metrics', ['Average Revenue'], ['Average Revenue'], 'product_category'),
+    'Average Revenue by Product Category'
+  );
+});
+
+test('a title that names a series the chart no longer draws is rewritten', () => {
+  // A combo chart reduced to one series, still advertising both.
+  assert.equal(
+    titleForDrawn(
+      'Total Revenue and Average Price by Month',
+      ['Total Revenue', 'Average Price'],
+      ['Total Revenue', null],
+      'month'
+    ),
+    'Total Revenue by Month'
+  );
+});
+
+test('a title that still describes what is drawn is left alone', () => {
+  // A waterfall falling back to a bar is still a chart of total revenue by
+  // month, and somebody wrote that heading on purpose.
+  assert.equal(
+    titleForDrawn('What Moved Total Revenue by Month', ['Total Revenue'], ['Total Revenue'], 'month'),
+    'What Moved Total Revenue by Month'
+  );
+  // And a chart with nothing numeric left to draw keeps whatever it had, rather
+  // than being retitled after an empty list of measures.
+  assert.equal(titleForDrawn('Distribution of Revenue', ['Record Count'], [], 'revenue_band'), 'Distribution of Revenue');
 });
