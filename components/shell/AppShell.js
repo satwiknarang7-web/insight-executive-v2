@@ -25,6 +25,7 @@ import {
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
 import Logo, { PRODUCT_NAME } from './Logo';
+import NotificationBell from './NotificationBell';
 
 const NAV = [
   {
@@ -337,14 +338,15 @@ export default function AppShell({ children }) {
           <Download size={14} /> {!rail && 'Cleaned CSV'}
         </button>
 
-        {/* Account and appearance: an icon each, under a rule, below the two
-            buttons that do something. Stacked when the sidebar is a rail,
-            where there is no room for a row. */}
+        {/* The bell, the account and appearance: an icon each, under a rule,
+            below the two buttons that do something. Stacked when the sidebar
+            is a rail, where there is no room for a row. */}
         <div
           className={`flex items-center gap-1.5 border-t border-white/6 pt-2 ${
             rail ? 'flex-col' : ''
           }`}
         >
+          <NotificationBell onNavigate={() => setMenuOpen(false)} />
           {UTILITY.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(item.href + '/');

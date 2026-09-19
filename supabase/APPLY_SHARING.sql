@@ -223,12 +223,46 @@ grant select, insert, update, delete on public.profiles        to authenticated;
 grant select, insert, update, delete on public.analyses        to authenticated;
 grant select, insert, update, delete on public.analysis_shares to authenticated;
 
+-- ---------------------------------------------------------------------------
+-- Notifications
+-- ---------------------------------------------------------------------------
+
+-- How far down their notifications each person has read, and nothing else.
+--
+-- Deliberately not a notifications table. The event worth telling somebody
+-- about already exists and is already right: `analysis_shares` holds one row
+-- per (analysis, recipient) with the moment access was granted, and the
+-- recipient can already read it. A second copy of that in a feed table would
+-- add ways for the two to disagree — a share revoked with its notice left
+-- behind, a notice written and the share rolled back — and answer nothing the
+-- shares table cannot.
+--
+-- So all that is stored is one timestamp per person. A share newer than
+-- `seen_at` is unread, there is nothing to backfill, and the bell works for
+-- shares made long before this ran.
+create table if not exists public.notification_reads (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  seen_at timestamptz not null default now()
+);
+
+alter table public.notification_reads enable row level security;
+
+-- Your own marker and nobody else's. Unlike a share, this row is not about a
+-- relationship between two people, so there is no second party to let in.
+drop policy if exists notification_reads_own on public.notification_reads;
+create policy notification_reads_own on public.notification_reads
+  for all to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+grant select, insert, update, delete on public.notification_reads to authenticated;
+
 notify pgrst, 'reload schema';
 
--- Readiness. Expect exactly three rows; anything less means this did not apply.
+-- Readiness. Expect exactly four rows; anything less means this did not apply.
 select tablename,
        has_table_privilege('authenticated', 'public.' || tablename, 'select') as user_can_read
   from pg_tables
  where schemaname = 'public'
-   and tablename in ('profiles', 'analyses', 'analysis_shares')
+   and tablename in ('profiles', 'analyses', 'analysis_shares', 'notification_reads')
  order by 1;
