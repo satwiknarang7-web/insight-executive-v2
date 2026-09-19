@@ -50,6 +50,7 @@ import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
 import { slideLayout, slideStyle } from '../../../lib/slideSize';
 import CardResizer from '../../../components/panels/CardResizer';
+import ResizeHandles from '../../../components/panels/ResizeHandles';
 import { KPI_TILE } from '../../../lib/canvasLayout';
 
 /** The least room a plot can be drawn in, whatever is above and below it. */
@@ -328,7 +329,7 @@ export default function DashboardPage() {
               });
             }}
             aria-pressed={boardView}
-            title="Arrange the board: drag each tile, drag its corner to size it"
+            title="Arrange the board: drag each tile to move it, or any of its edges and corners to size it"
             className={`flex items-center gap-2 rounded-lg border min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 transition-colors ${
               boardView
                 ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
@@ -499,7 +500,7 @@ export default function DashboardPage() {
               editing={editing}
               onMove={moveTile}
             >
-              {({ slide: tile, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown }) =>
+              {({ slide: tile, index, box, dragging, stacked, onCardPointerDown, onResizePointerDown, onResizeKey }) =>
                 tile.kpiIndex === undefined ? (
                   <FindingCard
                     key={tile.id || index}
@@ -514,6 +515,7 @@ export default function DashboardPage() {
                     stacked={stacked}
                     onCardPointerDown={onCardPointerDown}
                     onResizePointerDown={onResizePointerDown}
+                    onResizeKey={onResizeKey}
                     onSelect={selectValue}
                     onClearFilter={(column) => applyFilters(clearColumn(filters || [], column))}
                     onDelete={() => deleteSlide(tile.id)}
@@ -532,6 +534,7 @@ export default function DashboardPage() {
                     stacked={stacked}
                     onCardPointerDown={onCardPointerDown}
                     onResizePointerDown={onResizePointerDown}
+                    onResizeKey={onResizeKey}
                     onEdit={(patch) => editKpi(tile.kpiIndex, patch)}
                     onCompute={(source) => computeKpi(tile.kpiIndex, source)}
                     onDelete={() => deleteKpi(tile.kpiIndex)}
@@ -636,6 +639,7 @@ function KpiTile({
   flow = false,
   onCardPointerDown,
   onResizePointerDown,
+  onResizeKey,
   onEdit,
   onCompute,
   onDelete,
@@ -699,7 +703,7 @@ function KpiTile({
       // hangs over — a panel drawn under the next card is a panel nobody can
       // use. Only on the board: in the strip the card grows instead.
       className={`card relative flex flex-col justify-center p-4 ${flow ? 'min-h-[92px]' : ''} ${
-        editing && placed ? 'z-30 cursor-grab select-none overflow-visible' : 'overflow-hidden'
+        editing && placed ? 'z-30 cursor-grab select-none overflow-visible hover:z-40' : 'overflow-hidden'
       } ${dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : ''}`}
     >
       {editing && (
@@ -809,21 +813,15 @@ function KpiTile({
         </div>
       )}
 
-      {/* The same corner as every other tile — and only on the board, which is
+      {/* The same grips as every other tile — and only on the board, which is
           the only place a card has a box to drag. */}
       {editing && placed && (
-        <button
-          type="button"
-          data-no-drag
-          aria-label={`Resize the ${kpi.label} card`}
-          title="Drag to resize"
+        <ResizeHandles
+          label={`the ${kpi.label} card`}
+          box={box}
           onPointerDown={onResizePointerDown}
-          className="absolute bottom-1 right-1 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded text-white/20 transition-colors hover:text-accent-400"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M11 1 1 11M11 5 5 11M11 9 9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </button>
+          onKeyResize={onResizeKey}
+        />
       )}
     </div>
   );
@@ -851,6 +849,7 @@ function FindingCard({
   flow = false,
   onCardPointerDown,
   onResizePointerDown,
+  onResizeKey,
   onSelect,
   onClearFilter,
   onDelete,
@@ -905,7 +904,13 @@ function FindingCard({
       // most of the card.
       `card relative flex flex-col overflow-hidden ${isSlicer ? 'p-3.5' : 'p-5'}`,
       flow ? 'slide-tile' : '',
-      editing && placed ? 'cursor-grab select-none' : '',
+      // Cards are allowed to overlap — dropping one on another is an
+      // arrangement, not a mistake — and DOM order decides which of two
+      // overlapping cards has its edges on top. With a single corner grip that
+      // was a curiosity; with a grip on every side it is the difference between
+      // a card you can resize and one you cannot, so the card under the pointer
+      // comes forward.
+      editing && placed ? 'cursor-grab select-none hover:z-40' : '',
       dragging ? 'z-20 cursor-grabbing shadow-2xl ring-1 ring-accent-500/40' : '',
       editing ? '' : 'group transition-colors hover:border-accent-500/30 hover:bg-white/[0.035]',
     ]
@@ -1082,18 +1087,12 @@ function FindingCard({
         />
       )}
       {editing && placed && (
-        <button
-          type="button"
-          data-no-drag
-          aria-label={`Resize ${slide.pageTitle || 'this finding'}`}
-          title="Drag to resize"
+        <ResizeHandles
+          label={slide.pageTitle || 'this finding'}
+          box={box}
           onPointerDown={onResizePointerDown}
-          className="absolute bottom-1 right-1 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded text-white/20 transition-colors hover:text-accent-400"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M11 1 1 11M11 5 5 11M11 9 9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </button>
+          onKeyResize={onResizeKey}
+        />
       )}
     </Wrapper>
   );

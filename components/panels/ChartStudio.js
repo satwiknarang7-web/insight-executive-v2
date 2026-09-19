@@ -15,36 +15,44 @@
  */
 import {
   AGGREGATES,
+  CHART_TYPE_GROUPS,
   DEFAULT_SLICER_MODE,
   SLICER_MODES,
   aggregateLabel,
   buildChartSpec,
   chartRequirement,
+  chartTypeLabel,
   pretty as prettyColumn,
 } from '../../lib/chartSpecs';
 import { useDataset, useMeasures } from '../../lib/store/DatasetProvider';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Palette, RotateCcw, Save, Tags, Trash2, Type } from 'lucide-react';
+import { BarChart3, Check, ChevronDown, Database, NotebookPen, Palette, PenLine, RotateCcw, Save, Tags, Trash2, Type } from 'lucide-react';
 import { PALETTES } from '../charts/palette';
 import { CHART_COLORS } from '../../lib/constants';
 import { editableCategories } from '../../lib/chartLabels';
 import { prettyLabel } from '../charts/axis';
 
-// Everything DynamicChart can render. 'column' is the vertical bar under the
-// name people expect from Power BI; the resolver maps it back to 'bar'.
-const TYPES = ['auto', 'slicer', 'bar', 'hbar', 'column', 'line', 'area', 'ribbon', 'composed', 'pie', 'donut', 'treemap', 'funnel', 'waterfall', 'scatter', 'bubble', 'radial', 'gauge', 'radar', 'card', 'multicard', 'kpi', 'table', 'matrix', 'filledmap', 'bubblemap', 'shapemap'];
-
-/** Names that read better than the internal key. */
-const TYPE_LABEL = {
-  hbar: 'bar (horizontal)',
-  bar: 'column (vertical)',
-  column: 'column (vertical)',
-  multicard: 'multi-row card',
-  composed: 'combo (line + column)',
-  filledmap: 'filled map',
-  bubblemap: 'bubble map',
-  shapemap: 'shape map',
-};
+/**
+ * The chart types, grouped by what the chart is *for*.
+ *
+ * This was a flat list of twenty-four here and a grouped one in the New chart
+ * dialog — two pickers for the same choice, and the flat one was unusable:
+ * funnel, waterfall, scatter, bubble, radial, gauge, radar, card, multi-row
+ * card, KPI, table, matrix and three kinds of map, in no order anybody could
+ * predict, with the bar you were probably looking for somewhere above the fold.
+ * A reader who does not already know which of those is a comparison and which
+ * is a share has to open each one to find out.
+ *
+ * So both read `CHART_TYPE_GROUPS` now, which is the one place that knows a
+ * treemap is a share of a whole and a ribbon is a trend. `optgroup` renders as
+ * headings in the native list on every platform, including the phone picker in
+ * the screenshot that prompted this.
+ *
+ * The 'auto' and 'column' entries are gone with the old list rather than
+ * filtered out of it: 'auto' is not a chart, and 'column' is what the resolver
+ * calls a vertical bar on its way to 'bar', so offering both put the same chart
+ * in the list twice.
+ */
 
 /**
  * Where the open/closed preference is kept.
@@ -55,6 +63,13 @@ const TYPE_LABEL = {
  * user's and it sticks, the same way the sidebar rail does.
  */
 const OPEN_KEY = 'insight.studio.open';
+
+/** One definition of what a field looks like, rather than nine copies of it. */
+const FIELD_LABEL = 'text-[10px] font-bold uppercase tracking-[0.15em] text-white/35';
+const INPUT_CLASS =
+  'min-h-10 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-accent-500/50';
+const SELECT_CLASS =
+  'min-h-10 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50';
 
 /** Which preset (if any) a saved colour list corresponds to. */
 function matchPreset(colors) {
@@ -269,7 +284,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
         aria-controls="chart-studio-body"
         className="-m-1 flex items-center gap-2 rounded-lg p-1 text-left transition-colors hover:bg-white/[0.03]"
       >
-        <Type size={13} className="text-accent-400" />
+        <PenLine size={13} className="text-accent-400" />
         <span className="label">Edit this finding</span>
         {dirty && (
           <span className="ml-auto rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-amber-300">
@@ -291,58 +306,27 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
 
       {/* Hidden, not unmounted. Collapsing the panel must not throw away an
           edit in progress, and the chart beside it keeps showing the draft. */}
-      <div id="chart-studio-body" className={open ? 'flex flex-col gap-5' : 'hidden'}>
-
-        {/* Title */}
-        <label className="flex flex-col gap-2">
-          <span className="label">Title</span>
-          <input
-            value={draft.pageTitle}
-            onChange={(e) => set({ pageTitle: e.target.value })}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
-          />
-        </label>
-
-        {/* Axis names */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-2">
-            <span className="label">X axis name</span>
-            <input
-              value={draft.xAxisLabel}
-              onChange={(e) => set({ xAxisLabel: e.target.value })}
-              placeholder={prettyLabel(chart.xAxisKey) || 'Category'}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-accent-500/50"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="label">Y axis name</span>
-            <input
-              value={draft.yAxisLabel}
-              onChange={(e) => set({ yAxisLabel: e.target.value })}
-              placeholder={prettyLabel(chart.yAxisKey) || 'Value'}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-accent-500/50"
-            />
-          </label>
-        </div>
-
-        {/* What the chart measures.
-            Separate from everything below it, and deliberately so: the rest of
-            this panel restyles a chart that already exists, while this re-runs
-            the query and recomputes the finding underneath it. Its own button
-            says so. */}
+      <div id="chart-studio-body" className={open ? 'flex flex-col gap-3' : 'hidden'}>
+        {/* ---- What the chart reads -------------------------------------
+            First, and in accent, because it is the only section here that
+            changes the numbers. Everything below it restyles a chart that
+            already exists; this re-runs the query and recomputes the finding
+            underneath it. That difference used to be carried by one bordered
+            box halfway down the panel and a sentence under its button. */}
         {onRebuild && dimensionOptions.length > 0 && (
-          <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <span className="label">What this chart measures</span>
+          <Section icon={Database} title="What this chart measures" tone="data">
+            <p className="-mt-1 text-[11px] leading-relaxed text-white/40">
+              The columns behind the chart. Changing any of these re-runs the query and recomputes
+              the finding — your title, notes and colours are kept.
+            </p>
 
             {requirement.dimensions.map((slot) => (
               <label key={slot.key} className="flex flex-col gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">
-                  {slot.label}
-                </span>
+                <span className={FIELD_LABEL}>{slot.label}</span>
                 <select
                   value={dims[slot.key] || ''}
                   onChange={(e) => setDims((d) => ({ ...d, [slot.key]: e.target.value }))}
-                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                  className={SELECT_CLASS}
                 >
                   <option value="" className="bg-surface">Choose a column…</option>
                   {dimensionOptions.map((d) => (
@@ -358,9 +342,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
               const selection = value.measureId ? `measure:${value.measureId}` : value.aggregate || '';
               return (
                 <div key={slot.key} className="flex flex-col gap-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">
-                    {slot.label}
-                  </span>
+                  <span className={FIELD_LABEL}>{slot.label}</span>
                   <select
                     value={selection}
                     onChange={(e) => {
@@ -368,7 +350,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
                       if (v.startsWith('measure:')) pick({ measureId: v.slice(8), aggregate: null, column: null });
                       else pick({ measureId: null, aggregate: v, column: value.column || columnOptions[0] || null });
                     }}
-                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                    className={SELECT_CLASS}
                   >
                     <option value="" className="bg-surface">Choose a measure…</option>
                     {AGGREGATES.map((a) => (
@@ -386,7 +368,7 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
                     <select
                       value={value.column || ''}
                       onChange={(e) => pick({ column: e.target.value })}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 outline-none focus:border-accent-500/50"
+                      className={SELECT_CLASS}
                     >
                       <option value="" className="bg-surface">Of which column…</option>
                       {columnOptions.map((c) => (
@@ -408,42 +390,138 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
               type="button"
               onClick={applyData}
               disabled={rebuilding || busy}
-              className="self-start rounded-lg bg-accent-500 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30"
+              className="self-start rounded-lg bg-accent-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30"
             >
               {rebuilding ? 'Recomputing…' : 'Apply and recompute'}
             </button>
-            <p className="text-[11px] leading-relaxed text-white/30">
-              This re-runs the query and recomputes the finding underneath the chart. Your title,
-              notes and colours are kept.
-            </p>
-          </div>
+          </Section>
         )}
 
-        {/* Chart type */}
-        <label className="flex flex-col gap-2">
-          <span className="label">Chart type</span>
+        {/* ---- How it is drawn ------------------------------------------ */}
+        <Section icon={BarChart3} title="Chart type">
           <select
             value={draft.chartType}
             onChange={(e) => set({ chartType: e.target.value })}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold capitalize text-white/85 outline-none focus:border-accent-500/50"
+            aria-label="Chart type"
+            className={`${SELECT_CLASS} capitalize`}
           >
-            {TYPES.filter((t) => t !== 'auto' && t !== 'column').map((t) => (
-              <option key={t} value={t} className="bg-surface">
-                {TYPE_LABEL[t] || t}
-              </option>
+            {/* Grouped by what the chart is for — the same list the New chart
+                dialog offers, so the two pickers cannot drift apart. */}
+            {CHART_TYPE_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.types.map((t) => (
+                  <option key={t} value={t} className="bg-surface">
+                    {chartTypeLabel(t)}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
-          <span className="text-[11px] leading-relaxed text-white/30">
+          <span className="text-[11px] leading-relaxed text-white/35">
             A type the data cannot support is downgraded automatically when it renders.
           </span>
-        </label>
 
-        {/* Palette */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Palette size={12} className="text-white/40" />
-            <span className="label">Colours</span>
+          {/* A slicer's shape is a property of the slicer, not of its colours —
+              it used to sit under the palette, which is the one section it has
+              nothing to do with. */}
+          {draft.chartType === 'slicer' && (
+            <div className="flex flex-col gap-1.5 border-t border-white/8 pt-3">
+              <span className={FIELD_LABEL}>How the values are shown</span>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(SLICER_MODES).map(([mode, meta]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    title={meta.blurb}
+                    onClick={() => set({ slicerMode: mode })}
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                      draft.slicerMode === mode
+                        ? 'border-accent-500/50 bg-accent-500/15 text-accent-200'
+                        : 'border-white/10 text-white/50 hover:border-accent-500/30 hover:text-accent-300'
+                    }`}
+                  >
+                    {meta.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] leading-relaxed text-white/35">
+                {SLICER_MODES[draft.slicerMode]?.blurb}
+              </p>
+            </div>
+          )}
+        </Section>
+
+        {/* ---- What things are called -----------------------------------
+            Title, axis names and value names are one decision — what this
+            chart says — and they were three separate fields scattered above
+            and below everything else. */}
+        <Section icon={Type} title="Names and labels">
+          <label className="flex flex-col gap-1.5">
+            <span className={FIELD_LABEL}>Title</span>
+            <input
+              value={draft.pageTitle}
+              onChange={(e) => set({ pageTitle: e.target.value })}
+              placeholder="What this chart shows"
+              className={`${INPUT_CLASS} font-bold`}
+            />
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5">
+              <span className={FIELD_LABEL}>Bottom axis</span>
+              <input
+                value={draft.xAxisLabel}
+                onChange={(e) => set({ xAxisLabel: e.target.value })}
+                placeholder={prettyLabel(chart.xAxisKey) || 'Category'}
+                className={INPUT_CLASS}
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className={FIELD_LABEL}>Side axis</span>
+              <input
+                value={draft.yAxisLabel}
+                onChange={(e) => set({ yAxisLabel: e.target.value })}
+                placeholder={prettyLabel(chart.yAxisKey) || 'Value'}
+                className={INPUT_CLASS}
+              />
+            </label>
           </div>
+
+          {/* The chart shows what the user calls things; the query underneath
+              still shows what the data calls them. */}
+          {categories.length > 0 && (
+            <div className="flex flex-col gap-1.5 border-t border-white/8 pt-3">
+              <span className="flex items-center gap-1.5">
+                <Tags size={11} className="text-white/30" />
+                <span className={FIELD_LABEL}>Value names</span>
+              </span>
+              {/* One row per category, and a chart can legitimately have twenty.
+                  Bounded so renaming a value does not push the notes, the
+                  buttons and everything after them off the bottom of the panel. */}
+              <div className="-mr-1 flex max-h-56 flex-col gap-1.5 overflow-y-auto pr-1">
+                {categories.map((name) => (
+                  <div key={name} className="flex items-center gap-2">
+                    <span className="w-24 shrink-0 truncate text-[11px] text-white/30" title={name}>
+                      {name}
+                    </span>
+                    <input
+                      value={draft.labels?.[name] ?? name}
+                      onChange={(e) => rename(name, e.target.value)}
+                      aria-label={`Name shown for ${name}`}
+                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[13px] text-white/85 outline-none focus:border-accent-500/50"
+                    />
+                  </div>
+                ))}
+              </div>
+              <span className="text-[11px] leading-relaxed text-white/35">
+                Only what the chart displays. The query and its verified numbers keep the original values.
+              </span>
+            </div>
+          )}
+        </Section>
+
+        {/* ---- Colours --------------------------------------------------- */}
+        <Section icon={Palette} title="Colours">
           <div className="flex flex-wrap gap-2">
             {PALETTES.map((p) => (
               <button
@@ -471,39 +549,10 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
             ))}
           </div>
 
-          {/* A slicer has no palette to spend — it has boxes. What it has
-              instead is a choice about how much room it takes: every value on
-              show, or one line that opens them. */}
-          {draft.chartType === 'slicer' && (
-            <div className="mt-1 flex flex-col gap-1.5">
-              <span className="label">Values</span>
-              <div className="flex flex-wrap gap-1.5">
-                {Object.entries(SLICER_MODES).map(([mode, meta]) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    title={meta.blurb}
-                    onClick={() => set({ slicerMode: mode })}
-                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-colors ${
-                      draft.slicerMode === mode
-                        ? 'border-accent-500/50 bg-accent-500/15 text-accent-200'
-                        : 'border-white/10 text-white/50 hover:border-accent-500/30 hover:text-accent-300'
-                    }`}
-                  >
-                    {meta.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] leading-relaxed text-white/30">
-                {SLICER_MODES[draft.slicerMode]?.blurb}
-              </p>
-            </div>
-          )}
-
           {/* Bar charts can spend the palette across the bars instead of across
               series, which is the only way to choose each bar's colour. */}
           {draft.chartType === 'bar' && (
-            <label className="mt-1 flex items-center gap-2">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={draft.colorBy === 'category'}
@@ -516,75 +565,49 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
 
           {/* Per-series overrides. The first few colours carry the most weight —
               or, when colouring by category, they are the bars left to right. */}
-          <div className="mt-1 flex flex-wrap gap-2">
-            {swatches.slice(0, swatchCount).map((c, i) => (
-              <label
-                key={i}
-                className="relative h-7 w-7 cursor-pointer overflow-hidden rounded-lg ring-1 ring-white/15"
-                style={{ backgroundColor: c }}
-                title={perCategory ? `${categories[i] || `Bar ${i + 1}`}: ${c}` : `Series ${i + 1}: ${c}`}
-              >
-                <input
-                  type="color"
-                  value={c}
-                  onChange={(e) => {
-                    const next = [...swatches];
-                    next[i] = e.target.value;
-                    set({ colors: next });
-                  }}
-                  className="absolute inset-0 cursor-pointer opacity-0"
-                />
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Category names. The chart shows what the user calls things; the query
-            underneath still shows what the data calls them. */}
-        {categories.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Tags size={12} className="text-white/40" />
-              <span className="label">Value names</span>
-            </div>
-            {/* One row per category, and a chart can legitimately have twenty.
-                Bounded so renaming a value does not push the notes, the buttons
-                and everything after them off the bottom of the panel. */}
-            <div className="-mr-1 flex max-h-56 flex-col gap-1.5 overflow-y-auto pr-1">
-              {categories.map((name) => (
-                <div key={name} className="flex items-center gap-2">
-                  <span className="w-28 shrink-0 truncate text-[11px] text-white/30" title={name}>
-                    {name}
-                  </span>
+          <div className="flex flex-col gap-1.5">
+            <span className={FIELD_LABEL}>{perCategory ? 'Each bar' : 'Each series'}</span>
+            <div className="flex flex-wrap gap-2">
+              {swatches.slice(0, swatchCount).map((c, i) => (
+                <label
+                  key={i}
+                  className="relative h-7 w-7 cursor-pointer overflow-hidden rounded-lg ring-1 ring-white/15"
+                  style={{ backgroundColor: c }}
+                  title={perCategory ? `${categories[i] || `Bar ${i + 1}`}: ${c}` : `Series ${i + 1}: ${c}`}
+                >
                   <input
-                    value={draft.labels?.[name] ?? name}
-                    onChange={(e) => rename(name, e.target.value)}
-                    aria-label={`Name shown for ${name}`}
-                    className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[13px] text-white/85 outline-none focus:border-accent-500/50"
+                    type="color"
+                    value={c}
+                    onChange={(e) => {
+                      const next = [...swatches];
+                      next[i] = e.target.value;
+                      set({ colors: next });
+                    }}
+                    className="absolute inset-0 cursor-pointer opacity-0"
                   />
-                </div>
+                </label>
               ))}
             </div>
-            <span className="text-[11px] leading-relaxed text-white/30">
-              Only what the chart displays. The query and its verified numbers keep the original values.
-            </span>
           </div>
-        )}
+        </Section>
 
-        {/* Analyst notes */}
-        <label className="flex flex-col gap-2">
-          <span className="label">Analyst notes</span>
+        {/* ---- Notes ------------------------------------------------------ */}
+        <Section icon={NotebookPen} title="Analyst notes">
           <textarea
             rows={4}
             value={draft.analystNotes}
+            aria-label="Analyst notes"
             placeholder="Context the numbers don't carry — why this happened, what was already tried, what to watch."
             onChange={(e) => set({ analystNotes: e.target.value })}
             className="resize-y rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[13px] leading-relaxed text-white/80 outline-none placeholder:text-white/20 focus:border-accent-500/50"
           />
-        </label>
+        </Section>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
+        {/* ---- Actions ----------------------------------------------------
+            Stuck to the bottom of the panel. It is a tall form and Save used to
+            be below the fold of it, so an edit made at the top was committed by
+            scrolling to find the button — or, often enough, not committed. */}
+        <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center gap-2 rounded-b-[inherit] border-t border-white/8 bg-surface px-5 py-3">
           <button
             type="button"
             onClick={save}
@@ -611,5 +634,36 @@ export default function ChartStudio({ slide, onSave, onRebuild, onDelete, onPrev
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * One decision, under a heading that says which decision it is.
+ *
+ * The panel was nine fields in a single column with nothing between them, so
+ * "Title", "Y axis name", "Chart type" and "Analyst notes" all carried exactly
+ * the same weight — and nothing on the way down said which of them re-runs the
+ * query and which only restyles a chart that is already on screen. That is the
+ * one thing somebody editing a finding most needs to know before they touch
+ * anything, and it was left to a sentence underneath a button.
+ *
+ * So the fields are grouped into the five things a person actually comes here
+ * to change, and the one that recomputes the numbers is first, in accent, and
+ * says so above its controls rather than below them.
+ */
+function Section({ icon: Icon, title, tone = 'plain', children }) {
+  const data = tone === 'data';
+  return (
+    <section
+      className={`flex flex-col gap-3 rounded-xl border p-4 ${
+        data ? 'border-accent-500/25 bg-accent-500/[0.04]' : 'border-white/8 bg-white/[0.015]'
+      }`}
+    >
+      <h3 className="flex items-center gap-2">
+        <Icon size={12} className={data ? 'text-accent-400' : 'text-white/40'} />
+        <span className="label">{title}</span>
+      </h3>
+      {children}
+    </section>
   );
 }

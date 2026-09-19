@@ -9,7 +9,7 @@
  * the scale, the drag, and the fallback on a narrow screen.
  *
  * **The drag is a pointer, not a library.** Move by dragging the card, resize by
- * dragging its corner, both in edit mode only. Every delta is divided by the
+ * dragging any of its edges or corners, both in edit mode only. Every delta is divided by the
  * scale on the way in, because the pointer moves in screen pixels and the card
  * lives in canvas ones — without that, a board scaled to 70% moves further than
  * the cursor does, which feels broken in a way that is hard to name.
@@ -120,13 +120,21 @@ export default function DashboardCanvas({ slides = [], sizeOf = null, editing = 
     [editing]
   );
 
+  /**
+   * A press on one of a card's grips.
+   *
+   * `edge` is which one — a compass point, see `resizeBox`. It has to be
+   * carried for the length of the drag rather than read from the event,
+   * because the pointer is captured by the handle it started on and every
+   * subsequent move arrives from that same element whatever it is over.
+   */
   const startResize = useCallback(
-    (event, id, box) => {
+    (event, id, box, edge = 'se') => {
       if (!editing || event.button !== 0) return;
       event.preventDefault();
       event.stopPropagation();
       hold(event.currentTarget, event.pointerId);
-      setDragging({ id, mode: 'resize', box, x: event.clientX, y: event.clientY, moved: true });
+      setDragging({ id, mode: 'resize', edge, box, x: event.clientX, y: event.clientY, moved: true });
     },
     [editing]
   );
@@ -139,7 +147,10 @@ export default function DashboardCanvas({ slides = [], sizeOf = null, editing = 
       if (!dragging.moved && Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
       if (!dragging.moved) setDragging((d) => (d ? { ...d, moved: true } : d));
 
-      const next = dragging.mode === 'move' ? moveBox(dragging.box, dx, dy) : resizeBox(dragging.box, dx, dy);
+      const next =
+        dragging.mode === 'move'
+          ? moveBox(dragging.box, dx, dy)
+          : resizeBox(dragging.box, dx, dy, dragging.edge);
       onMove?.(dragging.id, next);
     },
     [dragging, scale, onMove]
@@ -166,7 +177,13 @@ export default function DashboardCanvas({ slides = [], sizeOf = null, editing = 
       box: boxes.get(String(slide.id)) || cardBox(null),
       dragging: dragging?.id === slide.id && dragging.moved,
       onCardPointerDown: (event) => startMove(event, slide.id, boxes.get(String(slide.id)) || cardBox(null)),
-      onResizePointerDown: (event) => startResize(event, slide.id, boxes.get(String(slide.id)) || cardBox(null)),
+      onResizePointerDown: (event, edge) =>
+        startResize(event, slide.id, boxes.get(String(slide.id)) || cardBox(null), edge),
+      // The keyboard's way in: the same maths, with the arrow key standing in
+      // for the pointer's travel. Applied straight rather than through a drag,
+      // because a keypress has no beginning and end to track.
+      onResizeKey: (dx, dy) =>
+        onMove?.(slide.id, resizeBox(boxes.get(String(slide.id)) || cardBox(null), dx, dy, 'se')),
       ...extra,
     });
 

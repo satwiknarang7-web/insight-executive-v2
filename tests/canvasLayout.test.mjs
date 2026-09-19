@@ -118,6 +118,68 @@ test('a drag moves and resizes inside the same bounds', () => {
   assert.equal(resizeBox(box, -9999, -9999).w, MIN_CARD_WIDTH);
 });
 
+test('every edge and corner resizes, and the opposite side stays put', () => {
+  const box = { x: 400, y: 300, w: 400, h: 300 };
+
+  // An edge moves one side. This is the whole reason the edges exist: making a
+  // card wider on its left used to mean dragging the right edge out and then
+  // dragging the card back, which moves the edge you were aligning against.
+  assert.deepEqual(resizeBox(box, -100, 0, 'w'), { x: 300, y: 300, w: 500, h: 300 });
+  assert.deepEqual(resizeBox(box, 100, 0, 'e'), { x: 400, y: 300, w: 500, h: 300 });
+  assert.deepEqual(resizeBox(box, 0, -100, 'n'), { x: 400, y: 200, w: 400, h: 400 });
+  assert.deepEqual(resizeBox(box, 0, 100, 's'), { x: 400, y: 300, w: 400, h: 400 });
+
+  // An edge does not touch the other dimension, however far the pointer wanders
+  // off it — a horizontal drag on the left edge is not a request to move down.
+  const west = resizeBox(box, -50, 250, 'w');
+  assert.equal(west.y, box.y);
+  assert.equal(west.h, box.h);
+
+  // A corner moves two, and the diagonally opposite one stays where it is.
+  assert.deepEqual(resizeBox(box, -100, -100, 'nw'), { x: 300, y: 200, w: 500, h: 400 });
+  assert.deepEqual(resizeBox(box, 100, -100, 'ne'), { x: 400, y: 200, w: 500, h: 400 });
+  assert.deepEqual(resizeBox(box, -100, 100, 'sw'), { x: 300, y: 300, w: 500, h: 400 });
+  assert.deepEqual(resizeBox(box, 100, 100, 'se'), { x: 400, y: 300, w: 500, h: 400 });
+
+  // Two arguments still mean the bottom-right corner, which is what every
+  // caller written before the edges existed meant by it.
+  assert.deepEqual(resizeBox(box, 100, 100), resizeBox(box, 100, 100, 'se'));
+});
+
+test('shrinking past the minimum stops rather than sliding the card sideways', () => {
+  const box = { x: 400, y: 300, w: 400, h: 300 };
+
+  // Dragging the left edge right, past the point where the card can get any
+  // narrower. Clamping the width alone would leave x where the pointer put it,
+  // so the card would stop shrinking and start sliding rightwards — away from
+  // the right edge the reader was measuring against.
+  const west = resizeBox(box, 9999, 0, 'w');
+  assert.equal(west.w, MIN_CARD_WIDTH);
+  assert.equal(west.x + west.w, box.x + box.w, 'the right edge moved');
+
+  const north = resizeBox(box, 0, 9999, 'n');
+  assert.equal(north.h, MIN_CARD_HEIGHT);
+  assert.equal(north.y + north.h, box.y + box.h, 'the bottom edge moved');
+
+  // And from the other side, where the anchored edge is the left one.
+  const east = resizeBox(box, -9999, 0, 'e');
+  assert.equal(east.w, MIN_CARD_WIDTH);
+  assert.equal(east.x, box.x, 'the left edge moved');
+});
+
+test('an edge dragged off the page stops at it', () => {
+  const box = { x: 100, y: 100, w: 400, h: 300 };
+
+  assert.equal(resizeBox(box, -9999, 0, 'w').x, 0);
+  assert.equal(resizeBox(box, 0, -9999, 'n').y, 0);
+
+  const east = resizeBox(box, 9999, 0, 'e');
+  assert.equal(east.x + east.w, CANVAS_WIDTH);
+
+  const south = resizeBox(box, 0, 9999, 's');
+  assert.equal(south.y + south.h, CANVAS_HEIGHT);
+});
+
 test('a card nobody placed lands in the gaps, not on top of the board', () => {
   // The board as the composer left it: a full-width row, then two beside it.
   const slides = [
