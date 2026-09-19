@@ -123,3 +123,59 @@ test('the only honest aggregate for a column is readable from its name', () => {
   assert.equal(honestAggregate(''), 'SUM', 'and nothing at all does not throw');
   assert.equal(honestAggregate(null), 'SUM');
 });
+
+test('a table with nothing to add up leads with averages, not record counts', () => {
+  // The shape of a comparison table: every measure is a price, a score or an
+  // index, so none of them is summable. COUNT(*) is not a stand-in for a
+  // magnitude here — it counts rows of the file, not anything about the
+  // subject — and it used to outrank the average-by-category charts and take
+  // the top of the deck.
+  const rows = [];
+  const providers = ['OpenAI', 'Anthropic', 'xAI', 'Google', 'Mistral', 'Cohere', 'Moonshot', 'Z AI'];
+  const tiers = ['Entry', 'Mid', 'High'];
+  providers.forEach((provider, i) =>
+    tiers.forEach((tier, j) =>
+      rows.push({
+        Provider: provider,
+        Plan: tier,
+        Audience: j === 2 ? 'Business' : 'Individual',
+        'Monthly Price USD': [20, 100, 300][j] + i * 7,
+        'Intelligence Index': 53 - i * 4,
+        'Coding Score': 91 - i * 6,
+        'ARC AGI 2 Score': 95 - i * 5,
+      })
+    )
+  );
+
+  const charts = planCharts(rows, { max: 9 });
+  assert.ok(charts.length > 0);
+
+  const isCount = (c) => /COUNT\(\*\)/i.test(String(c.sql || ''));
+  assert.ok(!isCount(charts[0]), `the deck opens on "${charts[0].title}"`);
+  assert.ok(/AVG\(/i.test(String(charts[0].sql || '')), 'the leading chart is not an average');
+
+  // Counts may still appear; they must not lead.
+  const firstCount = charts.findIndex(isCount);
+  const firstAvg = charts.findIndex((c) => /AVG\(/i.test(String(c.sql || '')));
+  assert.ok(firstAvg < firstCount || firstCount === -1, 'a record count outranked an average');
+
+  // And more than one measure gets drawn — charting the same score four times
+  // says less than charting four different ones.
+  const measured = new Set(
+    charts.map((c) => (String(c.sql || '').match(/AVG\(\[([^\]]+)\]\)/) || [])[1]).filter(Boolean)
+  );
+  assert.ok(measured.size > 1, `only ${[...measured]} was ever averaged`);
+});
+
+test('a table with a real quantity still leads with the magnitude', () => {
+  // The other half of the same rule: where something IS summable, summing it
+  // is what the reader came for and nothing below should have displaced it.
+  const rows = Array.from({ length: 40 }, (_, i) => ({
+    Region: ['North', 'South', 'East', 'West'][i % 4],
+    Channel: ['Web', 'Retail'][i % 2],
+    Revenue: 100 + (i % 7) * 50,
+    Discount: (i % 5) * 2,
+  }));
+  const charts = planCharts(rows, { max: 8 });
+  assert.ok(/SUM\(/i.test(String(charts[0].sql || '')), `expected a total to lead, got "${charts[0].title}"`);
+});
