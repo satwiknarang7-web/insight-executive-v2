@@ -27,7 +27,6 @@ import {
   userClient,
   VaultConfigError,
 } from '../../lib/vault/supabase.server';
-import AnalysisLibrary from '../../components/panels/AnalysisLibrary';
 import ConnectionsPanel from '../../components/panels/ConnectionsPanel';
 import AccountPanel from '../../components/panels/AccountPanel';
 import ProfilePanel from '../../components/panels/ProfilePanel';
@@ -61,10 +60,6 @@ export default async function ProfilePage() {
   return (
     <Shell>
       <ProfilePanel email={user.email} />
-
-      <Block title="Library" blurb="Analyses you saved, and analyses shared with you.">
-        <AnalysisLibrary />
-      </Block>
 
       <Block
         title="Saved connections"

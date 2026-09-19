@@ -19,7 +19,8 @@ import {
   UserRound,
   GitBranch,
   Home,
-  SlidersHorizontal,
+  Settings,
+  Library,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
@@ -62,18 +63,42 @@ const NAV = [
   },
   { href: '/quality', label: 'Cleaning report', icon: ShieldCheck, hint: 'What was changed on the way in, and every query that ran' },
   {
+    href: '/library',
+    label: 'Library',
+    icon: Library,
+    hint: 'Analyses you saved, and analyses people shared with you',
+    // The one tab most likely to be wanted with nothing loaded: a report
+    // somebody shared arrives without the file behind it.
+    standalone: true,
+  },
+];
+
+/**
+ * Two destinations that are not tabs.
+ *
+ * A tab is a view onto the work. Your account and the appearance settings are
+ * neither, and each was taking a full row of the nav — as wide and as loud as
+ * the dashboard — for something opened once a month. They are an icon each
+ * beside the logo now, which is where every application this one resembles
+ * puts them.
+ *
+ * They keep `standalone`, and that flag is read from both lists below: it is
+ * what stops the shell bouncing a visitor to Home for arriving without a
+ * dataset, and neither of these needs one.
+ */
+const UTILITY = [
+  {
     href: '/profile',
     label: 'Account',
     icon: UserRound,
-    hint: 'Your saved analyses, your stored connections and your sign-in',
+    hint: 'Your stored connections, your plan and your sign-in',
+    standalone: true,
   },
   {
     href: '/settings',
     label: 'Settings',
-    icon: SlidersHorizontal,
+    icon: Settings,
     hint: 'How the app looks: lighting, and what its surfaces are made of',
-    // Appearance is not a view onto a dataset, and somebody who has just
-    // arrived should be able to set it before loading anything.
     standalone: true,
   },
 ];
@@ -86,7 +111,9 @@ const NAV = [
  * data had to remember to be added here too, and the one that forgot bounced
  * its visitor to Home.
  */
-const STANDALONE = new Set(NAV.filter((item) => item.standalone).map((item) => item.href));
+const STANDALONE = new Set(
+  [...NAV, ...UTILITY].filter((item) => item.standalone).map((item) => item.href)
+);
 
 function NavLink({ item, active, onNavigate, collapsed = false }) {
   const Icon = item.icon;
@@ -309,6 +336,36 @@ export default function AppShell({ children }) {
         >
           <Download size={14} /> {!rail && 'Cleaned CSV'}
         </button>
+
+        {/* Account and appearance: an icon each, under a rule, below the two
+            buttons that do something. Stacked when the sidebar is a rail,
+            where there is no room for a row. */}
+        <div
+          className={`flex items-center gap-1.5 border-t border-white/6 pt-2 ${
+            rail ? 'flex-col' : ''
+          }`}
+        >
+          {UTILITY.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                title={`${item.label} — ${item.hint}`}
+                aria-label={item.label}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+                  active
+                    ? 'border-accent-500/25 bg-accent-500/12 text-accent-300'
+                    : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Icon size={16} />
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
