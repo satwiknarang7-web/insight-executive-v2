@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Printer, FileDown, Presentation, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck, Info } from 'lucide-react';
+import { Printer, FileDown, FileText, Presentation, Loader2, Sparkles, Target, AlertTriangle, TrendingUp, ShieldCheck, Info } from 'lucide-react';
 import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import { findingsOnly } from '../../../lib/storyboard';
 import PageFrame from '../../../components/shell/PageFrame';
@@ -10,90 +10,105 @@ import ChartBoundary from '../../../components/charts/ChartBoundary';
 import NarrationNote from '../../../components/panels/NarrationNote';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 
+/**
+ * The three server-built exports, as data rather than as three functions.
+ *
+ * They differ only in the route, what goes in the body, the extension and one
+ * sentence of failure copy — and written out longhand the copies had already
+ * started to drift: only the PDF read the rate limiter's own message out of a
+ * 429, so a deck refused for going too fast was reported as a deck that could
+ * not be built, which is a different problem with a different fix.
+ *
+ * `advice` is the PDF's alone, because browser printing is the thing that still
+ * works when the host has no Chrome. There is no equivalent sentence for the
+ * other two: if those fail, they have simply failed.
+ */
+const EXPORTS = {
+  pdf: {
+    route: '/api/export/pdf',
+    suffix: '_report.pdf',
+    failure: 'The server could not render a PDF.',
+    advice: 'Use \u201cPrint\u201d instead \u2014 your browser can save the page as a PDF.',
+    payload: (analysis) => analysis,
+  },
+  pptx: {
+    route: '/api/export/pptx',
+    suffix: '_deck.pptx',
+    failure: 'The deck could not be built.',
+    payload: (analysis, dataset) => ({ ...analysis, fileName: dataset?.fileName || null }),
+  },
+  docx: {
+    route: '/api/export/docx',
+    suffix: '_report.docx',
+    failure: 'The document could not be built.',
+    // The row count travels with it because the Word cover states what the
+    // figures are figures OF, and the renderer has no dataset to ask.
+    payload: (analysis, dataset) => ({
+      ...analysis,
+      fileName: dataset?.fileName || null,
+      rowCount: dataset?.rowCount ?? null,
+    }),
+  },
+};
+
+const baseName = (fileName) => String(fileName || 'insight').replace(/\.(csv|tsv|txt|xlsx?|xlsm)$/i, '');
+
 export default function ReportPage() {
   const { dataset } = useDataset();
   const { analysis } = useAnalysis();
-  const [pdfBusy, setPdfBusy] = useState(false);
-  const [pdfError, setPdfError] = useState(null);
-  const [pptxBusy, setPptxBusy] = useState(false);
+  // Which export is running, rather than a flag each: only one can be, and the
+  // buttons should not all spin because one of them was pressed.
+  const [busy, setBusy] = useState(null);
+  const [exportError, setExportError] = useState(null);
 
   /**
-   * Server-rendered PDF via headless Chrome. It needs a Chrome binary on the
-   * host, so if it isn't available we say so and point at browser printing,
-   * which always works.
-   */
-  const downloadPdf = useCallback(async () => {
-    setPdfBusy(true);
-    setPdfError(null);
-    try {
-      const res = await fetch('/api/export/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(analysis),
-      });
-      if (!res.ok) {
-        // The rate limiter answers with a sentence that already names the wait,
-        // and throwing a fixed string discarded it — so someone who was thirty
-        // seconds from succeeding was told the host had no Chrome. A refusal is
-        // also not a reason to reach for Print, so it is reported on its own.
-        const body = await res.json().catch(() => null);
-        if (res.status === 429 && body?.error) {
-          setPdfError(body.error);
-          return;
-        }
-        throw new Error(body?.error || 'The server could not render a PDF.');
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${dataset.fileName.replace(/\.(csv|tsv|txt|xlsx?|xlsm)$/i, '')}_report.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      setPdfError(`${e.message} Use “Print” instead — your browser can save the page as a PDF.`);
-    } finally {
-      setPdfBusy(false);
-    }
-  }, [analysis, dataset]);
-
-  /**
-   * The same findings as a deck.
+   * Ask the server for one of the formats above and save what comes back.
    *
-   * No browser needed on the host, so this is the export that still works when
-   * the PDF renderer is missing — and the one that carries the evidence tier
-   * and the query onto the slide, where a meeting can see them.
+   * The PDF is the only one that needs a browser on the host, so it is the only
+   * one that can fail for a reason the reader can do something about — hence
+   * the extra sentence pointing at Print, which renders here and always works.
    */
-  const downloadPptx = useCallback(async () => {
-    setPptxBusy(true);
-    setPdfError(null);
-    try {
-      const res = await fetch('/api/export/pptx', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...analysis, fileName: dataset?.fileName || null }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error || 'The deck could not be built.');
+  const download = useCallback(
+    async (format) => {
+      const spec = EXPORTS[format];
+      setBusy(format);
+      setExportError(null);
+      try {
+        const res = await fetch(spec.route, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(spec.payload(analysis, dataset)),
+        });
+        if (!res.ok) {
+          const info = await res.json().catch(() => null);
+          // The rate limiter answers with a sentence that already names the
+          // wait, and throwing a fixed string discarded it — so someone who was
+          // thirty seconds from succeeding was told the host had no Chrome. A
+          // refusal is also not a reason to reach for Print, so it is reported
+          // on its own.
+          if (res.status === 429 && info?.error) {
+            setExportError(info.error);
+            return;
+          }
+          throw new Error(info?.error || spec.failure);
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${baseName(dataset?.fileName)}${spec.suffix}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        setExportError(spec.advice ? `${e.message} ${spec.advice}` : e.message);
+      } finally {
+        setBusy(null);
       }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${(dataset?.fileName || 'insight').replace(/\.(csv|tsv|txt|xlsx?|xlsm)$/i, '')}_deck.pptx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      setPdfError(e.message);
-    } finally {
-      setPptxBusy(false);
-    }
-  }, [analysis, dataset]);
+    },
+    [analysis, dataset]
+  );
 
   if (!analysis?.storyboard?.length) {
     return (
@@ -122,28 +137,39 @@ export default function ReportPage() {
           >
             <Printer size={13} /> Print / Save PDF
           </button>
-          <button
-            onClick={downloadPdf}
-            disabled={pdfBusy}
+          <ExportButton
+            format="pdf"
+            busy={busy}
+            onClick={download}
+            icon={FileDown}
             title="Sends this report — the computed chart results and the wording, not your raw rows — to the host to be rendered. Print keeps everything in the browser."
-            className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
           >
-            {pdfBusy ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />} Server PDF
-          </button>
-          <button
-            onClick={downloadPptx}
-            disabled={pptxBusy}
+            Server PDF
+          </ExportButton>
+          <ExportButton
+            format="docx"
+            busy={busy}
+            onClick={download}
+            icon={FileText}
+            title="A Word document you can edit: headings Word can navigate, the numbers as real tables you can copy, and the query behind each figure."
+          >
+            Word
+          </ExportButton>
+          <ExportButton
+            format="pptx"
+            busy={busy}
+            onClick={download}
+            icon={Presentation}
             title="A PowerPoint deck: one finding per slide, with a real PowerPoint chart you can edit, its evidence tier, and the query behind it."
-            className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
           >
-            {pptxBusy ? <Loader2 size={13} className="animate-spin" /> : <Presentation size={13} />} PowerPoint
-          </button>
+            PowerPoint
+          </ExportButton>
         </div>
       }
     >
-      {pdfError && (
+      {exportError && (
         <div className="mb-5 rounded-xl border border-amber-500/25 bg-amber-500/8 px-4 py-3 text-[13px] text-amber-200/80 print:hidden">
-          {pdfError}
+          {exportError}
         </div>
       )}
 
@@ -273,6 +299,28 @@ export default function ReportPage() {
         </footer>
       </article>
     </PageFrame>
+  );
+}
+
+/**
+ * One of the three download buttons.
+ *
+ * Only the pressed one spins: `busy` holds the format being fetched rather than
+ * a boolean, so a slow PDF does not make the Word button look like it is
+ * working too. The others are disabled while it runs, because two exports at
+ * once is two requests against the same rate limit for one document.
+ */
+function ExportButton({ format, busy, onClick, icon: Icon, title, children }) {
+  const running = busy === format;
+  return (
+    <button
+      onClick={() => onClick(format)}
+      disabled={busy !== null}
+      title={title}
+      className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors enabled:hover:bg-white/5 enabled:hover:text-white disabled:opacity-40"
+    >
+      {running ? <Loader2 size={13} className="animate-spin" /> : <Icon size={13} />} {children}
+    </button>
   );
 }
 
