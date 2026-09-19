@@ -229,24 +229,48 @@ test('an ordinal rank column is never SUMmed by the planner', () => {
   }
 });
 
+test('nothing in a table of ranks and rates is ever summed', () => {
+  // With only rank/score/per-capita — none of them additive — no chart in the
+  // deck may add a column up, whatever shape it takes.
+  for (const c of planCharts(countries(), { max: 12 })) {
+    assert.ok(!/\bSUM\(/i.test(c.sql), `a column was summed in: ${c.title}`);
+  }
+});
+
+/** The same columns, but several observations per country: nothing is unique. */
+function countryYears(n = 130) {
+  const regions = ['Sub-Saharan Africa', 'Western Europe', 'Latin America', 'South Asia'];
+  return Array.from({ length: n }, (_, i) => ({
+    country: `Country ${i % 20}`,
+    region: regions[i % regions.length],
+    happiness_score: 2 + ((i * 0.05) % 6),
+    gdp_per_capita: 500 + ((i * 137) % 80000),
+  }));
+}
+
 test('composition falls back to COUNT when no additive measure exists', () => {
-  const charts = planCharts(countries());
-  // With only rank/score/per-capita (none additive), region composition must be a
-  // COUNT of records — not a SUM of any column.
-  const composition = charts.find((c) => /region/i.test(c.xAxisKey) && /(donut|treemap|bar)/.test(c.chart_type));
-  assert.ok(composition, 'expected a region composition chart');
-  const anySum = charts.some((c) => /\bSUM\(/i.test(c.sql));
-  assert.equal(anySum, false, 'no column should be summed for this dataset');
+  /* Written against a table with repeated countries rather than a list of
+     distinct ones. On a list of distinct things the planner now charts the
+     things themselves (see tests/rowComparison.test.mjs) and the padding
+     charts that used to fill a thin deck are no longer needed to fill it —
+     "Record Count by Region" was one of them. The fallback this test is about
+     is still the fallback, and this is a table where it still applies. */
+  const charts = planCharts(countryYears(), { max: 12 });
+  const composition = charts.find((c) => /region/i.test(c.xAxisKey || '') && /(donut|treemap|bar|hbar)/.test(c.chart_type));
+  assert.ok(composition, `expected a region composition chart: ${JSON.stringify(charts.map((c) => c.title))}`);
+  assert.equal(charts.some((c) => /\bSUM\(/i.test(c.sql)), false, 'no column should be summed for this dataset');
   assert.ok(charts.some((c) => /COUNT\(\*\)/i.test(c.sql)), 'composition should use COUNT(*)');
 });
 
 test('a bounded score is averaged, not summed', () => {
-  const charts = planCharts(countries());
-  const scoreChart = charts.find((c) => /happiness/i.test(c.title));
-  if (scoreChart) {
-    assert.ok(/AVG\(\[happiness_score\]\)|happiness_score Range/i.test(scoreChart.sql));
-    assert.ok(!/SUM\(\[happiness_score\]\)/i.test(scoreChart.sql));
+  // The requirement is that it is never added up. Which shape reports it —
+  // an average by region, a distribution, or the score of each country on its
+  // own row — is the planner's business and not this test's.
+  for (const c of planCharts(countries(), { max: 12 })) {
+    assert.ok(!/SUM\(\[happiness_score\]\)/i.test(c.sql), `happiness was summed in: ${c.title}`);
   }
+  const scored = planCharts(countryYears(), { max: 12 }).find((c) => /happiness/i.test(c.title));
+  if (scored) assert.match(scored.sql, /AVG\(\[happiness_score\]\)|happiness_score Range/i);
 });
 
 test('an additive column (charges/revenue) IS summed', () => {

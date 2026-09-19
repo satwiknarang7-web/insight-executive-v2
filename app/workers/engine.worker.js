@@ -421,11 +421,13 @@ function buildProfile(rows, columns, metrics) {
    * halves of each were ever reached.
    */
   return {
+    // Everything `profileColumns` found, then the per-column stats on top.
+    // Listing only the five fields the worker itself reads meant the planner
+    // received a profile missing `keys`, `magnitude` and `hasNegatives` — all
+    // of which it does read, and each of which silently took its falsy default
+    // when the analysis ran in the browser but not in a test.
+    ...p,
     columns: byName,
-    measures: p.measures,
-    dimensions: p.dimensions,
-    temporal: p.temporal,
-    cardinality: p.cardinality,
   };
 }
 
