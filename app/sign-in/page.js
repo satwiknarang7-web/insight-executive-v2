@@ -18,7 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Gauge, KeyRound, Loader2, Mail, Presentation, ShieldCheck } from 'lucide-react';
 import { availableConnectors } from '../../lib/connectors/registry';
-import { supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
+import { googleSignInEnabled, supabaseBrowser, vaultAvailable } from '../../lib/vault/supabase.client';
 import { emailProblem, suggestEmail } from '../../lib/auth/emailAddress';
 import { MIN_PASSWORD } from '../../lib/auth/otp';
 import { safeNext } from '../../lib/auth/redirectTarget';
@@ -118,6 +118,7 @@ function SignInForm() {
   const codeRef = useRef(null);
 
   const available = vaultAvailable();
+  const googleOffered = googleSignInEnabled();
 
   useEffect(() => {
     let cancelled = false;
@@ -573,14 +574,24 @@ function SignInForm() {
             {/*
               * Google, for people who would rather not have another password.
               *
-              * Offered only when the provider is actually reachable: without
-              * Supabase keys this deployment has nothing to sign in to at all,
-              * and a button that opens a consent screen belonging to no project
-              * is worse than no button. Below the form rather than above it,
-              * because the account this product is built around is the one with
-              * the six-digit code — this is the shortcut, not the front door.
+              * Offered only when the provider is actually reachable, which
+              * takes two separate facts. `available` says this deployment has
+              * Supabase keys at all; `googleSignInEnabled` says somebody has
+              * registered an OAuth client with Google and switched the
+              * provider on in the dashboard. Neither implies the other, and
+              * the keys cannot tell you the second — so it is declared, with
+              * `NEXT_PUBLIC_GOOGLE_SIGN_IN`, and off until it is.
+              *
+              * Without that, the button is live against a provider that is not
+              * configured and sends the reader to a consent screen belonging
+              * to no project: a dead end with the word Google on it, which is
+              * worse than no button.
+              *
+              * Below the form rather than above it, because the account this
+              * product is built around is the one with the six-digit code —
+              * this is the shortcut, not the front door.
               */}
-            {available && mode !== 'recover' && (
+            {available && googleOffered && mode !== 'recover' && (
               <div className="flex flex-col gap-3 border-t border-white/6 pt-4">
                 <span className="text-center text-[11px] text-white/30">or</span>
                 <button
