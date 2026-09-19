@@ -10,6 +10,7 @@ import DynamicChart from "../../../components/charts/DynamicChart";
 import ChartBoundary from "../../../components/charts/ChartBoundary";
 import { ChartPalette } from "../../../components/charts/palette";
 import { renameCategories } from "../../../lib/chartLabels";
+import { findingsOnly } from "../../../lib/storyboard";
 import { boldSegments } from "../../../lib/richText";
 import { evidenceTier, evidenceReason } from "../../../components/panels/EvidenceBadge";
 import { Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, Hash } from "lucide-react";
@@ -24,6 +25,22 @@ import { Layout, Target, Activity, Shield, CheckCircle2, TrendingUp, Calendar, H
  * shows every fact; only the printed page is abridged.
  */
 const PRINT_BULLETS = 1;
+
+/**
+ * How big the cover headline can be and still fit the page.
+ *
+ * Measured against the 96px default: a title of three or four words has room
+ * for it, and every word after that costs a step. The thresholds are where the
+ * longest plausible word at each size stops fitting the 1123px page width.
+ */
+function coverTypeSize(title) {
+  const words = String(title || '').trim().split(/\s+/).filter(Boolean).length;
+  const longest = Math.max(0, ...String(title || '').split(/\s+/).map((w) => w.length));
+  if (words >= 8 || longest >= 15) return 'text-5xl';
+  if (words >= 6 || longest >= 12) return 'text-6xl';
+  if (words >= 5) return 'text-7xl';
+  return 'text-8xl';
+}
 
 /** How many synthesis cards the summary page holds at this type size. */
 const PRINT_SUMMARY_CARDS = 4;
@@ -131,7 +148,20 @@ export default function PrintReport() {
    * things nobody computed: if a number is not in here, it does not go on that
    * page.
    */
-  const tierCounts = (data.storyboard || []).reduce((acc, slide) => {
+  /**
+   * The findings, without the furniture.
+   *
+   * A filter tile is a control, not a claim: it runs no aggregate, so its
+   * "query" returns the values it offers rather than an answer, and the report
+   * was printing one page per slicer reading "Analysis unavailable — this query
+   * returned no rows". Two of them opened the last report as Strategic Insight
+   * 1 and 2. The board wants them and the document does not, which is exactly
+   * what `findingsOnly` is for — the PDF, the deck and the Word export have all
+   * used it for a while; this page was the one that never did.
+   */
+  const findings = findingsOnly(data.storyboard || []);
+
+  const tierCounts = findings.reduce((acc, slide) => {
     // A storyboard slide is { findings: { metrics }, chart }, not a flat
     // finding. Reading slide.metrics here returns undefined for every slide and
     // the page reports no evidence at all — silently, which is the failure this
@@ -142,8 +172,8 @@ export default function PrintReport() {
   }, {});
   const audit = {
     rows: Number.isFinite(data.slideZero?.rowsAnalyzed) ? data.slideZero.rowsAnalyzed : null,
-    findings: (data.storyboard || []).length,
-    queries: (data.storyboard || []).filter((slide) => slide?.chart?.sql).length,
+    findings: findings.length,
+    queries: findings.filter((slide) => slide?.chart?.sql).length,
     narrated: !!data.narrated,
     // "2 strong, 3 moderate" — the distribution, in the order a reader cares
     // about, and empty rather than invented when no finding carries a tier.
@@ -182,7 +212,19 @@ export default function PrintReport() {
 
         <div className="space-y-8 relative z-10">
           <div className="h-px w-24 bg-accent-500/50 mb-10" />
-          <h1 className="text-8xl font-black uppercase tracking-tight leading-[0.9] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
+          {/*
+            * The cover type is sized to the title, not the other way round.
+            *
+            * It was a fixed `text-8xl`, which fits "Q3 Churn" and runs a longer
+            * headline clean off the right edge of the page — the last report
+            * lost the end of "…AND PROVIDER PERFORMANCE" to the paper's margin.
+            * A cover is the one page with no second chance at legibility, so
+            * the size steps down as the headline grows, and `break-words` is
+            * the backstop for a single word longer than the measure.
+            */}
+          <h1
+            className={`${coverTypeSize(data.slideZero.title)} font-black uppercase tracking-tight leading-[0.9] break-words text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40`}
+          >
             {data.slideZero.title.split(' ')[0]} <br />
             <span className="text-accent-500">{data.slideZero.title.split(' ').slice(1).join(' ')}</span>
           </h1>
@@ -225,7 +267,7 @@ export default function PrintReport() {
             <div className="h-px flex-1 mx-8 border-t border-dashed border-white/10" />
             <span className="text-white/40 font-mono">P. 03</span>
           </div>
-          {data.storyboard.map((slide, i) => (
+          {findings.map((slide, i) => (
             <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
               <div className="flex items-center gap-6">
                 <span className="text-2xl font-black text-white/10">{(i + 2).toString().padStart(2, '0')}</span>
@@ -241,7 +283,7 @@ export default function PrintReport() {
               <span className="text-lg font-bold text-white/40 uppercase tracking-widest italic">Data Methodology Audit</span>
             </div>
             <div className="h-px flex-1 mx-8 border-t border-dashed border-white/10" />
-            <span className="text-white/40 font-mono">P. {data.storyboard.length + 4}</span>
+            <span className="text-white/40 font-mono">P. {findings.length + 4}</span>
           </div>
         </div>
 
@@ -341,7 +383,7 @@ export default function PrintReport() {
       </div>
 
       {/* STORYBOARD SLIDES */}
-      {data.storyboard.map((slide, index) => (
+      {findings.map((slide, index) => (
         <div key={index} style={slideStyle} className="p-16 flex flex-col gap-10 bg-canvas">
           <div className="flex justify-between items-start border-b border-white/10 pb-8">
             <div className="space-y-2">
