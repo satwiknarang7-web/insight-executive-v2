@@ -4,19 +4,20 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { ArrowUpRight, Check, ChevronDown, Eye, EyeOff, KeyRound, Loader2, Sparkles, Trash2 } from 'lucide-react';
 
 import {
-  STUDIO_URL,
   clearKey,
   keyProblem,
   keySnapshot,
   maskKey,
+  readProvider,
   serverKeySnapshot,
   subscribeToKey,
   verifyKey,
   writeKey,
 } from '../../lib/geminiKey';
+import { PROVIDERS, PROVIDER_IDS } from '../../lib/llmProviders';
 
 /**
- * Connect a Gemini key, so the writing runs on the viewer's own account.
+ * Connect a model key, so the writing runs on the viewer's own account.
  *
  * The panel is deliberately explicit about what it does and does not change,
  * because the honest answer is unusual: connecting a key does not unlock the
@@ -26,9 +27,19 @@ import {
  * says "better writing", not "AI analysis", and it says so before asking for
  * anything.
  *
- * The key is checked against Google from this browser before it is saved, so a
- * mistyped one is refused here rather than surfacing later as prose that
- * quietly never improved.
+ * **Any provider, not only Google.** Requiring a Gemini key was a strange thing
+ * to ask of people who are, by and large, already paying somebody: a person
+ * with a Claude subscription and an OpenAI account had to open a fourth
+ * account to use a single model feature here. The provider is picked first and
+ * the key is stored beside it.
+ *
+ * A Google key is checked from this browser before it is saved, so a mistyped
+ * one is refused here rather than surfacing later as prose that quietly never
+ * improved. The other three cannot be: they do not serve their APIs to a
+ * browser origin, so the check would fail on CORS for a good key and a bad one
+ * alike. Sending it through this app's server instead would give up the one
+ * property that check exists to hold, so those are saved unchecked and the
+ * panel says so.
  */
 export default function GeminiKeyPanel() {
   // Read through the store rather than into state on mount. `localStorage` is
@@ -42,6 +53,11 @@ export default function GeminiKeyPanel() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState('');
   const [justSaved, setJustSaved] = useState(false);
+  // Which provider the key being typed belongs to. Seeded from what is already
+  // stored, so reopening the panel shows the provider the saved key is for.
+  const [provider, setProvider] = useState(() => readProvider());
+  // A key saved without being asked about — see `verifyKey`.
+  const [unchecked, setUnchecked] = useState(false);
   // Collapsed by default. This is an optional extra on the screen whose job is
   // to get a file loaded, and expanded it was the tallest thing on that screen.
   const [open, setOpen] = useState(false);
@@ -52,7 +68,7 @@ export default function GeminiKeyPanel() {
 
   const save = useCallback(async () => {
     const key = draft.trim();
-    const shape = keyProblem(key);
+    const shape = keyProblem(key, provider);
     if (shape) {
       setProblem(shape);
       return;
@@ -64,7 +80,7 @@ export default function GeminiKeyPanel() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const result = await verifyKey(key, { signal: controller.signal });
+    const result = await verifyKey(key, { provider, signal: controller.signal });
     if (controller.signal.aborted) return;
 
     if (!result.ok) {
@@ -73,7 +89,7 @@ export default function GeminiKeyPanel() {
       return;
     }
 
-    if (!writeKey(key)) {
+    if (!writeKey(key, provider)) {
       setBusy(false);
       setProblem('This browser will not let the page store anything — private mode, or site data is blocked.');
       return;
@@ -83,7 +99,8 @@ export default function GeminiKeyPanel() {
     setReveal(false);
     setBusy(false);
     setJustSaved(true);
-  }, [draft]);
+    setUnchecked(!!result.unchecked);
+  }, [draft, provider]);
 
   const remove = useCallback(() => {
     clearKey();
@@ -107,7 +124,9 @@ export default function GeminiKeyPanel() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
-            <span className="text-[13px] font-black text-white/90">Gemini — your own key</span>
+            <span className="text-[13px] font-black text-white/90">
+              {saved ? `${PROVIDERS[provider].label} — your own key` : 'Your own model key'}
+            </span>
             {saved ? (
               <span className="flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-emerald-400">
                 <Check size={9} strokeWidth={3.5} /> Connected
@@ -147,8 +166,33 @@ export default function GeminiKeyPanel() {
           </div>
         ) : (
           <>
+            <div className="mb-3">
+              <span className="label mb-2 block">Provider</span>
+              <div className="flex flex-wrap gap-1.5">
+                {PROVIDER_IDS.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    disabled={busy}
+                    aria-pressed={provider === id}
+                    onClick={() => {
+                      setProvider(id);
+                      setProblem('');
+                    }}
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-40 ${
+                      provider === id
+                        ? 'border-accent-500/40 bg-accent-500/10 text-accent-300'
+                        : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {PROVIDERS[id].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <label className="flex flex-col gap-2">
-              <span className="label">Google AI Studio API key</span>
+              <span className="label">{PROVIDERS[provider].label} API key</span>
               <span className="flex items-center gap-2">
                 <span className="relative flex min-w-0 flex-1 items-center">
                   <input
@@ -189,13 +233,23 @@ export default function GeminiKeyPanel() {
             </label>
 
             <a
-              href={STUDIO_URL}
+              href={PROVIDERS[provider].keysUrl}
               target="_blank"
               rel="noreferrer noopener"
               className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-accent-400 transition-opacity hover:opacity-80"
             >
-              Get a free key from Google AI Studio <ArrowUpRight size={13} />
+              Get a key from {PROVIDERS[provider].keysLabel} <ArrowUpRight size={13} />
             </a>
+
+            {/* Said before the key is pasted rather than after it is saved:
+                somebody choosing a provider should know which of them this
+                browser is able to check for them. */}
+            {provider !== 'google' && (
+              <p className="mt-2 text-[11px] leading-relaxed text-white/30">
+                {PROVIDERS[provider].label} does not accept requests from a browser, so this key is saved
+                without being checked here. The first thing that uses it will say whether it works.
+              </p>
+            )}
           </>
         )}
 
@@ -206,7 +260,9 @@ export default function GeminiKeyPanel() {
         )}
         {justSaved && !problem && (
           <p className="mt-3 text-[12px] text-emerald-400/80">
-            Checked against Google and saved. Analyses from now on are written with this key.
+            {unchecked
+              ? 'Saved, unchecked. Analyses from now on are written with this key — the first one will say if it does not work.'
+              : 'Checked against Google and saved. Analyses from now on are written with this key.'}
           </p>
         )}
 

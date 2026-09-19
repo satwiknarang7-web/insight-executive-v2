@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptEdits } from '../../../lib/analystEdits';
@@ -80,7 +80,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'analyst');
     if (refused) return refused;
@@ -96,7 +96,7 @@ ${JSON.stringify(slides, null, 2)}
 
 What would you change before this went out?`;
 
-    const result = await generateJson(prompt, SYSTEM, { geminiKey });
+    const result = await generateJson(prompt, SYSTEM, credential);
     if (!result || !Array.isArray(result.edits)) {
       return Response.json({ unavailable: true, reason: 'generation_failed' });
     }

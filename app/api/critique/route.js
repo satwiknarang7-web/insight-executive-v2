@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptModelQuestions } from '../../../lib/critic';
@@ -72,7 +72,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'critique');
     if (refused) return refused;
@@ -99,7 +99,7 @@ ${alreadyAsked.length ? alreadyAsked.map((q) => `- ${q}`).join('\n') : '- none'}
 
 What would you ask that nobody has asked yet?`;
 
-    const result = await generateJson(prompt, SYSTEM, { geminiKey });
+    const result = await generateJson(prompt, SYSTEM, credential);
     if (!result || !Array.isArray(result.questions)) {
       return Response.json({ unavailable: true, reason: 'generation_failed' });
     }

@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptArgument } from '../../../lib/synthesiser';
@@ -59,7 +59,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'synthesise');
     if (refused) return refused;
@@ -75,7 +75,7 @@ ${JSON.stringify(steps, null, 2)}
 
 Write it.`;
 
-    const result = await generateJson(prompt, SYSTEM, { geminiKey });
+    const result = await generateJson(prompt, SYSTEM, credential);
     if (!result || !Array.isArray(result.lines)) {
       return Response.json({ unavailable: true, reason: 'generation_failed' });
     }

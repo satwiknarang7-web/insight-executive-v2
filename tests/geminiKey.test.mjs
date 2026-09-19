@@ -54,18 +54,18 @@ test('a key that is wrong is refused, and told why', () => {
   assert.match(keyProblem(''), /Paste a key/);
   assert.match(keyProblem('   '), /Paste a key/);
   // Named where it can be named: these prefixes belong to somebody else.
-  assert.match(keyProblem('sk-proj-abcdefghijklmnopqrstuvwxyz012345'), /OpenAI key/);
-  assert.match(keyProblem(`sk-ant-${'a'.repeat(40)}`), /Anthropic key/);
-  assert.match(keyProblem(`gsk_${'a'.repeat(40)}`), /Groq key/);
+  assert.match(keyProblem('sk-proj-abcdefghijklmnopqrstuvwxyz012345'), /OpenAI/);
+  assert.match(keyProblem(`sk-ant-${'a'.repeat(40)}`), /Anthropic/);
+  assert.match(keyProblem(`gsk_${'a'.repeat(40)}`), /Groq/);
   assert.match(keyProblem('AIzaShort'), /39 characters; that one is 9/);
   assert.match(keyProblem(`${VALID}extra`), /39 characters/);
   assert.match(keyProblem('AQ.short'), /cut short/);
   // A newline pulled in by a sloppy copy is the most common real mistake.
   assert.match(keyProblem(`AIza a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q`), /space in it/);
   // Right length and prefix, wrong alphabet.
-  assert.match(keyProblem(`AIza${'!'.repeat(35)}`), /characters a Google key does not use/);
-  // And a paste that is not a credential at all never reaches Google.
-  assert.match(keyProblem('!'.repeat(40)), /characters a Google key does not use/);
+  assert.match(keyProblem(`AIza${'!'.repeat(35)}`), /characters an API key does not use|copied short/);
+  // And a paste that is not a credential at all never reaches a provider.
+  assert.match(keyProblem('!'.repeat(40)), /characters an API key does not use/);
 });
 
 test('no rejection message ever repeats the key back', () => {
@@ -164,7 +164,11 @@ test('the header is only added when there is a key to add', () => {
   withStorage(() => {
     assert.deepEqual(modelHeaders({ a: '1' }), { a: '1' });
     writeKey(VALID);
-    assert.deepEqual(modelHeaders({ a: '1' }), { a: '1', [KEY_HEADER]: VALID });
+    assert.deepEqual(modelHeaders({ a: '1' }), {
+      a: '1',
+      [KEY_HEADER]: VALID,
+      'X-Model-Provider': 'google',
+    });
     // The base object is copied, not mutated.
     const base = { a: '1' };
     modelHeaders(base);

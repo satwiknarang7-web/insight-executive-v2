@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { assertEngineSelect, UnsafeQuery } from '../../../lib/engineSql';
@@ -84,7 +84,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'ask');
     if (refused) return refused;
@@ -94,7 +94,7 @@ export async function POST(request) {
       return Response.json({ error: 'question and schema are required' }, { status: 400 });
     }
 
-    const spec = await generateJson(`QUESTION: ${question}\n\nReturn the chart specification as JSON.`, SYSTEM(schema), { geminiKey });
+    const spec = await generateJson(`QUESTION: ${question}\n\nReturn the chart specification as JSON.`, SYSTEM(schema), credential);
     if (!spec) return Response.json({ unavailable: true, reason: 'generation_failed' });
 
     const checked = validate(spec);

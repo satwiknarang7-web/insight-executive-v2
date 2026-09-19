@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptUnitClaims } from '../../../lib/semanticClaims';
@@ -87,7 +87,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'semantics');
     if (refused) return refused;
@@ -122,7 +122,7 @@ ${sample.length ? `\nA few whole rows, taken across the table:\n${JSON.stringify
 Which number columns are counted in a unit that is not the same on every row, and
 which values mean a row did not stand?`;
 
-    const result = await generateJson(prompt, SYSTEM, { geminiKey });
+    const result = await generateJson(prompt, SYSTEM, credential);
     if (!result || !Array.isArray(result.claims)) {
       return Response.json({ unavailable: true, reason: 'generation_failed' });
     }

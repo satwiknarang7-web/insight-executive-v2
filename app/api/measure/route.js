@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { validateExpression } from '../../../lib/measures';
 import { enforceLimit } from '../../../lib/routeLimits.server';
@@ -77,7 +77,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'measure');
     if (refused) return refused;
@@ -94,7 +94,7 @@ export async function POST(request) {
     const spec = await generateJson(
       `REQUEST: ${question}\n\nReturn the measure definition as JSON.`,
       SYSTEM(schema, known),
-      { geminiKey }
+      credential
     );
     if (!spec || typeof spec.expr !== 'string') {
       return Response.json({ unavailable: true, reason: 'generation_failed' });

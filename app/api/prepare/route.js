@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptPreparation, MAX_MEASURES, MAX_STEPS } from '../../../lib/preparation';
@@ -114,7 +114,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'prepare');
     if (refused) return refused;
@@ -159,7 +159,7 @@ ${focus ? `\nThe reader's question is: ${String(focus).slice(0, 300)}` : ''}
 
 What would you do to this table before analysing it, and which numbers would you name?`;
 
-    const result = await generateJson(prompt, SYSTEM, { geminiKey });
+    const result = await generateJson(prompt, SYSTEM, credential);
     if (!result || (!Array.isArray(result.steps) && !Array.isArray(result.measures))) {
       return Response.json({ unavailable: true, reason: 'generation_failed' });
     }

@@ -1,4 +1,4 @@
-import { callerGeminiKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { assertEngineSelect, UnsafeQuery } from '../../../lib/engineSql';
@@ -39,7 +39,7 @@ export async function POST(request) {
     if (!canGenerate(request)) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const geminiKey = callerGeminiKey(request);
+    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'dashboardPlan');
     if (refused) return refused;
@@ -53,7 +53,7 @@ export async function POST(request) {
     const raw = await generateJson(
       'Return the dashboard as JSON.',
       dashboardBriefing({ schema, intent, rowCount, max: wanted }),
-      { geminiKey }
+      credential
     );
     if (!raw) return Response.json({ unavailable: true, reason: 'generation_failed' });
 
