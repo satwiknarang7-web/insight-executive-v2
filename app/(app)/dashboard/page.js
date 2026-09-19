@@ -41,6 +41,7 @@ import EditableText from '../../../components/panels/EditableText';
 import { cleanFloatingPoints } from '../../../lib/dataCleaner';
 import { KPI_METRICS, metricNeedsColumn } from '../../../lib/kpiMetrics';
 import NewChartDialog from '../../../components/panels/NewChartDialog';
+import ReplanDialog from '../../../components/panels/ReplanDialog';
 import SaveAnalysisDialog from '../../../components/panels/SaveAnalysisDialog';
 import DatasetNotices from '../../../components/panels/DatasetNotices';
 import PreparationNotice from '../../../components/panels/PreparationNotice';
@@ -63,7 +64,7 @@ export default function DashboardPage() {
   // Measures the user defined. Distinct from `measures` below, which is this
   // dataset's numeric columns — the profile has always called those measures.
   const customMeasures = useMeasures();
-  const { analyze, startBlank, setVoidRowsIncluded, applyFilters, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot } =
+  const { analyze, startBlank, setVoidRowsIncluded, applyFilters, addSlide, deleteSlide, editSlide, editSummary, editKpi, deleteKpi, createKpi, computeKpi, analysisSnapshot, replanWithModel, restoreBoard } =
     useActions();
 
   /**
@@ -186,6 +187,16 @@ export default function DashboardPage() {
    * view you open when you want to arrange it.
    */
   const [boardView, setBoardView] = useState(false);
+  /**
+   * The other planner.
+   *
+   * The deck on screen was chosen by a rule list. This asks a model to choose
+   * instead, given the columns and — the part a rule list can never have — what
+   * the reader says they are trying to decide. Both are kept: `replaced` holds
+   * the deck that was here, so the two can be compared and the old one put back.
+   */
+  const [replanning, setReplanning] = useState(false);
+  const [replan, setReplan] = useState(null);
   // The two long sections fold away. A dashboard with nine findings is several
   // screens whatever else is done to it, and the summary and the grid are read
   // at different moments — collapsing the one you are not reading is the
@@ -338,6 +349,15 @@ export default function DashboardPage() {
           >
             <LayoutGrid size={13} /> Dashboard view
           </button>
+          {planAllows('autoAnalysis') && (
+            <button
+              onClick={() => setReplan({ intent: '', result: null })}
+              title="Let a model choose what this dashboard shows"
+              className="flex items-center gap-2 rounded-lg border border-accent-500/25 bg-accent-500/[0.06] min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-accent-300 transition-colors hover:bg-accent-500/15"
+            >
+              <Wand2 size={13} /> Re-plan with AI
+            </button>
+          )}
           <button
             onClick={() => setBuilding(true)}
             className="flex items-center gap-2 rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
@@ -585,6 +605,30 @@ export default function DashboardPage() {
           datasetName={dataset?.fileName}
           rowCount={dataset?.rowCount}
           onClose={() => setSaving(false)}
+        />
+      )}
+
+      {replan && (
+        <ReplanDialog
+          state={replan}
+          busy={replanning}
+          onIntent={(intent) => setReplan((r) => ({ ...r, intent }))}
+          onRun={async () => {
+            setReplanning(true);
+            try {
+              const outcome = await replanWithModel({ intent: replan.intent });
+              setReplan((r) => ({ ...r, result: outcome }));
+            } catch (e) {
+              setReplan((r) => ({ ...r, result: { planned: 0, reason: e.message } }));
+            } finally {
+              setReplanning(false);
+            }
+          }}
+          onRestore={(previous) => {
+            restoreBoard(previous);
+            setReplan(null);
+          }}
+          onClose={() => setReplan(null)}
         />
       )}
 
