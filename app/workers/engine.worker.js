@@ -1243,7 +1243,7 @@ function sourceRows() {
   return out;
 }
 
-function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includeVoid = false }) {
+function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includeVoid = false, purpose = null }) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
@@ -1270,6 +1270,10 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
     // planning for the same reason as the unit claims: it decides which ROWS
     // are summed, and every figure below inherits the answer.
     voidClaim,
+    // What the table is for, settled before planning because it decides what
+    // is worth charting at all. Null when no provider answered, which leaves
+    // the statistical ranking this planner has always used.
+    purpose,
     // Whether the reader asked for the void rows back. Default false: the
     // narrower total is the one that is what its name says.
     includeVoid,
@@ -1294,6 +1298,7 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
     profile: state.viewProfile,
     claims,
     voidClaim,
+    purpose,
     includeVoid,
     confidence: state.metrics?.confidence || null,
   };
@@ -1395,6 +1400,11 @@ function refilter(id, { specs = [], filters = [] } = {}) {
       provenance: context.provenance || {},
       roles: context.roles || {},
       claims: context.claims || null,
+      // What the table is for, from the analysis that planned this board. A
+      // filter narrows the rows; it does not change what the file is about, and
+      // re-deciding it here would let a click swap the cards out from under the
+      // charts they sit above.
+      purpose: context.purpose || null,
       // The shape of the whole table, deliberately: see above.
       profile: context.profile || null,
     });
