@@ -140,21 +140,33 @@ export default function NotificationBell({ onNavigate }) {
     };
   }, [open]);
 
+  /**
+   * Open or close the menu, and treat opening it as having read the list.
+   *
+   * The work happens here and not inside a `setOpen` updater, which is where it
+   * used to live. A state updater has to be a pure function of the previous
+   * state: React is free to call it more than once for a single update, and the
+   * POST and the two `setState` calls that were in there would have gone twice.
+   * Nothing had misbehaved yet only because `reactStrictMode` is off — which is
+   * a setting, not a guarantee.
+   *
+   * `open` is safe to read directly because this is an event handler: it runs
+   * after the render that produced it, so the value is the one the person
+   * clicked.
+   */
   const toggle = useCallback(() => {
     if (buttonRef.current) setPlace(placeMenu(buttonRef.current));
-    setOpen((was) => {
-      const next = !was;
-      if (next && unread > 0) {
-        // Cleared here rather than when the request comes back: a badge that
-        // survives the click that dismissed it looks broken.
-        setUnread(0);
-        const now = new Date().toISOString();
-        setSeenAt(now);
-        fetch('/api/notifications', { method: 'POST' }).catch(() => {});
-      }
-      return next;
-    });
-  }, [unread]);
+    const opening = !open;
+    setOpen(opening);
+
+    if (opening && unread > 0) {
+      // Cleared now rather than when the request comes back: a badge that
+      // survives the click that dismissed it looks broken.
+      setUnread(0);
+      setSeenAt(new Date().toISOString());
+      fetch('/api/notifications', { method: 'POST' }).catch(() => {});
+    }
+  }, [open, unread]);
 
   const badge = badgeLabel(unread);
 

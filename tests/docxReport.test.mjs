@@ -154,6 +154,43 @@ test('draws a bar chart out of shaded cells, scaled to the largest value', async
   assert.match(text, /North/);
 });
 
+test('zero draws no bar, and only zero', async () => {
+  const chart = (rows) => ({
+    ...analysis,
+    storyboard: [
+      {
+        ...analysis.storyboard[0],
+        chart: { chart_type: 'bar', xAxisKey: 'k', yAxisKey: 'v', resultData: rows },
+      },
+    ],
+  });
+  const fills = (xml) =>
+    [...xml.matchAll(/w:fill="(0E9F8E|E05252|F1F3F5)"/g)].map(
+      (m) => ({ '0E9F8E': 'accent', E05252: 'red', F1F3F5: 'track' })[m[1]]
+    );
+
+  // A zero beside a positive: one bar, one empty track. The floor that keeps a
+  // tiny value visible must not put a millimetre of colour next to the number
+  // 0 — somebody reading the picture rather than the column would see a
+  // category that has some of something.
+  const mixed = await openDocx(await renderAnalysisDocx(chart([{ k: 'a', v: 1000 }, { k: 'b', v: 0 }])));
+  assert.deepEqual(fills(mixed.xml), ['accent', 'track']);
+
+  // Everything zero: nothing is drawn at all, rather than a row of equal stubs
+  // implying the categories are level.
+  const flat = await openDocx(await renderAnalysisDocx(chart([{ k: 'a', v: 0 }, { k: 'b', v: 0 }])));
+  assert.deepEqual(fills(flat.xml), ['track', 'track']);
+
+  // But a value too small to round up to a visible width still gets the floor,
+  // which is what the floor is for.
+  const tiny = await openDocx(await renderAnalysisDocx(chart([{ k: 'a', v: 1000000 }, { k: 'b', v: 1 }])));
+  assert.deepEqual(fills(tiny.xml), ['accent', 'accent', 'track']);
+  assert.ok(
+    barWidths(tiny.xml).some((b) => b.filled === 60),
+    'the tiny value lost its minimum bar'
+  );
+});
+
 test('shows a scatter as its numbers rather than as bars', async () => {
   const scatter = {
     ...analysis,
