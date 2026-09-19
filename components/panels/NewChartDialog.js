@@ -19,6 +19,8 @@
  * asked for.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { detectDenomination } from '../../lib/measureUnits';
+import { honestAggregate } from '../../lib/measureSemantics';
 import { AlertTriangle, BarChart3, Loader2, Plus, X } from 'lucide-react';
 import { formatSql } from '../../lib/sqlFormat';
 import { recommendCharts } from '../../lib/chartAdvisor';
@@ -49,24 +51,112 @@ const selectClass =
  * a column called `site` holds countries often enough that refusing it would be
  * worse than pre-selecting the wrong one.
  */
-function pickDimension({ prefer }, { dimensions, temporal, taken }) {
-  const free = dimensions.filter((d) => !taken.includes(d));
-  const pool = free.length ? free : dimensions;
-  if (prefer === 'geo') return pool.find(looksGeographic) || pool[0] || '';
-  if (prefer === 'time') return pool.find((d) => temporal.includes(d)) || pool[0] || '';
-  return pool[0] || '';
+/**
+ * Can this column be grouped by, or would it make a chart of one bar?
+ *
+ * A column with a single value across every row — a stamp saying when the file
+ * was collected, a region every row shares — is a perfectly good column and a
+ * useless axis: grouping by it puts everything in one bucket. A column with a
+ * distinct value in nearly every row is the opposite failure, a chart with one
+ * bar per row. Both were being offered as the default, because the default was
+ * "whichever column happened to be first".
+ */
+function groupable(column, cardinality, rowCount) {
+  const n = cardinality?.[column];
+  if (!Number.isFinite(n)) return true; // unknown: let the reader judge
+  if (n <= 1) return false;
+  return !(rowCount > 0 && n >= rowCount * 0.9);
 }
 
-/** A starting choice for one measure slot: a real column when there is one. */
-function pickMeasure(index, measures) {
+function pickDimension({ prefer }, { dimensions, temporal, taken, cardinality, rowCount }) {
+  const free = dimensions.filter((d) => !taken.includes(d));
+  const pool = free.length ? free : dimensions;
+  // Anything that would group sensibly comes first; the rest stay available as
+  // a fallback, because a bad axis a reader can see and change beats an empty
+  // form they have to fill in from scratch.
+  const good = pool.filter((d) => groupable(d, cardinality, rowCount));
+  const ranked = good.length ? good : pool;
+  if (prefer === 'geo') return ranked.find(looksGeographic) || ranked[0] || '';
+  if (prefer === 'time') return ranked.find((d) => temporal.includes(d)) || ranked[0] || '';
+  return ranked[0] || '';
+}
+
+/**
+ * A starting choice for one measure slot.
+ *
+ * Two things the old version got wrong, and both of them shipped a query that
+ * was arithmetic nobody asked for.
+ *
+ * **It always chose SUM.** On a table of prices and scores, summing is a
+ * category error — a total of four plan prices is not a price of anything. The
+ * aggregate now follows the column's own name, through the same rule the
+ * dashboard uses.
+ *
+ * **It ignored the unit.** The engine already works out which columns are not
+ * in a common unit and refuses to aggregate them anywhere else in the app —
+ * and this form was seeding `SUM` on exactly those, which is the one aggregate
+ * the app has decided is meaningless. They are skipped when something else is
+ * available.
+ */
+/**
+ * A position in a list, not a quantity. Adding these up means nothing.
+ *
+ * Narrow on purpose: `index` is left out because "Intelligence Index" is a
+ * score somebody wants charted, while "Plan Rank" is the order the plans come
+ * in.
+ */
+const ORDINAL_RE = /(^|[\s_-])(rank|position|order|seq|sequence|step|level|tier)([\s_-]|$)/i;
+
+/** The money-ish names people reach for first when they chart a table. */
+const HEADLINE_RE = /(price|cost|revenue|amount|value|spend|charge|total|score|index|rate)/i;
+
+/**
+ * Which measure to offer first.
+ *
+ * It used to be whichever column came first in the file, which on a table
+ * whose first numeric column is an ordinal produced `SUM(Plan Rank)` — a
+ * total of positions in a list. Column order in a CSV says nothing about what
+ * anybody wants to see, so it is ranked instead: something a reader would
+ * actually chart, never a unit-less mix, never an ordinal if there is any
+ * alternative.
+ */
+function rankMeasures(measures, denominated) {
+  const score = (m) => {
+    let s = 0;
+    if (denominated.has(m)) s -= 4;
+    if (ORDINAL_RE.test(m)) s -= 2;
+    if (HEADLINE_RE.test(m)) s += 1;
+    return s;
+  };
+  return [...measures].sort((a, b) => score(b) - score(a));
+}
+
+function pickMeasure(index, measures, denominated = new Set()) {
   if (!measures.length) return { aggregate: 'COUNT', column: '', measureId: null };
-  return { aggregate: 'SUM', column: measures[Math.min(index, measures.length - 1)], measureId: null };
+  const pool = rankMeasures(measures, denominated);
+  const column = pool[Math.min(index, pool.length - 1)];
+  return { aggregate: honestAggregate(column), column, measureId: null };
 }
 
 export default function NewChartDialog({ profile, columns = [], customMeasures = [], sample = [], onCreate, onClose }) {
   const dimensions = useMemo(() => profile?.dimensions || [], [profile]);
   const measures = useMemo(() => profile?.measures || [], [profile]);
   const temporal = useMemo(() => profile?.temporal || [], [profile]);
+  const cardinality = useMemo(() => profile?.cardinality || {}, [profile]);
+  const rowCount = useMemo(() => Number(profile?.rowCount) || 0, [profile]);
+
+  /**
+   * The columns the engine has already decided must never be combined.
+   *
+   * A table carrying its own unit column — two currencies, two units of
+   * measure — has measures whose rows are not the same quantity, and the
+   * dashboard says so and refuses to total them. This form was seeding those
+   * very columns with `SUM`. Same rule, same source, one place.
+   */
+  const denominated = useMemo(
+    () => new Set(Object.keys(detectDenomination({ profile, cardinality }))),
+    [profile, cardinality]
+  );
 
   const [chartType, setChartType] = useState('bar');
   const [dims, setDims] = useState({});
@@ -147,7 +237,7 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
           ? (kept && dimensions.includes(kept) && !taken.includes(kept) ? kept : '')
           : kept && dimensions.includes(kept) && !taken.includes(kept)
             ? kept
-            : pickDimension(slot, { dimensions, temporal, taken });
+            : pickDimension(slot, { dimensions, temporal, taken, cardinality, rowCount });
         next[slot.key] = value;
         if (value) taken.push(value);
       }
@@ -157,13 +247,13 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
       const next = {};
       req.measures.forEach((slot, i) => {
         if (slot.fixed) return;
-        next[slot.key] = current[slot.key] || pickMeasure(i, measures);
+        next[slot.key] = current[slot.key] || pickMeasure(i, measures, denominated);
       });
       return next;
     });
     setLimit(req.limit?.preset ?? null);
     setSort('value-desc');
-  }, [chartType, dimensions, measures, temporal]);
+  }, [chartType, dimensions, measures, temporal, denominated, cardinality, rowCount]);
 
   const { spec: builtSpec, error: specError } = useMemo(
     () =>
@@ -259,8 +349,41 @@ export default function NewChartDialog({ profile, columns = [], customMeasures =
         list.push('Two of the measures are the same calculation, so the chart plots one number against itself.');
       }
     }
+
+    /*
+     * A measure the table itself says is not one quantity.
+     *
+     * The dashboard refuses to total these and explains why; saying nothing
+     * here meant a reader could build the one chart the rest of the app has
+     * already decided is meaningless, and it would look exactly like every
+     * other chart. It is a warning rather than a block: the reader can see the
+     * column and may know something the file does not say.
+     */
+    for (const slot of requirement.measures) {
+      const chosen = vals[slot.key];
+      if (!chosen?.column || chosen.measureId || chosen.aggregate === 'COUNT') continue;
+      if (!denominated.has(chosen.column)) continue;
+      list.push(
+        `“${pretty(chosen.column)}” is not in one unit across the rows — this table carries its own ` +
+          `unit column — so ${chosen.aggregate === 'AVG' ? 'averaging' : 'totalling'} it combines ` +
+          'unlike quantities. Use the column that has already been converted, if there is one.'
+      );
+    }
+
+    /* And a group-by that puts every row in the same bucket. */
+    for (const slot of requirement.dimensions) {
+      const chosen = dims[slot.key];
+      if (!chosen || slot.optional) continue;
+      const n = cardinality[chosen];
+      if (Number.isFinite(n) && n <= 1) {
+        list.push(
+          `Every row has the same “${pretty(chosen)}”, so grouping by it gives a chart with one ` +
+            'point on it. Pick a column whose values differ.'
+        );
+      }
+    }
     return list;
-  }, [requirement, dims, vals, temporal, geoCheck, geoColumn]);
+  }, [requirement, dims, vals, temporal, geoCheck, geoColumn, denominated, cardinality]);
 
   // The date axis is grouped by month or year rather than by the individual
   // day. Only offered when the chosen column is actually a date — on anything

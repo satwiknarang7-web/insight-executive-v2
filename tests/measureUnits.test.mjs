@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { detectDenomination } from '../lib/measureUnits.js';
 import { profileColumns } from '../lib/chartResolver.js';
-import { classifyColumns } from '../lib/measureSemantics.js';
+import { classifyColumns, honestAggregate } from '../lib/measureSemantics.js';
 import { planCharts } from '../lib/analystPlanner.js';
 
 const detect = (rows) => {
@@ -104,4 +104,22 @@ test('no chart sums or averages across currencies', () => {
   for (const chart of planCharts(panel(), { max: 10 })) {
     assert.ok(!mixes.test(String(chart.sql || '')), `chart "${chart.title}" combines currencies`);
   }
+});
+
+test('the only honest aggregate for a column is readable from its name', () => {
+  // The chart builder seeds a form before anything is known about the table,
+  // so it judges from the name — the same line `classifyColumns` draws, shared
+  // rather than copied.
+  assert.equal(honestAggregate('Monthly Price USD'), 'AVG', 'a price is not a quantity to add up');
+  assert.equal(honestAggregate('Intelligence Index'), 'AVG');
+  assert.equal(honestAggregate('Agentic Coding Score'), 'AVG');
+  assert.equal(honestAggregate('Churn Rate'), 'AVG');
+  assert.equal(honestAggregate('Average Tenure Months'), 'AVG');
+
+  assert.equal(honestAggregate('Min Seats'), 'SUM');
+  assert.equal(honestAggregate('Revenue'), 'SUM');
+  assert.equal(honestAggregate('Units'), 'SUM');
+
+  assert.equal(honestAggregate(''), 'SUM', 'and nothing at all does not throw');
+  assert.equal(honestAggregate(null), 'SUM');
 });
