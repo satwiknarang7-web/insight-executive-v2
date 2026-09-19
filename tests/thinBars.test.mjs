@@ -129,3 +129,45 @@ test('the planner counts the measure, not the rows', async () => {
   assert.match(avg.sql, new RegExp(`COUNT\\(\\[[^\\]]+\\]\\) AS \\[${SUPPORT_KEY}\\]`));
   assert.ok(!/COUNT\(\*\)/.test(avg.sql.slice(avg.sql.indexOf('COUNT'))), 'counted rows instead of values');
 });
+
+test('a category with no values behind it is not drawn at all', async () => {
+  const { liftSupport } = await import('../lib/pipeline.js');
+  const { SUPPORT_KEY } = await import('../lib/aggregateNames.js');
+
+  /* GROUP BY returns a row for every category that exists; AVG over a group
+     whose measure is null on every row returns null. So the results carry a
+     category with no value, and the chart drew it as a bar of nothing.
+
+     On the file this came from, two vendors quote no price and eight of
+     forty-four rows name no flagship model, and "Cursor", "Perplexity" and an
+     empty label were all on the axis. Nobody had noticed, because until the
+     count was carried there was nothing in the result that said so. */
+  const spec = { xAxisKey: 'Provider', yAxisKey: 'Average Price', supportKey: SUPPORT_KEY };
+  const rows = [
+    { Provider: 'OpenAI', 'Average Price': 100, [SUPPORT_KEY]: 5 },
+    { Provider: 'Cursor', 'Average Price': null, [SUPPORT_KEY]: 0 },
+    { Provider: 'Perplexity', [SUPPORT_KEY]: 0 },
+    { Provider: 'Anthropic', 'Average Price': 40, [SUPPORT_KEY]: 3 },
+  ];
+
+  const cleaned = liftSupport(spec, rows);
+  assert.deepEqual(cleaned.map((r) => r.Provider), ['OpenAI', 'Anthropic']);
+  // And the empty groups are not counted against the chart's evidence either:
+  // a bar that is not drawn is not the thinnest bar.
+  assert.equal(spec.support.min, 3);
+  assert.equal(spec.support.byLabel.Cursor, undefined);
+});
+
+test('a real zero is kept, because zero is a value', () => {
+  // The distinction the check turns on. A free plan priced at 0 rests on real
+  // rows and belongs on the chart; only a group with no rows to average goes.
+  return import('../lib/pipeline.js').then(async ({ liftSupport }) => {
+    const { SUPPORT_KEY } = await import('../lib/aggregateNames.js');
+    const spec = { xAxisKey: 'Plan', yAxisKey: 'Average Price', supportKey: SUPPORT_KEY };
+    const cleaned = liftSupport(spec, [
+      { Plan: 'Free', 'Average Price': 0, [SUPPORT_KEY]: 9 },
+      { Plan: 'Pro', 'Average Price': 20, [SUPPORT_KEY]: 4 },
+    ]);
+    assert.deepEqual(cleaned.map((r) => r.Plan), ['Free', 'Pro']);
+  });
+});
