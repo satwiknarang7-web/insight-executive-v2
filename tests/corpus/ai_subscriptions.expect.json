@@ -1,0 +1,37 @@
+{
+  "note": [
+    "A small, wide comparison table — 44 rows, 51 columns, one row per provider x plan.",
+    "It is here for two things the jobs file cannot test: an outcome with only nine",
+    "distinct values (a flat 'fewer than twelve means category' rule rejected it, and",
+    "that rule was wrong), and a table where the honest answer to 'which provider is",
+    "best' is that 44 rows across 12 providers cannot support one. The deck is",
+    "expected to recognise the outcome and still decline to rank on it."
+  ],
+
+  "brief": {
+    "subject": "One row is a paid AI subscription plan from one provider.",
+    "outcomes": [
+      {
+        "column": "Intelligence Index",
+        "kind": "continuous",
+        "high_is_good": true,
+        "why": "the measured capability score the table exists to compare plans on"
+      }
+    ],
+    "roles": {
+      "Provider": "driver",
+      "Monthly Price USD": "attribute",
+      "Plan Name": "attribute"
+    },
+    "questions": ["Which plan gives the most capability per dollar?"]
+  },
+
+  "expect": {
+    "outcome": { "column": "Intelligence Index", "kind": "continuous" },
+    "dropsClaim": {},
+    "kpiMatches": "intelligence index",
+    "chartsMustNotMatch": [],
+    "chartsMustNotPair": [],
+    "withoutBriefMustStillChart": true
+  }
+}

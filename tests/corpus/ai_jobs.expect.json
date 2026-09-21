@@ -1,0 +1,74 @@
+{
+  "note": [
+    "The dataset this whole mechanism was built for. A model's report on it led with",
+    "a histogram of 'Salary Per Experience Year' — Average_Salary divided by",
+    "Years_Experience, two columns whose correlation is 0.017 — and never once",
+    "mentioned automation. Every assertion below is a sentence from that failure."
+  ],
+  "brief": {
+    "subject": "One row is an occupation, scored for how likely it is to be automated by 2030.",
+    "outcomes": [
+      {
+        "column": "Automation_Probability_2030",
+        "kind": "continuous",
+        "high_is_good": false,
+        "why": "the probability the occupation is automated by 2030 — what the file exists to estimate"
+      },
+      {
+        "column": "Risk_Category",
+        "kind": "ordinal",
+        "event": "High",
+        "high_is_good": false,
+        "why": "the banded form of the same probability"
+      }
+    ],
+    "roles": {
+      "Job_Title": "driver",
+      "Education_Level": "driver",
+      "AI_Exposure_Index": "driver",
+      "Average_Salary": "attribute",
+      "Not_A_Real_Column": "driver"
+    },
+    "questions": [
+      "Which occupations are most exposed to automation by 2030?",
+      "Does more education protect against it?"
+    ]
+  },
+  "expect": {
+    "outcome": {
+      "column": "Automation_Probability_2030",
+      "kind": "continuous"
+    },
+    "dropsClaim": {
+      "Risk_Category": "determines",
+      "Not_A_Real_Column": "No column by that name"
+    },
+    "leadChartMatches": "automation probability",
+    "kpiMatches": "automation probability",
+    "chartsMustNotMatch": [
+      "per experience",
+      "salary per"
+    ],
+    "chartsMustNotPair": [
+      [
+        "automation probability",
+        "risk category"
+      ]
+    ],
+    "withoutBriefMustStillChart": true
+  },
+  "ratioGate": [
+    {
+      "note": "The exact measure a model invented and a report led with. Two things are wrong with it and the undefined rows are the first.",
+      "name": "Salary Per Experience Year",
+      "expr": "[Average_Salary] / [Years_Experience]",
+      "rejectedBecause": "zero on some rows"
+    },
+    {
+      "note": "The same fault without the division by zero: salary against a growth factor that never reaches zero and that salary does not track either.",
+      "name": "Salary Per Growth Factor",
+      "expr": "[Average_Salary] / [Tech_Growth_Factor]",
+      "rejectedBecause": "does not track"
+    }
+  ]
+}
