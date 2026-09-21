@@ -289,6 +289,36 @@ function noteExcludedMeasures() {
 }
 
 /**
+ * Say when a column of numbers could not be read as numbers.
+ *
+ * The cleaner refuses a column it cannot read one way — `amount` holding both
+ * `2,345.00` and `1.234,56` has no single comma convention, and guessing is
+ * wrong by a factor of a hundred. The refusal is right and the cleaning page
+ * reports it. What it did not do was stop the column being used: it fell
+ * through to the dimension list and the deck charted "Total Qty by Amount".
+ *
+ * Now the profile withholds it, and this says so where the deck is read,
+ * because a column silently missing from a report is worse than a column the
+ * report explains.
+ */
+function noteUnparsedColumns() {
+  if (!state) return;
+  const unparsed = state.viewProfile?.unparsed || [];
+  if (unparsed.length === 0) return;
+  const named = unparsed.slice(0, 3).join(', ');
+  const more = unparsed.length > 3 ? ` and ${unparsed.length - 3} more` : '';
+  state.notices.push({
+    kind: 'measure-excluded',
+    columns: [...unparsed],
+    message:
+      `${unparsed.length} ${unparsed.length === 1 ? 'column holds' : 'columns hold'} numbers ` +
+      `that could not all be read the same way — ${named}${more}. ` +
+      `${unparsed.length === 1 ? 'It is' : 'They are'} kept out of the charts rather than ` +
+      'measured wrongly; the cleaning report says which values disagreed.',
+  });
+}
+
+/**
  * Say when a quantity column holds values below zero.
  *
  * The cleaner records the count for every numeric column; this decides which of
@@ -892,6 +922,7 @@ async function ingest(id, { files, file, text, fileName, factTable = null }) {
   rebuildView();
 
   noteExcludedMeasures();
+  noteUnparsedColumns();
   noteNegativeAmounts();
   invalidateSearchIndex();
 
@@ -969,6 +1000,7 @@ async function ingestRemote(id, { tables, sourceLabel, factTable = null }) {
   rebuildView();
 
   noteExcludedMeasures();
+  noteUnparsedColumns();
   noteNegativeAmounts();
   invalidateSearchIndex();
 
