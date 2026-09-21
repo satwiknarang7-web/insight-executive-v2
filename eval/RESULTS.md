@@ -193,3 +193,79 @@ instead of padding.
 
 Three of those six are judgement — which column matters, what the table is for
 — and are what a model pass is for. Three are ordinary bugs.
+
+---
+
+# The six remaining defects, fixed — and the deck composer (2026-09-21)
+
+Re-run from a clean build; `eval/app-output/` holds the captures. Zero band
+tautologies and zero page errors across all ten.
+
+| # | KPI strip before the whole exercise | now |
+|---|---|---|
+| 1 | Total Revenue … | unchanged |
+| 2 | Total Monthly Charge | **Churn Rate 20.7%** |
+| 3 | Average Value 1140107.0M | *(no pooled value; counts only, honestly)* |
+| 4 | Average Min Seats 8.8 | Average Monthly Price USD |
+| 5 | Age Band Segments 5 | **Average Q1 Ease** |
+| 6 | Average Reading Ts Hour 11.5 | **Average Temperature C** |
+| 7 | Total Amount … | unchanged |
+| 8 | Average Field 35 217.9 | **Average Score** |
+| 9 | Total Qty … | unchanged, and `amount` no longer charted as a category |
+| 10 | Average Points … | unchanged |
+
+Fixed: unicode minus and en dash read as minus signs; trend grain chosen by
+counting the points each would draw, so a 35-day minute-level series charts by
+day instead of drawing two months and reporting an 88% fall; a column the
+cleaner refused to type is withheld from both lists and said in a notice
+instead of becoming a chart axis; a value column whose typical size differs by
+three orders of magnitude across a key is never pooled; near-uniqueness alone
+no longer makes a continuous measure an identifier; a measure filled on a sixth
+of the rows no longer headlines a file; two charts of the same drawn numbers
+become one; a multiple is not quoted across a change of sign.
+
+Two pre-existing faults surfaced while making those pass, both previously
+masked: `UNIT_COLUMN_RE` matched a column called `units` and withdrew revenue
+from every sum in the deck; and the boolean fold picked its spelling by
+frequency alone, folding a churn column to `Yes` and `0`.
+
+## The deck composer
+
+`lib/deckComposer.js` + `app/api/compose/route.js`. A model is shown the
+schema, what the purpose pass settled, and six whole rows, and returns chart
+specs with their SQL. It runs after the purpose pass and before planning, on a
+20-second deadline.
+
+**The contract is unchanged.** The model chooses the questions; the engine
+computes every answer. A composed chart is executed against the reader's own
+rows by the same engine, resolved by the same resolver, analysed by the same
+insight engine, graded on the same evidence scale, and put past the same
+sceptic and critic. Nothing downstream knows which pass chose a chart.
+
+Three refusals, each tested:
+
+- not a single read-only SELECT — `assertEngineSelect`, shared with `/api/ask`;
+- **a query naming a column the table does not have** — the check `/api/ask`
+  never had, and the one that matters most: a model writing `[Total Revenue]`
+  on a table without one produces a query that fails at runtime or an empty
+  chart under a confident title. Aliases the query defines with `AS` count as
+  known; case and spacing are forgiven;
+- a chart shape this app cannot draw. `canonicalType` answers `bar` for
+  anything it cannot place, which would have drawn a sankey as a bar chart
+  under its own title, so the raw name has to be recognised.
+
+A spec that fails is dropped and the rest are kept, with the reasons returned
+on `skipped`. When nothing survives the result is empty and the planner runs
+exactly as it does today, so a bad answer costs one model call. When something
+does survive, the planner still tops the deck up — a model returning three
+usable charts does not leave a deck of three.
+
+**Untested against a real model.** There is no key in this environment, so the
+route was exercised only through its validation and its no-provider path
+(`{"unavailable":true,"reason":"no_provider"}`), and `runAnalysis` was driven
+with hand-written specs through `acceptDeck`. What a model actually composes,
+and whether it beats the planner on datasets 3, 8 and 9, is the experiment this
+makes possible and has not yet run:
+
+    node eval/analysis-score.mjs     # the planner, as measured above
+    # with a key configured, upload the same ten through the app

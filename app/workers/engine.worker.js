@@ -1277,7 +1277,7 @@ function sourceRows() {
   return out;
 }
 
-function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includeVoid = false, purpose = null }) {
+function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includeVoid = false, purpose = null, composed = [] }) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
@@ -1304,6 +1304,10 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
     // planning for the same reason as the unit claims: it decides which ROWS
     // are summed, and every figure below inherits the answer.
     voidClaim,
+    // Charts a model composed for this table, already checked against its
+    // columns by the route. Empty when no provider answered, which leaves the
+    // planner's deck as the deck. See lib/deckComposer.js.
+    composed,
     // What the table is for, settled before planning because it decides what
     // is worth charting at all. Null when no provider answered, which leaves
     // the statistical ranking this planner has always used.
