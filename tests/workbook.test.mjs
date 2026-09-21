@@ -178,3 +178,35 @@ test('a real workbook round-trips into one entry per usable sheet', () => {
   // A prose tab is reported, not silently discarded.
   assert.deepEqual(skipped, [{ sheetName: 'Read Me', reason: 'no table found on this sheet' }]);
 });
+
+test('a header is still a header when one of its columns is empty all the way down', () => {
+  /* The bonus for "the table continues below this row" was measured on FILLED
+     cells. A header that names a column which is blank in every data row is
+     wider, in filled cells, than any row beneath it — so it lost the bonus and
+     the first data row won it instead.
+
+     Combined with a title line above the header, which finance and BI exports
+     always carry, the consequence was total: `skipPreamble` refused to cut
+     anything, Papa took the title as the header, and the whole file parsed into
+     a single column named after the report. An always-empty column is ordinary
+     in an export, and it is evidence FOR a row being the header. */
+  const grid = [
+    ['Quarterly Extract', '', '', '', ''],
+    ['Generated 2026-09-21', '', '', '', ''],
+    ['', '', '', '', ''],
+    ['item', 'region', 'amount', 'opened', 'all_empty'],
+    ['Item 0', 'north', 100, '2026-01-01', ''],
+    ['Item 1', 'south', 200, '2026-01-02', ''],
+    ['Item 2', 'north', 300, '2026-01-03', ''],
+  ];
+  assert.equal(findHeaderRow(grid), 3);
+});
+
+test('and the preamble above it is actually cut', async () => {
+  const { skipPreamble } = await import('../lib/ingest/delimited.js');
+  const body = Array.from({ length: 8 }, (_, i) => `Item ${i},north,100.00,2026-01-0${i + 1},`).join('\n');
+  const text = `Quarterly Extract\nGenerated 2026-09-21\n\nitem,region,amount,opened,all_empty\n${body}\n`;
+  const cut = skipPreamble(text);
+  assert.equal(cut.skipped, 3);
+  assert.equal(cut.text.split('\n')[0], 'item,region,amount,opened,all_empty');
+});

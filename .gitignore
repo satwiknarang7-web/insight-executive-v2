@@ -33,3 +33,9 @@ supabase/.temp/
 # next dev run recreate them, so they are ignored rather than committed.
 AGENTS.md
 CLAUDE.md
+
+# The ten-dataset evaluation's generated inputs and captured app output.
+# `node eval/datasets.mjs` rebuilds the CSVs byte-for-byte; the captures are
+# large and reproducible, so only the harness and the write-up are tracked.
+eval/data/
+eval/app-output/
