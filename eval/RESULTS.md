@@ -142,3 +142,54 @@ dimension, and the analysis then does the only thing it can with a dimension:
 count rows by it.
 
 The fourth is judgement rather than typing: what a table is *for*.
+
+---
+
+# After the fixes — same ten datasets, same method (2026-09-21)
+
+Seven defects fixed. Every figure below is the built app again, re-run from a
+clean build; `eval/app-output/` holds the captures.
+
+**Transformation: 31 → 34 of 39.**
+
+| fix | effect |
+|---|---|
+| Fold the spellings of a boolean | `churned` went from eight levels to two, so the outcome detector fires. **The KPI strip now leads with "Churn Rate 20.7%"** — the figure that was never computed — and "Churn Rate by Contract Type" is the first chart at strong evidence: Month-to-month 37.2%, 1.9× the average. Applied only when *every* non-blank value is a true/false token, so Yes/No/Maybe is untouched. |
+| Read a declined answer as missing | "Prefer not to say" and twelve siblings join `n/a`. The survey went from **zero measures to ten**; the strip reads "Average Q1 Ease 2.8" and the deck reports mean scores by age band and by status instead of counting respondents per Likert level. |
+
+**Analysis: 3 good → 6, and four wrong → two.**
+
+| fix | effect |
+|---|---|
+| Never aggregate a measure over bands of itself | **All five band tautologies gone, across all ten datasets.** "Total Revenue by Revenue Band" and its kin no longer exist. A histogram — *count* by band — is untouched, and so is "Average Discount Pct by Revenue Band", which is a real question. |
+| A name hint needs the values to back it up | `Monthly Charge Band` matched `TEMPORAL_KEY_RE` on the word "month" and became the time axis, so the deck carried "Total Monthly Charge **Trend** Over Monthly Charge Band" and a waterfall of what moved it between bands. A date hint now needs one value that reads as a date. |
+| An hour pulled from a timestamp is a label | The sensor stream's headline was "Average Reading Ts Hour 11.5" — the mean hour of the day. It now reads **"Average Temperature C"**, and the deck charts temperature against humidity. Matched on the prefix naming a column that exists, so a reader's own "Delivery Hour" is still a measure. |
+| A grouping column is the label, whatever its type | The same scatter's title said temperature and its sentence said "Reading Ts Hour and Average Humidity Pct show a **strong** negative relationship (r = -0.79)". `extractSeries` wanted a string for its label, found none, took the x measure instead and left the grouping column looking like a measure. It now reads "Average Temperature C and Average Humidity Pct line up loosely (r = -0.22) … within what chance produces" — the right pair, the right number, honestly qualified. |
+| `isAnomaly` is not data | The cleaner's outlier flag is set only on outlier rows and the column list is read from `rows[0]`, so it became a chartable dimension when row 0 happened to be an outlier. Excluded in the profile, as `lib/dataModel.js` already did. |
+
+Dataset 10 went from three charts to two, which is correct: the chart removed
+was the tautology, and it had scored *well* — a tautology has perfect signal by
+construction. What is left genuinely says little, and the deck now says so
+instead of padding.
+
+## What is still wrong
+
+- **Dataset 3.** "GDP (current LCU) leads indicators on average value at 4560B"
+  — GDP averaged against life expectancy, still badged STRONG EVIDENCE. A long
+  panel needs the value column split by its unit column, which `FILTER` or
+  `UNPIVOT` can do and no rule asks for.
+- **Dataset 8.** "Average Field 35" is still the headline of a 58-column file.
+  An arbitrary pick among 53 statistically equivalent columns; nothing in the
+  data says which one matters.
+- **Dataset 9.** `amount` is still a dimension, because it holds both comma
+  conventions and the cleaner refuses to guess. The refusal is right and it is
+  reported on the cleaning page; the deck still contains no money and nothing
+  beside the deck says why.
+- **Dataset 6.** A 35-day minute-level series still buckets to month, draws two
+  points and reports an 88% fall. There is no branch below a month.
+- **Dataset 7.** "Units per Order by Txn Type" and "Average Qty by Txn Type"
+  are the same chart twice, and 3.5 against −0.73 prints as "4.7×".
+- Unicode minus (`−567.89`, U+2212) is still not read as a number.
+
+Three of those six are judgement — which column matters, what the table is for
+— and are what a model pass is for. Three are ordinary bugs.
