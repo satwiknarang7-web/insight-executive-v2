@@ -4,8 +4,16 @@ Upload a CSV, get an analysis you can defend. Insight profiles your data, builds
 the charts an analyst would build, computes every statistic itself, and shows you
 the query behind each claim.
 
-Everything — parsing, cleaning, SQL, statistics — runs in your browser. Rows never
-leave the device.
+Everything — parsing, cleaning, SQL, statistics — runs in your browser. Every
+number in a report is computed on your own device from your own rows.
+
+When a model provider is configured, a **summary** of the table goes out and is
+used to decide what the report is *about*: the column names, each column's
+distinct values or numeric range, and twenty whole rows taken at a stride
+through the file. Nothing else leaves, no figure is ever computed from it, and
+everything it comes back with is re-checked against the rows before it can
+affect a chart — see "What the dataset is about" below. With no provider
+configured nothing leaves at all.
 
 ## How it works
 
@@ -28,9 +36,11 @@ CSV file
   UI (charts, tables, report)              /api/narrate — an LLM rephrases them
 ```
 
-The language model never sees your rows and never produces a number. It receives
-already-computed findings and returns better wording. **With no API key configured
-the app works completely** — it just uses the deterministic prose instead.
+The language model never produces a number. It receives already-computed
+findings and returns better wording, and — before planning — it is asked what
+the table is a record of, which is checked against the rows before it is
+believed. **With no API key configured the app works completely**: deterministic
+prose, and the chart playbook alone deciding what to lead with.
 
 ### Choosing the charts
 
@@ -66,14 +76,17 @@ and histogram bands are sized by Freedman–Diaconis rather than fixed at four.
 measures whether a candidate has anything to say. `chartAdvisor` answers the
 third question: given these result rows, what shape are they?
 
-The rule that governs it is that **nothing reads a column name**. Not to find
-the date column, not to find the geography, not to decide what is a measure. A
-file whose columns are called `f1`…`f7`, or are in Turkish, or are the twelve
-months written in Japanese, is read the same way as one with English headers,
-because the evidence is in the values either way — and a lexicon of English
-nouns is a list of the conventions somebody happened to remember. A test reads
-the module's own regular expressions and fails if any of them contains a word
-like `date` or `revenue`.
+The rule that governs it is that **nothing here reads a column name**. Not to
+find the date column, not to find the geography, not to decide what is a
+measure. A file whose columns are called `f1`…`f7`, or are in Turkish, or are
+the twelve months written in Japanese, is read the same way as one with English
+headers, because the evidence is in the values either way — and a lexicon of
+English nouns is a list of the conventions somebody happened to remember. A test
+reads the module's own regular expressions and fails if any of them contains a
+word like `date` or `revenue`.
+
+The rule held everywhere except the one decision it mattered most for, which is
+covered in the next section.
 
 What it reads, and what follows:
 
@@ -94,6 +107,68 @@ Every recommendation carries the sentence that earned it, and the chart dialog
 shows them against the query's real results — so a person building a chart by
 hand is told what their own rows support, and can disagree with a reason rather
 than with a black box.
+
+### What the dataset is about
+
+Everything above reasons about *shape*: which column can be summed, which has
+the widest spread, which dimension reads legibly as bars. None of it can tell a
+dependent variable from an attribute — and that is the difference between a
+report about your data and a report about nothing.
+
+It used to be answered by a list of about forty English nouns in
+`measureSemantics.js` — `churn`, `medal`, `fraud`, `readmitted` — matched
+against column names. A file of occupations carrying
+`Automation_Probability_2030` matched none of them, so the analysis had no
+dependent variable, so every column was interchangeable with every other, and
+the deck led with a record count by whichever category happened to read best.
+Every figure in it was correct. It was a report about nothing, and lengthening
+the list fixes that file and not the next one.
+
+So `/api/semantics` now also asks a model what the table is a record of, and
+`lib/datasetBrief.js` **believes none of the answer**. Every claim is re-derived
+from the rows before it can reach the planner:
+
+| The model says | What has to be true of the rows |
+| --- | --- |
+| this column is the outcome | it exists, under any spelling of its name |
+| it is binary / continuous / ordinal | the values have that shape, at this row count |
+| — | nothing else in the table *determines* it |
+| this level is the event | the column actually holds that value |
+| this column is a driver | it measurably moves the outcome, by the statistic that fits the pair |
+
+A claim that fails is dropped with its reason, and a brief that loses every
+claim is the same object as no brief at all — so no provider, no key, a timeout
+or a model talking nonsense all degrade to the behaviour that shipped before it.
+
+The outcome then drives the deck, in the four shapes datasets actually record
+one: a flag's rate, a probability's mean, the share sitting at an ordinal's
+severe end, the share of a named class. `outcomeAggregate` writes the SQL, the
+label and the number format together, because on a continuous outcome a mean
+labelled "Rate" on a percentage axis is three bugs that raise no error.
+
+Two guards travel with it. A column computed by **banding** another — a
+`Risk_Category` of Low/Medium/High cut from a probability — is refused as a
+breakdown of the column it came from, because that chart is a definition with
+bars around it and it arrives tagged as strong evidence. And a **ratio a model
+invents** is measured before it becomes a column: one report led with
+"Salary Per Experience Year", whose two columns correlate at 0.017, making the
+quotient a measure of how small the denominator happened to be. A formula
+somebody typed is never second-guessed; only what a model volunteered.
+
+### Is the report about the dataset?
+
+`tests/corpus.test.mjs` is the test that could have caught the failure above,
+and the unit tests could not. Each `tests/corpus/<name>.csv` sits beside a
+`<name>.expect.json` saying what a correct report on it must contain, must not
+contain, and must refuse — including the specific wrong charts that shipped. No
+model is called: the expectation carries the brief a correct one would return,
+so what is under test is that a right brief produces a right report, a wrong
+claim inside it is caught, and no brief at all still produces a deck.
+
+When a report comes out wrong on a new file, the file goes in the corpus, the
+expectation describes the report it should have produced, and the engine gets
+fixed rather than the expectation. That is what stops this being solved one
+dataset at a time.
 
 ### Writing the findings
 

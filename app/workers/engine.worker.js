@@ -36,6 +36,8 @@ import {
 } from '../../lib/pipeline.js';
 import { planKpis } from '../../lib/analystPlanner.js';
 import { filterWhere } from '../../lib/filters.js';
+import { acceptBrief } from '../../lib/datasetBrief.js';
+import { gateRatios } from '../../lib/preparation.js';
 import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
@@ -1208,7 +1210,26 @@ function setTransforms(id, { transforms = [] }) {
   }
 
   const previous = state.transforms || [];
-  state.transforms = Array.isArray(transforms) ? transforms : [];
+  const requested = Array.isArray(transforms) ? transforms : [];
+
+  /**
+   * A ratio a model invented, judged against the rows before it becomes a
+   * column.
+   *
+   * `acceptSteps` already checked that the formula parses and names real
+   * columns. That is grammar, and grammar accepts `Average_Salary /
+   * Years_Experience` — two real numeric columns whose correlation is 0.017,
+   * making the quotient a measure of how small the denominator happened to be.
+   * It opened a report as a histogram and filled the next slide as a
+   * correlation.
+   *
+   * This is the first point in the pipeline that has both the proposal and the
+   * rows, so it is where the question can be asked at all. Only model-authored
+   * steps are examined; a formula somebody typed is theirs and is never second-
+   * guessed.
+   */
+  const { steps: allowed, skipped: unsupported } = gateRatios(requested, state.view?.rows || []);
+  state.transforms = allowed;
 
   try {
     rebuildView();
@@ -1221,7 +1242,15 @@ function setTransforms(id, { transforms = [] }) {
     return;
   }
 
-  reply(id, 'transformed', { ...summary(), transforms: state.transforms, ...state.transformPlan });
+  reply(id, 'transformed', {
+    ...summary(),
+    transforms: state.transforms,
+    ...state.transformPlan,
+    // Said out loud rather than dropped quietly: a step the model proposed and
+    // the rows refused belongs in the cleaning report beside everything else
+    // that was decided on the way in.
+    unsupported,
+  });
 }
 
 function setModel(id, { factTable = null, relationships = null }) {
@@ -1277,12 +1306,38 @@ function sourceRows() {
   return out;
 }
 
-function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includeVoid = false, purpose = null, composed = [] }) {
+function analyze(
+  id,
+  {
+    focus,
+    maxCharts,
+    claims = null,
+    voidClaim = null,
+    includeVoid = false,
+    purpose = null,
+    composed = [],
+    briefProposal = null,
+  }
+) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
   }
   plan(id, ANALYZE);
+
+  /**
+   * What the dataset is about, verified here because here is where the rows are.
+   *
+   * `/api/semantics` asked a model and returned a proposal. It could not check
+   * it: the rows never leave this worker, which is the whole arrangement. So the
+   * gate runs on this side, against the real values, and the planner receives
+   * only the claims that survived — or nothing, which is the behaviour that
+   * shipped before briefs existed.
+   */
+  const brief = briefProposal
+    ? acceptBrief(briefProposal, { rows: state.view.rows, profile: state.viewProfile })
+    : null;
+
   const result = runAnalysis(state.view.rows, {
     focus,
     maxCharts,
@@ -1319,6 +1374,10 @@ function analyze(id, { focus, maxCharts, claims = null, voidClaim = null, includ
     // inferred values is only as good as the inference, and the evidence tier
     // is where that gets said.
     confidence: state.metrics?.confidence || null,
+    // The subject, the dependent variable and the column roles — every one of
+    // them re-derived from these rows a few lines above. Null where no model
+    // answered or nothing it said survived.
+    brief,
     onProgress: ({ stage, percent }) => progress(id, stage, percent),
   });
   // What the analysis decided, kept for the filter pass.
