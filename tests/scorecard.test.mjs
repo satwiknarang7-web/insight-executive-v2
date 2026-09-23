@@ -10,13 +10,14 @@ import { RULES } from '../eval/audit.mjs';
 
 /* The scorecard as a ratchet.
  *
- * `eval/scorecard.mjs` measures two things on every corpus file and every fuzz
- * table: which of the file's questions the report answers, and how many times
- * it breaks one of the rules in `eval/audit.mjs`. `eval/scorecard.baseline.json`
- * is the last measurement someone accepted.
+ * `eval/scorecard.mjs` measures three things on every corpus file and every
+ * fuzz table: which of the file's questions the report answers, how many times
+ * it breaks one of the rules in `eval/audit.mjs`, and where `lib/tableModel.js`
+ * misreads the table. `eval/scorecard.baseline.json` is the last measurement
+ * someone accepted.
  *
- * This fails when the engine gets worse on either — a question that used to be
- * answered no longer is, or a rule is broken more often — and ALSO when it gets
+ * This fails when the engine gets worse on any — a question that used to be
+ * answered no longer is, a rule is broken more often, a table is misread — and ALSO when it gets
  * better without the baseline being moved. The second is what makes it a
  * ratchet: a gain nobody locked in is a gain the next change can quietly give
  * back. Either way the fix is one command:
@@ -47,7 +48,14 @@ function compare(group) {
       worse.push(`${name} is no longer scored`);
       continue;
     }
-    for (const p of new Set([...Object.keys(now[name]), ...Object.keys(then[name])])) {
+    // How the table model read the table: a miss it did not have is worse,
+    // a miss it no longer has is better.
+    const was = then[name].model?.misses || [];
+    const is = now[name].model?.misses || [];
+    for (const m of is) if (!was.includes(m)) worse.push(`${name} · table model: ${m}`);
+    for (const m of was) if (!is.includes(m)) better.push(`${name} · table model no longer: ${m}`);
+
+    for (const p of new Set([...Object.keys(now[name]), ...Object.keys(then[name])].filter((k) => k !== 'model'))) {
       const a = then[name][p];
       const b = now[name][p];
       const where = `${name} · ${p}`;
@@ -99,6 +107,7 @@ for (const file of fs.readdirSync(CORPUS).filter((f) => f.endsWith('.csv')).sort
     const named = [
       report.time,
       ...(report.outcomes || []),
+      ...(report.additive || []),
       ...Object.keys(report.measures || {}),
       ...Object.values(report.measures || {}).flatMap((m) => [...(m.scope || []), ...(m.noSumAcross || [])]),
       report.long?.value,

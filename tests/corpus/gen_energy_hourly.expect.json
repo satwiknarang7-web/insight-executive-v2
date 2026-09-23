@@ -3,7 +3,7 @@
     "Two weeks of hourly readings. A monthly bucket draws one point."
   ],
   "report": {
-    "grain": "event",
+    "grain": "entityPeriod",
     "time": "timestamp",
     "measures": {
       "temperature_c": {
@@ -51,6 +51,9 @@
           ]
         ]
       }
+    ],
+    "additive": [
+      "kwh"
     ]
   }
 }

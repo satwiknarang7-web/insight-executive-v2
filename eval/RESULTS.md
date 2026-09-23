@@ -378,3 +378,60 @@ another machine and wrote into a directory it never created, so it could not
 run from a fresh checkout. It now reads `tests/corpus/ai_subscriptions.csv`
 and creates `eval/data/`; CI regenerates the corpus and fails if the committed
 files differ from what the generators produce.
+
+---
+
+# Phase 1 — the table model (2026-09-23)
+
+`lib/tableModel.js` reads a table once and says what it is: its grain, which
+file is long and by what, and for every measure whether it may be summed,
+whether it is a level that must not be summed across time, the columns it is
+only comparable within, and whether one row decides its average. Nothing
+reads it yet — phase 2's chart compilers are built on it — but it is scored
+now, against the same hand-written truth as the reports.
+
+| | tables read correctly |
+|---|---|
+| corpus | **29 / 29** |
+| fuzz | **40 / 40** |
+
+"Correctly" means grain, long format, every scope, every never-summed measure
+and every level the truth names, and no scope, level or summing ban the truth
+does not have — including on the flows each file lists as `additive`, so a
+model that forbade summing revenue would fail.
+
+What reading it took, as general rules rather than per-file fixes:
+
+- **Grain from identity, not names.** A unique column or pair with no time is a
+  table of entities; a dense (thing × period) key is a panel; a unique id with
+  a timestamp is an event log. Sparse (rep × date) pairs are not a panel — the
+  test is density, not uniqueness, which a 479-row order file passes by chance.
+- **Long tables by structure plus one of two signs.** Fully crossed on a column
+  whose levels either differ a hundredfold in size (GDP beside life
+  expectancy) or name a quantity or version (Budget, Actual). Scale alone at
+  tenfold would call a sales panel long, because laptops outsell pens.
+- **Currency by conversion.** `price_local / price_usd` fixed inside each
+  currency and an order of magnitude apart between them. Four false readings
+  had to be closed, each now a test: a provider that quotes in one currency
+  shows the same fixed ratio (keep the coarsest column); two benchmark scores
+  fixed per model have a fixed ratio with nothing converted (the values must
+  move inside a level); price per benchmark point is a derived ratio (the
+  local column has to swing tenfold and three times its partner); and storage
+  grows tenfold with a buyer unit without being denominated in it (money only).
+- **Levels by carry-over.** A stock-like name is a candidate; it is a level
+  only if each period carries the last one over (lag correlation above 0.5).
+  `stock_received` is a flow.
+
+Every rule was checked by mutation: disable it, and a test in
+`tests/tableModel.test.mjs` fails.
+
+**Data changes in this phase**, and why the reports baseline moved with no
+engine change: the inventory generator drew each week's stock independently,
+which no real stock does — it is now a random walk, in the corpus and the
+fuzz archetype. Each trap table now reseeds before it is drawn, so editing one
+cannot change the rest; that reseed redrew every trap table once, and the
+engine's charts moved with the noise (two answers gained, two I8s added) —
+worth knowing in itself. Two tables keyed (channel, day) and (meter, hour)
+were relabelled `entityPeriod`, consistent with (sku, week); resolution hours
+lost their `noSum`, since total handling time is meaningful. Reports, no
+model: 21 / 77 answered, 53 violations.

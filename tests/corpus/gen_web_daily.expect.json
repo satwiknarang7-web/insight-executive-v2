@@ -3,7 +3,7 @@
     "Daily traffic per channel. bounce_rate is a percentage and never summed."
   ],
   "report": {
-    "grain": "event",
+    "grain": "entityPeriod",
     "time": "date",
     "measures": {
       "bounce_rate": {
@@ -54,6 +54,12 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "sessions",
+      "users",
+      "conversions",
+      "revenue"
     ]
   }
 }

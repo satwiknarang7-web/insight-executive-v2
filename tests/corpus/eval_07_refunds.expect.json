@@ -48,6 +48,10 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "amount",
+      "qty"
     ]
   }
 }

@@ -53,6 +53,9 @@
           ]
         ]
       }
+    ],
+    "additive": [
+      "units_sold_30d"
     ]
   }
 }

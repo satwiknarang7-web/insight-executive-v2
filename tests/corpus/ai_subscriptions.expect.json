@@ -57,7 +57,8 @@
       },
       "Monthly Price Local Currency": {
         "scope": [
-          "Local Currency"
+          "Local Currency",
+          "Buyer Unit"
         ]
       },
       "Annual Price Local Currency": {

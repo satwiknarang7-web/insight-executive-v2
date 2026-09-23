@@ -54,6 +54,9 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "revenue"
     ]
   }
 }

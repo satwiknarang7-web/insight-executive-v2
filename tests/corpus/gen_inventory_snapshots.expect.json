@@ -42,6 +42,10 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "units_received",
+      "units_shipped"
     ]
   }
 }

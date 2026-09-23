@@ -39,7 +39,12 @@ const cell = (v) => {
 };
 const csv = (header, rows) => [header.join(','), ...rows.map((r) => r.map(cell).join(','))].join('\n') + '\n';
 
+// Each trap table reseeds before it is drawn, so editing one never changes
+// the data of the tables after it.
 let seed = 20260923;
+const reseed = (n) => {
+  seed = 20260923 + n * 7919;
+};
 const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
 const pick = (a) => a[Math.floor(rnd() * a.length)];
 const int = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
@@ -81,6 +86,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g01 — a catalogue priced in five currencies. `price_local` is only
    comparable within its currency; `price_usd` is comparable everywhere. */
 {
+  reseed(1);
   const markets = [
     ['India', 'INR', 83.2],
     ['United States', 'USD', 1],
@@ -115,6 +121,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g02 — SaaS plans sold per user, per seat, per organisation and per
    instance. One dedicated instance costs fifty times the next plan. */
 {
+  reseed(2);
   const vendors = ['Northwind', 'Contoso', 'Fabrikam', 'Tailspin', 'Litware', 'Adatum'];
   const tiers = [
     ['Starter', 'user', 8, 10],
@@ -140,6 +147,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g03 — employees, with attrition driven by overtime and satisfaction and
    not by department. */
 {
+  reseed(3);
   const rows = [];
   for (let i = 0; i < 600; i++) {
     const overtime = rnd() < 0.3;
@@ -166,6 +174,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g04 — an A/B test over 28 days. The whole series fits inside one month, so
    a monthly bucket draws a single point. */
 {
+  reseed(4);
   const start = new Date(Date.UTC(2026, 6, 1));
   const rows = [];
   for (let i = 0; i < 2000; i++) {
@@ -184,16 +193,20 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 }
 
 /* g05 — weekly stock snapshots. `stock_on_hand` is a level: summing it
-   across weeks counts the same units sixteen times. */
+   across weeks counts the same units sixteen times. It moves the way stock
+   does — last week's level, plus what came in, minus what went out. */
 {
+  reseed(5);
   const start = new Date(Date.UTC(2026, 0, 5));
-  const skus = Array.from({ length: 30 }, (_, i) => [`SKU-${700 + i}`, pick(['Leeds', 'Reno', 'Lyon'])]);
+  const skus = Array.from({ length: 30 }, (_, i) => [`SKU-${700 + i}`, pick(['Leeds', 'Reno', 'Lyon']), int(150, 600)]);
   const rows = [];
   for (let wk = 0; wk < 16; wk++) {
-    for (const [sku, warehouse] of skus) {
+    for (const item of skus) {
+      const [sku, warehouse] = item;
       const received = int(0, 120);
-      const shipped = int(10, 110);
-      rows.push([iso(addDays(start, wk * 7)), sku, warehouse, int(40, 600) - wk * 6, received, shipped]);
+      const shipped = Math.min(item[2] + received, int(10, 110));
+      item[2] = item[2] + received - shipped;
+      rows.push([iso(addDays(start, wk * 7)), sku, warehouse, item[2], received, shipped]);
     }
   }
   w('gen_inventory_snapshots.csv', csv(
@@ -205,6 +218,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g06 — property listings with one estate priced at 45M among homes that
    cost 200k to 2M. */
 {
+  reseed(6);
   const cities = { Austin: 420, Denver: 510, Seattle: 690, Phoenix: 330 };
   const rows = [];
   for (let i = 0; i < 400; i++) {
@@ -233,6 +247,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g07 — daily web analytics per channel. `bounce_rate` is a percentage:
    averaged, never summed. */
 {
+  reseed(7);
   const start = new Date(Date.UTC(2026, 0, 1));
   const channels = { Organic: 1800, Paid: 1100, Email: 420, Social: 650 };
   const rows = [];
@@ -249,6 +264,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g08 — a three-arm trial. Improvement depends on the arm, adverse events
    on the dose. */
 {
+  reseed(8);
   const arms = { Placebo: [0.22, 0.05], 'Drug 10mg': [0.41, 0.09], 'Drug 20mg': [0.55, 0.19] };
   const rows = [];
   for (let i = 0; i < 300; i++) {
@@ -277,6 +293,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g09 — budget and actual in one `amount` column. Adding them together is
    the classic long-table mistake. */
 {
+  reseed(9);
   const depts = { Marketing: 120000, Engineering: 480000, Sales: 260000, Support: 90000, Finance: 70000, HR: 55000 };
   const rows = [];
   for (let m = 1; m <= 12; m++) {
@@ -291,6 +308,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 
 /* g10 — test scores. Several measures on one 0–100 scale, one grain. */
 {
+  reseed(10);
   const schools = { Ashford: 4, Brookside: -3, Carlton: 7, Dunmore: -6 };
   const rows = [];
   for (let i = 0; i < 500; i++) {
@@ -317,6 +335,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 
 /* g11 — two weeks of hourly meter readings. */
 {
+  reseed(11);
   const start = Date.UTC(2026, 7, 3);
   const meters = [['M-1', 'Plant North'], ['M-2', 'Plant North'], ['M-3', 'Warehouse']];
   const rows = [];
@@ -336,6 +355,7 @@ fs.copyFileSync(path.join(ROOT, 'sales_data.csv'), path.join(OUT, 'repo_sales_da
 /* g12 — support tickets. Resolution time is skewed, and one ticket sat open
    for three months. */
 {
+  reseed(12);
   const start = new Date(Date.UTC(2026, 0, 1));
   const prio = { Urgent: [4, 0.35], High: [12, 0.2], Normal: [30, 0.1], Low: [60, 0.05] };
   const rows = [];

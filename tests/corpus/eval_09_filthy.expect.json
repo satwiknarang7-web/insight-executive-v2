@@ -33,6 +33,9 @@
           "region"
         ]
       }
+    ],
+    "additive": [
+      "qty"
     ]
   }
 }

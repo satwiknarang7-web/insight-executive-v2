@@ -9,9 +9,6 @@
       "sla_breached"
     ],
     "measures": {
-      "resolution_hours": {
-        "noSum": true
-      },
       "csat": {
         "noSum": true
       }
@@ -59,6 +56,9 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "resolution_hours"
     ]
   }
 }

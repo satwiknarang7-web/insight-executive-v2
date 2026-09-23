@@ -53,6 +53,10 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "monthly_charge",
+      "support_calls"
     ]
   }
 }

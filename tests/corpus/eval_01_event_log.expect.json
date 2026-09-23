@@ -56,6 +56,10 @@
         ],
         "suggest": true
       }
+    ],
+    "additive": [
+      "revenue",
+      "units_sold"
     ]
   }
 }

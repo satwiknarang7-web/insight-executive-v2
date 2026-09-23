@@ -1,121 +1,121 @@
 sku,product_name,category,market,currency,price_local,price_usd,rating,units_sold_30d
-SKU-3000,Accessorie Orbit 7,Accessories,India,INR,3006.02,36.13,4.7,70
-SKU-3001,Audi Orbit 9,Audio,United States,USD,71.38,71.38,4.9,440
-SKU-3002,Accessorie Pulse 5,Accessories,United Kingdom,GBP,14.09,17.84,3.4,734
-SKU-3003,Wearable Nova 1,Wearables,Japan,JPY,36605.07,248.17,4.2,121
-SKU-3004,Audi Echo 2,Audio,Germany,EUR,104.96,114.09,4.4,642
-SKU-3005,Camera Vector 9,Cameras,India,INR,57951.3,696.53,4.3,488
-SKU-3006,Laptop Pulse 4,Laptops,United States,USD,1635.54,1635.54,3.4,376
-SKU-3007,Camera Prism 4,Cameras,United Kingdom,GBP,435.69,551.51,4.1,414
-SKU-3008,Audi Nova 4,Audio,Japan,JPY,9261.52,62.79,4.8,401
-SKU-3009,Camera Nova 3,Cameras,Germany,EUR,409.42,445.02,4.5,503
-SKU-3010,Accessorie Vector 2,Accessories,India,INR,3090.88,37.15,3.4,136
-SKU-3011,Laptop Pulse 2,Laptops,United States,USD,1430.37,1430.37,3.3,676
-SKU-3012,Accessorie Orbit 1,Accessories,United Kingdom,GBP,26.16,33.12,3.6,88
-SKU-3013,Accessorie Vector 6,Accessories,Japan,JPY,2714,18.4,4.1,604
-SKU-3014,Wearable Prism 2,Wearables,Germany,EUR,126.36,137.35,4.9,355
-SKU-3015,Camera Pulse 2,Cameras,India,INR,54288.83,652.51,3.6,894
-SKU-3016,Wearable Vector 9,Wearables,United States,USD,223.17,223.17,4,799
-SKU-3017,Accessorie Vector 1,Accessories,United Kingdom,GBP,17.53,22.19,4.6,193
-SKU-3018,Camera Vector 5,Cameras,Japan,JPY,106965.53,725.19,4.7,793
-SKU-3019,Accessorie Pulse 1,Accessories,Germany,EUR,24.25,26.36,5,508
-SKU-3020,Accessorie Prism 1,Accessories,India,INR,3002.69,36.09,3.9,464
-SKU-3021,Audi Echo 8,Audio,United States,USD,82.19,82.19,3.8,464
-SKU-3022,Wearable Nova 5,Wearables,United Kingdom,GBP,178.6,226.08,4.5,67
-SKU-3023,Camera Echo 5,Cameras,Japan,JPY,93296.7,632.52,3,682
-SKU-3024,Laptop Pulse 4,Laptops,Germany,EUR,1041.05,1131.58,4.2,705
-SKU-3025,Accessorie Echo 6,Accessories,India,INR,3116.67,37.46,4.3,311
-SKU-3026,Accessorie Echo 2,Accessories,United States,USD,33.51,33.51,4.3,310
-SKU-3027,Laptop Prism 3,Laptops,United Kingdom,GBP,1076.38,1362.51,4.5,819
-SKU-3028,Audi Echo 4,Audio,Japan,JPY,10183.4,69.04,4.4,640
-SKU-3029,Camera Nova 8,Cameras,Germany,EUR,644.92,701,4.5,452
-SKU-3030,Camera Echo 4,Cameras,India,INR,42159.94,506.73,4.3,430
-SKU-3031,Camera Nova 5,Cameras,United States,USD,606.88,606.88,4.1,633
-SKU-3032,Audi Pulse 9,Audio,United Kingdom,GBP,102.46,129.69,4,313
-SKU-3033,Audi Orbit 6,Audio,Japan,JPY,17735.4,120.24,5,414
-SKU-3034,Camera Prism 2,Cameras,Germany,EUR,646.78,703.02,4.9,53
-SKU-3035,Laptop Echo 7,Laptops,India,INR,74399.1,894.22,3.4,69
-SKU-3036,Wearable Pulse 8,Wearables,United States,USD,152.66,152.66,4.6,356
-SKU-3037,Camera Pulse 7,Cameras,United Kingdom,GBP,311.18,393.9,3.7,830
-SKU-3038,Wearable Orbit 5,Wearables,Japan,JPY,26137,177.2,3.4,266
-SKU-3039,Audi Orbit 3,Audio,Germany,EUR,75.83,82.42,4.1,458
-SKU-3040,Audi Prism 9,Audio,India,INR,7879.04,94.7,3.6,787
-SKU-3041,Camera Vector 5,Cameras,United States,USD,572.43,572.43,4.2,155
-SKU-3042,Camera Pulse 8,Cameras,United Kingdom,GBP,486.27,615.53,4.3,417
-SKU-3043,Wearable Prism 9,Wearables,Japan,JPY,37285.05,252.78,3.5,124
-SKU-3044,Camera Orbit 1,Cameras,Germany,EUR,328.81,357.4,3.6,141
-SKU-3045,Wearable Pulse 6,Wearables,India,INR,12696.32,152.6,3.4,337
-SKU-3046,Camera Vector 4,Cameras,United States,USD,619.7,619.7,3.5,857
-SKU-3047,Wearable Prism 3,Wearables,United Kingdom,GBP,208.94,264.48,4.3,721
-SKU-3048,Audi Echo 9,Audio,Japan,JPY,19803.35,134.26,4.7,583
-SKU-3049,Laptop Orbit 6,Laptops,Germany,EUR,1326.08,1441.39,3.2,875
-SKU-3050,Accessorie Vector 6,Accessories,India,INR,3117.5,37.47,4.7,264
-SKU-3051,Wearable Orbit 9,Wearables,United States,USD,239.47,239.47,4.7,258
-SKU-3052,Wearable Pulse 8,Wearables,United Kingdom,GBP,116.58,147.57,3.2,221
-SKU-3053,Audi Echo 2,Audio,Japan,JPY,12705.65,86.14,4,623
-SKU-3054,Wearable Orbit 1,Wearables,Germany,EUR,179.37,194.97,4.6,113
-SKU-3055,Laptop Prism 3,Laptops,India,INR,64144.7,770.97,4.3,37
-SKU-3056,Accessorie Pulse 3,Accessories,United States,USD,21.15,21.15,4.5,708
-SKU-3057,Laptop Echo 4,Laptops,United Kingdom,GBP,536.21,678.75,3.9,516
-SKU-3058,Laptop Vector 2,Laptops,Japan,JPY,169170.7,1146.92,4.3,697
-SKU-3059,Audi Nova 2,Audio,Germany,EUR,53.6,58.26,3.7,582
-SKU-3060,Accessorie Prism 9,Accessories,India,INR,1420.22,17.07,4.3,897
-SKU-3061,Laptop Pulse 9,Laptops,United States,USD,1087.64,1087.64,4.3,766
-SKU-3062,Audi Nova 7,Audio,United Kingdom,GBP,54.53,69.03,4.7,449
-SKU-3063,Audi Prism 2,Audio,Japan,JPY,18996.52,128.79,3.2,57
-SKU-3064,Audi Nova 9,Audio,Germany,EUR,105.39,114.55,4.7,134
-SKU-3065,Audi Vector 3,Audio,India,INR,8478.91,101.91,4.2,316
-SKU-3066,Wearable Prism 9,Wearables,United States,USD,236.15,236.15,3.4,434
-SKU-3067,Laptop Orbit 7,Laptops,United Kingdom,GBP,672.52,851.29,3.6,259
-SKU-3068,Accessorie Prism 2,Accessories,Japan,JPY,3116.67,21.13,3.9,115
-SKU-3069,Laptop Vector 1,Laptops,Germany,EUR,1069.73,1162.75,3.6,488
-SKU-3070,Audi Nova 9,Audio,India,INR,11123.01,133.69,4.6,206
-SKU-3071,Laptop Prism 4,Laptops,United States,USD,1140.3,1140.3,3.3,378
-SKU-3072,Camera Vector 7,Cameras,United Kingdom,GBP,575.15,728.04,4.6,206
-SKU-3073,Audi Prism 1,Audio,Japan,JPY,12735.15,86.34,3,171
-SKU-3074,Accessorie Echo 1,Accessories,Germany,EUR,26.45,28.75,4.3,289
-SKU-3075,Audi Pulse 1,Audio,India,INR,9964.03,119.76,3.3,797
-SKU-3076,Audi Vector 2,Audio,United States,USD,116.19,116.19,3.7,325
-SKU-3077,Accessorie Echo 2,Accessories,United Kingdom,GBP,23.79,30.11,4,735
-SKU-3078,Wearable Vector 2,Wearables,Japan,JPY,18816.58,127.57,4.8,772
-SKU-3079,Wearable Pulse 3,Wearables,Germany,EUR,108.51,117.95,3.8,117
-SKU-3080,Accessorie Prism 3,Accessories,India,INR,2109.12,25.35,4.4,261
-SKU-3081,Accessorie Nova 2,Accessories,United States,USD,25.07,25.07,3.5,673
-SKU-3082,Audi Prism 9,Audio,United Kingdom,GBP,77.7,98.36,5,842
-SKU-3083,Accessorie Echo 6,Accessories,Japan,JPY,2958.85,20.06,3.9,770
-SKU-3084,Laptop Vector 3,Laptops,Germany,EUR,1490.14,1619.72,4.8,609
-SKU-3085,Audi Prism 7,Audio,India,INR,10447.42,125.57,3.1,325
-SKU-3086,Laptop Pulse 4,Laptops,United States,USD,1205.89,1205.89,4.7,593
-SKU-3087,Laptop Vector 5,Laptops,United Kingdom,GBP,736.09,931.76,3.6,266
-SKU-3088,Camera Orbit 9,Cameras,Japan,JPY,68239.4,462.64,4.1,87
-SKU-3089,Laptop Nova 6,Laptops,Germany,EUR,887.01,964.14,3.5,27
-SKU-3090,Accessorie Echo 6,Accessories,India,INR,3013.5,36.22,3.5,384
-SKU-3091,Laptop Nova 9,Laptops,United States,USD,1554.41,1554.41,4.5,628
-SKU-3092,Accessorie Pulse 3,Accessories,United Kingdom,GBP,16.72,21.16,3.1,585
-SKU-3093,Accessorie Vector 7,Accessories,Japan,JPY,4796.7,32.52,3.6,183
-SKU-3094,Audi Orbit 6,Audio,Germany,EUR,57.61,62.62,3.9,494
-SKU-3095,Camera Orbit 4,Cameras,India,INR,26965.12,324.1,4.7,803
-SKU-3096,Wearable Orbit 5,Wearables,United States,USD,121.58,121.58,4,568
-SKU-3097,Audi Nova 1,Audio,United Kingdom,GBP,57.67,73,3.6,302
-SKU-3098,Camera Vector 5,Cameras,Japan,JPY,106795.9,724.04,4.8,818
-SKU-3099,Laptop Echo 2,Laptops,Germany,EUR,771.82,838.94,4.6,565
-SKU-3100,Accessorie Vector 1,Accessories,India,INR,1289.6,15.5,4.7,78
-SKU-3101,Audi Vector 4,Audio,United States,USD,115.16,115.16,3.8,305
-SKU-3102,Camera Prism 4,Cameras,United Kingdom,GBP,564.68,714.78,3.4,50
-SKU-3103,Audi Prism 9,Audio,Japan,JPY,19306.27,130.89,4,275
-SKU-3104,Camera Nova 5,Cameras,Germany,EUR,716.7,779.02,4.9,667
-SKU-3105,Laptop Prism 3,Laptops,India,INR,130578.24,1569.45,3.5,167
-SKU-3106,Laptop Orbit 3,Laptops,United States,USD,1573.48,1573.48,4,353
-SKU-3107,Accessorie Echo 1,Accessories,United Kingdom,GBP,24.53,31.05,3.2,309
-SKU-3108,Audi Nova 8,Audio,Japan,JPY,16838.6,114.16,3.4,209
-SKU-3109,Camera Vector 3,Cameras,Germany,EUR,525.78,571.5,3.2,516
-SKU-3110,Camera Orbit 3,Cameras,India,INR,62264.38,748.37,3.8,584
-SKU-3111,Wearable Prism 1,Wearables,United States,USD,178.36,178.36,3.3,561
-SKU-3112,Accessorie Vector 5,Accessories,United Kingdom,GBP,20.61,26.09,4.4,541
-SKU-3113,Laptop Echo 5,Laptops,Japan,JPY,104851.85,710.86,4.3,812
-SKU-3114,Accessorie Vector 7,Accessories,Germany,EUR,20.03,21.77,3.1,412
-SKU-3115,Laptop Vector 4,Laptops,India,INR,92279.62,1109.13,3.7,626
-SKU-3116,Accessorie Echo 5,Accessories,United States,USD,17.92,17.92,4.9,296
-SKU-3117,Audi Echo 5,Audio,United Kingdom,GBP,82.96,105.01,5,128
-SKU-3118,Laptop Orbit 1,Laptops,Japan,JPY,106643.98,723.01,3.9,216
-SKU-3119,Accessorie Vector 1,Accessories,Germany,EUR,31.96,34.74,3.5,94
+SKU-3000,Laptop Nova 9,Laptops,India,INR,131344.51,1578.66,3.4,202
+SKU-3001,Audi Vector 8,Audio,United States,USD,112.25,112.25,3.4,105
+SKU-3002,Audi Prism 5,Audio,United Kingdom,GBP,42.85,54.24,3.7,455
+SKU-3003,Accessorie Echo 6,Accessories,Japan,JPY,4771.63,32.35,5,566
+SKU-3004,Laptop Echo 5,Laptops,Germany,EUR,633.37,688.45,4.3,205
+SKU-3005,Wearable Echo 9,Wearables,India,INR,16570.11,199.16,3.9,758
+SKU-3006,Audi Pulse 6,Audio,United States,USD,74.08,74.08,4.7,835
+SKU-3007,Audi Orbit 7,Audio,United Kingdom,GBP,88.39,111.89,3.9,135
+SKU-3008,Audi Pulse 1,Audio,Japan,JPY,11833.93,80.23,5,407
+SKU-3009,Laptop Vector 4,Laptops,Germany,EUR,1395.01,1516.32,3.6,655
+SKU-3010,Laptop Vector 6,Laptops,India,INR,91083.2,1094.75,3.6,172
+SKU-3011,Laptop Pulse 2,Laptops,United States,USD,1385.71,1385.71,5,191
+SKU-3012,Accessorie Orbit 6,Accessories,United Kingdom,GBP,15.47,19.58,3.6,639
+SKU-3013,Camera Nova 2,Cameras,Japan,JPY,74319.35,503.86,3.8,577
+SKU-3014,Audi Prism 4,Audio,Germany,EUR,72.34,78.63,5,488
+SKU-3015,Laptop Pulse 6,Laptops,India,INR,106846.27,1284.21,4.9,874
+SKU-3016,Laptop Vector 7,Laptops,United States,USD,1117.02,1117.02,3.6,303
+SKU-3017,Accessorie Pulse 7,Accessories,United Kingdom,GBP,12.18,15.42,3.6,187
+SKU-3018,Audi Echo 6,Audio,Japan,JPY,18142.5,123,4.6,888
+SKU-3019,Wearable Vector 6,Wearables,Germany,EUR,125.68,136.61,3.5,820
+SKU-3020,Wearable Nova 3,Wearables,India,INR,19474.62,234.07,4.6,708
+SKU-3021,Audi Nova 1,Audio,United States,USD,84.2,84.2,4.5,320
+SKU-3022,Audi Pulse 4,Audio,United Kingdom,GBP,64.12,81.16,3.7,279
+SKU-3023,Camera Echo 4,Cameras,Japan,JPY,98615.55,668.58,3.4,560
+SKU-3024,Accessorie Nova 2,Accessories,Germany,EUR,24.23,26.34,3,23
+SKU-3025,Accessorie Echo 7,Accessories,India,INR,2239.74,26.92,4.3,383
+SKU-3026,Camera Vector 8,Cameras,United States,USD,486.36,486.36,3.3,676
+SKU-3027,Camera Nova 3,Cameras,United Kingdom,GBP,292.72,370.53,4.4,349
+SKU-3028,Laptop Pulse 8,Laptops,Japan,JPY,197568.88,1339.45,3.1,133
+SKU-3029,Wearable Pulse 3,Wearables,Germany,EUR,238.95,259.73,3.7,534
+SKU-3030,Audi Vector 9,Audio,India,INR,7760.06,93.27,4.3,744
+SKU-3031,Camera Vector 3,Cameras,United States,USD,641.67,641.67,4.1,601
+SKU-3032,Wearable Echo 1,Wearables,United Kingdom,GBP,156.3,197.85,3.9,224
+SKU-3033,Camera Prism 7,Cameras,Japan,JPY,55595.7,376.92,3.9,587
+SKU-3034,Wearable Nova 3,Wearables,Germany,EUR,159.04,172.87,4.9,653
+SKU-3035,Accessorie Echo 2,Accessories,India,INR,2820.48,33.9,4.1,103
+SKU-3036,Camera Pulse 9,Cameras,United States,USD,600.52,600.52,3.2,232
+SKU-3037,Audi Echo 3,Audio,United Kingdom,GBP,52.56,66.53,3.6,385
+SKU-3038,Laptop Pulse 3,Laptops,Japan,JPY,196661.75,1333.3,3.8,843
+SKU-3039,Accessorie Vector 9,Accessories,Germany,EUR,19.61,21.31,3.8,862
+SKU-3040,Laptop Nova 8,Laptops,India,INR,106617.47,1281.46,4.4,67
+SKU-3041,Audi Prism 3,Audio,United States,USD,54.68,54.68,3.4,550
+SKU-3042,Accessorie Pulse 1,Accessories,United Kingdom,GBP,14.35,18.16,4.2,266
+SKU-3043,Wearable Pulse 2,Wearables,Japan,JPY,18028.92,122.23,4.9,424
+SKU-3044,Accessorie Echo 4,Accessories,Germany,EUR,14.18,15.41,4,715
+SKU-3045,Accessorie Prism 7,Accessories,India,INR,1548.35,18.61,4.3,653
+SKU-3046,Camera Echo 9,Cameras,United States,USD,360.47,360.47,4.2,333
+SKU-3047,Wearable Pulse 8,Wearables,United Kingdom,GBP,209.26,264.89,4.2,79
+SKU-3048,Audi Nova 9,Audio,Japan,JPY,12089.1,81.96,4.2,522
+SKU-3049,Accessorie Pulse 5,Accessories,Germany,EUR,26.16,28.44,3.5,611
+SKU-3050,Wearable Nova 2,Wearables,India,INR,15845.44,190.45,4.8,742
+SKU-3051,Laptop Nova 6,Laptops,United States,USD,1527.91,1527.91,4.4,360
+SKU-3052,Wearable Prism 9,Wearables,United Kingdom,GBP,194.4,246.07,4.5,751
+SKU-3053,Wearable Orbit 3,Wearables,Japan,JPY,34905.88,236.65,4.2,697
+SKU-3054,Camera Pulse 8,Cameras,Germany,EUR,716.05,778.31,4.3,564
+SKU-3055,Laptop Vector 1,Laptops,India,INR,58468.8,702.75,4.6,30
+SKU-3056,Accessorie Nova 1,Accessories,United States,USD,30.77,30.77,3.6,517
+SKU-3057,Audi Prism 1,Audio,United Kingdom,GBP,77.42,98,3.3,657
+SKU-3058,Wearable Pulse 9,Wearables,Japan,JPY,28762.5,195,4.7,893
+SKU-3059,Accessorie Echo 9,Accessories,Germany,EUR,31.51,34.25,3.6,393
+SKU-3060,Audi Prism 9,Audio,India,INR,6335.68,76.15,3.8,198
+SKU-3061,Camera Pulse 9,Cameras,United States,USD,602.76,602.76,3.4,302
+SKU-3062,Camera Pulse 6,Cameras,United Kingdom,GBP,545.38,690.35,3.5,687
+SKU-3063,Audi Pulse 8,Audio,Japan,JPY,15934.42,108.03,3.5,408
+SKU-3064,Audi Echo 4,Audio,Germany,EUR,64.61,70.23,4.1,430
+SKU-3065,Wearable Pulse 9,Wearables,India,INR,21129.47,253.96,3.1,494
+SKU-3066,Accessorie Orbit 3,Accessories,United States,USD,17.62,17.62,4.9,862
+SKU-3067,Accessorie Nova 3,Accessories,United Kingdom,GBP,25.52,32.3,3.6,688
+SKU-3068,Audi Prism 8,Audio,Japan,JPY,14484.5,98.2,4.1,546
+SKU-3069,Audi Prism 5,Audio,Germany,EUR,79.09,85.97,4,34
+SKU-3070,Laptop Nova 1,Laptops,India,INR,88441.6,1063,4.4,898
+SKU-3071,Audi Prism 7,Audio,United States,USD,87.48,87.48,3.5,85
+SKU-3072,Audi Pulse 6,Audio,United Kingdom,GBP,102.14,129.29,4.6,525
+SKU-3073,Laptop Nova 7,Laptops,Japan,JPY,231701.85,1570.86,4.3,596
+SKU-3074,Camera Orbit 5,Cameras,Germany,EUR,343.08,372.91,3.8,836
+SKU-3075,Camera Echo 9,Cameras,India,INR,48570.5,583.78,3.5,531
+SKU-3076,Wearable Orbit 4,Wearables,United States,USD,183.87,183.87,3.7,631
+SKU-3077,Camera Pulse 1,Cameras,United Kingdom,GBP,381.22,482.56,3.7,604
+SKU-3078,Laptop Pulse 3,Laptops,Japan,JPY,134461,911.6,3.2,773
+SKU-3079,Laptop Echo 3,Laptops,Germany,EUR,1006.94,1094.5,4.9,170
+SKU-3080,Accessorie Echo 5,Accessories,India,INR,2221.44,26.7,4.8,330
+SKU-3081,Laptop Vector 1,Laptops,United States,USD,1341.46,1341.46,3.1,165
+SKU-3082,Accessorie Orbit 8,Accessories,United Kingdom,GBP,20.57,26.04,4.3,376
+SKU-3083,Audi Orbit 9,Audio,Japan,JPY,14425.5,97.8,3.6,373
+SKU-3084,Accessorie Nova 8,Accessories,Germany,EUR,25.86,28.11,3.7,783
+SKU-3085,Accessorie Orbit 3,Accessories,India,INR,2174.85,26.14,4.2,811
+SKU-3086,Camera Prism 4,Cameras,United States,USD,641.65,641.65,4.4,200
+SKU-3087,Audi Vector 3,Audio,United Kingdom,GBP,51.56,65.27,3.9,530
+SKU-3088,Accessorie Echo 5,Accessories,Japan,JPY,4535.63,30.75,4.1,772
+SKU-3089,Audi Nova 4,Audio,Germany,EUR,55.32,60.13,3.2,551
+SKU-3090,Laptop Prism 5,Laptops,India,INR,133298.88,1602.15,3.1,40
+SKU-3091,Wearable Echo 5,Wearables,United States,USD,191.82,191.82,4.3,198
+SKU-3092,Wearable Vector 3,Wearables,United Kingdom,GBP,90.57,114.64,3.9,353
+SKU-3093,Audi Echo 9,Audio,Japan,JPY,13266.15,89.94,4.3,426
+SKU-3094,Wearable Vector 4,Wearables,Germany,EUR,187.09,203.36,4.2,496
+SKU-3095,Camera Nova 1,Cameras,India,INR,33300.8,400.25,3.6,102
+SKU-3096,Audi Nova 8,Audio,United States,USD,68.04,68.04,4.9,364
+SKU-3097,Camera Echo 6,Cameras,United Kingdom,GBP,599.11,758.37,4.9,689
+SKU-3098,Audi Echo 1,Audio,Japan,JPY,8478.3,57.48,4.8,705
+SKU-3099,Camera Pulse 1,Cameras,Germany,EUR,604.9,657.5,4.7,251
+SKU-3100,Audi Prism 3,Audio,India,INR,9225.22,110.88,4.9,397
+SKU-3101,Accessorie Echo 1,Accessories,United States,USD,20.02,20.02,3.8,359
+SKU-3102,Audi Nova 3,Audio,United Kingdom,GBP,66.22,83.82,3.1,661
+SKU-3103,Laptop Vector 5,Laptops,Japan,JPY,207911.57,1409.57,4.5,453
+SKU-3104,Accessorie Orbit 6,Accessories,Germany,EUR,28.12,30.56,4.2,714
+SKU-3105,Camera Prism 9,Cameras,India,INR,29580.93,355.54,4.2,196
+SKU-3106,Accessorie Echo 5,Accessories,United States,USD,23.32,23.32,3.3,835
+SKU-3107,Camera Vector 7,Cameras,United Kingdom,GBP,529,669.62,4.7,133
+SKU-3108,Audi Vector 2,Audio,Japan,JPY,11425.35,77.46,3.7,458
+SKU-3109,Accessorie Pulse 6,Accessories,Germany,EUR,20.9,22.72,3.9,361
+SKU-3110,Accessorie Orbit 5,Accessories,India,INR,2609.15,31.36,3.6,433
+SKU-3111,Camera Echo 7,Cameras,United States,USD,722.64,722.64,3,598
+SKU-3112,Laptop Echo 8,Laptops,United Kingdom,GBP,1043.77,1321.23,4.5,446
+SKU-3113,Camera Echo 8,Cameras,Japan,JPY,106791.48,724.01,4.9,58
+SKU-3114,Laptop Echo 1,Laptops,Germany,EUR,1255.81,1365.01,4.3,558
+SKU-3115,Wearable Vector 9,Wearables,India,INR,19685.95,236.61,4.8,265
+SKU-3116,Accessorie Orbit 3,Accessories,United States,USD,26.93,26.93,4.2,679
+SKU-3117,Audi Prism 2,Audio,United Kingdom,GBP,92.22,116.74,4.9,303
+SKU-3118,Camera Vector 4,Cameras,Japan,JPY,105195.53,713.19,3,489
+SKU-3119,Camera Echo 5,Cameras,Germany,EUR,461.74,501.89,4.8,712

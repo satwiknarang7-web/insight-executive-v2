@@ -34,6 +34,8 @@ import { ingest } from './chain.mjs';
 import { audit, RULES } from './audit.mjs';
 import { answer } from './answers.mjs';
 import { fuzzCases } from './fuzz.mjs';
+import { scoreModel } from './modelScore.mjs';
+import { buildTableModel } from '../lib/tableModel.js';
 import { runAnalysis } from '../lib/pipeline.js';
 import { profileColumns } from '../lib/chartResolver.js';
 import { acceptBrief } from '../lib/datasetBrief.js';
@@ -75,12 +77,13 @@ export function scoreCorpus({ only = null } = {}) {
     if (!spec.report) continue;
     const { rows } = ingest(fs.readFileSync(path.join(CORPUS, file), 'utf8'));
     const { questions = [], ...truth } = spec.report;
+    const model = buildTableModel(rows, { temporal: profileColumns(rows).temporal });
     const paths = { noModel: score(rows, truth, questions, {}) };
     if (spec.brief) {
       const brief = acceptBrief(spec.brief, { rows, profile: profileColumns(rows) });
       paths.withBrief = score(rows, truth, questions, { brief });
     }
-    out[name] = { grain: truth.grain, questions: questions.length, paths };
+    out[name] = { grain: truth.grain, questions: questions.length, paths, model: scoreModel(model, rows, truth) };
   }
   return out;
 }
@@ -88,7 +91,8 @@ export function scoreCorpus({ only = null } = {}) {
 export function scoreFuzz() {
   const out = {};
   for (const c of fuzzCases()) {
-    out[c.name] = { grain: c.truth.grain, trap: c.trap, paths: { noModel: score(c.rows, c.truth, [], {}) } };
+    const model = buildTableModel(c.rows, { temporal: profileColumns(c.rows).temporal });
+    out[c.name] = { grain: c.truth.grain, trap: c.trap, paths: { noModel: score(c.rows, c.truth, [], {}) }, model: scoreModel(model, c.rows, c.truth) };
   }
   return out;
 }
@@ -106,16 +110,17 @@ export function summarise({ corpus, fuzz }) {
     Object.fromEntries(
       Object.entries(group).map(([name, entry]) => [
         name,
-        Object.fromEntries(
-          Object.entries(entry.paths).map(([p, s]) => [
+        Object.fromEntries([
+          ['model', { misses: [...(entry.model || [])].sort() }],
+          ...Object.entries(entry.paths).map(([p, s]) => [
             p,
             {
               answered: s.answers.filter((a) => a.answered).map((a) => a.id).sort(),
               rules: Object.fromEntries(Object.entries(s.rules).filter(([, n]) => n > 0)),
               ...(s.error ? { error: s.error } : {}),
             },
-          ])
-        ),
+          ]),
+        ]),
       ])
     );
   return { corpus: pick(corpus), fuzz: pick(fuzz) };
@@ -167,6 +172,15 @@ function printTable(card, markdown) {
       `corpus ${p}: ${t.answered}/${t.questions} questions answered · ${t.clean}/${t.files} files break no rule · ${t.violations} violations (${Object.entries(t.rules).filter(([, n]) => n).map(([r, n]) => `${r} ${n}`).join(', ')})`
     );
   }
+  for (const [label, group] of [['corpus', card.corpus], ['fuzz', card.fuzz]]) {
+    const entries = Object.values(group);
+    if (!entries.length) continue;
+    const misses = entries.flatMap((e) => e.model || []);
+    const kinds = {};
+    for (const m of misses) kinds[m.split(':')[0]] = (kinds[m.split(':')[0]] || 0) + 1;
+    const clean = entries.filter((e) => !(e.model || []).length).length;
+    console.log(`table model (${label}): ${clean}/${entries.length} tables read correctly · ${misses.length} misses${misses.length ? ` (${Object.entries(kinds).map(([k, n]) => `${k} ${n}`).join(', ')})` : ''}`);
+  }
   const f = totals(card.fuzz, 'noModel');
   if (f.files) {
     console.log(
@@ -182,6 +196,7 @@ function printDetail(card) {
       for (const a of s.answers) console.log(`  ${a.answered ? '✓' : '✗'} ${a.id}: ${a.why}`);
       for (const v of s.violations) console.log(`  ! ${v.rule} ${v.chart}: ${v.detail}`);
     }
+    for (const m of entry.model || []) console.log(`  ~ model ${m}`);
   }
 }
 

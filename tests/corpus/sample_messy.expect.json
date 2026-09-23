@@ -47,6 +47,10 @@
           "rep"
         ]
       }
+    ],
+    "additive": [
+      "units",
+      "revenue"
     ]
   }
 }

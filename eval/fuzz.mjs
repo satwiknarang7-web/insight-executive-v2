@@ -101,12 +101,20 @@ const ARCHETYPES = {
     const periodCol = r.pick(['week_start', 'snapshot_date', 'period', 'as_of']);
     const start = Date.UTC(2026, 0, 5);
     const ents = Array.from({ length: r.int(8, 30) }, (_, i) => `${key.toUpperCase()}-${i}`);
+    const periods = r.int(6, 20);
+    const levels = ents.map(() => r.int(50, 900));
     const rows = [];
-    for (let p = 0; p < r.int(6, 20); p++) for (const e of ents) rows.push([iso(start + p * 7 * DAY).slice(0, 10), e, r.int(50, 900), r.int(0, 120)]);
+    // A level carries over: each period is the last one plus a net movement.
+    for (let p = 0; p < periods; p++) {
+      ents.forEach((e, i) => {
+        levels[i] = Math.max(0, levels[i] + r.int(-60, 60));
+        rows.push([iso(start + p * 7 * DAY).slice(0, 10), e, levels[i], r.int(0, 120)]);
+      });
+    }
     return {
       header: [periodCol, key, level, amount],
       rows,
-      truth: { grain: 'entityPeriod', time: periodCol, measures: { [level]: { noSumAcross: [periodCol] } } },
+      truth: { grain: 'entityPeriod', time: periodCol, additive: [amount], measures: { [level]: { noSumAcross: [periodCol] } } },
     };
   },
 
@@ -115,9 +123,10 @@ const ARCHETYPES = {
     const [time, cat, amount, rate] = ['time', 'category', 'amount', 'rate'].map((k) => r.pick(NAMES[k]));
     const start = Date.UTC(2026, 0, 1);
     const cats = labels(r, 'Channel', r.int(2, 5));
+    const days = r.int(60, 200);
     const rows = [];
-    for (let d = 0; d < r.int(60, 200); d++) for (const c of cats) rows.push([iso(start + d * DAY).slice(0, 10), c, r.int(100, 5000), r2(10 + r.next() * 60)]);
-    return { header: [time, cat, amount, rate], rows, truth: { grain: 'event', time, measures: { [rate]: { noSum: true } } } };
+    for (let d = 0; d < days; d++) for (const c of cats) rows.push([iso(start + d * DAY).slice(0, 10), c, r.int(100, 5000), r2(10 + r.next() * 60)]);
+    return { header: [time, cat, amount, rate], rows, truth: { grain: 'entityPeriod', time, additive: [amount], measures: { [rate]: { noSum: true } } } };
   },
 
   /* A yes/no outcome in several spellings, driven by one column. */
@@ -140,7 +149,7 @@ const ARCHETYPES = {
     const start = Date.UTC(2025, 0, 1);
     const cats = labels(r, 'Region', r.int(3, 6));
     const rows = Array.from({ length: r.int(300, 1500) }, () => [iso(start + r.int(0, 700) * DAY).slice(0, 10), r.pick(cats), r2(20 + r.next() * 400)]);
-    return { header: [time, cat, amount], rows, truth: { grain: 'event', time, measures: {} } };
+    return { header: [time, cat, amount], rows, truth: { grain: 'event', time, additive: [amount], measures: {} } };
   },
 };
 
