@@ -658,3 +658,40 @@ machine's `.env.local` are empty, so no recording exists yet — hand-written
 
     node --env-file=.env.local eval/record-model.mjs
     npm run eval:scorecard
+
+## Phase 5 — cleanup
+
+The playbook is gone. A report is built one way: read the table
+(`readTable`), offer questions, compile them. Deleted:
+
+- `lib/analystPlanner.js` — candidate enumeration and the tier playbook — with
+  the modules only it used: `datasetPurpose`, `measureVariation`,
+  `rowComparison`, and `deckComposer`.
+- `/api/purpose` and `/api/compose` and their rate limits. Neither had been
+  called since phase 4; a model now shapes a report only through the questions
+  it proposes on the card.
+- From `lib/pipeline.js`: `enforceChartDiversity`, `dropFlatCharts`,
+  `dropTiedRankings`, `limitRecordCounts`, and the `planner`, `purpose` and
+  `composed` options. A question whose answer is "no difference" keeps its
+  chart; a chart's shape is the question's, not a variety quota's.
+- The tests that exercised only the deleted code. Four were added: three
+  lessons from the old planner carried into `tests/reportQuestions.test.mjs`
+  (a figure repeated across a join, an hour read as a label, a relationship
+  over every row) and the series test below. The suite went from 1,774 tests to
+  1,623, all passing.
+
+Kept, because the compiler still relies on it: `dataGrain`'s repeated-measure
+detection, now read through `readTable` in the pipeline, the worker and the
+eval scripts alike, so the report, the filter pass and the scorecard see the
+same table model; and `dropDuplicateCharts`, since two questions can still
+arrive at the same chart.
+
+One fix found on the way: a chart with a declared series (one line per level
+of a long table) had its two label columns folded into one, which drew
+"2024-01 · North" as the x axis. `executeCharts` now leaves a series chart's
+axis alone; a test covers it and fails without the guard.
+
+The scorecard is unchanged, which is the point of a cleanup: 62/77 answered
+without a model, 69/77 from the card, 0 violations on corpus and fuzz,
+29/29 and 40/40 tables read correctly. About 4,000 lines of app code and
+2,800 of tests are gone.

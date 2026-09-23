@@ -4,8 +4,6 @@ import { createMetrics, finalizeMetrics, sanitizeChunk } from '../lib/dataCleane
 import { profileColumns } from '../lib/chartResolver.js';
 import { classifyColumns } from '../lib/measureSemantics.js';
 import { detectLongFormat } from '../lib/measureUnits.js';
-import { byVariation, measureVariation } from '../lib/measureVariation.js';
-import { planCharts, planKpis } from '../lib/analystPlanner.js';
 import { analyzeChart } from '../lib/insightEngine.js';
 
 /* The six defects eval/RESULTS.md listed as still wrong. */
@@ -48,63 +46,7 @@ test('a dash between two numbers is a range, not a subtraction', () => {
 
 /* ── 2. A trend needs enough points to be a line ────────────────────────── */
 
-test('a month of minute-level readings is charted by day, not by month', () => {
-  /* 50,000 readings over 34.7 days bucketed to month gave two points — a whole
-     January and four days of February — and the finding read "Record Count
-     trended down from 2026-01 to 2026-02, a 88.0% decrease". The decrease was
-     February not having happened yet. */
-  const start = Date.UTC(2026, 0, 1);
-  const rows = Array.from({ length: 3000 }, (_, i) => ({
-    reading_ts: new Date(start + i * 1000 * 60 * 17).toISOString(),
-    line: ['A', 'B'][i % 2],
-    temperature_c: 20 + (i % 9),
-  }));
-  const trend = planCharts(rows, { max: 8 }).find((c) => /Trend Over/i.test(c.title));
-  assert.ok(trend, 'no trend at all');
-  assert.match(trend.title, /Over Day$/, trend.title);
-  assert.match(trend.sql, /SUBSTRING\(\[reading_ts\], 1, 10\)/);
-});
-
-test('two years of daily rows are still charted by month', () => {
-  // The grain is the coarsest one that still has enough points, so a long span
-  // does not become seven hundred days.
-  const start = Date.UTC(2025, 0, 1);
-  const rows = Array.from({ length: 700 }, (_, i) => ({
-    order_date: new Date(start + i * 86400000).toISOString().slice(0, 10),
-    region: ['North', 'South'][i % 2],
-    revenue: 100 + (i % 50),
-  }));
-  const trend = planCharts(rows, { max: 8 }).find((c) => /Trend Over/i.test(c.title));
-  assert.match(trend.title, /Over Month$/, trend.title);
-});
-
 /* ── 3. A column of numbers nobody could read is not a category ─────────── */
-
-test('a column the cleaner refused to type is charted as neither', () => {
-  /* `amount` held both comma conventions — 2,345.00 and 1.234,56 — which
-     cannot both be right, so the cleaner refused to guess. Correct. What
-     followed was not: the column became a dimension and the deck charted
-     "Total Qty by Amount" and offered Amount as a slicer. */
-  // Many distinct amounts, written in both conventions — which is what a real
-  // refused money column looks like. Two values would be a flag, and a flag is
-  // a category by any reading.
-  const rows = Array.from({ length: 60 }, (_, i) => ({
-    item: `Item ${i}`,
-    region: ['North', 'South'][i % 2],
-    amount: i % 2 ? `${1 + i},${String(100 + i).slice(0, 3)}.00` : `${1 + i}.${String(200 + i).slice(0, 3)},50`,
-    qty: String(1 + (i % 9)),
-  }));
-  const { rows: out } = clean(rows);
-  const p = profileColumns(out);
-
-  assert.ok(!p.measures.includes('amount'), 'it did not parse, so it is not a measure');
-  assert.ok(!p.dimensions.includes('amount'), 'money was offered as an axis of categories');
-  assert.deepEqual(p.unparsed, ['amount'], 'and the caller is told, so the column does not vanish');
-
-  for (const c of planCharts(out, { max: 10 })) {
-    assert.ok(!/amount/i.test(String(c.xAxisKey || '')), c.title);
-  }
-});
 
 test('an ordinary category is not mistaken for a refused number', () => {
   const rows = Array.from({ length: 60 }, (_, i) => ({
@@ -135,31 +77,6 @@ function longPanel() {
   }
   return rows;
 }
-
-test('a value column that means something different per key is refused', () => {
-  /* "GDP (current LCU) leads indicators on average value at 4560B, 4.0× the
-     1140B average across 4 indicators" — a GDP averaged against a life
-     expectancy, badged STRONG EVIDENCE. Neither the column's name nor the key
-     column's name says anything; the values say it plainly. */
-  const rows = longPanel();
-  const p = profileColumns(rows);
-  const claims = detectLongFormat(rows, { profile: p, cardinality: p.cardinality });
-  assert.ok(claims.value, 'the scale gap was not noticed');
-  assert.match(claims.value.unit, /per indicator/);
-
-  const sem = classifyColumns({
-    profile: p,
-    cardinality: p.cardinality,
-    rowCount: rows.length,
-    rows,
-  });
-  assert.equal(sem.byColumn.value.kind, 'denominated');
-
-  for (const c of planCharts(rows, { max: 10 })) {
-    assert.ok(!/\bvalue\b/i.test(String(c.yAxisKey || '')), `it was aggregated anyway: ${c.title}`);
-  }
-  assert.ok(!planKpis(rows).some((k) => /value/i.test(k.label)));
-});
 
 test('near-unique is what continuous means, not what identifying means', () => {
   /* The claim above was never reached: `value` had 288 distinct values across
@@ -195,34 +112,6 @@ test('measures within a factor of a few are left alone', () => {
 });
 
 /* ── 5. A measure that is barely populated is not the headline ──────────── */
-
-test('a column filled on a sixth of the rows does not headline the file', () => {
-  /* 58 columns, 53 of them statistically indistinguishable. "Average Field 35"
-     — filled on 54 of 300 rows — was the headline while `score`, filled on all
-     300, went unmentioned. Nothing was reading completeness at all. */
-  const rows = Array.from({ length: 300 }, (_, i) => {
-    const row = { site: ['Leeds', 'Bristol'][i % 2], score: i % 100 };
-    for (let f = 1; f <= 20; f++) row[`field_${f}`] = i % 6 === 0 ? (i * f) % 500 : null;
-    return row;
-  });
-  const labels = planKpis(rows).map((k) => k.label);
-  assert.ok(labels.some((l) => /score/i.test(l)), JSON.stringify(labels));
-  assert.ok(!labels.some((l) => /field/i.test(l)), JSON.stringify(labels));
-});
-
-test('completeness only breaks ties between columns that both vary', () => {
-  const rows = Array.from({ length: 200 }, (_, i) => ({
-    full_flat: 7,
-    sparse_varying: i % 5 === 0 ? i : null,
-  }));
-  const stats = {
-    full_flat: { mean: 7, spread: 0 },
-    sparse_varying: { mean: 100, spread: 199 },
-  };
-  const v = measureVariation(rows, ['full_flat', 'sparse_varying'], stats);
-  // A column that does not move loses to one that does, however complete it is.
-  assert.deepEqual(['full_flat', 'sparse_varying'].sort(byVariation(v)), ['sparse_varying', 'full_flat']);
-});
 
 /* ── 6. Two charts of the same numbers, and a ratio across zero ─────────── */
 

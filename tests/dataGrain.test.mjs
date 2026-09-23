@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { detectRepeatedMeasures, repetitionReason } from '../lib/dataGrain.js';
 import { profileColumns } from '../lib/chartResolver.js';
 import { classifyColumns } from '../lib/measureSemantics.js';
-import { planKpis } from '../lib/analystPlanner.js';
 
 const detect = (rows) => detectRepeatedMeasures(rows, profileColumns(rows));
 
@@ -156,10 +155,4 @@ test('without the measured evidence the same file is still summed', () => {
   // 34.3B headline goes straight through.
   assert.ok(blind.additive.includes('lifetime_value'), 'names alone leave it summable');
   assert.ok(![...blind.preAggregate, ...blind.attribute].includes('lifetime_value'));
-});
-
-test('no KPI card totals a repeated measure', () => {
-  const kpis = planKpis(joinedOrders());
-  const summed = kpis.filter((k) => /SUM\(\s*\[?lifetime_value/i.test(String(k.sql || '')));
-  assert.equal(summed.length, 0, 'a customer lifetime total never becomes a headline sum');
 });

@@ -26,7 +26,7 @@ import crypto from 'node:crypto';
 import { ingest } from './chain.mjs';
 import { profileColumns } from '../lib/chartResolver.js';
 import { valueVocabulary, valuesBriefing } from '../lib/valueBriefing.js';
-import { buildTableModel } from '../lib/tableModel.js';
+import { readTable } from '../lib/tableModel.js';
 import { outcomeVariable } from '../lib/measureSemantics.js';
 import { suggestQuestions } from '../lib/questionCatalogue.js';
 import { QUESTIONS_SYSTEM, questionsPrompt } from '../lib/modelQuestions.js';
@@ -37,7 +37,7 @@ const CORPUS = path.join(import.meta.dirname, '..', 'tests', 'corpus');
 /** Everything the card would send for one file: the briefing, the grain, the list. */
 export function cardInput(rows, fileName) {
   const profile = profileColumns(rows);
-  const model = buildTableModel(rows, { temporal: profile.temporal || [] });
+  const model = readTable(rows, { profile });
   const cardinality = Object.fromEntries(Object.entries(model.columns).map(([c, info]) => [c, info.distinct]));
   const outcome = outcomeVariable({ columns: Object.keys(model.columns), sample: rows.slice(0, 500), cardinality });
   const catalogue = suggestQuestions(rows, model, { outcome });

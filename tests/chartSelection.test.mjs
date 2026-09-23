@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planCharts } from '../lib/analystPlanner.js';
 import { analyzeChart } from '../lib/insightEngine.js';
 
 /**
@@ -80,27 +79,6 @@ test('a waterfall never competes to be the trend finding', () => {
     xAxisKey: 'Month', yAxisKey: 'Total Amount', resultData: series,
   });
   assert.equal(f.metrics.direction, undefined);
-});
-
-test('a waterfall no longer rides the trend exemption past the floor', () => {
-  // "Time always earns one slide" waives the score floor so a flat year still
-  // gets its one chart of the time axis. The waterfall declared the same signal
-  // kind and collected the same waiver, so on a flat series both shipped at
-  // 0.07 — two dead charts, one of them a copy.
-  const charts = planCharts(FLAT, { max: 8 });
-  const bridge = charts.find((c) => c.chart_type === 'waterfall');
-  if (bridge) {
-    assert.notEqual(bridge.signal?.kind, 'trend', 'it must be scored as a contribution');
-  }
-  const line = charts.find((c) => /Trend Over/.test(c.title));
-  assert.ok(line, 'the time axis still earns its slide on a flat series');
-});
-
-test('a concentrated move earns the waterfall its place', () => {
-  const charts = planCharts(EVENT, { max: 8 });
-  const bridge = charts.find((c) => c.chart_type === 'waterfall');
-  assert.ok(bridge, 'one month taking the total down is what a waterfall is for');
-  assert.ok(bridge.signalScore > 0.2, `scored ${bridge.signalScore}`);
 });
 
 // ---------------------------------------------------------------------------

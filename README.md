@@ -31,11 +31,12 @@ CSV file
 ┌──────────────────────────── engine worker (owns the dataset) ────────────────┐
 │ 1. Parse       Papa Parse, streamed in chunks                                │
 │ 2. Clean       PII redaction, type coercion, blank normalisation, outliers   │
-│ 3. Plan        analystPlanner proposes candidate charts + SQL                │
-│ 4. Score       chartSignals measures what each candidate would actually show │
-│ 5. Execute     alasql runs each query over the in-memory rows                │
-│ 6. Resolve     chartResolver validates each type against its own results     │
-│ 7. Verify      insightEngine computes every statistic and writes the prose   │
+│ 3. Read        tableModel works out grain, units and what may be summed      │
+│ 4. Ask         questionCatalogue offers questions; the reader picks on a card│
+│ 5. Compile     questionCompiler turns each question into charts + SQL        │
+│ 6. Execute     alasql runs each query over the in-memory rows                │
+│ 7. Resolve     chartResolver validates each type against its own results     │
+│ 8. Verify      insightEngine computes every statistic and writes the prose   │
 └──────────────────────────────────────────────────────────────────────────────┘
    │                                              │
    │ a few KB of results                          │ ~10 KB of verified findings
@@ -44,43 +45,42 @@ CSV file
 ```
 
 The language model never produces a number. It receives already-computed
-findings and returns better wording, and — before planning — it is asked what
-the table is a record of, which is checked against the rows before it is
-believed. **With no API key configured the app works completely**: deterministic
-prose, and the chart playbook alone deciding what to lead with.
+findings and returns better wording, and — on the question card — it may propose
+questions, each of which is checked against the rows before it is offered.
+**With no API key configured the app works completely**: deterministic prose,
+and the catalogue's own questions deciding what the report answers.
 
-### Choosing the charts
+### Choosing the charts: questions first
 
-The playbook in `analystPlanner` decides which charts a *schema* permits: which
-columns can be summed, which can only be averaged, which categories are worth
-grouping by. That question is answered without looking at a single value, which
-is why it cannot answer the one that follows it. "Average order value by region"
-is a well-formed chart; if every region sits within a percent of the mean it is
-also six bars of the same height and a sentence that says nothing.
+A report answers questions, not a list of charts a schema happens to permit.
+The design is in `docs/design/question-first-reports.md`; in short:
 
-So every candidate is measured against the real rows before the deck is chosen
-(`lib/chartSignals.js`), using the statistic that matches the question it asks:
+1. **Read the table once.** `lib/tableModel.js` decides what a row is (an
+   event, one entity, a snapshot, a long table of series), which measures may be
+   summed and across what, and which are rates, prices or repeated across a
+   join. Every later step reads this instead of guessing again.
+2. **Offer questions.** `lib/questionCatalogue.js` lists what this table can
+   answer — how a total splits, what moves the outcome, how it changed over
+   time, what trades off against what — ranked by how much the rows actually
+   say (`lib/chartSignals.js`: eta², trend R², association strength). The
+   reader picks on the question card; "choose for me" takes the recommended
+   ones. On Pro, or with the reader's own key, a model may add questions
+   (`lib/modelQuestions.js`); each is checked against the rows first.
+3. **Compile, don't filter.** `lib/questionCompiler.js` turns each question
+   into charts that cannot break the report rules (I1–I10): only additive
+   measures are shown as parts of a whole, one row never decides an average,
+   a long table is never summed across its series, thin evidence does not lead.
+   Nothing is generated that would then have to be filtered out, so a question
+   whose answer is "no difference" keeps its answer.
 
-| Question the chart asks | What decides whether it has an answer |
-| --- | --- |
-| How is the total split? | Total variation distance from an even split |
-| Does the category explain the measure? | Eta squared — spread between groups against spread within |
-| Is this a trend? | R² of the fitted line, scaled by how far it actually moved |
-| Do these two move together? | Pearson, discounted for sample size and for Spearman disagreement |
-| Does this distribution have a shape? | Departure from flat, lifted by skew |
-| Is this a dimension we already charted? | Cramér's V against every dimension already picked |
-
-The score shifts a candidate up or down two playbook tiers, so evidence can
-overturn the prior without a striking treemap displacing a real trend. The same
-preview also fixes decisions the schema cannot make: long category names become
-horizontal bars, a donut whose visible slices are not most of the whole is drawn
-as a ranking instead, a short series is a line rather than a mostly-empty area,
-and histogram bands are sized by Freedman–Diaconis rather than fixed at four.
+The rules are scored against a corpus of real and generated files by
+`npm run eval:scorecard`, and the test suite fails if any path scores worse than
+`eval/scorecard.baseline.json`.
 
 ### Which chart, from the values
 
-`analystPlanner` decides which charts a *schema* permits and `chartSignals`
-measures whether a candidate has anything to say. `chartAdvisor` answers the
+`tableModel` decides which charts a *schema* permits and `chartSignals`
+measures whether a question has anything to say. `chartAdvisor` answers the
 third question: given these result rows, what shape are they?
 
 The rule that governs it is that **nothing here reads a column name**. Not to

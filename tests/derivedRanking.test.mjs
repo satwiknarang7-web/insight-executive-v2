@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planCharts } from '../lib/analystPlanner.js';
 import { analyzeChart } from '../lib/insightEngine.js';
 import { allowsPortfolioFraming, shareConsequence } from '../lib/dimensionRoles.js';
 
@@ -28,61 +27,6 @@ function orders({ rows = 4000, cancelRate = 0.1, vary = false } = {}) {
   }
   return out;
 }
-
-test('a rate is scored as a proportion, not as a percentage', () => {
-  // outcomeSpread tests a spread against what sampling would produce, and its
-  // standard error is sqrt(base * (1 - base) / n) — a standard error only while
-  // base is a proportion. Handed percentages, (1 - base) goes negative, the
-  // root is NaN and the significance guard is silently inert. A shipping cost
-  // rate of 0.105% against 0.001% then scored a perfect 1.0 and led the deck on
-  // a spread of one tenth of a percentage point.
-  const charts = planCharts(orders(), { max: 8 });
-  const shipping = charts.find((c) => /Shipping Cost Rate/.test(c.title));
-  if (shipping) {
-    assert.ok(
-      shipping.signalScore < 0.9,
-      `a 0.1pp spread scored ${shipping.signalScore}`
-    );
-  }
-});
-
-test('a measure is never broken down by the column it is made of', () => {
-  // "Cancelled Rate by Order Status" is 100% on the level it counts and 0% on
-  // the rest: a perfect spread, a top score, and a tautology with a chart
-  // around it.
-  const charts = planCharts(orders({ vary: true }), { max: 10 });
-  for (const c of charts) {
-    if (/Cancelled Rate/i.test(c.title)) {
-      assert.doesNotMatch(c.title, /by Order Status/i, 'a measure cannot explain itself');
-    }
-  }
-});
-
-test('a derived rate that genuinely varies is charted', () => {
-  const charts = planCharts(orders({ vary: true }), { max: 10 });
-  const rate = charts.find((c) => /Cancelled Rate by Category/i.test(c.title));
-  assert.ok(rate, 'a rate that differs 35% to 3% across the field is a finding');
-  assert.ok(rate.signalScore > 0.5, `scored ${rate.signalScore}`);
-});
-
-test('a derived rate that is flat everywhere is not charted', () => {
-  // The counterpart, and the one that decides whether the scoring is real: on
-  // the actual export the returned-or-cancelled rate ran 10.09% to 9.60% across
-  // age groups. Refusing it is correct, however consequential 10% sounds.
-  const charts = planCharts(orders({ vary: false }), { max: 10 });
-  const rate = charts.find((c) => /Cancelled Rate by/i.test(c.title));
-  if (rate) assert.ok(rate.signalScore < 0.5, `a flat rate scored ${rate.signalScore}`);
-});
-
-test('too few rows to measure is not the same as measured and flat', () => {
-  // On a small table outcomeSpread discounts every group and returns zero,
-  // which would drop each derived measure rather than report that the question
-  // could not be asked.
-  const tiny = orders({ rows: 12, vary: true });
-  const charts = planCharts(tiny, { max: 10 });
-  const derived = charts.filter((c) => c.measure && c.measure.expr);
-  assert.ok(derived.length > 0, 'a thin table still gets its derived measures');
-});
 
 // ---------------------------------------------------------------------------
 // One rule, applied everywhere

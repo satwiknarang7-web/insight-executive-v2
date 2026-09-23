@@ -40,7 +40,7 @@ import { audit, RULES } from './audit.mjs';
 import { answer } from './answers.mjs';
 import { fuzzCases } from './fuzz.mjs';
 import { scoreModel } from './modelScore.mjs';
-import { buildTableModel } from '../lib/tableModel.js';
+import { readTable } from '../lib/tableModel.js';
 import { runAnalysis } from '../lib/pipeline.js';
 import { profileColumns } from '../lib/chartResolver.js';
 import { acceptBrief } from '../lib/datasetBrief.js';
@@ -84,7 +84,7 @@ export function scoreCorpus({ only = null } = {}) {
     if (!spec.report) continue;
     const { rows } = ingest(fs.readFileSync(path.join(CORPUS, file), 'utf8'));
     const { questions = [], ...truth } = spec.report;
-    const model = buildTableModel(rows, { temporal: profileColumns(rows).temporal });
+    const model = readTable(rows, { profile: profileColumns(rows) });
     const paths = { noModel: score(rows, truth, questions, {}) };
     // What the question card offers: the report a reader gets by ticking every
     // question the catalogue suggests. Every one of them has to compile
@@ -113,7 +113,7 @@ export function scoreCorpus({ only = null } = {}) {
 export function scoreFuzz() {
   const out = {};
   for (const c of fuzzCases()) {
-    const model = buildTableModel(c.rows, { temporal: profileColumns(c.rows).temporal });
+    const model = readTable(c.rows, { profile: profileColumns(c.rows) });
     out[c.name] = { grain: c.truth.grain, trap: c.trap, paths: { noModel: score(c.rows, c.truth, [], {}) }, model: scoreModel(model, c.rows, c.truth) };
   }
   return out;

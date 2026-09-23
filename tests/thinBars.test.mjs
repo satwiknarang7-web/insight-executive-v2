@@ -105,31 +105,6 @@ test('a chart that carries no support column passes through untouched', async ()
   assert.equal(spec.support, undefined);
 });
 
-test('the planner counts the measure, not the rows', async () => {
-  const { SUPPORT_KEY } = await import('../lib/aggregateNames.js');
-  const { planCharts } = await import('../lib/analystPlanner.js');
-
-  const rows = [];
-  for (let i = 0; i < 30; i++) {
-    rows.push({
-      Audience: ['Individual', 'Business', 'Enterprise'][i % 3],
-      Provider: `P${i % 5}`,
-      // Only one row in the whole file carries a seat minimum.
-      'Min Seats': i === 2 ? 300 : null,
-      Price: 10 + (i % 17),
-    });
-  }
-
-  const avg = planCharts(rows, { max: 8 }).find((c) => c.supportKey === SUPPORT_KEY);
-  if (!avg) return; // this shape did not produce an average-by-category chart
-
-  // COUNT(col) rather than COUNT(*): AVG skips nulls, so the rows in a group
-  // are not the values its average was taken over — on the file this came
-  // from, those differ by most of the group.
-  assert.match(avg.sql, new RegExp(`COUNT\\(\\[[^\\]]+\\]\\) AS \\[${SUPPORT_KEY}\\]`));
-  assert.ok(!/COUNT\(\*\)/.test(avg.sql.slice(avg.sql.indexOf('COUNT'))), 'counted rows instead of values');
-});
-
 test('a category with no values behind it is not drawn at all', async () => {
   const { liftSupport } = await import('../lib/pipeline.js');
   const { SUPPORT_KEY } = await import('../lib/aggregateNames.js');

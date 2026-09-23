@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { measureDependence } from '../lib/chartSignals.js';
-import { planCharts } from '../lib/analystPlanner.js';
 
 /* What the deck refuses to say.
 
@@ -66,59 +65,6 @@ test('too few rows to judge is not a finding of dependence', () => {
   assert.equal(measureDependence([], 'Revenue', 'Unit_Price', columns).dependent, false);
 });
 
-test('the planner will not put a dependent pair on a slide', () => {
-  const charts = planCharts(sales(600), { max: 9 });
-  for (const c of charts) {
-    const axes = `${c.xAxisKey} ${c.yAxisKey}`;
-    const pairsRevenueWithFactor =
-      /Revenue/i.test(axes) && (/Unit.?Price/i.test(axes) || /Quantity/i.test(axes));
-    assert.ok(
-      !(c.chart_type === 'scatter' && pairsRevenueWithFactor),
-      `a scatter of a total against its own factor survived: ${c.title}`
-    );
-  }
-});
-
-test('a deck of flat data is short, not padded', () => {
-  // Every group identical, every measure a plain sequence: there is nothing
-  // here a chart could tell anybody.
-  const flat = Array.from({ length: 200 }, (_, i) => ({
-    segment: `g${i % 4}`,
-    other: `h${i % 5}`,
-    amount: (i % 50) + 1,
-    score: ((i * 7) % 50) + 1,
-  }));
-  const charts = planCharts(flat, { max: 9 });
-  assert.ok(charts.length <= 5, `expected a short deck, got ${charts.length}`);
-});
-
-test('a deck never empties itself, however little the data says', () => {
-  const nothing = Array.from({ length: 60 }, (_, i) => ({
-    segment: `g${i % 3}`,
-    amount: 100,
-    other: 5,
-  }));
-  const charts = planCharts(nothing, { max: 9 });
-  assert.ok(charts.length >= 1, 'something is still offered');
-});
-
-test('one distribution per deck', () => {
-  // Three measures whose distributions are all strongly shaped: without the
-  // rule this deck would spend three slides saying "most values are small".
-  const skewed = Array.from({ length: 400 }, (_, i) => {
-    const tail = i > 360 ? 40 : 1;
-    return {
-      segment: `g${i % 6}`,
-      alpha: (i % 30) * tail,
-      beta: (i % 25) * tail,
-      gamma: (i % 20) * tail,
-    };
-  });
-  const charts = planCharts(skewed, { max: 9 });
-  const histograms = charts.filter((c) => /^Distribution of /.test(c.title));
-  assert.ok(histograms.length <= 1, `${histograms.length} histograms in one deck`);
-});
-
 /* Which chart, and how many — the shape of the deck itself. */
 
 /** A joined view: a real decline, and an interaction between two dimensions. */
@@ -149,52 +95,3 @@ function joined(n = 8000) {
   }
   return rows;
 }
-
-test('a cross-tab is offered for the pair that actually interacts', () => {
-  // Revenue is driven by Category, and separately collapses for Electronics in
-  // the North. The pair worth a grid is Category and Region — the first two
-  // dimensions in the list are Category and Age Group, and a planner that took
-  // those would draw a grid with nothing in it.
-  const charts = planCharts(joined(), { max: 9 });
-  const matrix = charts.find((c) => c.chart_type === 'matrix');
-  assert.ok(matrix, `no cross-tab: ${charts.map((c) => c.chart_type).join(', ')}`);
-  const dims = `${matrix.xAxisKey} ${matrix.secondaryYAxisKey}`;
-  assert.match(dims, /Category/);
-  assert.match(dims, /Region/, `grid was over ${dims}`);
-});
-
-test('only one cross-tab, however many pairs are offered', () => {
-  const charts = planCharts(joined(), { max: 9 });
-  assert.ok(charts.filter((c) => c.chart_type === 'matrix').length <= 1);
-});
-
-test('the same column arriving from two sheets is charted once', () => {
-  const charts = planCharts(joined(), { max: 9 });
-  const ageCharts = charts.filter((c) => /age group/i.test(String(c.dimension || c.xAxisKey)));
-  assert.ok(ageCharts.length <= 1, ageCharts.map((c) => c.title).join(' | '));
-});
-
-test('a date column always earns one chart, even when the line is flat', () => {
-  // "Revenue held steady all year" is a finding. Scored on direction alone a
-  // flat series is worth nothing, and the deck then says nothing about when
-  // anything happened — the first question anybody asks.
-  let seed = 4;
-  const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-  const flat = Array.from({ length: 3000 }, (_, i) => ({
-    Order_Date: `2025-${String(1 + Math.floor((i / 3000) * 12)).padStart(2, '0')}-15`,
-    Category: ['A', 'B', 'C'][i % 3],
-    Revenue: 900 + Math.round(rnd() * 200),
-  }));
-  const charts = planCharts(flat, { max: 7 });
-  assert.ok(
-    charts.some((c) => ['line', 'area'].includes(c.chart_type)),
-    `no time axis: ${charts.map((c) => `${c.chart_type} ${c.title}`).join(' | ')}`
-  );
-});
-
-test('a deck of a rich dataset uses more than one shape', () => {
-  const charts = planCharts(joined(), { max: 9 });
-  const types = new Set(charts.map((c) => c.chart_type));
-  assert.ok(types.size >= 4, `only ${types.size} shapes: ${[...types].join(', ')}`);
-  assert.ok(charts.length >= 5, `only ${charts.length} charts`);
-});

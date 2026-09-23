@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeChart } from '../lib/insightEngine.js';
-import { dropTiedRankings, plateauShare } from '../lib/pipeline.js';
 
 /* A ranking has to rank something.
 
@@ -41,51 +40,6 @@ const chartOf = (pairs, over = {}) => ({
   ...over,
 });
 
-const filler = (n) => Array.from({ length: n }, () => ({ chart_type: 'line', title: 'Trend' }));
-
-test('a ranking that is mostly one repeated value is dropped', () => {
-  const tied = chartOf(CONTEXT_WINDOW);
-  assert.equal(Math.round(plateauShare(tied) * 100), 64, 'seven of eleven is the plateau');
-
-  const deck = dropTiedRankings([tied, ...filler(4)]);
-  assert.ok(!deck.includes(tied), 'the tied ranking survived a deck that had plenty else to show');
-  assert.equal(deck.length, 4);
-});
-
-test('a ranking that actually ranks is untouched', () => {
-  // Same shape, same measure, real separation between every bar.
-  const real = chartOf(CONTEXT_WINDOW.map(([l], i) => [l, 1000000 - i * 70000]));
-  assert.ok(plateauShare(real) < 0.5, `a spread field was read as a plateau: ${plateauShare(real)}`);
-  assert.deepEqual(dropTiedRankings([real, ...filler(4)]).length, 5);
-});
-
-test('the deck is never emptied to make the point', () => {
-  const tied = chartOf(CONTEXT_WINDOW);
-  // Nothing else to show. A weak chart on the slide beats a deck of one, and
-  // the finding still refuses to name a leader — see below.
-  const deck = dropTiedRankings([tied, ...filler(1)]);
-  assert.ok(deck.includes(tied), 'the only comparison in the file was cut');
-});
-
-test('shapes that are not rankings are not judged on repetition', () => {
-  const pairs = CONTEXT_WINDOW;
-  // A trend of a flat metric is a finding about a flat metric. A histogram with
-  // a tall mode is a histogram. Neither claims an order.
-  for (const over of [{ chart_type: 'line' }, { chart_type: 'area' }, { chart_type: 'scatter' }]) {
-    assert.equal(plateauShare(chartOf(pairs, over)), null, `${over.chart_type} was judged as a ranking`);
-  }
-  assert.equal(
-    plateauShare(chartOf(pairs, { title: 'Distribution of Context Window', chart_type: 'bar' })),
-    null,
-    'a histogram was judged as a ranking'
-  );
-});
-
-test('three bars are too few to call a plateau', () => {
-  // Two of three equal is a tie the finding states in words. It is not a chart
-  // that should not exist, and cutting at that width would gut ordinary decks.
-  assert.equal(plateauShare(chartOf([['a', 5], ['b', 5], ['c', 1]])), null);
-});
 
 test('a shared top value is never reported as a leader', () => {
   const f = analyzeChart(chartOf(CONTEXT_WINDOW), 44);
@@ -141,7 +95,6 @@ test('a merely bunched field is still a ranking, and still says so', () => {
     ['North', 1010], ['West', 1005], ['South', 1000], ['Central', 995], ['East', 990],
   ]);
 
-  assert.ok(plateauShare(bunched) < 0.5, 'a bunched field was read as a plateau');
   const f = analyzeChart(bunched, 500);
   assert.equal(f.metrics.tiedAtTop, null, 'close values were reported as identical ones');
   assert.match(f.metrics.leadIsReal, /provisional/);

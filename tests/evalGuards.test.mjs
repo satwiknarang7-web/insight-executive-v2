@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createMetrics, finalizeMetrics, sanitizeChunk, unifyBooleans } from '../lib/dataCleaner.js';
 import { profileColumns } from '../lib/chartResolver.js';
-import { planCharts, planKpis } from '../lib/analystPlanner.js';
 
 /* Four defects found by the ten-dataset evaluation in eval/RESULTS.md. Each was
    measured on the built app before being fixed, and each fixture below is the
@@ -44,33 +43,6 @@ test('eight spellings of true and false fold to two', () => {
   // And one type, not two: a numeric 0 rewritten as the string "0" beside a
   // numeric 0 that won reports three levels for a two-valued flag.
   assert.equal(new Set(out.map((r) => typeof r.churned)).size, 1);
-});
-
-test('and the outcome rate is then computed, which was the whole cost', () => {
-  const rows = [];
-  for (let i = 0; i < 900; i++) {
-    const contract = ['Month-to-month', 'One year', 'Two year'][i % 3];
-    const churn = contract === 'Month-to-month' ? i % 3 === 0 : i % 17 === 0;
-    rows.push({
-      customer_id: `C${i}`,
-      contract_type: contract,
-      tenure_months: String(1 + (i % 72)),
-      monthly_charge: (20 + (i % 90)).toFixed(2),
-      churned: churn ? ['Yes', 'Y', 'TRUE', '1'][i % 4] : ['No', 'N', 'false', '0'][i % 4],
-    });
-  }
-  const { rows: out } = clean(rows);
-  const labels = planKpis(out).map((k) => k.label);
-  assert.ok(
-    labels.some((l) => /churn rate/i.test(l)),
-    `no outcome rate on a churn table: ${JSON.stringify(labels)}`
-  );
-  // And the column that drives it gets charted.
-  const titles = planCharts(out, { max: 8 }).map((c) => c.title);
-  assert.ok(
-    titles.some((t) => /by Contract Type$/i.test(t)),
-    `the driver was never charted: ${JSON.stringify(titles)}`
-  );
 });
 
 test('a column that is not a boolean is left alone', () => {
@@ -155,52 +127,6 @@ function banded() {
   return rows;
 }
 
-test('a measure is not summed or averaged over bands of itself', () => {
-  /* Present in 5 of 10 evaluation datasets and the FIRST chart in four:
-
-       "Total Revenue by Revenue Band" — STRONG EVIDENCE —
-       "20000–50000 leads revenue bands on total revenue at 9.7M, 43.4% of the total"
-
-     True by construction. The sum of a measure inside its own top band is the
-     largest sum there can be, and the evidence tier cannot tell, because the
-     arithmetic is impeccable. */
-  const charts = planCharts(banded(), { max: 10 });
-  for (const c of charts) {
-    const pairsItself =
-      /Revenue Band/i.test(String(c.xAxisKey || '')) && /revenue/i.test(String(c.yAxisKey || ''));
-    assert.ok(!pairsItself, `a tautology survived: ${c.title}`);
-  }
-});
-
-test('but a different measure broken down by those bands is still offered', () => {
-  // The guard is about one pairing, not about band columns. "Average Discount
-  // Pct by Revenue Band" is a real question and has to survive.
-  const pool = planCharts(banded(), { max: 12 });
-  const usesBand = pool.filter((c) => /Revenue Band/i.test(String(c.xAxisKey || '')));
-  for (const c of usesBand) {
-    assert.ok(!/revenue/i.test(String(c.yAxisKey || '')), c.title);
-  }
-});
-
-test('a band column is not read as a date because it says "Monthly"', () => {
-  /* TEMPORAL_KEY_RE matched the NAME alone, so bucketing `monthly_charge`
-     produced `Monthly Charge Band` — values `< 50`, `50–100`, `100+` — which
-     matched on "month" and became the time axis. The deck reported "Total
-     Monthly Charge Trend Over Monthly Charge Band" and a waterfall of what
-     moved it between the bands. */
-  const rows = Array.from({ length: 120 }, (_, i) => ({
-    plan: ['Basic', 'Standard'][i % 2],
-    monthly_charge: 20 + (i % 90),
-    'Monthly Charge Band': i % 3 === 0 ? '< 50' : i % 3 === 1 ? '50–100' : '100+',
-  }));
-  const p = profileColumns(rows);
-  assert.deepEqual(p.temporal, [], `a band was read as a date: ${JSON.stringify(p.temporal)}`);
-
-  for (const c of planCharts(rows, { max: 10 })) {
-    assert.ok(!/Trend|What Moved/i.test(c.title), `a band axis was called a trend: ${c.title}`);
-  }
-});
-
 test('a real date column is still found, named helpfully or not', () => {
   const named = Array.from({ length: 60 }, (_, i) => ({
     order_date: `2026-0${(i % 9) + 1}-15`, region: 'North', revenue: 100 + i,
@@ -212,25 +138,6 @@ test('a real date column is still found, named helpfully or not', () => {
     period: `2026-0${(i % 9) + 1}`, region: 'North', revenue: 100 + i,
   }));
   assert.deepEqual(profileColumns(unnamed).temporal, ['period']);
-});
-
-test('an hour pulled out of a timestamp is a label, not a magnitude', () => {
-  /* The preparation step pulls the time out of a timestamp so something can be
-     grouped by it, and names the result after the column it came from. It is a
-     whole number, so the profile called it a measure and a 50,000-row sensor
-     stream opened with "Average Reading Ts Hour 11.5" — the mean hour of the
-     day. The temperature the file exists to record was not on the dashboard. */
-  const rows = Array.from({ length: 120 }, (_, i) => ({
-    reading_ts: `2026-01-01T${String(i % 24).padStart(2, '0')}:30:00Z`,
-    'Reading Ts Hour': i % 24,
-    temperature_c: 20 + (i % 9),
-  }));
-  const p = profileColumns(rows);
-  assert.deepEqual(p.measures, ['temperature_c']);
-  assert.ok(p.dimensions.includes('Reading Ts Hour'), 'grouping by the hour is the point of the column');
-
-  const labels = planKpis(rows).map((k) => k.label);
-  assert.ok(!labels.some((l) => /hour/i.test(l)), `the clock is still a headline: ${JSON.stringify(labels)}`);
 });
 
 test("but a reader's own hour column is left alone", () => {

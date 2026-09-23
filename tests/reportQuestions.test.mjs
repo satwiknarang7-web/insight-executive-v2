@@ -269,3 +269,45 @@ test('every question is phrased for any outcome, not one domain', () => {
   const headline = questions.find((q) => q.intent === 'outcome-rate' && !q.by);
   assert.equal(headline.text, 'How often is Churned “Yes”?');
 });
+
+/* ── Lessons carried over from the playbook planner (phase 5) ──────────── */
+
+test('a figure repeated once per group is never totalled', () => {
+  // A country's tax revenue, joined onto every athlete before upload. Summed,
+  // it is counted once per athlete — the 71.7x overstatement the playbook's
+  // dataGrain check was written for. The table model marks it and nothing sums it.
+  // Results by date, so the table is a log of events and its totals are
+  // summed — which is exactly where a repeated figure does its damage.
+  // Twelve countries: with fewer than eight distinct values lib/dataGrain.js
+  // cannot tell a repeated figure from an ordinary measure, and says nothing.
+  const rows = range(300, (i) => {
+    const country = `C${i % 12}`;
+    return { event_date: day(i % 60), country, sport: ['Run', 'Swim'][i % 2], medals: i % 4, tax_revenue: 250 + (i % 12) * 410 };
+  });
+  const result = runAnalysis(rows);
+  const summed = result.charts.filter((c) => /SUM\(\[tax_revenue\]\)/.test(c.sql || ''));
+  assert.deepEqual(summed.map((c) => c.title), []);
+  assert.ok(!result.kpis.some((k) => /Total Tax Revenue/.test(k.label)), JSON.stringify(result.kpis));
+});
+
+test('an hour pulled out of a timestamp is a label, never averaged', () => {
+  const rows = range(240, (i) => ({
+    reading_ts: `2026-01-${String(1 + Math.floor(i / 24)).padStart(2, '0')}T${String(i % 24).padStart(2, '0')}:30:00Z`,
+    'Reading Ts Hour': i % 24,
+    temperature_c: 20 + (i % 9),
+  }));
+  const result = runAnalysis(rows);
+  // Neither averaged ("the mean hour of the day") nor totalled: an hour is a
+  // label to group by, not a quantity.
+  const aggregated = [...result.kpis.map((k) => k.label), ...result.charts.map((c) => c.sql || '')].filter((s) =>
+    /(Average|Total|Median|AVG\(|SUM\(|MEDIAN\()\s*\[?Reading Ts Hour/i.test(s)
+  );
+  assert.deepEqual(aggregated, []);
+});
+
+test('a relationship is measured over every row, not the head of the file', () => {
+  const rows = range(1200, (i) => ({ id: `R${i}`, a: i % 97, b: (i % 97) * 2 + (i % 5) }));
+  const { model } = plan(rows);
+  const [spec] = specsFor(rows, model, { id: 'q', intent: 'relationship', measure: 'b', other: 'a' });
+  assert.doesNotMatch(spec.sql, /LIMIT/);
+});

@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { planCharts } from '../lib/analystPlanner.js';
 import { analyzeStoryboard } from '../lib/insightEngine.js';
 import { buildStoryboard } from '../lib/storyboard.js';
 
@@ -48,45 +47,6 @@ test('no single sentence is printed beside every finding', () => {
   // Two of the three badges said nothing measurable.
   assert.doesNotMatch(SOURCE, /Top 10 Precision/);
   assert.doesNotMatch(SOURCE, /Aggregated Logic/);
-});
-
-/**
- * The audit block reads fields off the storyboard, and a storyboard slide is
- * `{ findings: { metrics }, chart }` rather than a flat finding. Reading the
- * wrong path returns undefined for every slide and the page reports nothing —
- * silently, with no error and no empty state. So the shape is pinned here
- * against a storyboard the real pipeline built.
- */
-test('every field the audit page reads exists on a real storyboard', () => {
-  const rows = [];
-  for (let i = 0; i < 400; i++) {
-    rows.push({
-      Sport: ['Rowing', 'Judo', 'Archery'][i % 3],
-      Athlete: `a${i}`,
-      Weight: 55 + (i % 30),
-      Medal_Binary: i % 3 === 0 ? 1 : 0,
-    });
-  }
-
-  const charts = planCharts(rows, { max: 6 }).map((c) => ({ ...c, resultData: [{ x: 'A', y: 1 }] }));
-  const { perChart, synthesis } = analyzeStoryboard(charts, rows);
-  const { slideZero, storyboard } = buildStoryboard({ charts, perChart, synthesis, narrative: null });
-
-  assert.ok(storyboard.length > 0, 'the fixture produces a deck');
-  assert.equal(typeof slideZero.rowsAnalyzed, 'number');
-  assert.equal(slideZero.rowsAnalyzed, 400);
-
-  // The two paths the audit block walks.
-  const withSql = storyboard.filter((slide) => slide?.chart?.sql).length;
-  assert.equal(withSql, storyboard.length, 'every slide carries the query behind it');
-
-  const tiers = storyboard
-    .map((slide) => slide?.findings?.metrics?.evidence)
-    .filter(Boolean);
-  assert.ok(tiers.length > 0, 'evidence tiers are reachable at findings.metrics.evidence');
-  for (const tier of tiers) {
-    assert.ok(['strong', 'moderate', 'indicative', 'thin'].includes(tier), `unexpected tier ${tier}`);
-  }
 });
 
 test('the audit block reads the storyboard, not a flat finding', () => {

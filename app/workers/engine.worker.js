@@ -34,13 +34,13 @@ import {
   executeCharts,
   TABLE,
 } from '../../lib/pipeline.js';
-import { planKpis } from '../../lib/analystPlanner.js';
 import { filterWhere } from '../../lib/filters.js';
 import { acceptBrief } from '../../lib/datasetBrief.js';
 import { gateRatios } from '../../lib/preparation.js';
 import { classifyColumns, deriveMeasures, outcomeVariable } from '../../lib/measureSemantics.js';
-import { buildTableModel } from '../../lib/tableModel.js';
+import { readTable } from '../../lib/tableModel.js';
 import { suggestQuestions } from '../../lib/questionCatalogue.js';
+import { headlineFigures } from '../../lib/questionCompiler.js';
 import { acceptModelQuestions, mergeSuggestions } from '../../lib/modelQuestions.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
@@ -1319,7 +1319,11 @@ function sourceRows() {
  */
 function catalogue() {
   const rows = state.view.rows;
-  const model = buildTableModel(rows, { temporal: state.viewProfile?.temporal || [] });
+  const model = readTable(rows, {
+    profile: state.viewProfile,
+    provenance: state.view.provenance,
+    roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
+  });
   const cardinality = Object.fromEntries(Object.entries(model.columns).map(([c, info]) => [c, info.distinct]));
   const outcome = outcomeVariable({ columns: Object.keys(model.columns), sample: rows.slice(0, 500), cardinality });
   return { rows, model, questions: suggestQuestions(rows, model, { outcome }) };
@@ -1369,8 +1373,6 @@ function analyze(
     claims = null,
     voidClaim = null,
     includeVoid = false,
-    purpose = null,
-    composed = [],
     briefProposal = null,
   }
 ) {
@@ -1410,21 +1412,10 @@ function analyze(
     // the rows for facts this side already holds.
     profile: state.viewProfile,
     withheld: withheldMeasures(),
-    // Unit claims settled before planning, because they decide which sums are
-    // allowed. Null when no provider answered, which is the lexicon alone.
-    claims,
     // Which values in which column mean the row did not stand. Settled before
     // planning for the same reason as the unit claims: it decides which ROWS
     // are summed, and every figure below inherits the answer.
     voidClaim,
-    // Charts a model composed for this table, already checked against its
-    // columns by the route. Empty when no provider answered, which leaves the
-    // planner's deck as the deck. See lib/deckComposer.js.
-    composed,
-    // What the table is for, settled before planning because it decides what
-    // is worth charting at all. Null when no provider answered, which leaves
-    // the statistical ranking this planner has always used.
-    purpose,
     // Whether the reader asked for the void rows back. Default false: the
     // narrower total is the one that is what its name says.
     includeVoid,
@@ -1453,9 +1444,17 @@ function analyze(
     profile: state.viewProfile,
     claims,
     voidClaim,
-    purpose,
     includeVoid,
     confidence: state.metrics?.confidence || null,
+    // What the report answers, and the table as it was read to answer it. A
+    // filter recomputes the same headline figures over fewer rows; it does not
+    // re-decide which figures they are, or the cards would change under a click.
+    questions: result.asked || [],
+    tableModel: readTable(state.view.rows, {
+      profile: state.viewProfile,
+      provenance: state.view.provenance,
+      roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
+    }),
   };
   reply(id, 'analyzed', result);
 }
@@ -1551,18 +1550,11 @@ function refilter(id, { specs = [], filters = [] } = {}) {
     }
 
     const { perChart } = analyzeStoryboard(charts, rows, context.confidence || null);
-    const kpis = planKpis(rows, {
-      provenance: context.provenance || {},
-      roles: context.roles || {},
-      claims: context.claims || null,
-      // What the table is for, from the analysis that planned this board. A
-      // filter narrows the rows; it does not change what the file is about, and
-      // re-deciding it here would let a click swap the cards out from under the
-      // charts they sit above.
-      purpose: context.purpose || null,
-      // The shape of the whole table, deliberately: see above.
-      profile: context.profile || null,
-    });
+    // The report's own headline figures, over the filtered rows. The questions
+    // and the table model are the whole table's, deliberately: a filter narrows
+    // the rows, it does not change what the file is about or which cards sit
+    // above the charts.
+    const kpis = context.tableModel ? headlineFigures(context.questions || [], rows, context.tableModel) : [];
     reply(id, 'filtered', { charts, perChart, kpis, rowCount: rows.length, empty: false });
   } finally {
     unmountTables(mounted);

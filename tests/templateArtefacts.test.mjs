@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeChart } from '../lib/insightEngine.js';
-import { planCharts } from '../lib/analystPlanner.js';
 
 /**
  * Sentences that gave the game away.
@@ -122,30 +121,6 @@ test('a wobbly but genuinely rising series keeps its own advice', () => {
   const f = analyzeChart(series([100, 118, 112, 150, 142, 180, 175, 205, 198, 240, 232, 270]));
   assert.equal(f.metrics.direction, 'rising');
   assert.doesNotMatch(f.recommendation, /alternates up and down/);
-});
-
-test('a correlation is never measured over an arbitrary slice', () => {
-  // The reported case: GROUP BY [Name] LIMIT 60 across 100,164 athletes, so
-  // r was computed over sixty rows chosen by whatever order the engine returned
-  // them in. Not a sample of the data — an accident of row order.
-  const rows = [];
-  for (let i = 0; i < 4000; i++) {
-    rows.push({
-      Name: `Athlete ${i}`,
-      Host_Country: `Country ${i % 18}`,
-      Weight: 55 + (i % 40),
-      Height: 160 + (i % 30),
-    });
-  }
-  const chart = planCharts(rows, { max: 10 }).find((c) => /Correlation/.test(c.title));
-  if (!chart) return; // refusing to offer one at all is a valid outcome
-  const limit = Number((chart.sql.match(/LIMIT\s+(\d+)/i) || [])[1] || Infinity);
-  const groups = new Set(rows.map((r) => r[chart.dimension])).size;
-  assert.ok(
-    groups <= limit,
-    `grouped by ${chart.dimension} into ${groups} groups but only ${limit} are charted`
-  );
-  assert.notEqual(chart.dimension, 'Name', 'a near-unique column has no groups to average');
 });
 
 test('a zigzag that is genuinely climbing keeps its own advice', () => {

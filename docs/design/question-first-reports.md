@@ -3,8 +3,8 @@
 Status: **approved**, 2026-09-23. Replaces the chart-selection core of the
 analysis pipeline. Phases 0 (the baseline), 1 (the table model), 2 (question
 compilers) and 3 (the question card) are done, and phase 4 (a model's questions)
-is built and awaiting its measurement — results in `eval/RESULTS.md`; phase 5
-is not started.
+is built and awaiting its measurement — results in `eval/RESULTS.md`. Phase 5
+(cleanup) is done: the playbook planner and the filters behind it are gone.
 
 Decisions taken: questions are asked of the reader as a multiple-choice card;
 Pro gets the server model key, Free stays deterministic; Free gets the question
@@ -281,7 +281,7 @@ The design is only finished when it is measured.
 | 2. Compilers + invariants ✅ | intent compilers, I1–I10 enforced at construction, planner core removed | zero invariant violations on corpus and fuzz; `mustAnswer` passes for the catalogue path — 0 violations, 62/77 answered |
 | 3. Question card ✅ | the multiple-choice step, saved questions, "Change questions", sections per question | subscription file: "intelligence per dollar" answered, recommended and pre-ticked with no model — and 69/77 reachable from the card |
 | 4. Model pass + Pro server key 🟡 | merged model pass, `canGenerate` change, privacy copy | model path beats catalogue path on the scorecard, never violates an invariant — built; awaits recorded model answers (`eval/record-model.mjs`) |
-| 5. Cleanup | delete superseded filters and passes, update README | no dead planner code; README describes the new pipeline |
+| 5. Cleanup ✅ | delete superseded filters and passes, update README | no dead planner code; README describes the new pipeline — planner, purpose and compose passes deleted, scorecard unchanged at 62/77 and 69/77 |
 
 Phases 0–2 ship value with no UI change; 3 is the visible change.
 

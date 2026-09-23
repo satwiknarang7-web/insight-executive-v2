@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeChart, analyzeStoryboard } from '../lib/insightEngine.js';
-import { enforceChartDiversity, executeCharts, mountTable, runAnalysis, runSql, titleForDrawn, unmountTable } from '../lib/pipeline.js';
+import { executeCharts, mountTable, runAnalysis, runSql, titleForDrawn, unmountTable } from '../lib/pipeline.js';
 
 // A histogram: the x labels are value ranges, not named segments.
 const histogram = {
@@ -26,16 +26,6 @@ test('a histogram reads as a distribution even when drawn as a radial chart', ()
   assert.doesNotMatch(f.headline, /largest share/i);
 });
 
-test('diversity enforcement never retypes a distribution chart', () => {
-  const charts = [
-    { title: 'A by Region', chart_type: 'bar', xAxisKey: 'Region', yAxisKey: 'Total', resultData: [{ Region: 'N', Total: 5 }, { Region: 'S', Total: 3 }] },
-    { title: 'B by Channel', chart_type: 'bar', xAxisKey: 'Channel', yAxisKey: 'Total', resultData: [{ Channel: 'X', Total: 4 }, { Channel: 'Y', Total: 2 }] },
-    { ...histogram, chart_type: 'bar' },
-  ];
-  enforceChartDiversity(charts);
-  assert.equal(charts[2].chart_type, 'bar', 'the histogram must stay a bar chart');
-});
-
 test('a modal bucket is not offered as the dataset opportunity', () => {
   const ranking = {
     id: 'r1',
@@ -56,32 +46,6 @@ test('a modal bucket is not offered as the dataset opportunity', () => {
   // opportunity to report, so the card is empty rather than restating the risk.
   assert.match(synthesis.strategicScorecard.risk, /Electronics/);
   assert.equal(synthesis.strategicScorecard.opportunity, '');
-});
-
-test('a share chart is never retyped into a time series', () => {
-  // Regions have no chronological order; drawing them as an area chart made the
-  // narrative describe a "trend" over them.
-  const share = {
-    title: 'Region Share of Monthly Charge',
-    chart_type: 'donut',
-    xAxisKey: 'region',
-    yAxisKey: 'Total',
-    resultData: [
-      { region: 'West', Total: 20300 },
-      { region: 'North', Total: 19400 },
-      { region: 'East', Total: 18900 },
-      { region: 'South', Total: 17200 },
-    ],
-  };
-  const charts = [
-    { ...share },
-    { ...share, title: 'Plan Share', xAxisKey: 'plan', resultData: share.resultData.map((r) => ({ plan: r.region, Total: r.Total })) },
-    { ...share, title: 'Channel Share', xAxisKey: 'channel', resultData: share.resultData.map((r) => ({ channel: r.region, Total: r.Total })) },
-  ];
-  enforceChartDiversity(charts);
-  for (const c of charts) {
-    assert.ok(!['line', 'area'].includes(c.chart_type), `${c.title} became ${c.chart_type}`);
-  }
 });
 
 test('unordered category labels are never narrated as a trend', () => {
@@ -113,34 +77,6 @@ test('ISO year-month labels are still recognised as a real trend', () => {
     ],
   });
   assert.equal(f.metrics.direction, 'rising');
-});
-
-test('histogram buckets are ordered low to high, whatever order SQL returns', () => {
-  // AlaSQL ignores ORDER BY over an aggregate of an unselected column, so the
-  // planner's intended bucket order has to be reapplied after execution.
-  // Skewed rather than evenly spread. A uniform column has no shape to show, so
-  // it no longer earns a histogram at all — and this test is about the order of
-  // the buckets, not about which columns deserve one.
-  const rows = [];
-  for (let i = 0; i < 300; i++) {
-    const tail = i > 270 ? 5 : i > 240 ? 2.5 : 1;
-    rows.push({ channel: ['A', 'B', 'C'][i % 3], impressions: (45000 + ((i * 7919) % 90000)) * tail });
-  }
-  // The playbook's histogram; the question planner asks no distribution
-  // question. Both go in phase 5 of docs/design/question-first-reports.md.
-  const { charts } = runAnalysis(rows, { planner: 'playbook' });
-  const hist = charts.find((c) => /Distribution/.test(c.title));
-  assert.ok(hist, 'expected a distribution chart');
-
-  const labels = hist.resultData.map((r) => r[hist.xAxisKey]);
-  assert.ok(labels.length >= 3, 'expected several buckets');
-  assert.match(labels[labels.length - 1], /\+$/, 'the open-ended bucket must come last');
-
-  // Each label starts with its own lower edge, so the leading numbers ascend.
-  const lead = (l) => parseFloat(String(l).replace(/[^0-9.]/g, '')) * (/K/.test(l) ? 1000 : 1);
-  for (let i = 1; i < labels.length; i++) {
-    assert.ok(lead(labels[i]) >= lead(labels[i - 1]), `buckets out of order: ${labels.join(' | ')}`);
-  }
 });
 
 test('a long aggregated result is kept, not replaced with an average by category', () => {
@@ -176,93 +112,33 @@ test('a long aggregated result is kept, not replaced with an average by category
   assert.equal(chart.resultData[0].Month, '2023-01');
 });
 
-/**
- * A deck where the only advanced type still missing is a part-to-whole one, so
- * the diversity pass reaches for a share chart on its very first attempt. The
- * pass walks the deck backwards and advances through the missing types one per
- * chart, so the chart under test goes last.
- */
-/**
- * A deck monotonous enough that the diversity pass will run on it.
- *
- * It used to hold five distinct types with only the share types missing, which
- * isolated the rule under test nicely — and stopped working when the pass was
- * restricted to decks that are actually monotonous. Retyping a clear chart to
- * chase variety is what turned a bar of seven categories into an unreadable
- * radial, so a deck that already has three shapes is now left alone, and this
- * fixture has two.
- */
-function deckMissingOnlyShareTypes(subject) {
-  const present = [
-    { id: 'area', chart_type: 'area', xAxisKey: 'Month', yAxisKey: 'Total Revenue',
-      resultData: [
-        { Month: '2026-01', 'Total Revenue': 100 },
-        { Month: '2026-02', 'Total Revenue': 140 },
-      ] },
-    // Two bars, so the pass is willing to retype one of them.
-    { id: 'filler', title: 'Total Revenue by Channel', chart_type: 'bar', xAxisKey: 'Channel',
-      yAxisKey: 'Total Revenue',
-      resultData: [
-        { Channel: 'Online', 'Total Revenue': 900 },
-        { Channel: 'Retail', 'Total Revenue': 400 },
-        { Channel: 'Partner', 'Total Revenue': 120 },
-      ] },
-    subject,
-  ];
-  return enforceChartDiversity(present.map((c) => ({ ...c })));
-}
-
-test('an average by category is never redrawn as a part-to-whole chart', () => {
-  // A donut asserts that its slices add up to something. Four category averages
-  // sum to a number that is not the revenue of any business, so a slice of it
-  // reads as a market share of a quantity that does not exist.
-  const out = deckMissingOnlyShareTypes({
-    id: 'subject',
-    title: 'Average Total Revenue by Category',
-    chart_type: 'bar',
-    xAxisKey: 'Category',
-    yAxisKey: 'Average Total Revenue',
-    resultData: [
-      { Category: 'Electronics', 'Average Total Revenue': 800 },
-      { Category: 'Home', 'Average Total Revenue': 210 },
-      { Category: 'Toys', 'Average Total Revenue': 160 },
-      { Category: 'Garden', 'Average Total Revenue': 110 },
-    ],
-  });
-  const subject = out.find((c) => c.id === 'subject');
-  for (const partToWhole of ['donut', 'treemap', 'radial', 'pie']) {
-    assert.notEqual(subject.chart_type, partToWhole, `averages drawn as a ${partToWhole}`);
+test('a chart with a series keeps its own axis instead of a folded label', () => {
+  // Two label columns usually mean "fold them into one label". A declared
+  // series is the exception: folding it made "2024-01 · North" the x axis and
+  // drew one point per line.
+  const rows = [];
+  for (const month of ['2024-01', '2024-02', '2024-03']) {
+    for (const region of ['North', 'South']) rows.push({ Month: month, Region: region, Sales: region === 'North' ? 10 : 20 });
   }
-});
-
-/*
- * The test that stood here asserted that an additive total is still offered as
- * a share when only the share types are missing from a deck. That situation can
- * no longer arise: "only share types missing" means the four other advanced
- * types are present, and the pass now leaves any deck with three or more shapes
- * alone. The rule it protected — additive measures may become shares, averages
- * may not — is still enforced in `allowedTarget` and still covered by the test
- * above it, from the side that matters, which is the refusal.
- */
-
-test('a deck that already has several shapes is left alone', () => {
-  // Retyping to chase variety is what turned a bar chart of seven categories,
-  // one of them 72% of the total, into concentric arcs nobody could read.
-  const varied = [
-    { id: 'a', chart_type: 'line', xAxisKey: 'Month', yAxisKey: 'Total Revenue',
-      resultData: [{ Month: '2026-01', 'Total Revenue': 100 }, { Month: '2026-02', 'Total Revenue': 140 }] },
-    { id: 'b', chart_type: 'bar', xAxisKey: 'Category', yAxisKey: 'Total Revenue',
-      resultData: [{ Category: 'A', 'Total Revenue': 800 }, { Category: 'B', 'Total Revenue': 210 }] },
-    { id: 'c', chart_type: 'bar', xAxisKey: 'Region', yAxisKey: 'Total Revenue',
-      resultData: [{ Region: 'N', 'Total Revenue': 500 }, { Region: 'S', 'Total Revenue': 400 }] },
-    { id: 'd', chart_type: 'treemap', xAxisKey: 'Channel', yAxisKey: 'Total Revenue',
-      resultData: [{ Channel: 'X', 'Total Revenue': 300 }, { Channel: 'Y', 'Total Revenue': 200 }] },
-  ];
-  const out = enforceChartDiversity(varied.map((c) => ({ ...c })));
-  assert.deepEqual(
-    out.map((c) => c.chart_type),
-    varied.map((c) => c.chart_type)
-  );
+  const spec = {
+    id: 's',
+    title: 'Sales over month by region',
+    chart_type: 'line',
+    sql: 'SELECT [Month], [Region], SUM([Sales]) AS [Total Sales] FROM SalesData GROUP BY [Month], [Region] ORDER BY [Month] ASC',
+    xAxisKey: 'Month',
+    yAxisKey: 'Total Sales',
+    seriesKey: 'Region',
+  };
+  mountTable(rows);
+  try {
+    const [chart] = executeCharts([spec], rows);
+    assert.equal(chart.xAxisKey, 'Month');
+    assert.equal(chart.resultData.length, 6);
+    assert.deepEqual([...new Set(chart.resultData.map((r) => r.Month))], ['2024-01', '2024-02', '2024-03']);
+    assert.ok(chart.resultData.every((r) => r.Region === 'North' || r.Region === 'South'));
+  } finally {
+    unmountTable();
+  }
 });
 
 // ---------------------------------------------------------------------------

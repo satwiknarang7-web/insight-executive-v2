@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyColumns, deriveMeasures, grainKey } from '../lib/measureSemantics.js';
 import { aggregateAlias } from '../lib/aggregateNames.js';
-import { planCharts } from '../lib/analystPlanner.js';
 import { profileColumns } from '../lib/chartResolver.js';
 
 /**
@@ -132,42 +131,6 @@ test('derived measures actually run, and give the per-order answer', async () =>
 // ---------------------------------------------------------------------------
 // What the planner does with it
 // ---------------------------------------------------------------------------
-
-test('the planner stops summing the dimension total once it knows the model', () => {
-  const blind = planCharts(ORDERS, { max: 8 });
-  const aware = planCharts(ORDERS, { max: 8, provenance: PROVENANCE, roles: ROLES });
-
-  const sums = (charts) => charts.filter((c) => /SUM\(\[Total_Spent\]\)/.test(c.sql));
-  assert.ok(sums(blind).length > 0, 'the old behaviour should sum it — otherwise this test proves nothing');
-  assert.equal(sums(aware).length, 0, 'a dimension pre-aggregate must never be summed');
-});
-
-test('the fact measure takes over the headline charts', () => {
-  const aware = planCharts(ORDERS, { max: 8, provenance: PROVENANCE, roles: ROLES });
-  assert.ok(aware.some((c) => /SUM\(\[Total_Amount\]\)/.test(c.sql)), 'the real revenue column should lead');
-});
-
-test('a pre-aggregate is left out of distributions and correlations too', () => {
-  const aware = planCharts(ORDERS, { max: 10, provenance: PROVENANCE, roles: ROLES });
-  const mentions = aware.filter((c) => /Total_Spent/.test(c.sql));
-  assert.equal(mentions.length, 0, 'averaging it over fact rows weights by order count');
-});
-
-test('derived measures reach the charts', () => {
-  const aware = planCharts(ORDERS, { max: 10, provenance: PROVENANCE, roles: ROLES });
-  // Asserted on the candidate rather than on two SQL spellings. This used to
-  // look for COUNT(DISTINCT or CASE WHEN, which are the shapes of a distinct
-  // count and a level share — and miss `SUM(a) / SUM(b)`, which is just as much
-  // a derived measure. Once derived measures started competing on measured
-  // evidence rather than on the order they are built in, a ratio won the slot
-  // and the test failed on a deck that was doing exactly what it asks for.
-  const built = aware.filter((c) => c.measure && c.measure.expr);
-  assert.ok(built.length > 0, 'at least one chart should be built on a derived measure');
-  for (const c of built) {
-    assert.ok(c.sql.includes(c.measure.expr), 'the chart runs the measure it names');
-    assert.equal(c.yAxisKey, c.measure.name);
-  }
-});
 
 // ---------------------------------------------------------------------------
 // Naming
