@@ -1,0 +1,39 @@
+{
+  "note": [
+    "58 columns, 82% blank. Only site, status and score are meaningful; field_NN are not."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "opened_on",
+    "questions": [
+      {
+        "id": "score-by-site",
+        "text": "Which sites score best?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "score"
+          ]
+        ],
+        "by": [
+          "site"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "status",
+        "text": "How many records are open, pending and closed?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "COUNT(*)"
+          ]
+        ],
+        "by": [
+          "status"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

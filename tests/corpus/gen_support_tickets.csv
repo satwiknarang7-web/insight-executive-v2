@@ -1,0 +1,1502 @@
+ticket_id,created_at,channel,priority,product_area,resolution_hours,sla_breached,csat
+T-40000,2026-06-15 15:37,Chat,Normal,Integrations,25.7,No,1
+T-40001,2026-05-05 21:04,Chat,Urgent,Reports,1.3,N,2
+T-40002,2026-03-21 01:57,Portal,Normal,Integrations,33.8,FALSE,3
+T-40003,2026-03-12 07:29,Portal,Normal,Reports,32.9,No,
+T-40004,2026-03-15 18:07,Portal,Urgent,Login,1.6,No,3
+T-40005,2026-03-04 03:03,Email,High,Mobile app,12.1,N,2
+T-40006,2026-06-19 08:23,Phone,Normal,Billing,40.1,No,
+T-40007,2026-05-23 08:56,Chat,Urgent,Reports,3,N,
+T-40008,2026-04-23 06:59,Chat,High,Integrations,2.3,N,5
+T-40009,2026-06-17 15:34,Portal,Normal,Integrations,49.6,No,5
+T-40010,2026-06-08 05:03,Email,Urgent,Integrations,5.8,FALSE,
+T-40011,2026-01-04 01:03,Portal,Low,Integrations,87.6,N,5
+T-40012,2026-01-02 16:00,Portal,High,Mobile app,22.5,FALSE,1
+T-40013,2026-03-23 12:44,Chat,Normal,Reports,42.5,FALSE,2
+T-40014,2026-04-09 17:08,Email,Normal,Integrations,11.8,No,3
+T-40015,2026-05-05 07:17,Email,High,Billing,13.8,Yes,1
+T-40016,2026-03-14 20:21,Email,Urgent,Login,4.3,FALSE,
+T-40017,2026-01-02 20:39,Email,High,Billing,12.3,FALSE,3
+T-40018,2026-04-04 07:40,Chat,Normal,Login,33.7,FALSE,
+T-40019,2026-03-21 00:07,Chat,Normal,Mobile app,52.1,N,
+T-40020,2026-04-20 03:47,Email,Normal,Mobile app,32,FALSE,
+T-40021,2026-04-03 03:31,Phone,Urgent,Reports,1.8,No,2
+T-40022,2026-05-09 10:42,Email,Urgent,Reports,4.2,N,5
+T-40023,2026-05-21 08:51,Chat,Normal,Mobile app,39.3,N,2
+T-40024,2026-05-14 18:04,Portal,Low,Mobile app,144,No,
+T-40025,2026-05-18 11:33,Phone,High,Integrations,4.9,No,1
+T-40026,2026-02-13 19:22,Phone,High,Reports,14.6,FALSE,4
+T-40027,2026-05-15 17:06,Chat,Urgent,Reports,11.1,FALSE,1
+T-40028,2026-06-04 01:04,Email,High,Reports,15,FALSE,4
+T-40029,2026-04-09 08:15,Portal,High,Mobile app,13.8,N,3
+T-40030,2026-05-04 08:38,Chat,High,Billing,23.5,No,4
+T-40031,2026-05-17 09:28,Portal,High,Integrations,4.8,No,4
+T-40032,2026-06-30 11:15,Portal,Urgent,Reports,1.8,N,2
+T-40033,2026-03-10 01:02,Phone,High,Reports,7.8,FALSE,1
+T-40034,2026-04-27 22:11,Chat,Low,Login,26.4,No,2
+T-40035,2026-03-07 09:11,Email,High,Mobile app,12.7,Y,4
+T-40036,2026-05-08 05:07,Chat,Urgent,Login,2.1,Yes,4
+T-40037,2026-02-15 02:12,Chat,High,Login,12.3,N,
+T-40038,2026-02-13 08:25,Chat,Normal,Billing,47.2,FALSE,3
+T-40039,2026-01-17 15:31,Chat,Normal,Mobile app,16.4,N,3
+T-40040,2026-06-10 03:27,Chat,High,Login,4.5,Y,5
+T-40041,2026-04-21 04:00,Phone,Urgent,Mobile app,2.8,No,5
+T-40042,2026-03-15 18:44,Phone,Normal,Mobile app,18.3,FALSE,4
+T-40043,2026-06-06 20:03,Chat,Urgent,Reports,6.7,Y,3
+T-40044,2026-03-03 04:08,Phone,Urgent,Reports,7,N,5
+T-40045,2026-06-19 22:24,Email,Normal,Login,42.3,N,1
+T-40046,2026-03-02 03:00,Phone,Low,Reports,63.7,FALSE,3
+T-40047,2026-04-28 15:09,Chat,Normal,Integrations,23.3,No,3
+T-40048,2026-06-23 10:34,Chat,High,Reports,15,N,
+T-40049,2026-02-05 20:45,Chat,Normal,Reports,33.2,FALSE,
+T-40050,2026-01-26 10:23,Phone,Urgent,Reports,20,Y,5
+T-40051,2026-03-17 16:29,Chat,Normal,Integrations,26,FALSE,
+T-40052,2026-03-12 19:41,Portal,Urgent,Billing,2.8,N,2
+T-40053,2026-04-13 04:33,Email,Urgent,Billing,1.9,Y,2
+T-40054,2026-02-26 18:49,Phone,Normal,Integrations,29.7,No,4
+T-40055,2026-06-25 09:01,Chat,Normal,Billing,21.3,N,
+T-40056,2026-05-02 13:28,Chat,Low,Mobile app,48.3,N,1
+T-40057,2026-02-20 23:50,Phone,Normal,Reports,67.2,N,4
+T-40058,2026-02-01 19:17,Chat,High,Reports,9,No,2
+T-40059,2026-02-14 05:20,Phone,Normal,Reports,33.7,No,2
+T-40060,2026-02-08 06:56,Email,Normal,Login,53,TRUE,
+T-40061,2026-01-29 05:06,Portal,High,Integrations,21.5,FALSE,3
+T-40062,2026-01-23 07:00,Chat,Urgent,Reports,10.8,TRUE,1
+T-40063,2026-03-04 07:23,Phone,Urgent,Reports,3,Y,5
+T-40064,2026-02-21 10:11,Email,Normal,Login,27.7,FALSE,1
+T-40065,2026-03-06 10:04,Chat,Normal,Mobile app,21,No,
+T-40066,2026-06-28 16:55,Phone,High,Billing,29.2,FALSE,5
+T-40067,2026-05-12 11:59,Email,Normal,Integrations,12,N,2
+T-40068,2026-04-09 09:41,Phone,High,Billing,13.9,N,1
+T-40069,2026-04-26 00:50,Portal,Normal,Login,31.5,FALSE,4
+T-40070,2026-06-05 00:59,Chat,High,Mobile app,4,Yes,2
+T-40071,2026-04-11 06:40,Email,Low,Billing,17.9,N,5
+T-40072,2026-01-12 12:26,Phone,Normal,Mobile app,24.5,FALSE,2
+T-40073,2026-02-16 15:40,Portal,High,Login,5.7,Yes,1
+T-40074,2026-04-29 10:32,Phone,Normal,Reports,30.8,No,1
+T-40075,2026-02-20 09:12,Chat,Normal,Reports,30.8,N,5
+T-40076,2026-02-15 14:04,Phone,Urgent,Integrations,2.1,FALSE,2
+T-40077,2026-04-17 04:29,Email,High,Login,17.7,No,2
+T-40078,2026-05-22 12:25,Phone,Urgent,Reports,6.9,Y,5
+T-40079,2026-01-31 06:52,Portal,Normal,Integrations,102.1,N,4
+T-40080,2026-01-28 08:02,Phone,Low,Billing,77.3,FALSE,5
+T-40081,2026-01-26 13:03,Email,High,Reports,13.2,FALSE,1
+T-40082,2026-06-16 03:06,Portal,High,Mobile app,9.2,No,5
+T-40083,2026-03-21 22:35,Portal,Urgent,Billing,4.7,No,
+T-40084,2026-05-20 15:39,Chat,Low,Reports,84.7,FALSE,5
+T-40085,2026-01-09 15:29,Chat,Normal,Billing,37.7,FALSE,2
+T-40086,2026-03-08 17:05,Chat,Urgent,Reports,7.1,No,1
+T-40087,2026-01-19 12:42,Phone,High,Integrations,18.6,No,4
+T-40088,2026-01-08 23:07,Portal,Low,Billing,20.2,N,5
+T-40089,2026-03-26 19:03,Chat,Normal,Billing,15.5,N,1
+T-40090,2026-02-08 23:41,Phone,Urgent,Integrations,1.1,FALSE,1
+T-40091,2026-02-04 00:09,Portal,Low,Reports,37.5,FALSE,5
+T-40092,2026-06-16 03:06,Phone,Urgent,Mobile app,1.9,N,1
+T-40093,2026-06-01 18:26,Chat,Urgent,Billing,7.8,FALSE,5
+T-40094,2026-03-10 22:01,Chat,Normal,Reports,38.4,N,2
+T-40095,2026-01-03 05:23,Chat,Normal,Login,32.6,Yes,
+T-40096,2026-03-28 12:28,Email,Normal,Billing,22.9,No,2
+T-40097,2026-03-14 15:01,Email,High,Billing,10.6,No,5
+T-40098,2026-06-24 07:09,Phone,Normal,Login,74.6,No,5
+T-40099,2026-02-01 02:30,Chat,High,Mobile app,45,No,2
+T-40100,2026-04-11 08:26,Email,High,Login,6.1,Y,5
+T-40101,2026-04-29 04:06,Portal,Urgent,Integrations,5.2,No,1
+T-40102,2026-05-23 06:27,Chat,Normal,Billing,21.7,No,
+T-40103,2026-01-15 03:43,Chat,Normal,Login,42.3,FALSE,3
+T-40104,2026-06-07 11:51,Phone,High,Mobile app,14,N,1
+T-40105,2026-04-17 04:19,Email,Normal,Reports,41.1,FALSE,4
+T-40106,2026-01-22 08:07,Phone,Normal,Reports,35.3,N,
+T-40107,2026-02-19 18:02,Portal,Normal,Integrations,30.2,TRUE,4
+T-40108,2026-05-19 07:30,Portal,Urgent,Reports,1.8,No,5
+T-40109,2026-06-23 04:11,Chat,Normal,Reports,32.8,N,2
+T-40110,2026-04-14 02:49,Phone,High,Login,21.2,N,1
+T-40111,2026-04-30 08:42,Chat,Low,Login,40.2,FALSE,1
+T-40112,2026-05-02 20:51,Email,Urgent,Mobile app,2.4,Y,
+T-40113,2026-06-15 22:11,Phone,Urgent,Integrations,2.5,Yes,
+T-40114,2026-04-15 02:19,Portal,Normal,Billing,17.3,No,
+T-40115,2026-05-07 06:38,Chat,High,Login,24.3,Y,
+T-40116,2026-02-13 09:31,Phone,Low,Integrations,31.7,FALSE,2
+T-40117,2026-04-03 18:12,Email,Low,Mobile app,52.7,FALSE,5
+T-40118,2026-02-24 15:39,Email,Urgent,Login,3.6,TRUE,4
+T-40119,2026-04-18 15:29,Portal,High,Billing,9.5,No,3
+T-40120,2026-03-08 20:43,Chat,Low,Billing,54.6,N,4
+T-40121,2026-04-22 02:09,Portal,Normal,Billing,21.8,N,1
+T-40122,2026-03-12 14:04,Chat,Urgent,Integrations,1.4,TRUE,4
+T-40123,2026-06-24 16:05,Phone,Urgent,Reports,5.5,FALSE,
+T-40124,2026-04-26 18:07,Chat,Low,Mobile app,129,FALSE,3
+T-40125,2026-02-06 22:16,Email,Urgent,Integrations,5.7,FALSE,
+T-40126,2026-01-15 22:02,Email,Normal,Integrations,30.9,N,1
+T-40127,2026-01-19 01:14,Email,Urgent,Billing,3.7,Yes,5
+T-40128,2026-01-20 05:42,Portal,High,Billing,17.9,Yes,
+T-40129,2026-03-19 16:17,Email,High,Mobile app,15.9,Y,1
+T-40130,2026-06-08 14:14,Email,High,Login,66.7,No,1
+T-40131,2026-02-13 17:56,Portal,Low,Integrations,75.8,N,
+T-40132,2026-06-22 05:21,Chat,Low,Reports,77.6,No,2
+T-40133,2026-02-05 06:51,Portal,High,Reports,18.7,N,3
+T-40134,2026-03-18 00:31,Chat,Urgent,Integrations,3.9,No,
+T-40135,2026-01-08 21:30,Phone,High,Mobile app,41.4,N,1
+T-40136,2026-05-18 16:21,Email,High,Mobile app,6.4,No,4
+T-40137,2026-02-01 22:00,Email,High,Reports,3.9,N,1
+T-40138,2026-06-07 22:26,Email,Normal,Mobile app,106.1,No,1
+T-40139,2026-01-26 10:57,Email,Normal,Mobile app,29.6,FALSE,2
+T-40140,2026-06-18 15:26,Chat,Normal,Mobile app,53,N,1
+T-40141,2026-03-01 10:46,Email,Urgent,Mobile app,4.9,N,
+T-40142,2026-06-07 16:23,Email,Urgent,Reports,5.4,N,3
+T-40143,2026-06-18 16:54,Phone,Normal,Integrations,119.7,No,4
+T-40144,2026-04-10 22:40,Email,Normal,Reports,25,N,
+T-40145,2026-03-26 00:58,Portal,Normal,Integrations,28,No,
+T-40146,2026-05-22 16:21,Portal,High,Integrations,32.7,Y,4
+T-40147,2026-04-17 10:08,Portal,High,Login,8.7,N,5
+T-40148,2026-02-02 08:29,Phone,Normal,Mobile app,57.8,FALSE,2
+T-40149,2026-01-24 23:31,Chat,Urgent,Login,5.5,FALSE,2
+T-40150,2026-01-10 21:29,Email,Normal,Integrations,36.3,No,1
+T-40151,2026-05-04 07:21,Portal,High,Billing,19.9,FALSE,1
+T-40152,2026-04-04 18:19,Portal,Normal,Mobile app,70.3,No,
+T-40153,2026-05-10 21:04,Chat,High,Billing,32.7,No,3
+T-40154,2026-03-05 19:09,Portal,High,Login,22.6,No,2
+T-40155,2026-01-16 10:21,Chat,Low,Login,37.7,FALSE,2
+T-40156,2026-01-16 04:38,Phone,Normal,Reports,17.5,FALSE,2
+T-40157,2026-03-24 09:36,Portal,High,Mobile app,8.2,FALSE,
+T-40158,2026-02-15 22:16,Chat,High,Reports,18.8,FALSE,1
+T-40159,2026-01-06 21:31,Chat,Low,Integrations,185.7,No,1
+T-40160,2026-02-24 16:37,Portal,Normal,Integrations,29.3,N,2
+T-40161,2026-03-28 19:11,Email,High,Billing,16.5,Y,5
+T-40162,2026-06-15 23:30,Phone,Normal,Reports,19.8,No,4
+T-40163,2026-02-15 12:21,Chat,Normal,Reports,27.5,FALSE,5
+T-40164,2026-01-29 11:10,Email,Low,Reports,63.3,No,5
+T-40165,2026-03-03 05:48,Phone,Urgent,Integrations,5.6,Y,4
+T-40166,2026-05-14 11:14,Portal,Normal,Mobile app,22,N,
+T-40167,2026-05-07 14:39,Email,Normal,Reports,34.9,N,5
+T-40168,2026-05-12 03:40,Email,High,Billing,11.1,No,1
+T-40169,2026-05-12 08:27,Portal,Normal,Login,40.9,N,4
+T-40170,2026-05-19 13:11,Chat,Normal,Login,72.6,N,1
+T-40171,2026-01-23 17:05,Portal,Normal,Login,50.4,Y,1
+T-40172,2026-02-26 18:32,Portal,Low,Login,38.5,No,
+T-40173,2026-01-25 13:19,Chat,High,Login,16.5,Y,4
+T-40174,2026-04-29 18:21,Email,High,Mobile app,5.7,N,
+T-40175,2026-01-06 07:17,Chat,Normal,Reports,24.5,No,1
+T-40176,2026-06-19 10:15,Phone,High,Billing,37.1,No,1
+T-40177,2026-01-22 08:19,Email,High,Login,26,No,
+T-40178,2026-03-04 09:28,Email,Normal,Login,12.5,FALSE,
+T-40179,2026-01-21 22:14,Phone,Normal,Mobile app,30.4,No,
+T-40180,2026-01-15 17:19,Email,High,Login,13.8,FALSE,
+T-40181,2026-04-30 22:49,Portal,High,Integrations,7.6,FALSE,
+T-40182,2026-04-24 02:40,Phone,Normal,Login,42,No,
+T-40183,2026-01-11 09:09,Portal,High,Integrations,9.7,No,2
+T-40184,2026-03-08 21:38,Portal,Normal,Integrations,18.4,TRUE,
+T-40185,2026-01-05 05:54,Phone,High,Integrations,9.5,No,1
+T-40186,2026-06-13 09:01,Email,High,Mobile app,27.7,FALSE,
+T-40187,2026-06-10 20:28,Portal,High,Integrations,6.6,No,
+T-40188,2026-06-19 03:38,Phone,Low,Billing,37.5,FALSE,1
+T-40189,2026-06-23 23:50,Email,Urgent,Mobile app,16.9,No,2
+T-40190,2026-04-28 20:48,Portal,High,Billing,13.6,FALSE,1
+T-40191,2026-01-14 16:39,Email,Urgent,Reports,3.1,N,1
+T-40192,2026-01-01 19:21,Email,Normal,Reports,25.5,N,3
+T-40193,2026-02-13 07:41,Email,Normal,Billing,44,No,2
+T-40194,2026-02-08 12:15,Email,Urgent,Billing,2.9,N,
+T-40195,2026-01-08 05:33,Portal,High,Login,5.5,N,3
+T-40196,2026-01-08 23:05,Portal,Normal,Login,21.4,No,3
+T-40197,2026-01-29 04:19,Chat,Normal,Integrations,37.2,N,1
+T-40198,2026-02-12 10:58,Email,High,Integrations,7.3,FALSE,3
+T-40199,2026-05-29 14:53,Phone,Urgent,Login,3.7,TRUE,2
+T-40200,2026-01-17 00:11,Phone,Normal,Reports,39.5,FALSE,5
+T-40201,2026-05-24 15:47,Portal,Urgent,Reports,6.3,Y,2
+T-40202,2026-02-20 15:51,Phone,Normal,Login,43.3,FALSE,3
+T-40203,2026-03-14 11:07,Chat,Urgent,Login,5.6,Y,
+T-40204,2026-02-22 07:42,Chat,Urgent,Login,5.1,No,4
+T-40205,2026-02-07 03:23,Portal,Normal,Login,12,FALSE,4
+T-40206,2026-01-07 15:22,Chat,High,Login,10.8,Yes,2
+T-40207,2026-02-25 06:24,Phone,Low,Login,33.7,No,2
+T-40208,2026-03-17 15:52,Phone,Normal,Integrations,43.2,FALSE,4
+T-40209,2026-04-06 01:32,Phone,Normal,Mobile app,34.8,No,5
+T-40210,2026-04-28 19:26,Email,Low,Reports,31.6,No,5
+T-40211,2026-06-19 03:36,Email,Urgent,Mobile app,6.1,FALSE,1
+T-40212,2026-02-08 22:57,Email,Low,Integrations,61.1,N,3
+T-40213,2026-02-19 09:25,Email,Normal,Reports,20.5,FALSE,
+T-40214,2026-01-10 10:47,Email,Normal,Reports,41.2,N,1
+T-40215,2026-02-23 21:59,Chat,Normal,Billing,17.3,No,5
+T-40216,2026-03-20 21:40,Chat,Urgent,Billing,1.9,N,1
+T-40217,2026-03-21 18:16,Phone,Normal,Login,35.3,No,1
+T-40218,2026-05-01 21:42,Email,Normal,Reports,96.9,No,5
+T-40219,2026-06-24 23:01,Portal,High,Reports,22,N,2
+T-40220,2026-06-29 18:24,Chat,Urgent,Reports,4.4,N,2
+T-40221,2026-03-21 17:57,Portal,Urgent,Integrations,2.9,N,5
+T-40222,2026-04-18 20:15,Phone,Normal,Billing,64.9,FALSE,3
+T-40223,2026-03-30 23:12,Email,Normal,Login,34.4,No,1
+T-40224,2026-06-22 22:21,Chat,Normal,Reports,36.4,Y,1
+T-40225,2026-02-26 12:33,Chat,High,Login,13.1,FALSE,
+T-40226,2026-04-09 05:54,Chat,High,Billing,32.6,N,
+T-40227,2026-03-28 23:23,Phone,Urgent,Login,3.1,TRUE,
+T-40228,2026-06-26 10:17,Phone,Normal,Reports,23.1,FALSE,
+T-40229,2026-04-16 06:45,Phone,Low,Billing,85.6,FALSE,4
+T-40230,2026-05-30 18:57,Phone,High,Billing,15.5,Yes,2
+T-40231,2026-02-04 13:34,Email,High,Reports,26.4,No,
+T-40232,2026-05-07 21:48,Phone,Urgent,Reports,3,Y,5
+T-40233,2026-01-01 11:00,Portal,Normal,Reports,22.5,FALSE,
+T-40234,2026-05-27 07:34,Email,Normal,Reports,26.6,No,4
+T-40235,2026-01-11 19:03,Chat,High,Login,18.1,N,2
+T-40236,2026-04-19 07:59,Portal,Normal,Reports,34.6,No,3
+T-40237,2026-05-18 22:17,Chat,Urgent,Login,3,N,5
+T-40238,2026-05-28 15:46,Email,High,Mobile app,6.2,No,1
+T-40239,2026-04-16 22:40,Email,Normal,Login,47.1,N,
+T-40240,2026-05-31 04:25,Chat,Normal,Billing,37.7,No,1
+T-40241,2026-03-29 18:40,Chat,Normal,Reports,26.7,FALSE,3
+T-40242,2026-05-18 16:34,Phone,High,Login,20.6,TRUE,5
+T-40243,2026-05-21 01:45,Portal,Normal,Reports,45.8,N,
+T-40244,2026-03-06 15:38,Phone,High,Login,26.9,No,
+T-40245,2026-04-03 18:23,Portal,Low,Login,41.1,No,1
+T-40246,2026-01-19 07:30,Phone,Low,Integrations,56.7,FALSE,3
+T-40247,2026-04-05 10:00,Phone,Low,Reports,35.5,N,1
+T-40248,2026-05-18 04:15,Phone,High,Integrations,12.9,N,3
+T-40249,2026-04-05 09:49,Phone,Normal,Integrations,33.5,N,4
+T-40250,2026-02-12 22:34,Email,Normal,Billing,28.5,FALSE,2
+T-40251,2026-03-08 12:27,Chat,Normal,Reports,28.9,N,5
+T-40252,2026-03-13 23:38,Phone,Low,Billing,51.6,No,3
+T-40253,2026-01-22 19:37,Phone,High,Login,14.6,FALSE,3
+T-40254,2026-05-28 14:47,Phone,Normal,Mobile app,42.1,No,4
+T-40255,2026-04-21 10:13,Email,Low,Integrations,85.7,FALSE,
+T-40256,2026-06-04 17:21,Email,Low,Billing,170.1,No,3
+T-40257,2026-02-12 12:19,Portal,Normal,Reports,59.2,N,5
+T-40258,2026-02-24 10:46,Phone,Normal,Integrations,7.5,FALSE,
+T-40259,2026-02-20 14:08,Phone,Low,Login,107.7,FALSE,
+T-40260,2026-05-05 05:15,Chat,Urgent,Integrations,0.8,N,2
+T-40261,2026-03-01 06:25,Portal,Normal,Reports,22.2,FALSE,1
+T-40262,2026-04-06 00:23,Email,Normal,Mobile app,24.9,No,2
+T-40263,2026-05-23 15:42,Chat,Normal,Billing,43.2,No,3
+T-40264,2026-03-30 04:58,Portal,Normal,Mobile app,72,FALSE,1
+T-40265,2026-03-14 19:57,Email,Normal,Mobile app,18.3,N,3
+T-40266,2026-06-08 12:38,Phone,High,Billing,17.1,N,2
+T-40267,2026-05-17 06:49,Chat,Normal,Mobile app,29.2,No,
+T-40268,2026-05-25 05:15,Email,Low,Login,119.9,No,3
+T-40269,2026-02-18 23:00,Chat,Low,Integrations,54.1,N,
+T-40270,2026-06-04 08:57,Portal,High,Mobile app,5,N,3
+T-40271,2026-05-07 20:55,Chat,High,Reports,21.1,FALSE,4
+T-40272,2026-05-28 05:06,Chat,Normal,Login,20.1,No,3
+T-40273,2026-02-19 19:34,Phone,Normal,Billing,24.9,FALSE,4
+T-40274,2026-04-28 19:57,Chat,High,Billing,16.6,FALSE,3
+T-40275,2026-04-13 21:31,Portal,Normal,Billing,35.6,FALSE,2
+T-40276,2026-05-27 23:22,Portal,High,Integrations,26.1,No,
+T-40277,2026-01-10 16:55,Phone,Normal,Integrations,18.6,N,2
+T-40278,2026-04-12 04:42,Chat,Low,Integrations,64.6,N,
+T-40279,2026-02-10 05:33,Portal,Low,Reports,24.4,FALSE,
+T-40280,2026-01-17 01:59,Portal,Urgent,Mobile app,2.5,TRUE,3
+T-40281,2026-02-25 11:03,Phone,Normal,Mobile app,10.3,N,5
+T-40282,2026-02-18 21:49,Portal,Low,Integrations,12.2,FALSE,
+T-40283,2026-01-25 12:02,Portal,Urgent,Integrations,2.2,Yes,4
+T-40284,2026-04-18 04:28,Email,Urgent,Reports,3.4,TRUE,1
+T-40285,2026-04-16 00:00,Portal,High,Integrations,7.1,FALSE,
+T-40286,2026-01-14 18:02,Phone,Normal,Login,46.3,No,1
+T-40287,2026-04-12 10:05,Portal,High,Integrations,12.3,No,5
+T-40288,2026-04-19 04:49,Email,High,Billing,10.7,TRUE,3
+T-40289,2026-03-09 11:44,Email,Low,Login,63.9,No,5
+T-40290,2026-05-21 13:33,Email,Urgent,Reports,7,TRUE,3
+T-40291,2026-06-26 21:59,Phone,Low,Billing,23.8,FALSE,
+T-40292,2026-02-05 02:37,Email,Normal,Mobile app,26.8,No,1
+T-40293,2026-01-12 12:43,Portal,High,Integrations,20.2,FALSE,1
+T-40294,2026-05-29 11:53,Chat,Normal,Billing,42.4,FALSE,1
+T-40295,2026-01-30 04:59,Email,High,Mobile app,6.3,N,1
+T-40296,2026-03-28 07:58,Email,Urgent,Integrations,2.6,TRUE,1
+T-40297,2026-03-09 18:20,Chat,Urgent,Mobile app,4.8,Y,1
+T-40298,2026-03-23 01:20,Chat,Normal,Integrations,50.9,FALSE,3
+T-40299,2026-05-27 05:56,Phone,Normal,Mobile app,19,FALSE,
+T-40300,2026-03-28 14:39,Chat,Low,Login,118,FALSE,4
+T-40301,2026-06-17 11:58,Portal,Low,Billing,123.7,N,2
+T-40302,2026-01-16 08:27,Portal,Normal,Billing,55.8,FALSE,4
+T-40303,2026-03-01 22:54,Chat,Normal,Reports,15,N,5
+T-40304,2026-04-01 08:14,Chat,High,Login,13.6,N,4
+T-40305,2026-03-31 09:32,Portal,Normal,Integrations,13.6,N,5
+T-40306,2026-01-01 17:28,Email,High,Login,7.9,No,3
+T-40307,2026-06-15 11:44,Email,Low,Reports,51.4,No,
+T-40308,2026-04-30 04:00,Portal,Normal,Mobile app,55.2,No,5
+T-40309,2026-04-02 19:19,Chat,Normal,Billing,32.9,No,1
+T-40310,2026-02-25 10:58,Chat,Urgent,Reports,2.5,FALSE,
+T-40311,2026-04-30 04:33,Portal,Normal,Login,19.4,FALSE,2
+T-40312,2026-04-27 08:47,Portal,Low,Billing,61.5,N,
+T-40313,2026-03-23 09:22,Email,Urgent,Reports,3.7,N,1
+T-40314,2026-06-26 09:07,Email,Low,Reports,22.4,N,1
+T-40315,2026-06-08 16:42,Chat,High,Integrations,16.7,FALSE,4
+T-40316,2026-01-24 21:45,Email,High,Reports,14.5,Yes,4
+T-40317,2026-04-09 14:14,Portal,High,Billing,7.8,N,1
+T-40318,2026-06-08 08:23,Portal,Urgent,Mobile app,6.5,FALSE,1
+T-40319,2026-06-29 19:27,Chat,Normal,Login,18.8,N,5
+T-40320,2026-05-10 05:09,Chat,Low,Reports,119.9,N,2
+T-40321,2026-01-25 08:42,Email,Normal,Integrations,32.9,Y,3
+T-40322,2026-02-17 15:32,Portal,Normal,Billing,10,N,5
+T-40323,2026-01-09 23:13,Email,Normal,Reports,54.1,FALSE,3
+T-40324,2026-01-03 00:17,Phone,Urgent,Login,5.7,Yes,5
+T-40325,2026-05-18 19:43,Email,High,Mobile app,8.3,No,
+T-40326,2026-05-29 11:18,Email,Normal,Integrations,23.5,FALSE,
+T-40327,2026-01-28 02:55,Portal,Normal,Billing,69.1,Yes,3
+T-40328,2026-03-02 10:23,Chat,High,Reports,17.7,No,5
+T-40329,2026-01-02 13:55,Chat,Normal,Mobile app,21.1,No,
+T-40330,2026-06-17 13:35,Chat,Urgent,Reports,2.9,FALSE,3
+T-40331,2026-04-21 12:32,Phone,Low,Mobile app,86.5,No,1
+T-40332,2026-05-25 08:06,Portal,High,Mobile app,7.1,No,
+T-40333,2026-02-19 20:24,Email,Normal,Billing,30.8,TRUE,
+T-40334,2026-02-25 11:41,Email,Normal,Reports,6,No,5
+T-40335,2026-06-20 19:56,Chat,Normal,Billing,97.4,N,2
+T-40336,2026-02-13 04:26,Chat,High,Mobile app,6.4,Y,5
+T-40337,2026-04-24 03:03,Chat,Normal,Billing,55.4,N,2
+T-40338,2026-05-24 18:10,Portal,Normal,Billing,40,N,
+T-40339,2026-06-17 06:08,Portal,High,Integrations,25.4,Yes,3
+T-40340,2026-03-01 05:50,Phone,Normal,Login,32.9,FALSE,2
+T-40341,2026-04-21 06:51,Phone,Normal,Login,12,No,1
+T-40342,2026-03-21 19:00,Portal,Normal,Reports,11.8,Yes,5
+T-40343,2026-01-06 09:38,Email,Normal,Mobile app,8.6,Y,
+T-40344,2026-03-15 17:24,Portal,Low,Integrations,75.7,FALSE,
+T-40345,2026-02-20 02:36,Email,High,Integrations,7.4,FALSE,
+T-40346,2026-02-15 11:33,Email,Normal,Login,42.9,No,4
+T-40347,2026-03-14 23:41,Portal,Low,Integrations,38.5,N,1
+T-40348,2026-06-26 07:20,Email,Urgent,Login,2.5,FALSE,5
+T-40349,2026-03-02 05:27,Email,Normal,Login,134.6,FALSE,
+T-40350,2026-05-05 21:58,Chat,Urgent,Reports,3.5,No,2
+T-40351,2026-04-17 23:47,Portal,High,Login,19.4,FALSE,2
+T-40352,2026-02-01 12:45,Chat,Urgent,Login,4.1,Y,2
+T-40353,2026-02-07 21:05,Chat,Normal,Integrations,35.7,FALSE,
+T-40354,2026-03-17 23:19,Phone,Urgent,Reports,5.3,No,1
+T-40355,2026-04-21 05:17,Portal,Normal,Reports,15.6,N,4
+T-40356,2026-06-16 22:06,Chat,Low,Integrations,128.8,FALSE,
+T-40357,2026-02-11 16:52,Phone,High,Integrations,14.7,No,
+T-40358,2026-01-23 06:20,Phone,Normal,Mobile app,26.3,FALSE,1
+T-40359,2026-03-14 07:27,Email,Normal,Login,10.3,No,3
+T-40360,2026-02-02 10:25,Phone,Low,Reports,30.5,No,2
+T-40361,2026-03-29 02:41,Portal,Normal,Mobile app,59.5,No,
+T-40362,2026-04-14 12:48,Phone,Low,Login,130,TRUE,2
+T-40363,2026-04-01 02:11,Chat,Normal,Integrations,134.3,TRUE,3
+T-40364,2026-02-26 15:01,Phone,Normal,Mobile app,23.9,N,5
+T-40365,2026-02-06 23:15,Portal,Urgent,Mobile app,4.1,N,1
+T-40366,2026-03-28 11:42,Email,Low,Integrations,171.5,No,4
+T-40367,2026-01-23 00:59,Phone,Normal,Reports,25.4,No,4
+T-40368,2026-04-18 05:01,Portal,Normal,Integrations,98.7,Yes,3
+T-40369,2026-03-26 21:53,Email,Normal,Integrations,25.3,FALSE,3
+T-40370,2026-06-18 07:04,Phone,High,Reports,11.8,FALSE,2
+T-40371,2026-02-07 12:17,Portal,Normal,Mobile app,56.2,Yes,4
+T-40372,2026-01-30 08:53,Email,Low,Billing,70.6,FALSE,
+T-40373,2026-01-30 07:05,Phone,Normal,Reports,37,No,4
+T-40374,2026-02-02 04:49,Email,Normal,Login,18.8,FALSE,
+T-40375,2026-05-04 06:57,Portal,High,Integrations,10,No,3
+T-40376,2026-01-16 17:31,Portal,Normal,Billing,50.2,FALSE,5
+T-40377,2026-04-27 19:34,Portal,Urgent,Login,7.8,No,1
+T-40378,2026-01-16 20:42,Chat,Normal,Billing,15.5,FALSE,4
+T-40379,2026-06-20 05:46,Chat,Normal,Integrations,52,N,3
+T-40380,2026-06-04 01:43,Portal,Normal,Integrations,7.5,FALSE,
+T-40381,2026-04-13 00:48,Email,Normal,Integrations,35.8,FALSE,1
+T-40382,2026-03-12 22:00,Chat,Normal,Login,40.4,N,3
+T-40383,2026-06-28 15:04,Chat,Normal,Mobile app,38.3,No,3
+T-40384,2026-04-23 05:19,Portal,Urgent,Login,1.9,No,
+T-40385,2026-04-29 14:50,Chat,Normal,Integrations,85.7,N,4
+T-40386,2026-03-12 05:28,Chat,Normal,Billing,31.2,Y,4
+T-40387,2026-04-08 03:12,Portal,High,Integrations,11.3,No,
+T-40388,2026-04-15 22:28,Portal,Normal,Integrations,34.3,FALSE,3
+T-40389,2026-03-30 23:40,Portal,High,Reports,13.8,Yes,2
+T-40390,2026-03-22 02:36,Phone,Urgent,Reports,5.5,No,5
+T-40391,2026-03-21 04:42,Phone,Normal,Mobile app,84.3,TRUE,2
+T-40392,2026-04-03 17:21,Portal,Low,Billing,51.6,FALSE,5
+T-40393,2026-01-14 02:06,Portal,High,Billing,29.8,No,5
+T-40394,2026-03-10 06:21,Portal,Urgent,Integrations,2.8,No,3
+T-40395,2026-01-01 00:43,Portal,Normal,Mobile app,43.9,N,4
+T-40396,2026-03-19 11:18,Chat,Normal,Login,15.4,N,
+T-40397,2026-01-01 02:40,Email,Normal,Billing,41,N,4
+T-40398,2026-06-22 00:46,Portal,Urgent,Integrations,5.3,Yes,
+T-40399,2026-06-21 00:42,Chat,Normal,Billing,91.1,N,
+T-40400,2026-04-20 14:03,Chat,High,Integrations,26.2,FALSE,3
+T-40401,2026-01-22 01:07,Email,Normal,Reports,9.9,N,3
+T-40402,2026-04-11 10:24,Email,High,Mobile app,19.3,No,
+T-40403,2026-03-06 00:33,Email,Low,Reports,35.2,No,5
+T-40404,2026-02-02 19:58,Phone,Low,Login,23.9,N,
+T-40405,2026-03-29 04:52,Portal,Low,Mobile app,83.3,N,3
+T-40406,2026-04-10 03:56,Phone,Urgent,Billing,4.3,FALSE,2
+T-40407,2026-05-21 15:38,Phone,Urgent,Integrations,2.2,N,4
+T-40408,2026-03-31 20:46,Phone,High,Login,15.4,FALSE,5
+T-40409,2026-03-20 10:13,Portal,Normal,Mobile app,19,No,2
+T-40410,2026-04-04 21:12,Phone,High,Billing,7.3,FALSE,2
+T-40411,2026-03-02 08:23,Email,Normal,Reports,35.2,N,
+T-40412,2026-05-05 21:38,Phone,Normal,Billing,22.4,No,1
+T-40413,2026-01-21 12:03,Portal,Urgent,Integrations,5,N,3
+T-40414,2026-03-29 21:40,Portal,Normal,Mobile app,28.2,FALSE,1
+T-40415,2026-06-16 09:29,Phone,Low,Login,68.4,No,
+T-40416,2026-02-25 12:13,Phone,High,Integrations,25.7,N,5
+T-40417,2026-02-15 07:53,Chat,Urgent,Mobile app,3.3,FALSE,5
+T-40418,2026-03-12 04:05,Portal,Normal,Login,9.1,Y,2
+T-40419,2026-01-19 00:54,Portal,Low,Billing,252.1,No,5
+T-40420,2026-05-30 14:39,Phone,Low,Login,18.4,No,
+T-40421,2026-05-27 03:26,Email,High,Billing,17.3,N,4
+T-40422,2026-04-03 14:40,Email,Normal,Mobile app,31.2,FALSE,
+T-40423,2026-03-01 10:05,Portal,Urgent,Mobile app,2.1,Y,2
+T-40424,2026-05-15 11:39,Chat,Urgent,Login,8.6,Yes,5
+T-40425,2026-05-31 13:22,Chat,Urgent,Integrations,3.2,No,5
+T-40426,2026-06-14 21:27,Chat,Normal,Billing,36.1,Y,3
+T-40427,2026-04-16 11:44,Phone,Normal,Mobile app,24.5,No,3
+T-40428,2026-03-30 23:35,Portal,Normal,Mobile app,32.2,N,
+T-40429,2026-02-19 01:10,Phone,High,Integrations,7.6,N,1
+T-40430,2026-06-17 10:12,Chat,Low,Login,50.6,No,4
+T-40431,2026-04-05 06:59,Portal,Low,Mobile app,116,No,1
+T-40432,2026-04-12 07:49,Chat,Normal,Billing,13.1,FALSE,
+T-40433,2026-04-06 16:22,Email,Normal,Mobile app,75.4,No,
+T-40434,2026-06-21 10:58,Phone,High,Billing,18.4,FALSE,1
+T-40435,2026-03-23 01:37,Email,Normal,Login,57,N,5
+T-40436,2026-02-13 05:01,Portal,High,Login,6.2,No,1
+T-40437,2026-01-08 02:55,Portal,Normal,Reports,59.7,N,
+T-40438,2026-05-14 02:51,Email,Normal,Login,32.7,No,3
+T-40439,2026-01-21 01:22,Portal,Normal,Reports,51.8,N,2
+T-40440,2026-03-26 18:43,Phone,Normal,Login,9.4,No,4
+T-40441,2026-04-10 19:36,Email,Low,Integrations,73.6,FALSE,1
+T-40442,2026-06-06 08:18,Email,High,Integrations,19,N,2
+T-40443,2026-03-24 04:42,Chat,Normal,Reports,55.7,No,1
+T-40444,2026-05-11 02:30,Chat,Low,Integrations,28.6,FALSE,3
+T-40445,2026-05-19 10:34,Phone,High,Reports,15.1,N,5
+T-40446,2026-01-22 23:09,Email,High,Reports,29.4,No,5
+T-40447,2026-02-01 05:11,Email,High,Mobile app,11.1,TRUE,4
+T-40448,2026-03-30 19:43,Chat,High,Mobile app,15.4,FALSE,5
+T-40449,2026-05-07 23:19,Phone,Normal,Billing,81.6,FALSE,
+T-40450,2026-02-12 16:13,Email,Low,Reports,134,N,3
+T-40451,2026-03-24 11:55,Email,Urgent,Reports,6.2,FALSE,
+T-40452,2026-05-13 11:29,Chat,High,Login,11.2,FALSE,4
+T-40453,2026-03-28 11:31,Email,Normal,Integrations,81.4,FALSE,4
+T-40454,2026-06-07 06:07,Portal,Normal,Reports,31.6,No,5
+T-40455,2026-03-11 23:19,Phone,Normal,Integrations,16.6,FALSE,
+T-40456,2026-05-31 18:11,Portal,High,Reports,25.9,FALSE,5
+T-40457,2026-02-19 09:00,Portal,Low,Reports,40.8,N,4
+T-40458,2026-06-23 20:27,Chat,Urgent,Billing,3.4,Y,3
+T-40459,2026-04-01 00:37,Portal,Normal,Login,11.2,No,2
+T-40460,2026-02-10 06:54,Phone,Urgent,Billing,3.6,No,
+T-40461,2026-05-04 06:11,Email,Normal,Reports,26.7,No,2
+T-40462,2026-03-12 02:18,Chat,High,Reports,9.7,FALSE,2
+T-40463,2026-05-14 07:43,Phone,Normal,Login,28.7,N,1
+T-40464,2026-05-08 18:18,Portal,Low,Billing,111.3,FALSE,1
+T-40465,2026-05-05 09:28,Phone,Normal,Mobile app,26.3,N,4
+T-40466,2026-03-30 03:34,Email,Normal,Login,10.2,No,1
+T-40467,2026-01-31 23:23,Portal,Normal,Integrations,63.2,Y,
+T-40468,2026-02-14 04:14,Phone,High,Reports,9.1,N,
+T-40469,2026-05-03 18:00,Email,High,Login,16,TRUE,
+T-40470,2026-02-10 15:48,Chat,Normal,Billing,31.5,No,3
+T-40471,2026-05-14 18:06,Chat,Normal,Login,23,FALSE,
+T-40472,2026-01-17 04:00,Chat,Normal,Integrations,26.9,FALSE,5
+T-40473,2026-03-16 20:35,Portal,Normal,Reports,66.8,No,
+T-40474,2026-04-30 05:44,Chat,High,Login,35.5,No,3
+T-40475,2026-03-18 19:24,Chat,Low,Integrations,24.6,No,1
+T-40476,2026-05-10 01:53,Email,Low,Reports,56.8,N,2
+T-40477,2026-02-05 09:23,Email,Low,Integrations,100.1,N,5
+T-40478,2026-03-08 14:27,Chat,High,Billing,5.9,TRUE,
+T-40479,2026-01-19 15:46,Phone,High,Reports,9,N,2
+T-40480,2026-03-05 14:50,Portal,Low,Mobile app,41.2,N,
+T-40481,2026-05-03 14:29,Chat,High,Billing,12.7,FALSE,2
+T-40482,2026-06-26 07:36,Chat,Urgent,Billing,2.7,Yes,4
+T-40483,2026-05-02 14:10,Portal,Normal,Integrations,25.8,FALSE,2
+T-40484,2026-06-22 06:37,Portal,Normal,Login,49.9,No,
+T-40485,2026-06-24 09:22,Email,Low,Billing,76.8,No,1
+T-40486,2026-01-25 06:26,Portal,Normal,Mobile app,44.5,N,
+T-40487,2026-01-06 01:28,Chat,High,Billing,13.1,Yes,5
+T-40488,2026-04-17 21:38,Phone,Urgent,Reports,3.5,FALSE,
+T-40489,2026-04-12 20:23,Email,Low,Billing,51.4,FALSE,2
+T-40490,2026-02-21 02:08,Chat,Urgent,Reports,7,FALSE,4
+T-40491,2026-02-27 08:54,Portal,Normal,Mobile app,46.8,N,5
+T-40492,2026-04-13 05:23,Email,Normal,Login,38.4,FALSE,2
+T-40493,2026-03-22 23:15,Phone,Normal,Reports,26,N,1
+T-40494,2026-06-06 16:46,Portal,Normal,Login,13.4,N,2
+T-40495,2026-06-03 19:14,Portal,High,Mobile app,5.6,FALSE,1
+T-40496,2026-06-12 07:55,Portal,Urgent,Billing,5.3,FALSE,5
+T-40497,2026-04-21 13:56,Phone,High,Login,31.4,Yes,3
+T-40498,2026-02-22 23:11,Phone,Low,Mobile app,266.2,No,1
+T-40499,2026-06-21 16:08,Chat,High,Integrations,8.8,FALSE,
+T-40500,2026-05-28 02:18,Phone,Low,Reports,45.2,Y,
+T-40501,2026-04-26 23:46,Portal,High,Mobile app,29.1,Y,3
+T-40502,2026-06-21 19:59,Phone,Urgent,Reports,3,FALSE,3
+T-40503,2026-03-10 23:52,Portal,High,Integrations,3.7,No,5
+T-40504,2026-01-10 14:00,Chat,Normal,Billing,39.9,N,1
+T-40505,2026-01-07 10:27,Chat,High,Billing,15.4,FALSE,3
+T-40506,2026-04-06 23:26,Chat,High,Reports,6.3,FALSE,5
+T-40507,2026-01-22 12:20,Portal,High,Reports,16.2,No,1
+T-40508,2026-04-01 13:10,Chat,High,Login,12.4,No,2
+T-40509,2026-06-21 07:40,Portal,Normal,Billing,33,N,5
+T-40510,2026-05-07 19:14,Portal,Low,Login,111.4,No,2
+T-40511,2026-02-24 20:34,Chat,Low,Billing,24.6,FALSE,2
+T-40512,2026-04-05 18:53,Portal,Normal,Mobile app,19.2,Yes,
+T-40513,2026-03-13 13:50,Chat,Normal,Reports,23.3,FALSE,1
+T-40514,2026-04-24 18:46,Phone,High,Login,50.3,No,2
+T-40515,2026-06-12 23:46,Phone,Normal,Reports,34.5,No,4
+T-40516,2026-03-24 07:10,Portal,Normal,Integrations,39.3,N,
+T-40517,2026-04-19 05:25,Chat,Low,Mobile app,70.8,FALSE,5
+T-40518,2026-05-03 03:31,Phone,Normal,Reports,11.3,No,1
+T-40519,2026-05-13 14:32,Email,Urgent,Integrations,3.4,TRUE,4
+T-40520,2026-03-19 03:05,Portal,High,Integrations,4.2,No,4
+T-40521,2026-06-15 05:26,Chat,Low,Billing,106.3,No,2
+T-40522,2026-06-07 12:32,Chat,High,Integrations,7,N,
+T-40523,2026-04-08 09:13,Phone,Normal,Login,12.6,Yes,
+T-40524,2026-05-16 06:49,Portal,Urgent,Integrations,5.6,FALSE,4
+T-40525,2026-04-10 00:20,Chat,Normal,Reports,38.4,No,
+T-40526,2026-06-24 11:13,Email,Low,Billing,25,FALSE,
+T-40527,2026-01-23 04:17,Portal,High,Billing,20.8,N,
+T-40528,2026-01-15 07:09,Portal,High,Billing,17.2,No,4
+T-40529,2026-04-17 12:31,Phone,Normal,Billing,20.5,N,5
+T-40530,2026-03-29 13:48,Portal,Normal,Login,21.7,No,4
+T-40531,2026-05-24 07:25,Portal,High,Reports,6.6,No,
+T-40532,2026-03-04 03:29,Portal,Normal,Billing,42,No,1
+T-40533,2026-05-14 17:13,Email,Low,Login,58.7,No,1
+T-40534,2026-01-14 17:31,Email,High,Login,10.5,N,5
+T-40535,2026-01-29 18:15,Chat,Low,Integrations,21.1,No,3
+T-40536,2026-06-29 19:00,Chat,Normal,Login,57.4,FALSE,5
+T-40537,2026-03-09 18:14,Phone,Normal,Billing,12.9,No,
+T-40538,2026-03-29 19:37,Email,Normal,Login,79,FALSE,5
+T-40539,2026-03-03 10:20,Portal,High,Billing,10.3,N,1
+T-40540,2026-05-19 02:09,Portal,Normal,Login,12.6,N,
+T-40541,2026-02-21 20:29,Chat,Normal,Mobile app,30.7,FALSE,5
+T-40542,2026-03-27 11:32,Email,Low,Billing,34.5,No,
+T-40543,2026-03-17 22:02,Portal,High,Login,20.4,TRUE,
+T-40544,2026-03-12 20:04,Chat,Low,Billing,61.2,No,5
+T-40545,2026-03-02 23:51,Email,High,Reports,21.9,N,3
+T-40546,2026-03-20 14:10,Portal,High,Reports,19.6,FALSE,
+T-40547,2026-04-06 05:34,Phone,High,Reports,25,FALSE,
+T-40548,2026-02-21 12:44,Email,Normal,Login,68.1,No,3
+T-40549,2026-06-07 22:00,Phone,Low,Mobile app,81,FALSE,
+T-40550,2026-05-09 21:12,Portal,High,Mobile app,34.8,FALSE,2
+T-40551,2026-05-04 10:20,Chat,High,Reports,13.9,No,1
+T-40552,2026-04-05 12:03,Email,Normal,Integrations,37.6,No,1
+T-40553,2026-05-03 19:38,Email,Urgent,Mobile app,3.2,N,5
+T-40554,2026-01-31 07:06,Phone,High,Login,13.6,No,4
+T-40555,2026-06-07 19:49,Email,Normal,Billing,34.8,No,3
+T-40556,2026-06-24 19:24,Phone,Normal,Billing,121.1,Y,4
+T-40557,2026-05-30 03:41,Portal,Low,Login,25.8,FALSE,3
+T-40558,2026-05-26 14:13,Chat,High,Mobile app,4.8,N,1
+T-40559,2026-06-15 02:23,Email,Normal,Integrations,55.4,N,1
+T-40560,2026-03-22 09:19,Portal,High,Login,8.2,FALSE,1
+T-40561,2026-04-16 08:56,Email,Normal,Integrations,12.8,FALSE,
+T-40562,2026-02-10 22:43,Portal,Normal,Integrations,62.1,FALSE,
+T-40563,2026-02-05 09:26,Phone,Low,Mobile app,74.5,N,4
+T-40564,2026-03-18 01:53,Email,Normal,Reports,17.8,No,5
+T-40565,2026-04-29 04:07,Email,High,Login,25.7,FALSE,2
+T-40566,2026-01-14 17:20,Portal,Normal,Mobile app,33.8,No,
+T-40567,2026-04-08 20:55,Phone,Normal,Login,60,TRUE,
+T-40568,2026-02-08 20:37,Email,High,Integrations,9.8,FALSE,
+T-40569,2026-04-08 01:21,Phone,Normal,Billing,25.4,No,3
+T-40570,2026-02-23 01:50,Email,Normal,Reports,25.8,FALSE,
+T-40571,2026-01-09 16:10,Phone,High,Login,7.9,TRUE,2
+T-40572,2026-04-05 02:00,Email,High,Reports,20.6,N,
+T-40573,2026-02-05 22:24,Phone,Normal,Login,23.2,N,4
+T-40574,2026-05-27 01:21,Email,Urgent,Login,2.7,Yes,
+T-40575,2026-05-06 12:31,Portal,Urgent,Billing,2.5,FALSE,5
+T-40576,2026-04-25 00:54,Portal,High,Reports,15.4,N,4
+T-40577,2026-04-17 20:52,Chat,Urgent,Integrations,5.2,FALSE,4
+T-40578,2026-05-17 04:57,Portal,Normal,Billing,8.4,No,3
+T-40579,2026-02-07 03:00,Phone,Normal,Billing,38.9,Y,4
+T-40580,2026-02-11 23:29,Email,Normal,Billing,35.1,No,5
+T-40581,2026-03-02 14:24,Email,Low,Billing,150.3,No,2
+T-40582,2026-03-07 08:34,Chat,Low,Login,65.9,No,
+T-40583,2026-03-19 01:01,Portal,High,Login,15.9,No,4
+T-40584,2026-04-08 17:53,Chat,High,Mobile app,8.8,No,2
+T-40585,2026-05-19 09:01,Chat,High,Login,16,No,5
+T-40586,2026-04-18 02:24,Chat,Normal,Reports,77,N,4
+T-40587,2026-02-21 07:40,Chat,Normal,Mobile app,44.6,No,2
+T-40588,2026-05-11 14:14,Chat,Low,Reports,73.9,No,4
+T-40589,2026-01-08 02:38,Chat,Urgent,Integrations,8.5,Y,5
+T-40590,2026-03-16 04:48,Phone,High,Integrations,14.4,No,2
+T-40591,2026-06-08 13:21,Phone,Urgent,Integrations,7.2,FALSE,1
+T-40592,2026-03-08 18:37,Portal,Normal,Login,32.3,FALSE,3
+T-40593,2026-04-25 11:15,Phone,Urgent,Integrations,3.9,Y,
+T-40594,2026-04-02 07:00,Email,Normal,Reports,5.7,FALSE,
+T-40595,2026-05-03 23:28,Phone,Normal,Integrations,56.5,FALSE,5
+T-40596,2026-01-11 01:50,Phone,Urgent,Billing,3.3,No,1
+T-40597,2026-03-08 06:24,Phone,Normal,Login,21.3,FALSE,
+T-40598,2026-05-13 07:24,Phone,High,Mobile app,19.7,FALSE,1
+T-40599,2026-03-21 01:11,Email,Normal,Login,54,No,4
+T-40600,2026-02-06 08:22,Portal,High,Reports,38.5,No,
+T-40601,2026-05-09 00:58,Chat,Normal,Integrations,52.5,FALSE,5
+T-40602,2026-01-28 03:28,Chat,Normal,Mobile app,39.5,N,4
+T-40603,2026-01-05 20:51,Portal,Low,Login,108.5,N,2
+T-40604,2026-04-09 02:01,Portal,Urgent,Mobile app,5.3,No,4
+T-40605,2026-03-30 23:03,Chat,Normal,Billing,45.8,FALSE,5
+T-40606,2026-06-29 16:19,Phone,Normal,Mobile app,12.5,FALSE,1
+T-40607,2026-04-20 22:03,Email,High,Mobile app,16.7,N,1
+T-40608,2026-04-01 02:53,Phone,Normal,Billing,27.3,FALSE,
+T-40609,2026-04-04 19:23,Portal,High,Integrations,21.3,Yes,3
+T-40610,2026-03-29 15:09,Portal,Low,Integrations,41.4,No,
+T-40611,2026-01-07 17:10,Phone,High,Login,12.3,FALSE,2
+T-40612,2026-02-09 03:36,Phone,High,Integrations,19.1,FALSE,2
+T-40613,2026-01-06 09:46,Chat,Normal,Login,115.5,N,1
+T-40614,2026-06-20 00:11,Portal,Low,Billing,38.1,FALSE,
+T-40615,2026-03-14 04:42,Email,Urgent,Integrations,3.7,TRUE,2
+T-40616,2026-02-26 16:46,Email,Normal,Login,26.5,FALSE,1
+T-40617,2026-05-24 03:01,Email,Normal,Login,16.5,FALSE,5
+T-40618,2026-04-25 03:41,Portal,Normal,Reports,35.7,FALSE,5
+T-40619,2026-05-24 23:27,Portal,High,Mobile app,10.6,N,2
+T-40620,2026-01-25 13:31,Chat,High,Login,12.3,FALSE,5
+T-40621,2026-06-26 17:02,Phone,Normal,Mobile app,26.6,FALSE,
+T-40622,2026-01-03 02:09,Portal,High,Login,10,No,
+T-40623,2026-03-05 11:19,Chat,Normal,Integrations,11.7,FALSE,5
+T-40624,2026-06-12 21:20,Chat,Low,Integrations,64,FALSE,5
+T-40625,2026-02-20 08:18,Chat,Normal,Reports,24,N,1
+T-40626,2026-03-05 01:07,Portal,Urgent,Reports,1.6,Y,5
+T-40627,2026-04-24 12:27,Phone,Normal,Reports,23,No,1
+T-40628,2026-05-01 21:14,Phone,Normal,Reports,38.8,FALSE,2
+T-40629,2026-03-28 10:05,Portal,High,Reports,16.5,TRUE,5
+T-40630,2026-01-25 20:16,Email,Normal,Integrations,17.4,No,2
+T-40631,2026-02-08 23:16,Chat,High,Mobile app,48.2,TRUE,3
+T-40632,2026-04-19 14:30,Portal,Normal,Login,10.9,Yes,
+T-40633,2026-03-29 16:39,Phone,Normal,Integrations,30.8,FALSE,4
+T-40634,2026-05-10 14:52,Email,Urgent,Integrations,2,N,4
+T-40635,2026-03-11 20:22,Phone,Urgent,Integrations,3.8,FALSE,
+T-40636,2026-03-22 07:01,Chat,Urgent,Reports,5.6,N,2
+T-40637,2026-06-30 02:30,Email,Low,Mobile app,153.1,TRUE,
+T-40638,2026-06-12 01:37,Portal,High,Integrations,10.8,N,4
+T-40639,2026-02-20 09:42,Email,High,Mobile app,11.2,N,3
+T-40640,2026-05-20 10:40,Portal,Normal,Mobile app,15.1,N,3
+T-40641,2026-06-09 22:19,Chat,Normal,Integrations,18,N,2
+T-40642,2026-03-23 09:20,Chat,Normal,Reports,18.8,FALSE,3
+T-40643,2026-06-17 02:09,Portal,Normal,Login,25.4,N,
+T-40644,2026-05-19 23:00,Phone,Normal,Billing,24.8,FALSE,4
+T-40645,2026-04-12 17:59,Email,Low,Integrations,55.6,No,2
+T-40646,2026-04-14 13:52,Portal,Normal,Billing,52.5,No,2
+T-40647,2026-01-23 13:56,Email,Normal,Reports,71,TRUE,
+T-40648,2026-06-28 04:02,Email,Low,Reports,79.3,No,
+T-40649,2026-01-26 09:44,Email,Urgent,Mobile app,1.4,No,4
+T-40650,2026-06-07 20:52,Phone,Urgent,Billing,11.6,Y,3
+T-40651,2026-05-27 11:01,Email,Normal,Reports,15.2,No,1
+T-40652,2026-03-31 13:07,Email,High,Integrations,6.9,No,4
+T-40653,2026-01-22 21:55,Phone,Normal,Billing,62.8,N,5
+T-40654,2026-01-16 16:34,Email,Urgent,Billing,6.2,Yes,
+T-40655,2026-02-06 19:12,Portal,Urgent,Mobile app,3.7,N,3
+T-40656,2026-04-13 08:30,Chat,Normal,Reports,7.3,No,2
+T-40657,2026-05-23 03:59,Chat,Normal,Mobile app,82.1,N,1
+T-40658,2026-04-18 08:59,Chat,High,Billing,6.2,FALSE,3
+T-40659,2026-05-07 22:48,Portal,Normal,Mobile app,22.8,N,
+T-40660,2026-04-04 00:59,Portal,Urgent,Mobile app,7.3,No,3
+T-40661,2026-04-22 05:23,Phone,Low,Mobile app,110.1,N,
+T-40662,2026-01-12 10:55,Portal,Urgent,Integrations,2.2,Yes,2
+T-40663,2026-05-14 10:42,Email,High,Reports,7.9,Y,4
+T-40664,2026-01-02 07:28,Chat,Normal,Reports,28,N,3
+T-40665,2026-01-25 04:08,Chat,Urgent,Mobile app,0.7,Y,5
+T-40666,2026-06-30 21:57,Portal,Normal,Login,10.1,N,
+T-40667,2026-02-07 03:08,Portal,Urgent,Billing,5.1,Y,4
+T-40668,2026-05-17 11:37,Phone,Low,Mobile app,68.8,N,2
+T-40669,2026-05-19 09:59,Phone,Urgent,Reports,3.1,No,
+T-40670,2026-04-07 23:22,Portal,Low,Billing,72,FALSE,3
+T-40671,2026-05-28 18:24,Portal,Urgent,Billing,2.2,TRUE,5
+T-40672,2026-05-06 09:13,Chat,Normal,Login,22.5,FALSE,4
+T-40673,2026-03-13 01:18,Email,Low,Reports,21.4,No,2
+T-40674,2026-01-02 18:38,Portal,Normal,Login,47.1,Yes,
+T-40675,2026-06-11 06:22,Chat,High,Mobile app,4.5,N,1
+T-40676,2026-05-05 21:40,Phone,Low,Mobile app,40.5,FALSE,
+T-40677,2026-06-26 04:27,Chat,Normal,Reports,48,FALSE,2
+T-40678,2026-04-29 08:46,Email,Normal,Billing,47.3,FALSE,
+T-40679,2026-03-02 23:40,Phone,Urgent,Login,3.1,No,2
+T-40680,2026-02-02 21:40,Email,High,Login,8.4,N,4
+T-40681,2026-04-19 11:10,Chat,High,Login,9.7,FALSE,
+T-40682,2026-05-26 02:20,Portal,High,Reports,13,N,
+T-40683,2026-01-10 23:22,Portal,High,Reports,13.6,No,4
+T-40684,2026-05-31 17:01,Chat,Normal,Billing,26.1,No,
+T-40685,2026-06-27 10:28,Email,Normal,Login,15.1,N,
+T-40686,2026-06-11 19:41,Portal,High,Integrations,25.9,FALSE,5
+T-40687,2026-06-23 02:41,Email,Normal,Mobile app,27.8,FALSE,
+T-40688,2026-06-16 03:55,Phone,Normal,Mobile app,7.3,No,4
+T-40689,2026-01-11 23:07,Phone,Normal,Billing,43.5,N,5
+T-40690,2026-03-15 20:28,Chat,Normal,Mobile app,28.6,FALSE,
+T-40691,2026-06-04 03:43,Phone,Urgent,Integrations,1,No,
+T-40692,2026-03-11 13:44,Phone,High,Billing,10.3,Yes,
+T-40693,2026-06-16 00:48,Portal,Low,Reports,31.1,N,
+T-40694,2026-03-11 19:28,Portal,Normal,Billing,33,N,3
+T-40695,2026-01-07 00:02,Phone,Normal,Billing,20.7,N,2
+T-40696,2026-06-11 14:36,Email,Urgent,Billing,5.8,Y,
+T-40697,2026-02-20 21:55,Phone,Urgent,Reports,7.1,FALSE,3
+T-40698,2026-01-30 18:42,Phone,Normal,Reports,12.3,N,2
+T-40699,2026-03-25 15:18,Chat,High,Billing,15.7,No,5
+T-40700,2026-02-28 07:09,Portal,Normal,Login,27.1,No,1
+T-40701,2026-06-25 11:03,Chat,Normal,Integrations,21.4,FALSE,5
+T-40702,2026-04-15 09:35,Phone,Normal,Integrations,21,N,
+T-40703,2026-03-21 09:17,Chat,High,Mobile app,8.1,No,3
+T-40704,2026-01-25 20:40,Chat,High,Login,6.3,FALSE,4
+T-40705,2026-06-22 18:09,Chat,Low,Billing,79.3,No,2
+T-40706,2026-06-10 12:20,Phone,Normal,Integrations,27.3,N,4
+T-40707,2026-02-17 16:00,Portal,Normal,Login,86.8,No,
+T-40708,2026-04-05 14:33,Phone,Normal,Mobile app,27.8,No,1
+T-40709,2026-03-31 08:18,Email,Low,Reports,91.3,N,2
+T-40710,2026-05-08 00:09,Phone,Urgent,Billing,11.7,N,4
+T-40711,2026-01-02 20:17,Portal,Normal,Integrations,26,Yes,
+T-40712,2026-02-23 01:50,Email,Urgent,Billing,4,N,5
+T-40713,2026-03-12 09:43,Portal,Normal,Billing,32.1,FALSE,5
+T-40714,2026-01-07 16:03,Email,Normal,Reports,39.1,TRUE,
+T-40715,2026-02-22 11:39,Email,Normal,Mobile app,85.4,No,2
+T-40716,2026-02-20 08:42,Portal,High,Billing,11.7,No,2
+T-40717,2026-01-07 20:44,Portal,Normal,Integrations,15.4,N,
+T-40718,2026-05-25 20:28,Portal,Normal,Login,37,N,
+T-40719,2026-03-09 14:50,Chat,Normal,Login,27.3,N,4
+T-40720,2026-03-15 18:30,Chat,Normal,Login,32.1,No,1
+T-40721,2026-05-12 01:00,Chat,Urgent,Reports,6.6,FALSE,4
+T-40722,2026-05-13 10:48,Chat,Low,Billing,113.7,N,2
+T-40723,2026-01-01 14:07,Portal,Urgent,Mobile app,4.9,Y,1
+T-40724,2026-01-22 14:23,Chat,Low,Mobile app,74.5,FALSE,1
+T-40725,2026-05-29 19:57,Portal,Normal,Mobile app,39.9,No,5
+T-40726,2026-01-15 09:33,Chat,High,Integrations,9.1,N,3
+T-40727,2026-03-29 00:25,Portal,Low,Login,66.5,No,3
+T-40728,2026-06-18 07:08,Email,High,Integrations,17.6,FALSE,3
+T-40729,2026-03-03 00:34,Email,High,Billing,43.1,No,2
+T-40730,2026-06-12 22:47,Email,Low,Login,78.8,No,3
+T-40731,2026-05-05 14:49,Phone,High,Integrations,8.3,No,5
+T-40732,2026-02-06 21:13,Portal,High,Mobile app,5.6,No,3
+T-40733,2026-01-20 22:03,Email,Urgent,Billing,2.5,N,2
+T-40734,2026-06-03 23:16,Chat,Low,Billing,87.5,FALSE,5
+T-40735,2026-05-27 00:12,Email,High,Integrations,7.6,TRUE,1
+T-40736,2026-01-19 09:55,Portal,Low,Reports,50,FALSE,2
+T-40737,2026-06-15 06:49,Phone,High,Billing,21.7,FALSE,2
+T-40738,2026-06-20 17:14,Chat,High,Login,13.2,Y,3
+T-40739,2026-01-10 21:00,Email,Urgent,Reports,4.7,No,2
+T-40740,2026-05-31 10:33,Email,High,Mobile app,26.1,FALSE,2
+T-40741,2026-03-21 13:36,Chat,Low,Integrations,42.7,FALSE,2
+T-40742,2026-03-23 01:46,Email,Low,Integrations,33,N,5
+T-40743,2026-03-30 13:49,Chat,Normal,Integrations,8,No,4
+T-40744,2026-06-27 10:34,Chat,Normal,Login,11.9,FALSE,2
+T-40745,2026-01-06 11:25,Chat,Urgent,Mobile app,1.1,N,3
+T-40746,2026-06-17 00:12,Chat,High,Reports,29.7,No,
+T-40747,2026-01-30 04:17,Email,Normal,Mobile app,14.7,TRUE,
+T-40748,2026-03-24 13:17,Email,High,Login,10,FALSE,3
+T-40749,2026-06-13 23:02,Portal,Normal,Integrations,57,N,1
+T-40750,2026-02-14 14:59,Chat,High,Integrations,8.4,N,
+T-40751,2026-05-28 17:24,Phone,Normal,Billing,17.4,No,5
+T-40752,2026-06-24 16:28,Portal,Urgent,Login,2.6,No,
+T-40753,2026-02-19 23:43,Email,Urgent,Billing,2,N,2
+T-40754,2026-05-04 15:22,Phone,Urgent,Integrations,4,TRUE,3
+T-40755,2026-06-04 17:49,Portal,Normal,Mobile app,10.7,No,1
+T-40756,2026-03-15 12:01,Chat,High,Login,10.7,N,1
+T-40757,2026-01-15 19:29,Phone,Low,Billing,47.3,FALSE,
+T-40758,2026-01-05 23:03,Phone,High,Mobile app,10.9,No,1
+T-40759,2026-02-14 07:18,Email,High,Login,11.3,Yes,5
+T-40760,2026-01-19 10:51,Phone,Normal,Billing,15.9,N,1
+T-40761,2026-01-21 16:32,Phone,High,Mobile app,8,N,4
+T-40762,2026-06-05 19:07,Email,Normal,Integrations,22.3,No,5
+T-40763,2026-02-27 08:44,Email,Normal,Login,29.1,No,3
+T-40764,2026-03-03 06:40,Chat,Normal,Mobile app,28.2,Y,2
+T-40765,2026-01-19 15:16,Chat,Urgent,Integrations,8.8,Yes,5
+T-40766,2026-06-18 18:41,Portal,Normal,Billing,37.2,No,4
+T-40767,2026-01-26 15:48,Phone,Low,Mobile app,94.6,FALSE,1
+T-40768,2026-05-14 13:35,Chat,Normal,Login,101.1,N,2
+T-40769,2026-04-26 00:28,Phone,Normal,Integrations,38.9,N,
+T-40770,2026-04-16 03:38,Email,Normal,Reports,11.3,N,
+T-40771,2026-05-27 05:53,Chat,Low,Mobile app,41.2,No,
+T-40772,2026-01-03 22:57,Phone,High,Mobile app,7.7,FALSE,1
+T-40773,2026-01-01 14:14,Portal,Low,Mobile app,43.5,FALSE,2
+T-40774,2026-04-01 07:47,Email,High,Integrations,12.1,FALSE,3
+T-40775,2026-02-01 16:12,Portal,Normal,Integrations,38.5,No,3
+T-40776,2026-01-28 06:14,Phone,Low,Login,17.3,No,
+T-40777,2026-05-13 09:12,Email,High,Mobile app,19,No,
+T-40778,2026-06-10 04:47,Portal,Normal,Integrations,12.5,No,2
+T-40779,2026-01-05 17:32,Chat,Low,Reports,63.8,No,3
+T-40780,2026-02-11 15:47,Email,High,Billing,15.4,FALSE,
+T-40781,2026-02-24 23:53,Email,Urgent,Mobile app,4.9,No,4
+T-40782,2026-03-30 01:22,Email,Normal,Login,47.9,N,1
+T-40783,2026-05-01 01:12,Chat,High,Mobile app,12.9,No,3
+T-40784,2026-06-28 10:40,Chat,Urgent,Mobile app,2.2,TRUE,4
+T-40785,2026-01-24 22:49,Chat,High,Mobile app,25.1,N,1
+T-40786,2026-06-20 03:01,Portal,High,Mobile app,4.6,FALSE,
+T-40787,2026-01-04 14:23,Email,Normal,Integrations,17.5,No,4
+T-40788,2026-05-20 21:08,Email,Normal,Login,50.5,FALSE,3
+T-40789,2026-04-13 00:50,Phone,Urgent,Integrations,4.7,Yes,3
+T-40790,2026-03-01 01:57,Portal,High,Billing,24.4,FALSE,2
+T-40791,2026-06-01 23:10,Portal,Urgent,Billing,8.4,N,4
+T-40792,2026-04-08 02:07,Phone,Low,Billing,197.9,FALSE,1
+T-40793,2026-06-30 02:18,Phone,Low,Login,32.4,No,4
+T-40794,2026-04-27 02:07,Phone,Urgent,Integrations,2.4,TRUE,2
+T-40795,2026-03-14 22:42,Portal,High,Login,7.3,FALSE,2
+T-40796,2026-04-24 19:34,Portal,Normal,Mobile app,34.4,FALSE,
+T-40797,2026-02-11 05:48,Email,High,Login,19.7,FALSE,3
+T-40798,2026-05-26 23:56,Portal,High,Reports,15.8,TRUE,
+T-40799,2026-02-15 17:32,Chat,Normal,Login,30.1,No,5
+T-40800,2026-04-05 03:09,Chat,Normal,Billing,35,FALSE,4
+T-40801,2026-01-14 10:23,Email,High,Login,11.1,N,4
+T-40802,2026-03-07 21:02,Phone,High,Billing,10.5,FALSE,4
+T-40803,2026-01-21 20:40,Email,Low,Login,25.1,No,5
+T-40804,2026-01-27 08:35,Email,Normal,Billing,12.1,N,
+T-40805,2026-05-09 21:19,Portal,Low,Mobile app,58.5,N,4
+T-40806,2026-02-28 21:58,Portal,Low,Mobile app,26.2,FALSE,2
+T-40807,2026-01-10 09:27,Chat,Low,Mobile app,33.7,N,1
+T-40808,2026-06-21 04:01,Phone,Normal,Billing,31.5,No,2
+T-40809,2026-01-24 19:58,Portal,Low,Mobile app,179.4,Y,2
+T-40810,2026-01-31 20:42,Email,Low,Integrations,39.9,N,
+T-40811,2026-02-03 10:02,Phone,Urgent,Integrations,4.9,N,4
+T-40812,2026-02-21 09:57,Portal,Low,Billing,30,N,
+T-40813,2026-06-02 02:57,Phone,High,Reports,27.5,N,5
+T-40814,2026-06-20 00:48,Chat,High,Billing,18.1,N,2
+T-40815,2026-04-17 07:11,Email,Low,Integrations,44.4,FALSE,4
+T-40816,2026-02-09 21:10,Portal,Normal,Reports,10.3,N,4
+T-40817,2026-03-24 10:40,Portal,Urgent,Mobile app,0.9,FALSE,1
+T-40818,2026-04-22 15:19,Email,Normal,Billing,30.3,No,5
+T-40819,2026-02-22 07:08,Phone,Normal,Reports,10.1,FALSE,4
+T-40820,2026-04-01 17:17,Portal,High,Mobile app,31.8,FALSE,
+T-40821,2026-01-07 04:37,Portal,Normal,Billing,89.3,N,5
+T-40822,2026-01-03 03:09,Email,High,Login,18,FALSE,3
+T-40823,2026-02-15 19:02,Portal,Normal,Mobile app,74.9,Y,1
+T-40824,2026-04-29 06:26,Phone,High,Mobile app,26.1,N,
+T-40825,2026-02-12 00:43,Portal,Normal,Login,15.1,FALSE,2
+T-40826,2026-06-25 11:15,Chat,Normal,Reports,15.5,TRUE,2
+T-40827,2026-06-21 11:02,Portal,Urgent,Mobile app,1.2,N,1
+T-40828,2026-02-24 10:57,Chat,High,Reports,9.7,N,3
+T-40829,2026-02-09 07:21,Email,High,Integrations,8.8,FALSE,
+T-40830,2026-02-17 05:03,Email,High,Reports,19.5,FALSE,3
+T-40831,2026-04-23 19:47,Phone,Normal,Login,83.5,N,
+T-40832,2026-06-27 12:10,Email,Normal,Login,10,TRUE,1
+T-40833,2026-03-17 01:09,Chat,High,Login,35.1,FALSE,5
+T-40834,2026-02-20 19:30,Phone,Normal,Integrations,53.9,N,
+T-40835,2026-01-21 10:38,Email,High,Billing,9.2,No,3
+T-40836,2026-01-16 23:26,Email,Urgent,Mobile app,4.7,TRUE,1
+T-40837,2026-01-16 13:12,Portal,High,Billing,7.1,No,
+T-40838,2026-01-29 13:16,Chat,Normal,Mobile app,56.1,FALSE,1
+T-40839,2026-04-21 16:06,Email,Normal,Mobile app,20.9,N,3
+T-40840,2026-01-07 09:31,Portal,High,Reports,9.6,N,
+T-40841,2026-01-24 06:47,Email,Normal,Billing,30.3,No,1
+T-40842,2026-05-29 21:27,Portal,Normal,Integrations,30.5,N,5
+T-40843,2026-02-18 15:48,Phone,Low,Integrations,70.9,No,4
+T-40844,2026-06-28 04:31,Chat,Low,Login,64.7,FALSE,5
+T-40845,2026-02-01 01:28,Portal,Normal,Billing,31,No,1
+T-40846,2026-02-16 07:45,Portal,High,Billing,25.1,N,
+T-40847,2026-05-30 15:02,Portal,Normal,Reports,48.8,No,2
+T-40848,2026-02-11 11:35,Chat,Normal,Reports,50.7,FALSE,4
+T-40849,2026-01-04 10:28,Chat,High,Reports,7.1,N,
+T-40850,2026-04-10 14:26,Phone,Low,Reports,49.3,No,2
+T-40851,2026-05-08 05:12,Phone,Normal,Billing,39.1,FALSE,3
+T-40852,2026-01-15 20:25,Portal,Normal,Reports,82,N,3
+T-40853,2026-06-04 14:11,Email,High,Billing,6.6,N,1
+T-40854,2026-06-27 15:29,Chat,High,Login,8.8,FALSE,3
+T-40855,2026-03-17 16:36,Phone,Normal,Integrations,85,No,
+T-40856,2026-03-07 22:36,Email,Normal,Billing,29.1,No,3
+T-40857,2026-03-17 21:26,Portal,High,Reports,9.2,FALSE,1
+T-40858,2026-02-09 11:40,Portal,High,Login,21.5,No,2
+T-40859,2026-05-23 16:03,Email,High,Reports,11.5,N,
+T-40860,2026-06-25 02:12,Phone,Normal,Reports,28.7,Y,3
+T-40861,2026-02-03 02:21,Chat,Normal,Mobile app,54.7,No,5
+T-40862,2026-03-09 11:55,Email,Normal,Integrations,41.7,N,3
+T-40863,2026-02-24 05:36,Phone,Normal,Reports,38.7,FALSE,4
+T-40864,2026-06-28 19:24,Phone,High,Mobile app,5.2,TRUE,
+T-40865,2026-02-18 04:20,Chat,Low,Integrations,35.7,FALSE,2
+T-40866,2026-03-09 15:03,Chat,High,Billing,11.5,FALSE,
+T-40867,2026-01-10 01:07,Phone,High,Login,19.8,No,1
+T-40868,2026-03-01 09:27,Phone,Normal,Integrations,19.8,FALSE,
+T-40869,2026-04-22 12:32,Phone,Normal,Billing,28.8,No,
+T-40870,2026-02-08 11:37,Phone,Normal,Billing,148.7,FALSE,
+T-40871,2026-06-21 08:35,Portal,High,Integrations,10.5,FALSE,3
+T-40872,2026-06-18 21:31,Chat,Normal,Billing,30.7,No,2
+T-40873,2026-02-09 11:01,Portal,High,Integrations,6.3,N,
+T-40874,2026-03-28 10:55,Email,High,Mobile app,22.4,N,1
+T-40875,2026-03-03 10:32,Chat,Normal,Billing,17.2,N,2
+T-40876,2026-01-09 00:35,Portal,Urgent,Integrations,4.8,FALSE,3
+T-40877,2026-03-04 22:48,Phone,Normal,Reports,38.9,No,5
+T-40878,2026-06-24 18:21,Phone,High,Integrations,14.6,FALSE,
+T-40879,2026-06-10 12:37,Chat,Low,Mobile app,46.9,No,2
+T-40880,2026-05-17 01:34,Chat,High,Mobile app,11.5,N,
+T-40881,2026-01-23 02:41,Email,Normal,Reports,41.8,N,
+T-40882,2026-05-12 02:31,Email,Low,Login,60.1,No,2
+T-40883,2026-02-28 02:51,Phone,Normal,Integrations,58.8,FALSE,
+T-40884,2026-03-26 10:31,Phone,High,Reports,25.7,No,
+T-40885,2026-04-06 12:38,Chat,Normal,Billing,82.3,Y,
+T-40886,2026-05-14 07:07,Portal,Urgent,Mobile app,7.9,N,3
+T-40887,2026-02-21 16:10,Phone,High,Login,10.9,N,1
+T-40888,2026-05-29 15:44,Chat,Normal,Login,26.8,N,5
+T-40889,2026-02-28 08:38,Chat,Low,Integrations,40.4,FALSE,5
+T-40890,2026-01-18 08:03,Email,High,Reports,24.8,N,3
+T-40891,2026-04-25 09:39,Phone,Low,Integrations,174.3,No,
+T-40892,2026-06-09 01:29,Phone,Low,Billing,104.5,No,
+T-40893,2026-03-21 01:57,Portal,Normal,Integrations,33.8,FALSE,3
+T-40894,2026-03-12 07:29,Portal,Normal,Reports,32.9,No,
+T-40895,2026-03-15 18:07,Portal,Urgent,Login,1.6,No,3
+T-40896,2026-03-04 03:03,Email,High,Mobile app,12.1,N,2
+T-40897,2026-06-19 08:23,Phone,Normal,Billing,40.1,No,
+T-40898,2026-05-23 08:56,Chat,Urgent,Reports,3,N,
+T-40899,2026-04-23 06:59,Chat,High,Integrations,2.3,N,5
+T-40900,2026-06-17 15:34,Portal,Normal,Integrations,49.6,No,5
+T-40901,2026-06-08 05:03,Email,Urgent,Integrations,5.8,FALSE,
+T-40902,2026-01-04 01:03,Portal,Low,Integrations,87.6,N,5
+T-40903,2026-01-02 16:00,Portal,High,Mobile app,22.5,FALSE,1
+T-40904,2026-03-23 12:44,Chat,Normal,Reports,42.5,FALSE,2
+T-40905,2026-04-09 17:08,Email,Normal,Integrations,11.8,No,3
+T-40906,2026-05-05 07:17,Email,High,Billing,13.8,Yes,1
+T-40907,2026-03-14 20:21,Email,Urgent,Login,4.3,FALSE,
+T-40908,2026-01-02 20:39,Email,High,Billing,12.3,FALSE,3
+T-40909,2026-04-04 07:40,Chat,Normal,Login,33.7,FALSE,
+T-40910,2026-03-21 00:07,Chat,Normal,Mobile app,52.1,N,
+T-40911,2026-04-20 03:47,Email,Normal,Mobile app,32,FALSE,
+T-40912,2026-04-03 03:31,Phone,Urgent,Reports,1.8,No,2
+T-40913,2026-05-09 10:42,Email,Urgent,Reports,4.2,N,5
+T-40914,2026-05-21 08:51,Chat,Normal,Mobile app,39.3,N,2
+T-40915,2026-05-14 18:04,Portal,Low,Mobile app,144,No,
+T-40916,2026-05-18 11:33,Phone,High,Integrations,4.9,No,1
+T-40917,2026-02-13 19:22,Phone,High,Reports,14.6,FALSE,4
+T-40918,2026-05-15 17:06,Chat,Urgent,Reports,11.1,FALSE,1
+T-40919,2026-06-04 01:04,Email,High,Reports,15,FALSE,4
+T-40920,2026-04-09 08:15,Portal,High,Mobile app,13.8,N,3
+T-40921,2026-05-04 08:38,Chat,High,Billing,23.5,No,4
+T-40922,2026-05-17 09:28,Portal,High,Integrations,4.8,No,4
+T-40923,2026-06-30 11:15,Portal,Urgent,Reports,1.8,N,2
+T-40924,2026-03-10 01:02,Phone,High,Reports,7.8,FALSE,1
+T-40925,2026-04-27 22:11,Chat,Low,Login,26.4,No,2
+T-40926,2026-03-07 09:11,Email,High,Mobile app,12.7,Y,4
+T-40927,2026-05-08 05:07,Chat,Urgent,Login,2.1,Yes,4
+T-40928,2026-02-15 02:12,Chat,High,Login,12.3,N,
+T-40929,2026-02-13 08:25,Chat,Normal,Billing,47.2,FALSE,3
+T-40930,2026-01-17 15:31,Chat,Normal,Mobile app,16.4,N,3
+T-40931,2026-06-10 03:27,Chat,High,Login,4.5,Y,5
+T-40932,2026-04-21 04:00,Phone,Urgent,Mobile app,2.8,No,5
+T-40933,2026-03-15 18:44,Phone,Normal,Mobile app,18.3,FALSE,4
+T-40934,2026-06-06 20:03,Chat,Urgent,Reports,6.7,Y,3
+T-40935,2026-03-03 04:08,Phone,Urgent,Reports,7,N,5
+T-40936,2026-06-19 22:24,Email,Normal,Login,42.3,N,1
+T-40937,2026-03-02 03:00,Phone,Low,Reports,63.7,FALSE,3
+T-40938,2026-04-28 15:09,Chat,Normal,Integrations,23.3,No,3
+T-40939,2026-06-23 10:34,Chat,High,Reports,15,N,
+T-40940,2026-02-05 20:45,Chat,Normal,Reports,33.2,FALSE,
+T-40941,2026-01-26 10:23,Phone,Urgent,Reports,20,Y,5
+T-40942,2026-03-17 16:29,Chat,Normal,Integrations,26,FALSE,
+T-40943,2026-03-12 19:41,Portal,Urgent,Billing,2.8,N,2
+T-40944,2026-04-13 04:33,Email,Urgent,Billing,1.9,Y,2
+T-40945,2026-02-26 18:49,Phone,Normal,Integrations,29.7,No,4
+T-40946,2026-06-25 09:01,Chat,Normal,Billing,21.3,N,
+T-40947,2026-05-02 13:28,Chat,Low,Mobile app,48.3,N,1
+T-40948,2026-02-20 23:50,Phone,Normal,Reports,67.2,N,4
+T-40949,2026-02-01 19:17,Chat,High,Reports,9,No,2
+T-40950,2026-02-14 05:20,Phone,Normal,Reports,33.7,No,2
+T-40951,2026-02-08 06:56,Email,Normal,Login,53,TRUE,
+T-40952,2026-01-29 05:06,Portal,High,Integrations,21.5,FALSE,3
+T-40953,2026-01-23 07:00,Chat,Urgent,Reports,10.8,TRUE,1
+T-40954,2026-03-04 07:23,Phone,Urgent,Reports,3,Y,5
+T-40955,2026-02-21 10:11,Email,Normal,Login,27.7,FALSE,1
+T-40956,2026-03-06 10:04,Chat,Normal,Mobile app,21,No,
+T-40957,2026-06-28 16:55,Phone,High,Billing,29.2,FALSE,5
+T-40958,2026-05-12 11:59,Email,Normal,Integrations,12,N,2
+T-40959,2026-04-09 09:41,Phone,High,Billing,13.9,N,1
+T-40960,2026-04-26 00:50,Portal,Normal,Login,31.5,FALSE,4
+T-40961,2026-06-05 00:59,Chat,High,Mobile app,4,Yes,2
+T-40962,2026-04-11 06:40,Email,Low,Billing,17.9,N,5
+T-40963,2026-01-12 12:26,Phone,Normal,Mobile app,24.5,FALSE,2
+T-40964,2026-02-16 15:40,Portal,High,Login,5.7,Yes,1
+T-40965,2026-04-29 10:32,Phone,Normal,Reports,30.8,No,1
+T-40966,2026-02-20 09:12,Chat,Normal,Reports,30.8,N,5
+T-40967,2026-02-15 14:04,Phone,Urgent,Integrations,2.1,FALSE,2
+T-40968,2026-04-17 04:29,Email,High,Login,17.7,No,2
+T-40969,2026-05-22 12:25,Phone,Urgent,Reports,6.9,Y,5
+T-40970,2026-01-31 06:52,Portal,Normal,Integrations,102.1,N,4
+T-40971,2026-01-28 08:02,Phone,Low,Billing,77.3,FALSE,5
+T-40972,2026-01-26 13:03,Email,High,Reports,13.2,FALSE,1
+T-40973,2026-06-16 03:06,Portal,High,Mobile app,9.2,No,5
+T-40974,2026-03-21 22:35,Portal,Urgent,Billing,4.7,No,
+T-40975,2026-05-20 15:39,Chat,Low,Reports,84.7,FALSE,5
+T-40976,2026-01-09 15:29,Chat,Normal,Billing,37.7,FALSE,2
+T-40977,2026-03-08 17:05,Chat,Urgent,Reports,7.1,No,1
+T-40978,2026-01-19 12:42,Phone,High,Integrations,18.6,No,4
+T-40979,2026-01-08 23:07,Portal,Low,Billing,20.2,N,5
+T-40980,2026-03-26 19:03,Chat,Normal,Billing,15.5,N,1
+T-40981,2026-02-08 23:41,Phone,Urgent,Integrations,1.1,FALSE,1
+T-40982,2026-02-04 00:09,Portal,Low,Reports,37.5,FALSE,5
+T-40983,2026-06-16 03:06,Phone,Urgent,Mobile app,1.9,N,1
+T-40984,2026-06-01 18:26,Chat,Urgent,Billing,7.8,FALSE,5
+T-40985,2026-03-10 22:01,Chat,Normal,Reports,38.4,N,2
+T-40986,2026-01-03 05:23,Chat,Normal,Login,32.6,Yes,
+T-40987,2026-03-28 12:28,Email,Normal,Billing,22.9,No,2
+T-40988,2026-03-14 15:01,Email,High,Billing,10.6,No,5
+T-40989,2026-06-24 07:09,Phone,Normal,Login,74.6,No,5
+T-40990,2026-02-01 02:30,Chat,High,Mobile app,45,No,2
+T-40991,2026-04-11 08:26,Email,High,Login,6.1,Y,5
+T-40992,2026-04-29 04:06,Portal,Urgent,Integrations,5.2,No,1
+T-40993,2026-05-23 06:27,Chat,Normal,Billing,21.7,No,
+T-40994,2026-01-15 03:43,Chat,Normal,Login,42.3,FALSE,3
+T-40995,2026-06-07 11:51,Phone,High,Mobile app,14,N,1
+T-40996,2026-04-17 04:19,Email,Normal,Reports,41.1,FALSE,4
+T-40997,2026-01-22 08:07,Phone,Normal,Reports,35.3,N,
+T-40998,2026-02-19 18:02,Portal,Normal,Integrations,30.2,TRUE,4
+T-40999,2026-05-19 07:30,Portal,Urgent,Reports,1.8,No,5
+T-41000,2026-06-23 04:11,Chat,Normal,Reports,32.8,N,2
+T-41001,2026-04-14 02:49,Phone,High,Login,21.2,N,1
+T-41002,2026-04-30 08:42,Chat,Low,Login,40.2,FALSE,1
+T-41003,2026-05-02 20:51,Email,Urgent,Mobile app,2.4,Y,
+T-41004,2026-06-15 22:11,Phone,Urgent,Integrations,2.5,Yes,
+T-41005,2026-04-15 02:19,Portal,Normal,Billing,17.3,No,
+T-41006,2026-05-07 06:38,Chat,High,Login,24.3,Y,
+T-41007,2026-02-13 09:31,Phone,Low,Integrations,31.7,FALSE,2
+T-41008,2026-04-03 18:12,Email,Low,Mobile app,52.7,FALSE,5
+T-41009,2026-02-24 15:39,Email,Urgent,Login,3.6,TRUE,4
+T-41010,2026-04-18 15:29,Portal,High,Billing,9.5,No,3
+T-41011,2026-03-08 20:43,Chat,Low,Billing,54.6,N,4
+T-41012,2026-04-22 02:09,Portal,Normal,Billing,21.8,N,1
+T-41013,2026-03-12 14:04,Chat,Urgent,Integrations,1.4,TRUE,4
+T-41014,2026-06-24 16:05,Phone,Urgent,Reports,5.5,FALSE,
+T-41015,2026-04-26 18:07,Chat,Low,Mobile app,129,FALSE,3
+T-41016,2026-02-06 22:16,Email,Urgent,Integrations,5.7,FALSE,
+T-41017,2026-01-15 22:02,Email,Normal,Integrations,30.9,N,1
+T-41018,2026-01-19 01:14,Email,Urgent,Billing,3.7,Yes,5
+T-41019,2026-01-20 05:42,Portal,High,Billing,17.9,Yes,
+T-41020,2026-03-19 16:17,Email,High,Mobile app,15.9,Y,1
+T-41021,2026-06-08 14:14,Email,High,Login,66.7,No,1
+T-41022,2026-02-13 17:56,Portal,Low,Integrations,75.8,N,
+T-41023,2026-06-22 05:21,Chat,Low,Reports,77.6,No,2
+T-41024,2026-02-05 06:51,Portal,High,Reports,18.7,N,3
+T-41025,2026-03-18 00:31,Chat,Urgent,Integrations,3.9,No,
+T-41026,2026-01-08 21:30,Phone,High,Mobile app,41.4,N,1
+T-41027,2026-05-18 16:21,Email,High,Mobile app,6.4,No,4
+T-41028,2026-02-01 22:00,Email,High,Reports,3.9,N,1
+T-41029,2026-06-07 22:26,Email,Normal,Mobile app,106.1,No,1
+T-41030,2026-01-26 10:57,Email,Normal,Mobile app,29.6,FALSE,2
+T-41031,2026-06-18 15:26,Chat,Normal,Mobile app,53,N,1
+T-41032,2026-03-01 10:46,Email,Urgent,Mobile app,4.9,N,
+T-41033,2026-06-07 16:23,Email,Urgent,Reports,5.4,N,3
+T-41034,2026-06-18 16:54,Phone,Normal,Integrations,119.7,No,4
+T-41035,2026-04-10 22:40,Email,Normal,Reports,25,N,
+T-41036,2026-03-26 00:58,Portal,Normal,Integrations,28,No,
+T-41037,2026-05-22 16:21,Portal,High,Integrations,32.7,Y,4
+T-41038,2026-04-17 10:08,Portal,High,Login,8.7,N,5
+T-41039,2026-02-02 08:29,Phone,Normal,Mobile app,57.8,FALSE,2
+T-41040,2026-01-24 23:31,Chat,Urgent,Login,5.5,FALSE,2
+T-41041,2026-01-10 21:29,Email,Normal,Integrations,36.3,No,1
+T-41042,2026-05-04 07:21,Portal,High,Billing,19.9,FALSE,1
+T-41043,2026-04-04 18:19,Portal,Normal,Mobile app,70.3,No,
+T-41044,2026-05-10 21:04,Chat,High,Billing,32.7,No,3
+T-41045,2026-03-05 19:09,Portal,High,Login,22.6,No,2
+T-41046,2026-01-16 10:21,Chat,Low,Login,37.7,FALSE,2
+T-41047,2026-01-16 04:38,Phone,Normal,Reports,17.5,FALSE,2
+T-41048,2026-03-24 09:36,Portal,High,Mobile app,8.2,FALSE,
+T-41049,2026-02-15 22:16,Chat,High,Reports,18.8,FALSE,1
+T-41050,2026-01-06 21:31,Chat,Low,Integrations,185.7,No,1
+T-41051,2026-02-24 16:37,Portal,Normal,Integrations,29.3,N,2
+T-41052,2026-03-28 19:11,Email,High,Billing,16.5,Y,5
+T-41053,2026-06-15 23:30,Phone,Normal,Reports,19.8,No,4
+T-41054,2026-02-15 12:21,Chat,Normal,Reports,27.5,FALSE,5
+T-41055,2026-01-29 11:10,Email,Low,Reports,63.3,No,5
+T-41056,2026-03-03 05:48,Phone,Urgent,Integrations,5.6,Y,4
+T-41057,2026-05-14 11:14,Portal,Normal,Mobile app,22,N,
+T-41058,2026-05-07 14:39,Email,Normal,Reports,34.9,N,5
+T-41059,2026-05-12 03:40,Email,High,Billing,11.1,No,1
+T-41060,2026-05-12 08:27,Portal,Normal,Login,40.9,N,4
+T-41061,2026-05-19 13:11,Chat,Normal,Login,72.6,N,1
+T-41062,2026-01-23 17:05,Portal,Normal,Login,50.4,Y,1
+T-41063,2026-02-26 18:32,Portal,Low,Login,38.5,No,
+T-41064,2026-01-25 13:19,Chat,High,Login,16.5,Y,4
+T-41065,2026-04-29 18:21,Email,High,Mobile app,5.7,N,
+T-41066,2026-01-06 07:17,Chat,Normal,Reports,24.5,No,1
+T-41067,2026-06-19 10:15,Phone,High,Billing,37.1,No,1
+T-41068,2026-01-22 08:19,Email,High,Login,26,No,
+T-41069,2026-03-04 09:28,Email,Normal,Login,12.5,FALSE,
+T-41070,2026-01-21 22:14,Phone,Normal,Mobile app,30.4,No,
+T-41071,2026-01-15 17:19,Email,High,Login,13.8,FALSE,
+T-41072,2026-04-30 22:49,Portal,High,Integrations,7.6,FALSE,
+T-41073,2026-04-24 02:40,Phone,Normal,Login,42,No,
+T-41074,2026-01-11 09:09,Portal,High,Integrations,9.7,No,2
+T-41075,2026-03-08 21:38,Portal,Normal,Integrations,18.4,TRUE,
+T-41076,2026-01-05 05:54,Phone,High,Integrations,9.5,No,1
+T-41077,2026-06-13 09:01,Email,High,Mobile app,27.7,FALSE,
+T-41078,2026-06-10 20:28,Portal,High,Integrations,6.6,No,
+T-41079,2026-06-19 03:38,Phone,Low,Billing,37.5,FALSE,1
+T-41080,2026-06-23 23:50,Email,Urgent,Mobile app,16.9,No,2
+T-41081,2026-04-28 20:48,Portal,High,Billing,13.6,FALSE,1
+T-41082,2026-01-14 16:39,Email,Urgent,Reports,3.1,N,1
+T-41083,2026-01-01 19:21,Email,Normal,Reports,25.5,N,3
+T-41084,2026-02-13 07:41,Email,Normal,Billing,44,No,2
+T-41085,2026-02-08 12:15,Email,Urgent,Billing,2.9,N,
+T-41086,2026-01-08 05:33,Portal,High,Login,5.5,N,3
+T-41087,2026-01-08 23:05,Portal,Normal,Login,21.4,No,3
+T-41088,2026-01-29 04:19,Chat,Normal,Integrations,37.2,N,1
+T-41089,2026-02-12 10:58,Email,High,Integrations,7.3,FALSE,3
+T-41090,2026-05-29 14:53,Phone,Urgent,Login,3.7,TRUE,2
+T-41091,2026-01-17 00:11,Phone,Normal,Reports,39.5,FALSE,5
+T-41092,2026-05-24 15:47,Portal,Urgent,Reports,6.3,Y,2
+T-41093,2026-02-20 15:51,Phone,Normal,Login,43.3,FALSE,3
+T-41094,2026-03-14 11:07,Chat,Urgent,Login,5.6,Y,
+T-41095,2026-02-22 07:42,Chat,Urgent,Login,5.1,No,4
+T-41096,2026-02-07 03:23,Portal,Normal,Login,12,FALSE,4
+T-41097,2026-01-07 15:22,Chat,High,Login,10.8,Yes,2
+T-41098,2026-02-25 06:24,Phone,Low,Login,33.7,No,2
+T-41099,2026-03-17 15:52,Phone,Normal,Integrations,43.2,FALSE,4
+T-41100,2026-04-06 01:32,Phone,Normal,Mobile app,34.8,No,5
+T-41101,2026-04-28 19:26,Email,Low,Reports,31.6,No,5
+T-41102,2026-06-19 03:36,Email,Urgent,Mobile app,6.1,FALSE,1
+T-41103,2026-02-08 22:57,Email,Low,Integrations,61.1,N,3
+T-41104,2026-02-19 09:25,Email,Normal,Reports,20.5,FALSE,
+T-41105,2026-01-10 10:47,Email,Normal,Reports,41.2,N,1
+T-41106,2026-02-23 21:59,Chat,Normal,Billing,17.3,No,5
+T-41107,2026-03-20 21:40,Chat,Urgent,Billing,1.9,N,1
+T-41108,2026-03-21 18:16,Phone,Normal,Login,35.3,No,1
+T-41109,2026-05-01 21:42,Email,Normal,Reports,96.9,No,5
+T-41110,2026-06-24 23:01,Portal,High,Reports,22,N,2
+T-41111,2026-06-29 18:24,Chat,Urgent,Reports,4.4,N,2
+T-41112,2026-03-21 17:57,Portal,Urgent,Integrations,2.9,N,5
+T-41113,2026-04-18 20:15,Phone,Normal,Billing,64.9,FALSE,3
+T-41114,2026-03-30 23:12,Email,Normal,Login,34.4,No,1
+T-41115,2026-06-22 22:21,Chat,Normal,Reports,36.4,Y,1
+T-41116,2026-02-26 12:33,Chat,High,Login,13.1,FALSE,
+T-41117,2026-04-09 05:54,Chat,High,Billing,32.6,N,
+T-41118,2026-03-28 23:23,Phone,Urgent,Login,3.1,TRUE,
+T-41119,2026-06-26 10:17,Phone,Normal,Reports,23.1,FALSE,
+T-41120,2026-04-16 06:45,Phone,Low,Billing,85.6,FALSE,4
+T-41121,2026-05-30 18:57,Phone,High,Billing,15.5,Yes,2
+T-41122,2026-02-04 13:34,Email,High,Reports,26.4,No,
+T-41123,2026-05-07 21:48,Phone,Urgent,Reports,3,Y,5
+T-41124,2026-01-01 11:00,Portal,Normal,Reports,22.5,FALSE,
+T-41125,2026-05-27 07:34,Email,Normal,Reports,26.6,No,4
+T-41126,2026-01-11 19:03,Chat,High,Login,18.1,N,2
+T-41127,2026-04-19 07:59,Portal,Normal,Reports,34.6,No,3
+T-41128,2026-05-18 22:17,Chat,Urgent,Login,3,N,5
+T-41129,2026-05-28 15:46,Email,High,Mobile app,6.2,No,1
+T-41130,2026-04-16 22:40,Email,Normal,Login,47.1,N,
+T-41131,2026-05-31 04:25,Chat,Normal,Billing,37.7,No,1
+T-41132,2026-03-29 18:40,Chat,Normal,Reports,26.7,FALSE,3
+T-41133,2026-05-18 16:34,Phone,High,Login,20.6,TRUE,5
+T-41134,2026-05-21 01:45,Portal,Normal,Reports,45.8,N,
+T-41135,2026-03-06 15:38,Phone,High,Login,26.9,No,
+T-41136,2026-04-03 18:23,Portal,Low,Login,41.1,No,1
+T-41137,2026-01-19 07:30,Phone,Low,Integrations,56.7,FALSE,3
+T-41138,2026-04-05 10:00,Phone,Low,Reports,35.5,N,1
+T-41139,2026-05-18 04:15,Phone,High,Integrations,12.9,N,3
+T-41140,2026-04-05 09:49,Phone,Normal,Integrations,33.5,N,4
+T-41141,2026-02-12 22:34,Email,Normal,Billing,28.5,FALSE,2
+T-41142,2026-03-08 12:27,Chat,Normal,Reports,28.9,N,5
+T-41143,2026-03-13 23:38,Phone,Low,Billing,51.6,No,3
+T-41144,2026-01-22 19:37,Phone,High,Login,14.6,FALSE,3
+T-41145,2026-05-28 14:47,Phone,Normal,Mobile app,42.1,No,4
+T-41146,2026-04-21 10:13,Email,Low,Integrations,85.7,FALSE,
+T-41147,2026-06-04 17:21,Email,Low,Billing,170.1,No,3
+T-41148,2026-02-12 12:19,Portal,Normal,Reports,59.2,N,5
+T-41149,2026-02-24 10:46,Phone,Normal,Integrations,7.5,FALSE,
+T-41150,2026-02-20 14:08,Phone,Low,Login,107.7,FALSE,
+T-41151,2026-05-05 05:15,Chat,Urgent,Integrations,0.8,N,2
+T-41152,2026-03-01 06:25,Portal,Normal,Reports,22.2,FALSE,1
+T-41153,2026-04-06 00:23,Email,Normal,Mobile app,24.9,No,2
+T-41154,2026-05-23 15:42,Chat,Normal,Billing,43.2,No,3
+T-41155,2026-03-30 04:58,Portal,Normal,Mobile app,72,FALSE,1
+T-41156,2026-03-14 19:57,Email,Normal,Mobile app,18.3,N,3
+T-41157,2026-06-08 12:38,Phone,High,Billing,17.1,N,2
+T-41158,2026-05-17 06:49,Chat,Normal,Mobile app,29.2,No,
+T-41159,2026-05-25 05:15,Email,Low,Login,119.9,No,3
+T-41160,2026-02-18 23:00,Chat,Low,Integrations,54.1,N,
+T-41161,2026-06-04 08:57,Portal,High,Mobile app,5,N,3
+T-41162,2026-05-07 20:55,Chat,High,Reports,21.1,FALSE,4
+T-41163,2026-05-28 05:06,Chat,Normal,Login,20.1,No,3
+T-41164,2026-02-19 19:34,Phone,Normal,Billing,24.9,FALSE,4
+T-41165,2026-04-28 19:57,Chat,High,Billing,16.6,FALSE,3
+T-41166,2026-04-13 21:31,Portal,Normal,Billing,35.6,FALSE,2
+T-41167,2026-05-27 23:22,Portal,High,Integrations,26.1,No,
+T-41168,2026-01-10 16:55,Phone,Normal,Integrations,18.6,N,2
+T-41169,2026-04-12 04:42,Chat,Low,Integrations,64.6,N,
+T-41170,2026-02-10 05:33,Portal,Low,Reports,24.4,FALSE,
+T-41171,2026-01-17 01:59,Portal,Urgent,Mobile app,2.5,TRUE,3
+T-41172,2026-02-25 11:03,Phone,Normal,Mobile app,10.3,N,5
+T-41173,2026-02-18 21:49,Portal,Low,Integrations,12.2,FALSE,
+T-41174,2026-01-25 12:02,Portal,Urgent,Integrations,2.2,Yes,4
+T-41175,2026-04-18 04:28,Email,Urgent,Reports,3.4,TRUE,1
+T-41176,2026-04-16 00:00,Portal,High,Integrations,7.1,FALSE,
+T-41177,2026-01-14 18:02,Phone,Normal,Login,46.3,No,1
+T-41178,2026-04-12 10:05,Portal,High,Integrations,12.3,No,5
+T-41179,2026-04-19 04:49,Email,High,Billing,10.7,TRUE,3
+T-41180,2026-03-09 11:44,Email,Low,Login,63.9,No,5
+T-41181,2026-05-21 13:33,Email,Urgent,Reports,7,TRUE,3
+T-41182,2026-06-26 21:59,Phone,Low,Billing,23.8,FALSE,
+T-41183,2026-02-05 02:37,Email,Normal,Mobile app,26.8,No,1
+T-41184,2026-01-12 12:43,Portal,High,Integrations,20.2,FALSE,1
+T-41185,2026-05-29 11:53,Chat,Normal,Billing,42.4,FALSE,1
+T-41186,2026-01-30 04:59,Email,High,Mobile app,6.3,N,1
+T-41187,2026-03-28 07:58,Email,Urgent,Integrations,2.6,TRUE,1
+T-41188,2026-03-09 18:20,Chat,Urgent,Mobile app,4.8,Y,1
+T-41189,2026-03-23 01:20,Chat,Normal,Integrations,50.9,FALSE,3
+T-41190,2026-05-27 05:56,Phone,Normal,Mobile app,19,FALSE,
+T-41191,2026-03-28 14:39,Chat,Low,Login,118,FALSE,4
+T-41192,2026-06-17 11:58,Portal,Low,Billing,123.7,N,2
+T-41193,2026-01-16 08:27,Portal,Normal,Billing,55.8,FALSE,4
+T-41194,2026-03-01 22:54,Chat,Normal,Reports,15,N,5
+T-41195,2026-04-01 08:14,Chat,High,Login,13.6,N,4
+T-41196,2026-03-31 09:32,Portal,Normal,Integrations,13.6,N,5
+T-41197,2026-01-01 17:28,Email,High,Login,7.9,No,3
+T-41198,2026-06-15 11:44,Email,Low,Reports,51.4,No,
+T-41199,2026-04-30 04:00,Portal,Normal,Mobile app,55.2,No,5
+T-41200,2026-04-02 19:19,Chat,Normal,Billing,32.9,No,1
+T-41201,2026-02-25 10:58,Chat,Urgent,Reports,2.5,FALSE,
+T-41202,2026-04-30 04:33,Portal,Normal,Login,19.4,FALSE,2
+T-41203,2026-04-27 08:47,Portal,Low,Billing,61.5,N,
+T-41204,2026-03-23 09:22,Email,Urgent,Reports,3.7,N,1
+T-41205,2026-06-26 09:07,Email,Low,Reports,22.4,N,1
+T-41206,2026-06-08 16:42,Chat,High,Integrations,16.7,FALSE,4
+T-41207,2026-01-24 21:45,Email,High,Reports,14.5,Yes,4
+T-41208,2026-04-09 14:14,Portal,High,Billing,7.8,N,1
+T-41209,2026-06-08 08:23,Portal,Urgent,Mobile app,6.5,FALSE,1
+T-41210,2026-06-29 19:27,Chat,Normal,Login,18.8,N,5
+T-41211,2026-05-10 05:09,Chat,Low,Reports,119.9,N,2
+T-41212,2026-01-25 08:42,Email,Normal,Integrations,32.9,Y,3
+T-41213,2026-02-17 15:32,Portal,Normal,Billing,10,N,5
+T-41214,2026-01-09 23:13,Email,Normal,Reports,54.1,FALSE,3
+T-41215,2026-01-03 00:17,Phone,Urgent,Login,5.7,Yes,5
+T-41216,2026-05-18 19:43,Email,High,Mobile app,8.3,No,
+T-41217,2026-05-29 11:18,Email,Normal,Integrations,23.5,FALSE,
+T-41218,2026-01-28 02:55,Portal,Normal,Billing,69.1,Yes,3
+T-41219,2026-03-02 10:23,Chat,High,Reports,17.7,No,5
+T-41220,2026-01-02 13:55,Chat,Normal,Mobile app,21.1,No,
+T-41221,2026-06-17 13:35,Chat,Urgent,Reports,2.9,FALSE,3
+T-41222,2026-04-21 12:32,Phone,Low,Mobile app,86.5,No,1
+T-41223,2026-05-25 08:06,Portal,High,Mobile app,7.1,No,
+T-41224,2026-02-19 20:24,Email,Normal,Billing,30.8,TRUE,
+T-41225,2026-02-25 11:41,Email,Normal,Reports,6,No,5
+T-41226,2026-06-20 19:56,Chat,Normal,Billing,97.4,N,2
+T-41227,2026-02-13 04:26,Chat,High,Mobile app,6.4,Y,5
+T-41228,2026-04-24 03:03,Chat,Normal,Billing,55.4,N,2
+T-41229,2026-05-24 18:10,Portal,Normal,Billing,40,N,
+T-41230,2026-06-17 06:08,Portal,High,Integrations,25.4,Yes,3
+T-41231,2026-03-01 05:50,Phone,Normal,Login,32.9,FALSE,2
+T-41232,2026-04-21 06:51,Phone,Normal,Login,12,No,1
+T-41233,2026-03-21 19:00,Portal,Normal,Reports,11.8,Yes,5
+T-41234,2026-01-06 09:38,Email,Normal,Mobile app,8.6,Y,
+T-41235,2026-03-15 17:24,Portal,Low,Integrations,75.7,FALSE,
+T-41236,2026-02-20 02:36,Email,High,Integrations,7.4,FALSE,
+T-41237,2026-02-15 11:33,Email,Normal,Login,42.9,No,4
+T-41238,2026-03-14 23:41,Portal,Low,Integrations,38.5,N,1
+T-41239,2026-06-26 07:20,Email,Urgent,Login,2.5,FALSE,5
+T-41240,2026-03-02 05:27,Email,Normal,Login,134.6,FALSE,
+T-41241,2026-05-05 21:58,Chat,Urgent,Reports,3.5,No,2
+T-41242,2026-04-17 23:47,Portal,High,Login,19.4,FALSE,2
+T-41243,2026-02-01 12:45,Chat,Urgent,Login,4.1,Y,2
+T-41244,2026-02-07 21:05,Chat,Normal,Integrations,35.7,FALSE,
+T-41245,2026-03-17 23:19,Phone,Urgent,Reports,5.3,No,1
+T-41246,2026-04-21 05:17,Portal,Normal,Reports,15.6,N,4
+T-41247,2026-06-16 22:06,Chat,Low,Integrations,128.8,FALSE,
+T-41248,2026-02-11 16:52,Phone,High,Integrations,14.7,No,
+T-41249,2026-01-23 06:20,Phone,Normal,Mobile app,26.3,FALSE,1
+T-41250,2026-03-14 07:27,Email,Normal,Login,10.3,No,3
+T-41251,2026-02-02 10:25,Phone,Low,Reports,30.5,No,2
+T-41252,2026-03-29 02:41,Portal,Normal,Mobile app,59.5,No,
+T-41253,2026-04-14 12:48,Phone,Low,Login,130,TRUE,2
+T-41254,2026-04-01 02:11,Chat,Normal,Integrations,134.3,TRUE,3
+T-41255,2026-02-26 15:01,Phone,Normal,Mobile app,23.9,N,5
+T-41256,2026-02-06 23:15,Portal,Urgent,Mobile app,4.1,N,1
+T-41257,2026-03-28 11:42,Email,Low,Integrations,171.5,No,4
+T-41258,2026-01-23 00:59,Phone,Normal,Reports,25.4,No,4
+T-41259,2026-04-18 05:01,Portal,Normal,Integrations,98.7,Yes,3
+T-41260,2026-03-26 21:53,Email,Normal,Integrations,25.3,FALSE,3
+T-41261,2026-06-18 07:04,Phone,High,Reports,11.8,FALSE,2
+T-41262,2026-02-07 12:17,Portal,Normal,Mobile app,56.2,Yes,4
+T-41263,2026-01-30 08:53,Email,Low,Billing,70.6,FALSE,
+T-41264,2026-01-30 07:05,Phone,Normal,Reports,37,No,4
+T-41265,2026-02-02 04:49,Email,Normal,Login,18.8,FALSE,
+T-41266,2026-05-04 06:57,Portal,High,Integrations,10,No,3
+T-41267,2026-01-16 17:31,Portal,Normal,Billing,50.2,FALSE,5
+T-41268,2026-04-27 19:34,Portal,Urgent,Login,7.8,No,1
+T-41269,2026-01-16 20:42,Chat,Normal,Billing,15.5,FALSE,4
+T-41270,2026-06-20 05:46,Chat,Normal,Integrations,52,N,3
+T-41271,2026-06-04 01:43,Portal,Normal,Integrations,7.5,FALSE,
+T-41272,2026-04-13 00:48,Email,Normal,Integrations,35.8,FALSE,1
+T-41273,2026-03-12 22:00,Chat,Normal,Login,40.4,N,3
+T-41274,2026-06-28 15:04,Chat,Normal,Mobile app,38.3,No,3
+T-41275,2026-04-23 05:19,Portal,Urgent,Login,1.9,No,
+T-41276,2026-04-29 14:50,Chat,Normal,Integrations,85.7,N,4
+T-41277,2026-03-12 05:28,Chat,Normal,Billing,31.2,Y,4
+T-41278,2026-04-08 03:12,Portal,High,Integrations,11.3,No,
+T-41279,2026-04-15 22:28,Portal,Normal,Integrations,34.3,FALSE,3
+T-41280,2026-03-30 23:40,Portal,High,Reports,13.8,Yes,2
+T-41281,2026-03-22 02:36,Phone,Urgent,Reports,5.5,No,5
+T-41282,2026-03-21 04:42,Phone,Normal,Mobile app,84.3,TRUE,2
+T-41283,2026-04-03 17:21,Portal,Low,Billing,51.6,FALSE,5
+T-41284,2026-01-14 02:06,Portal,High,Billing,29.8,No,5
+T-41285,2026-03-10 06:21,Portal,Urgent,Integrations,2.8,No,3
+T-41286,2026-01-01 00:43,Portal,Normal,Mobile app,43.9,N,4
+T-41287,2026-03-19 11:18,Chat,Normal,Login,15.4,N,
+T-41288,2026-01-01 02:40,Email,Normal,Billing,41,N,4
+T-41289,2026-06-22 00:46,Portal,Urgent,Integrations,5.3,Yes,
+T-41290,2026-06-21 00:42,Chat,Normal,Billing,91.1,N,
+T-41291,2026-04-20 14:03,Chat,High,Integrations,26.2,FALSE,3
+T-41292,2026-01-22 01:07,Email,Normal,Reports,9.9,N,3
+T-41293,2026-04-11 10:24,Email,High,Mobile app,19.3,No,
+T-41294,2026-03-06 00:33,Email,Low,Reports,35.2,No,5
+T-41295,2026-02-02 19:58,Phone,Low,Login,23.9,N,
+T-41296,2026-03-29 04:52,Portal,Low,Mobile app,83.3,N,3
+T-41297,2026-04-10 03:56,Phone,Urgent,Billing,4.3,FALSE,2
+T-41298,2026-05-21 15:38,Phone,Urgent,Integrations,2.2,N,4
+T-41299,2026-03-31 20:46,Phone,High,Login,15.4,FALSE,5
+T-41300,2026-03-20 10:13,Portal,Normal,Mobile app,19,No,2
+T-41301,2026-04-04 21:12,Phone,High,Billing,7.3,FALSE,2
+T-41302,2026-03-02 08:23,Email,Normal,Reports,35.2,N,
+T-41303,2026-05-05 21:38,Phone,Normal,Billing,22.4,No,1
+T-41304,2026-01-21 12:03,Portal,Urgent,Integrations,5,N,3
+T-41305,2026-03-29 21:40,Portal,Normal,Mobile app,28.2,FALSE,1
+T-41306,2026-06-16 09:29,Phone,Low,Login,68.4,No,
+T-41307,2026-02-25 12:13,Phone,High,Integrations,25.7,N,5
+T-41308,2026-02-15 07:53,Chat,Urgent,Mobile app,3.3,FALSE,5
+T-41309,2026-03-12 04:05,Portal,Normal,Login,9.1,Y,2
+T-41310,2026-01-19 00:54,Portal,Low,Billing,252.1,No,5
+T-41311,2026-05-30 14:39,Phone,Low,Login,18.4,No,
+T-41312,2026-05-27 03:26,Email,High,Billing,17.3,N,4
+T-41313,2026-04-03 14:40,Email,Normal,Mobile app,31.2,FALSE,
+T-41314,2026-03-01 10:05,Portal,Urgent,Mobile app,2.1,Y,2
+T-41315,2026-05-15 11:39,Chat,Urgent,Login,8.6,Yes,5
+T-41316,2026-05-31 13:22,Chat,Urgent,Integrations,3.2,No,5
+T-41317,2026-06-14 21:27,Chat,Normal,Billing,36.1,Y,3
+T-41318,2026-04-16 11:44,Phone,Normal,Mobile app,24.5,No,3
+T-41319,2026-03-30 23:35,Portal,Normal,Mobile app,32.2,N,
+T-41320,2026-02-19 01:10,Phone,High,Integrations,7.6,N,1
+T-41321,2026-06-17 10:12,Chat,Low,Login,50.6,No,4
+T-41322,2026-04-05 06:59,Portal,Low,Mobile app,116,No,1
+T-41323,2026-04-12 07:49,Chat,Normal,Billing,13.1,FALSE,
+T-41324,2026-04-06 16:22,Email,Normal,Mobile app,75.4,No,
+T-41325,2026-06-21 10:58,Phone,High,Billing,18.4,FALSE,1
+T-41326,2026-03-23 01:37,Email,Normal,Login,57,N,5
+T-41327,2026-02-13 05:01,Portal,High,Login,6.2,No,1
+T-41328,2026-01-08 02:55,Portal,Normal,Reports,59.7,N,
+T-41329,2026-05-14 02:51,Email,Normal,Login,32.7,No,3
+T-41330,2026-01-21 01:22,Portal,Normal,Reports,51.8,N,2
+T-41331,2026-03-26 18:43,Phone,Normal,Login,9.4,No,4
+T-41332,2026-04-10 19:36,Email,Low,Integrations,73.6,FALSE,1
+T-41333,2026-06-06 08:18,Email,High,Integrations,19,N,2
+T-41334,2026-03-24 04:42,Chat,Normal,Reports,55.7,No,1
+T-41335,2026-05-11 02:30,Chat,Low,Integrations,28.6,FALSE,3
+T-41336,2026-05-19 10:34,Phone,High,Reports,15.1,N,5
+T-41337,2026-01-22 23:09,Email,High,Reports,29.4,No,5
+T-41338,2026-02-01 05:11,Email,High,Mobile app,11.1,TRUE,4
+T-41339,2026-03-30 19:43,Chat,High,Mobile app,15.4,FALSE,5
+T-41340,2026-05-07 23:19,Phone,Normal,Billing,81.6,FALSE,
+T-41341,2026-02-12 16:13,Email,Low,Reports,134,N,3
+T-41342,2026-03-24 11:55,Email,Urgent,Reports,6.2,FALSE,
+T-41343,2026-05-13 11:29,Chat,High,Login,11.2,FALSE,4
+T-41344,2026-03-28 11:31,Email,Normal,Integrations,81.4,FALSE,4
+T-41345,2026-06-07 06:07,Portal,Normal,Reports,31.6,No,5
+T-41346,2026-03-11 23:19,Phone,Normal,Integrations,16.6,FALSE,
+T-41347,2026-05-31 18:11,Portal,High,Reports,25.9,FALSE,5
+T-41348,2026-02-19 09:00,Portal,Low,Reports,40.8,N,4
+T-41349,2026-06-23 20:27,Chat,Urgent,Billing,3.4,Y,3
+T-41350,2026-04-01 00:37,Portal,Normal,Login,11.2,No,2
+T-41351,2026-02-10 06:54,Phone,Urgent,Billing,3.6,No,
+T-41352,2026-05-04 06:11,Email,Normal,Reports,26.7,No,2
+T-41353,2026-03-12 02:18,Chat,High,Reports,9.7,FALSE,2
+T-41354,2026-05-14 07:43,Phone,Normal,Login,28.7,N,1
+T-41355,2026-05-08 18:18,Portal,Low,Billing,111.3,FALSE,1
+T-41356,2026-05-05 09:28,Phone,Normal,Mobile app,26.3,N,4
+T-41357,2026-03-30 03:34,Email,Normal,Login,10.2,No,1
+T-41358,2026-01-31 23:23,Portal,Normal,Integrations,63.2,Y,
+T-41359,2026-02-14 04:14,Phone,High,Reports,9.1,N,
+T-41360,2026-05-03 18:00,Email,High,Login,16,TRUE,
+T-41361,2026-02-10 15:48,Chat,Normal,Billing,31.5,No,3
+T-41362,2026-05-14 18:06,Chat,Normal,Login,23,FALSE,
+T-41363,2026-01-17 04:00,Chat,Normal,Integrations,26.9,FALSE,5
+T-41364,2026-03-16 20:35,Portal,Normal,Reports,66.8,No,
+T-41365,2026-04-30 05:44,Chat,High,Login,35.5,No,3
+T-41366,2026-03-18 19:24,Chat,Low,Integrations,24.6,No,1
+T-41367,2026-05-10 01:53,Email,Low,Reports,56.8,N,2
+T-41368,2026-02-05 09:23,Email,Low,Integrations,100.1,N,5
+T-41369,2026-03-08 14:27,Chat,High,Billing,5.9,TRUE,
+T-41370,2026-01-19 15:46,Phone,High,Reports,9,N,2
+T-41371,2026-03-05 14:50,Portal,Low,Mobile app,41.2,N,
+T-41372,2026-05-03 14:29,Chat,High,Billing,12.7,FALSE,2
+T-41373,2026-06-26 07:36,Chat,Urgent,Billing,2.7,Yes,4
+T-41374,2026-05-02 14:10,Portal,Normal,Integrations,25.8,FALSE,2
+T-41375,2026-06-22 06:37,Portal,Normal,Login,49.9,No,
+T-41376,2026-06-24 09:22,Email,Low,Billing,76.8,No,1
+T-41377,2026-01-25 06:26,Portal,Normal,Mobile app,44.5,N,
+T-41378,2026-01-06 01:28,Chat,High,Billing,13.1,Yes,5
+T-41379,2026-04-17 21:38,Phone,Urgent,Reports,3.5,FALSE,
+T-41380,2026-04-12 20:23,Email,Low,Billing,51.4,FALSE,2
+T-41381,2026-02-21 02:08,Chat,Urgent,Reports,7,FALSE,4
+T-41382,2026-02-27 08:54,Portal,Normal,Mobile app,46.8,N,5
+T-41383,2026-04-13 05:23,Email,Normal,Login,38.4,FALSE,2
+T-41384,2026-03-22 23:15,Phone,Normal,Reports,26,N,1
+T-41385,2026-06-06 16:46,Portal,Normal,Login,13.4,N,2
+T-41386,2026-06-03 19:14,Portal,High,Mobile app,5.6,FALSE,1
+T-41387,2026-06-12 07:55,Portal,Urgent,Billing,5.3,FALSE,5
+T-41388,2026-04-21 13:56,Phone,High,Login,31.4,Yes,3
+T-41389,2026-02-22 23:11,Phone,Low,Mobile app,266.2,No,1
+T-41390,2026-06-21 16:08,Chat,High,Integrations,8.8,FALSE,
+T-41391,2026-05-28 02:18,Phone,Low,Reports,45.2,Y,
+T-41392,2026-04-26 23:46,Portal,High,Mobile app,29.1,Y,3
+T-41393,2026-06-21 19:59,Phone,Urgent,Reports,3,FALSE,3
+T-41394,2026-03-10 23:52,Portal,High,Integrations,3.7,No,5
+T-41395,2026-01-10 14:00,Chat,Normal,Billing,39.9,N,1
+T-41396,2026-01-07 10:27,Chat,High,Billing,15.4,FALSE,3
+T-41397,2026-04-06 23:26,Chat,High,Reports,6.3,FALSE,5
+T-41398,2026-01-22 12:20,Portal,High,Reports,16.2,No,1
+T-41399,2026-04-01 13:10,Chat,High,Login,12.4,No,2
+T-41400,2026-06-21 07:40,Portal,Normal,Billing,33,N,5
+T-41401,2026-05-07 19:14,Portal,Low,Login,111.4,No,2
+T-41402,2026-02-24 20:34,Chat,Low,Billing,24.6,FALSE,2
+T-41403,2026-04-05 18:53,Portal,Normal,Mobile app,19.2,Yes,
+T-41404,2026-03-13 13:50,Chat,Normal,Reports,23.3,FALSE,1
+T-41405,2026-04-24 18:46,Phone,High,Login,50.3,No,2
+T-41406,2026-06-12 23:46,Phone,Normal,Reports,34.5,No,4
+T-41407,2026-03-24 07:10,Portal,Normal,Integrations,39.3,N,
+T-41408,2026-04-19 05:25,Chat,Low,Mobile app,70.8,FALSE,5
+T-41409,2026-05-03 03:31,Phone,Normal,Reports,11.3,No,1
+T-41410,2026-05-13 14:32,Email,Urgent,Integrations,3.4,TRUE,4
+T-41411,2026-03-19 03:05,Portal,High,Integrations,4.2,No,4
+T-41412,2026-06-15 05:26,Chat,Low,Billing,106.3,No,2
+T-41413,2026-06-07 12:32,Chat,High,Integrations,7,N,
+T-41414,2026-04-08 09:13,Phone,Normal,Login,12.6,Yes,
+T-41415,2026-05-16 06:49,Portal,Urgent,Integrations,5.6,FALSE,4
+T-41416,2026-04-10 00:20,Chat,Normal,Reports,38.4,No,
+T-41417,2026-06-24 11:13,Email,Low,Billing,25,FALSE,
+T-41418,2026-01-23 04:17,Portal,High,Billing,20.8,N,
+T-41419,2026-01-15 07:09,Portal,High,Billing,17.2,No,4
+T-41420,2026-04-17 12:31,Phone,Normal,Billing,20.5,N,5
+T-41421,2026-03-29 13:48,Portal,Normal,Login,21.7,No,4
+T-41422,2026-05-24 07:25,Portal,High,Reports,6.6,No,
+T-41423,2026-03-04 03:29,Portal,Normal,Billing,42,No,1
+T-41424,2026-05-14 17:13,Email,Low,Login,58.7,No,1
+T-41425,2026-01-14 17:31,Email,High,Login,10.5,N,5
+T-41426,2026-01-29 18:15,Chat,Low,Integrations,21.1,No,3
+T-41427,2026-06-29 19:00,Chat,Normal,Login,57.4,FALSE,5
+T-41428,2026-03-09 18:14,Phone,Normal,Billing,12.9,No,
+T-41429,2026-03-29 19:37,Email,Normal,Login,79,FALSE,5
+T-41430,2026-03-03 10:20,Portal,High,Billing,10.3,N,1
+T-41431,2026-05-19 02:09,Portal,Normal,Login,12.6,N,
+T-41432,2026-02-21 20:29,Chat,Normal,Mobile app,30.7,FALSE,5
+T-41433,2026-03-27 11:32,Email,Low,Billing,34.5,No,
+T-41434,2026-03-17 22:02,Portal,High,Login,20.4,TRUE,
+T-41435,2026-03-12 20:04,Chat,Low,Billing,61.2,No,5
+T-41436,2026-03-02 23:51,Email,High,Reports,21.9,N,3
+T-41437,2026-03-20 14:10,Portal,High,Reports,19.6,FALSE,
+T-41438,2026-04-06 05:34,Phone,High,Reports,25,FALSE,
+T-41439,2026-02-21 12:44,Email,Normal,Login,68.1,No,3
+T-41440,2026-06-07 22:00,Phone,Low,Mobile app,81,FALSE,
+T-41441,2026-05-09 21:12,Portal,High,Mobile app,34.8,FALSE,2
+T-41442,2026-05-04 10:20,Chat,High,Reports,13.9,No,1
+T-41443,2026-04-05 12:03,Email,Normal,Integrations,37.6,No,1
+T-41444,2026-05-03 19:38,Email,Urgent,Mobile app,3.2,N,5
+T-41445,2026-01-31 07:06,Phone,High,Login,13.6,No,4
+T-41446,2026-06-07 19:49,Email,Normal,Billing,34.8,No,3
+T-41447,2026-06-24 19:24,Phone,Normal,Billing,121.1,Y,4
+T-41448,2026-05-30 03:41,Portal,Low,Login,25.8,FALSE,3
+T-41449,2026-05-26 14:13,Chat,High,Mobile app,4.8,N,1
+T-41450,2026-06-15 02:23,Email,Normal,Integrations,55.4,N,1
+T-41451,2026-03-22 09:19,Portal,High,Login,8.2,FALSE,1
+T-41452,2026-04-16 08:56,Email,Normal,Integrations,12.8,FALSE,
+T-41453,2026-02-10 22:43,Portal,Normal,Integrations,62.1,FALSE,
+T-41454,2026-02-05 09:26,Phone,Low,Mobile app,74.5,N,4
+T-41455,2026-03-18 01:53,Email,Normal,Reports,17.8,No,5
+T-41456,2026-04-29 04:07,Email,High,Login,25.7,FALSE,2
+T-41457,2026-01-14 17:20,Portal,Normal,Mobile app,33.8,No,
+T-41458,2026-04-08 20:55,Phone,Normal,Login,60,TRUE,
+T-41459,2026-02-08 20:37,Email,High,Integrations,9.8,FALSE,
+T-41460,2026-04-08 01:21,Phone,Normal,Billing,25.4,No,3
+T-41461,2026-02-23 01:50,Email,Normal,Reports,25.8,FALSE,
+T-41462,2026-01-09 16:10,Phone,High,Login,7.9,TRUE,2
+T-41463,2026-04-05 02:00,Email,High,Reports,20.6,N,
+T-41464,2026-02-05 22:24,Phone,Normal,Login,23.2,N,4
+T-41465,2026-05-27 01:21,Email,Urgent,Login,2.7,Yes,
+T-41466,2026-05-06 12:31,Portal,Urgent,Billing,2.5,FALSE,5
+T-41467,2026-04-25 00:54,Portal,High,Reports,15.4,N,4
+T-41468,2026-04-17 20:52,Chat,Urgent,Integrations,5.2,FALSE,4
+T-41469,2026-05-17 04:57,Portal,Normal,Billing,8.4,No,3
+T-41470,2026-02-07 03:00,Phone,Normal,Billing,38.9,Y,4
+T-41471,2026-02-11 23:29,Email,Normal,Billing,35.1,No,5
+T-41472,2026-03-02 14:24,Email,Low,Billing,150.3,No,2
+T-41473,2026-03-07 08:34,Chat,Low,Login,65.9,No,
+T-41474,2026-03-19 01:01,Portal,High,Login,15.9,No,4
+T-41475,2026-04-08 17:53,Chat,High,Mobile app,8.8,No,2
+T-41476,2026-05-19 09:01,Chat,High,Login,16,No,5
+T-41477,2026-04-18 02:24,Chat,Normal,Reports,77,N,4
+T-41478,2026-02-21 07:40,Chat,Normal,Mobile app,44.6,No,2
+T-41479,2026-05-11 14:14,Chat,Low,Reports,73.9,No,4
+T-41480,2026-01-08 02:38,Chat,Urgent,Integrations,8.5,Y,5
+T-41481,2026-03-16 04:48,Phone,High,Integrations,14.4,No,2
+T-41482,2026-06-08 13:21,Phone,Urgent,Integrations,7.2,FALSE,1
+T-41483,2026-03-08 18:37,Portal,Normal,Login,32.3,FALSE,3
+T-41484,2026-04-25 11:15,Phone,Urgent,Integrations,3.9,Y,
+T-41485,2026-04-02 07:00,Email,Normal,Reports,5.7,FALSE,
+T-41486,2026-05-03 23:28,Phone,Normal,Integrations,56.5,FALSE,5
+T-41487,2026-01-11 01:50,Phone,Urgent,Billing,3.3,No,1
+T-41488,2026-03-08 06:24,Phone,Normal,Login,21.3,FALSE,
+T-41489,2026-05-13 07:24,Phone,High,Mobile app,19.7,FALSE,1
+T-41490,2026-03-21 01:11,Email,Normal,Login,54,No,4
+T-41491,2026-02-06 08:22,Portal,High,Reports,38.5,No,
+T-41492,2026-05-09 00:58,Chat,Normal,Integrations,52.5,FALSE,5
+T-41493,2026-01-28 03:28,Chat,Normal,Mobile app,39.5,N,4
+T-41494,2026-01-05 20:51,Portal,Low,Login,108.5,N,2
+T-41495,2026-04-09 02:01,Portal,Urgent,Mobile app,5.3,No,4
+T-41496,2026-03-30 23:03,Chat,Normal,Billing,45.8,FALSE,5
+T-41497,2026-06-29 16:19,Phone,Normal,Mobile app,12.5,FALSE,1
+T-41498,2026-04-20 22:03,Email,High,Mobile app,16.7,N,1
+T-41499,2026-04-01 02:53,Phone,Normal,Billing,27.3,FALSE,
+T-41500,2026-01-04 09:12,Email,Low,Integrations,2210,Yes,1

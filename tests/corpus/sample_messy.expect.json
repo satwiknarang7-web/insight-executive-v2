@@ -1,0 +1,52 @@
+{
+  "note": [
+    "The app sample: orders with ambiguous dates and short rows."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "ordered_on",
+    "questions": [
+      {
+        "id": "trend",
+        "text": "How is revenue moving over time?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "over": [
+          "ordered_on"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-region",
+        "text": "Which regions bring in the most revenue?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "region"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-rep",
+        "text": "Which reps sell the most?",
+        "intent": "rank",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "rep"
+        ]
+      }
+    ]
+  }
+}

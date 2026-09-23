@@ -1,0 +1,901 @@
+customer_id,contract_type,tenure_months,monthly_charge,support_calls,plan_tier,churned
+CUST-10000,Month-to-month,17,47.15,2,Basic,Yes
+CUST-10001,Month-to-month,39,59.87,6,Basic,FALSE
+CUST-10002,One year,49,23.17,5,Standard,No
+CUST-10003,Month-to-month,5,83.75,2,Basic,no
+CUST-10004,Month-to-month,20,101.51,8,Premium,false
+CUST-10005,Two year,42,86.85,4,Standard,N
+CUST-10006,One year,20,60.60,6,Premium,Y
+CUST-10007,Month-to-month,22,116.33,4,Basic,1
+CUST-10008,Month-to-month,45,53.68,1,Basic,Yes
+CUST-10009,One year,21,113.84,0,Standard,yes
+CUST-10010,Two year,25,41.74,0,Basic,No
+CUST-10011,Month-to-month,61,19.23,2,Premium,No
+CUST-10012,One year,43,70.62,5,Standard,false
+CUST-10013,Month-to-month,67,70.27,8,Premium,N
+CUST-10014,Two year,59,102.00,2,Standard,FALSE
+CUST-10015,One year,56,42.15,9,Premium,0
+CUST-10016,Month-to-month,30,77.45,5,Basic,0
+CUST-10017,Month-to-month,26,32.33,4,Premium,no
+CUST-10018,Month-to-month,19,76.55,0,Premium,0
+CUST-10019,Month-to-month,17,28.42,3,Premium,false
+CUST-10020,Two year,1,52.81,5,Basic,N
+CUST-10021,Two year,16,115.97,3,Premium,No
+CUST-10022,Two year,62,34.05,7,Basic,0
+CUST-10023,One year,30,34.36,4,Standard,No
+CUST-10024,Two year,60,18.06,3,Basic,0
+CUST-10025,One year,50,106.86,7,Basic,Y
+CUST-10026,One year,53,30.34,2,Standard,no
+CUST-10027,Month-to-month,40,67.12,8,Standard,1
+CUST-10028,Month-to-month,70,62.82,5,Premium,yes
+CUST-10029,Month-to-month,31,52.61,9,Basic,N
+CUST-10030,Two year,36,26.83,4,Premium,false
+CUST-10031,Two year,71,42.06,0,Premium,No
+CUST-10032,Two year,42,47.08,8,Standard,FALSE
+CUST-10033,One year,18,53.44,5,Premium,0
+CUST-10034,Two year,35,73.62,1,Basic,N
+CUST-10035,Month-to-month,1,53.92,1,Standard,yes
+CUST-10036,Two year,17,79.29,0,Standard,1
+CUST-10037,Month-to-month,29,105.50,0,Standard,N
+CUST-10038,Month-to-month,19,116.73,8,Basic,no
+CUST-10039,One year,62,41.85,5,Standard,0
+CUST-10040,Two year,37,33.09,8,Standard,false
+CUST-10041,One year,36,88.68,0,Standard,false
+CUST-10042,Month-to-month,38,40.34,5,Premium,TRUE
+CUST-10043,One year,33,31.82,7,Premium,0
+CUST-10044,Month-to-month,8,40.23,2,Premium,false
+CUST-10045,Month-to-month,70,47.50,8,Premium,N
+CUST-10046,Month-to-month,39,102.07,6,Basic,false
+CUST-10047,Month-to-month,65,39.00,9,Premium,false
+CUST-10048,Month-to-month,36,57.18,3,Premium,Y
+CUST-10049,Two year,31,72.16,9,Basic,N
+CUST-10050,Month-to-month,61,67.77,5,Standard,No
+CUST-10051,Month-to-month,58,104.08,0,Premium,true
+CUST-10052,Month-to-month,49,100.67,6,Basic,true
+CUST-10053,Two year,54,61.36,8,Standard,no
+CUST-10054,One year,8,77.68,3,Premium,no
+CUST-10055,Month-to-month,56,74.01,9,Premium,Y
+CUST-10056,Two year,9,109.76,8,Basic,No
+CUST-10057,One year,6,116.54,8,Standard,N
+CUST-10058,One year,70,113.25,2,Premium,Yes
+CUST-10059,Two year,11,89.18,8,Basic,false
+CUST-10060,Month-to-month,61,78.42,2,Premium,FALSE
+CUST-10061,Two year,33,109.38,1,Standard,no
+CUST-10062,Two year,41,37.02,9,Basic,No
+CUST-10063,One year,27,30.28,9,Basic,false
+CUST-10064,Month-to-month,33,58.58,3,Premium,Y
+CUST-10065,One year,44,75.55,1,Premium,FALSE
+CUST-10066,One year,68,32.29,6,Basic,N
+CUST-10067,One year,39,74.05,2,Premium,No
+CUST-10068,Two year,4,35.34,4,Basic,false
+CUST-10069,Two year,29,62.68,6,Premium,no
+CUST-10070,One year,34,86.62,8,Standard,0
+CUST-10071,One year,16,62.26,3,Standard,1
+CUST-10072,Month-to-month,16,90.05,6,Basic,false
+CUST-10073,Month-to-month,32,19.84,4,Basic,Y
+CUST-10074,Month-to-month,6,93.25,3,Premium,N
+CUST-10075,Two year,17,31.45,7,Basic,false
+CUST-10076,One year,49,53.26,3,Premium,0
+CUST-10077,One year,28,39.61,8,Standard,N
+CUST-10078,Month-to-month,41,82.56,0,Standard,0
+CUST-10079,One year,26,90.82,1,Premium,No
+CUST-10080,One year,40,73.41,3,Basic,TRUE
+CUST-10081,Month-to-month,41,95.50,6,Standard,No
+CUST-10082,Month-to-month,4,86.32,1,Standard,no
+CUST-10083,Month-to-month,40,54.16,2,Standard,N
+CUST-10084,One year,1,25.36,4,Standard,No
+CUST-10085,Two year,34,79.29,1,Premium,no
+CUST-10086,One year,45,87.13,9,Premium,no
+CUST-10087,Two year,59,22.47,3,Basic,No
+CUST-10088,One year,24,29.37,0,Standard,FALSE
+CUST-10089,Two year,69,20.34,3,Standard,FALSE
+CUST-10090,One year,18,78.10,6,Basic,0
+CUST-10091,Two year,57,33.08,7,Premium,FALSE
+CUST-10092,Two year,43,104.58,8,Basic,true
+CUST-10093,Two year,35,66.63,6,Standard,No
+CUST-10094,Two year,70,99.29,1,Basic,no
+CUST-10095,One year,38,86.51,0,Basic,no
+CUST-10096,Month-to-month,2,22.89,7,Premium,true
+CUST-10097,One year,53,41.20,9,Standard,FALSE
+CUST-10098,Month-to-month,64,37.18,4,Premium,1
+CUST-10099,Two year,43,59.92,2,Basic,N
+CUST-10100,Month-to-month,26,50.56,8,Standard,No
+CUST-10101,One year,24,40.82,9,Premium,FALSE
+CUST-10102,Month-to-month,56,61.77,0,Basic,yes
+CUST-10103,Two year,59,38.23,2,Premium,N
+CUST-10104,Month-to-month,52,108.97,2,Premium,TRUE
+CUST-10105,One year,54,58.22,1,Basic,No
+CUST-10106,Two year,19,56.48,6,Basic,No
+CUST-10107,Month-to-month,55,31.79,5,Basic,0
+CUST-10108,One year,21,19.08,9,Premium,N
+CUST-10109,Two year,21,48.82,6,Standard,No
+CUST-10110,Two year,19,69.01,3,Premium,No
+CUST-10111,Two year,18,51.83,5,Premium,FALSE
+CUST-10112,Two year,52,30.12,3,Basic,yes
+CUST-10113,Month-to-month,49,26.53,1,Premium,N
+CUST-10114,Two year,62,60.07,1,Premium,N
+CUST-10115,Two year,14,39.73,8,Basic,false
+CUST-10116,Month-to-month,40,54.30,7,Premium,0
+CUST-10117,Month-to-month,54,33.98,8,Premium,N
+CUST-10118,One year,62,44.51,2,Premium,FALSE
+CUST-10119,One year,10,45.08,6,Standard,N
+CUST-10120,Month-to-month,31,43.96,8,Basic,false
+CUST-10121,One year,23,18.11,0,Standard,FALSE
+CUST-10122,Month-to-month,6,103.22,5,Premium,FALSE
+CUST-10123,Two year,58,44.55,8,Standard,FALSE
+CUST-10124,Two year,55,23.90,0,Premium,No
+CUST-10125,Two year,50,36.05,9,Basic,false
+CUST-10126,Two year,21,59.62,5,Basic,N
+CUST-10127,Two year,13,49.80,3,Premium,N
+CUST-10128,Month-to-month,65,87.76,0,Standard,true
+CUST-10129,Two year,60,62.95,0,Basic,false
+CUST-10130,Month-to-month,1,34.64,6,Premium,TRUE
+CUST-10131,Month-to-month,25,55.95,8,Standard,no
+CUST-10132,Month-to-month,1,90.20,2,Premium,No
+CUST-10133,Month-to-month,54,73.87,0,Standard,N
+CUST-10134,Two year,21,33.25,1,Standard,FALSE
+CUST-10135,One year,13,101.14,8,Standard,FALSE
+CUST-10136,Two year,63,105.02,7,Basic,No
+CUST-10137,One year,37,44.18,0,Standard,1
+CUST-10138,One year,56,109.53,3,Premium,Yes
+CUST-10139,Month-to-month,57,106.97,4,Premium,false
+CUST-10140,Month-to-month,50,109.76,5,Premium,Yes
+CUST-10141,Two year,72,87.87,3,Premium,FALSE
+CUST-10142,Two year,35,109.84,0,Basic,N
+CUST-10143,One year,4,32.33,8,Standard,0
+CUST-10144,Month-to-month,7,89.34,7,Standard,FALSE
+CUST-10145,Month-to-month,5,49.76,7,Standard,FALSE
+CUST-10146,Month-to-month,38,100.98,3,Premium,Yes
+CUST-10147,Two year,14,110.03,5,Premium,No
+CUST-10148,One year,12,98.43,7,Premium,FALSE
+CUST-10149,One year,23,74.37,0,Premium,yes
+CUST-10150,Month-to-month,14,94.84,6,Basic,N
+CUST-10151,One year,16,34.42,6,Premium,FALSE
+CUST-10152,One year,43,92.77,3,Standard,No
+CUST-10153,Two year,56,65.41,2,Basic,Y
+CUST-10154,Month-to-month,4,113.53,9,Premium,N
+CUST-10155,Month-to-month,9,94.67,5,Standard,1
+CUST-10156,Month-to-month,29,38.74,7,Basic,yes
+CUST-10157,Two year,46,79.47,3,Standard,false
+CUST-10158,Two year,56,23.78,3,Standard,false
+CUST-10159,Month-to-month,12,77.63,5,Premium,0
+CUST-10160,Month-to-month,22,64.69,6,Standard,Yes
+CUST-10161,Two year,58,82.57,1,Premium,FALSE
+CUST-10162,Two year,17,68.04,3,Premium,no
+CUST-10163,One year,72,64.37,9,Premium,false
+CUST-10164,Two year,22,42.11,3,Premium,0
+CUST-10165,Month-to-month,32,39.80,6,Basic,FALSE
+CUST-10166,One year,41,74.03,9,Premium,0
+CUST-10167,Month-to-month,71,64.93,6,Basic,0
+CUST-10168,Month-to-month,8,34.37,9,Basic,No
+CUST-10169,Two year,14,86.17,6,Standard,no
+CUST-10170,One year,46,33.97,5,Standard,N
+CUST-10171,One year,28,109.38,9,Standard,0
+CUST-10172,Month-to-month,56,68.42,7,Premium,FALSE
+CUST-10173,Two year,25,49.22,4,Standard,no
+CUST-10174,Two year,53,29.98,0,Basic,0
+CUST-10175,One year,69,61.39,2,Standard,Yes
+CUST-10176,Two year,56,41.46,6,Standard,0
+CUST-10177,One year,62,57.87,0,Premium,FALSE
+CUST-10178,Month-to-month,48,108.02,2,Standard,No
+CUST-10179,One year,37,88.95,2,Basic,no
+CUST-10180,Month-to-month,8,118.10,4,Basic,N
+CUST-10181,Two year,70,65.52,2,Basic,FALSE
+CUST-10182,Two year,46,40.75,6,Basic,No
+CUST-10183,Month-to-month,5,39.51,9,Basic,Y
+CUST-10184,One year,1,84.42,8,Standard,No
+CUST-10185,One year,44,69.35,9,Basic,TRUE
+CUST-10186,Month-to-month,3,65.50,9,Standard,no
+CUST-10187,Two year,55,29.63,2,Standard,false
+CUST-10188,One year,27,90.72,6,Premium,No
+CUST-10189,Month-to-month,46,97.14,4,Standard,no
+CUST-10190,Month-to-month,63,56.62,7,Premium,Y
+CUST-10191,One year,4,20.05,8,Standard,FALSE
+CUST-10192,Month-to-month,38,67.64,1,Premium,Y
+CUST-10193,Month-to-month,2,119.74,1,Standard,1
+CUST-10194,Month-to-month,70,62.49,1,Standard,no
+CUST-10195,One year,46,108.33,7,Standard,No
+CUST-10196,Month-to-month,50,35.61,3,Basic,FALSE
+CUST-10197,One year,60,62.39,2,Premium,no
+CUST-10198,One year,20,96.58,4,Premium,FALSE
+CUST-10199,Two year,45,106.95,9,Standard,no
+CUST-10200,One year,67,50.70,2,Premium,0
+CUST-10201,One year,23,51.30,5,Premium,false
+CUST-10202,One year,30,67.54,5,Standard,N
+CUST-10203,One year,39,68.25,9,Basic,FALSE
+CUST-10204,Month-to-month,35,47.24,8,Basic,N
+CUST-10205,One year,72,18.97,6,Basic,false
+CUST-10206,One year,47,98.45,9,Standard,N
+CUST-10207,One year,3,86.02,6,Premium,0
+CUST-10208,Month-to-month,47,38.88,5,Standard,no
+CUST-10209,Two year,21,104.64,1,Premium,No
+CUST-10210,Month-to-month,9,74.86,9,Basic,No
+CUST-10211,One year,46,19.18,9,Premium,No
+CUST-10212,Two year,9,70.81,4,Basic,No
+CUST-10213,Month-to-month,51,32.44,4,Premium,Yes
+CUST-10214,Month-to-month,41,39.47,3,Premium,no
+CUST-10215,Month-to-month,61,107.41,5,Basic,1
+CUST-10216,Month-to-month,58,72.63,4,Premium,0
+CUST-10217,Two year,3,62.05,3,Standard,No
+CUST-10218,Month-to-month,12,50.72,4,Standard,no
+CUST-10219,Month-to-month,47,69.48,0,Standard,TRUE
+CUST-10220,Two year,9,109.20,9,Standard,false
+CUST-10221,Month-to-month,55,91.39,9,Basic,0
+CUST-10222,Month-to-month,42,18.78,0,Premium,true
+CUST-10223,Two year,1,87.71,2,Premium,No
+CUST-10224,Month-to-month,60,47.10,9,Premium,0
+CUST-10225,One year,41,54.53,5,Basic,N
+CUST-10226,One year,1,117.25,2,Standard,Y
+CUST-10227,Month-to-month,72,53.67,9,Basic,No
+CUST-10228,Month-to-month,2,34.00,3,Standard,0
+CUST-10229,One year,13,57.00,3,Standard,N
+CUST-10230,One year,22,89.32,9,Premium,FALSE
+CUST-10231,Two year,46,118.64,2,Basic,false
+CUST-10232,Two year,72,107.77,9,Standard,No
+CUST-10233,Month-to-month,41,111.42,3,Standard,TRUE
+CUST-10234,Month-to-month,63,77.16,9,Premium,TRUE
+CUST-10235,Month-to-month,5,61.57,9,Premium,Yes
+CUST-10236,Two year,6,59.90,2,Basic,FALSE
+CUST-10237,Month-to-month,52,27.42,4,Standard,N
+CUST-10238,One year,50,69.02,6,Basic,0
+CUST-10239,Month-to-month,43,90.00,2,Premium,N
+CUST-10240,One year,1,31.97,2,Basic,No
+CUST-10241,Month-to-month,35,115.37,6,Premium,No
+CUST-10242,One year,65,115.06,7,Basic,0
+CUST-10243,Month-to-month,17,19.74,2,Basic,0
+CUST-10244,Month-to-month,9,24.02,2,Premium,1
+CUST-10245,One year,52,94.68,4,Standard,0
+CUST-10246,One year,16,88.23,5,Basic,FALSE
+CUST-10247,Month-to-month,29,118.83,5,Standard,false
+CUST-10248,Month-to-month,7,114.90,5,Standard,no
+CUST-10249,Two year,8,95.97,8,Standard,0
+CUST-10250,One year,8,101.22,7,Standard,No
+CUST-10251,Two year,44,57.21,3,Premium,N
+CUST-10252,Two year,30,41.66,3,Basic,false
+CUST-10253,Two year,43,96.65,8,Premium,FALSE
+CUST-10254,One year,8,68.59,2,Standard,yes
+CUST-10255,Month-to-month,53,25.77,0,Premium,N
+CUST-10256,One year,55,119.01,0,Basic,no
+CUST-10257,Month-to-month,20,55.43,2,Premium,1
+CUST-10258,Month-to-month,31,26.33,9,Premium,false
+CUST-10259,Two year,54,100.74,7,Standard,false
+CUST-10260,One year,11,117.23,1,Standard,FALSE
+CUST-10261,Month-to-month,11,74.31,9,Basic,N
+CUST-10262,One year,27,97.61,2,Basic,FALSE
+CUST-10263,Month-to-month,16,29.61,6,Standard,Y
+CUST-10264,Two year,29,45.99,2,Basic,FALSE
+CUST-10265,Two year,18,36.08,8,Premium,no
+CUST-10266,Month-to-month,25,101.41,8,Standard,TRUE
+CUST-10267,Month-to-month,34,35.92,2,Basic,FALSE
+CUST-10268,Month-to-month,14,44.30,6,Premium,TRUE
+CUST-10269,Month-to-month,37,118.91,9,Premium,1
+CUST-10270,Month-to-month,4,116.08,3,Premium,true
+CUST-10271,One year,6,118.19,7,Standard,No
+CUST-10272,Two year,2,59.16,1,Basic,false
+CUST-10273,Two year,53,83.91,9,Standard,no
+CUST-10274,One year,28,59.33,8,Basic,N
+CUST-10275,One year,60,89.40,9,Premium,0
+CUST-10276,One year,56,118.30,5,Basic,Y
+CUST-10277,Two year,18,115.22,7,Premium,false
+CUST-10278,One year,41,112.09,1,Premium,true
+CUST-10279,One year,33,37.44,7,Premium,No
+CUST-10280,One year,71,31.47,5,Basic,No
+CUST-10281,Month-to-month,66,111.47,8,Premium,true
+CUST-10282,One year,26,104.95,9,Standard,N
+CUST-10283,One year,39,105.18,1,Premium,No
+CUST-10284,One year,33,48.63,0,Standard,No
+CUST-10285,Month-to-month,54,75.94,1,Premium,TRUE
+CUST-10286,One year,67,32.30,9,Basic,no
+CUST-10287,Two year,28,58.43,6,Basic,FALSE
+CUST-10288,Two year,60,66.20,9,Basic,N
+CUST-10289,Two year,24,68.03,5,Premium,false
+CUST-10290,Month-to-month,47,23.26,8,Standard,Yes
+CUST-10291,Two year,2,18.25,8,Standard,no
+CUST-10292,One year,59,114.51,8,Basic,No
+CUST-10293,Month-to-month,66,111.72,6,Standard,no
+CUST-10294,Month-to-month,42,77.64,7,Premium,N
+CUST-10295,Month-to-month,54,59.61,3,Standard,false
+CUST-10296,Two year,23,57.15,4,Standard,no
+CUST-10297,Month-to-month,16,98.69,0,Premium,No
+CUST-10298,Two year,24,48.33,1,Premium,0
+CUST-10299,Month-to-month,15,78.59,0,Standard,no
+CUST-10300,Month-to-month,4,66.23,7,Premium,N
+CUST-10301,One year,66,79.75,7,Standard,0
+CUST-10302,One year,49,23.32,7,Premium,false
+CUST-10303,Month-to-month,32,59.09,2,Standard,Y
+CUST-10304,Two year,11,106.52,5,Standard,N
+CUST-10305,One year,49,45.17,2,Standard,1
+CUST-10306,One year,51,113.04,4,Premium,false
+CUST-10307,Two year,1,74.93,8,Basic,N
+CUST-10308,Two year,52,108.43,5,Standard,FALSE
+CUST-10309,One year,40,96.46,5,Standard,0
+CUST-10310,One year,51,18.74,8,Standard,no
+CUST-10311,Month-to-month,11,78.59,4,Standard,No
+CUST-10312,One year,65,104.87,7,Basic,FALSE
+CUST-10313,One year,59,68.60,3,Basic,1
+CUST-10314,Month-to-month,64,107.28,7,Basic,FALSE
+CUST-10315,Month-to-month,3,34.77,5,Basic,false
+CUST-10316,Month-to-month,37,80.46,6,Basic,0
+CUST-10317,Month-to-month,62,92.40,4,Basic,no
+CUST-10318,Month-to-month,34,48.07,0,Premium,Yes
+CUST-10319,Month-to-month,54,91.06,5,Premium,yes
+CUST-10320,One year,30,91.22,8,Basic,N
+CUST-10321,Two year,21,107.38,7,Basic,N
+CUST-10322,Month-to-month,2,79.11,4,Premium,No
+CUST-10323,One year,68,47.59,4,Standard,Y
+CUST-10324,Month-to-month,72,28.06,7,Standard,no
+CUST-10325,Month-to-month,26,89.92,7,Basic,no
+CUST-10326,Two year,72,51.61,4,Standard,No
+CUST-10327,Month-to-month,66,81.92,5,Standard,false
+CUST-10328,Two year,43,99.54,8,Standard,true
+CUST-10329,Two year,10,95.52,2,Standard,0
+CUST-10330,Month-to-month,61,58.40,2,Standard,TRUE
+CUST-10331,Two year,49,83.79,6,Standard,N
+CUST-10332,Two year,17,119.23,9,Basic,N
+CUST-10333,One year,59,92.39,0,Basic,Yes
+CUST-10334,Month-to-month,61,61.51,2,Premium,no
+CUST-10335,Two year,32,100.33,3,Basic,false
+CUST-10336,One year,48,50.92,0,Basic,true
+CUST-10337,Month-to-month,57,106.17,7,Premium,No
+CUST-10338,Two year,68,76.76,1,Standard,No
+CUST-10339,One year,10,40.60,4,Premium,0
+CUST-10340,Month-to-month,59,99.00,9,Premium,FALSE
+CUST-10341,Two year,2,58.44,9,Basic,0
+CUST-10342,Two year,41,57.66,6,Premium,N
+CUST-10343,One year,36,119.21,4,Standard,false
+CUST-10344,Month-to-month,21,40.37,2,Basic,0
+CUST-10345,Two year,46,112.91,2,Basic,N
+CUST-10346,Month-to-month,59,70.06,3,Standard,no
+CUST-10347,Month-to-month,1,76.61,0,Basic,Y
+CUST-10348,Month-to-month,39,39.88,9,Standard,No
+CUST-10349,Two year,6,41.86,8,Basic,false
+CUST-10350,Month-to-month,15,90.87,6,Standard,N
+CUST-10351,Two year,59,73.87,2,Premium,FALSE
+CUST-10352,Two year,15,110.40,2,Premium,false
+CUST-10353,Two year,3,116.75,4,Basic,N
+CUST-10354,Two year,5,34.05,1,Standard,0
+CUST-10355,One year,26,110.77,9,Premium,0
+CUST-10356,Two year,7,85.20,8,Standard,no
+CUST-10357,One year,7,100.30,0,Basic,N
+CUST-10358,Month-to-month,33,77.25,3,Basic,false
+CUST-10359,Two year,28,112.03,9,Standard,No
+CUST-10360,Two year,57,55.95,3,Premium,FALSE
+CUST-10361,Two year,43,31.22,0,Basic,false
+CUST-10362,One year,30,28.91,9,Premium,no
+CUST-10363,Month-to-month,45,97.07,7,Premium,N
+CUST-10364,One year,4,109.09,0,Basic,Y
+CUST-10365,One year,19,89.28,3,Basic,false
+CUST-10366,Two year,40,20.09,9,Basic,N
+CUST-10367,Month-to-month,23,110.08,2,Standard,0
+CUST-10368,One year,53,67.44,6,Standard,N
+CUST-10369,Two year,20,63.98,0,Premium,0
+CUST-10370,Month-to-month,44,91.07,7,Premium,N
+CUST-10371,One year,40,101.32,3,Premium,N
+CUST-10372,Month-to-month,47,85.35,8,Premium,No
+CUST-10373,Two year,35,43.68,2,Standard,FALSE
+CUST-10374,One year,5,73.33,0,Standard,no
+CUST-10375,One year,6,74.64,7,Premium,0
+CUST-10376,One year,67,21.46,2,Basic,FALSE
+CUST-10377,One year,1,39.04,5,Basic,No
+CUST-10378,Month-to-month,10,112.50,2,Standard,yes
+CUST-10379,One year,48,64.55,5,Basic,yes
+CUST-10380,Month-to-month,49,68.64,3,Standard,true
+CUST-10381,One year,70,22.79,9,Premium,0
+CUST-10382,One year,59,29.03,3,Premium,true
+CUST-10383,Month-to-month,28,83.09,5,Standard,0
+CUST-10384,Two year,13,101.13,7,Standard,TRUE
+CUST-10385,Two year,33,48.98,7,Premium,TRUE
+CUST-10386,Month-to-month,50,65.75,8,Basic,0
+CUST-10387,Two year,2,25.03,5,Basic,No
+CUST-10388,Two year,14,70.88,5,Premium,no
+CUST-10389,Two year,12,87.53,6,Standard,No
+CUST-10390,One year,55,76.15,5,Standard,0
+CUST-10391,Two year,54,102.82,8,Premium,0
+CUST-10392,Month-to-month,32,21.32,2,Standard,No
+CUST-10393,One year,34,53.78,3,Premium,No
+CUST-10394,Two year,68,67.36,0,Premium,No
+CUST-10395,One year,57,84.69,6,Basic,No
+CUST-10396,Month-to-month,72,23.65,6,Premium,No
+CUST-10397,Two year,36,26.02,3,Basic,No
+CUST-10398,Month-to-month,14,39.54,7,Premium,yes
+CUST-10399,Month-to-month,51,41.91,1,Standard,0
+CUST-10400,Two year,39,63.73,9,Premium,no
+CUST-10401,Month-to-month,9,89.13,5,Standard,true
+CUST-10402,Two year,61,99.86,6,Premium,FALSE
+CUST-10403,One year,10,26.55,7,Basic,false
+CUST-10404,Month-to-month,59,76.39,9,Basic,Y
+CUST-10405,One year,18,58.32,2,Basic,No
+CUST-10406,Two year,2,52.59,2,Premium,false
+CUST-10407,One year,19,96.91,4,Basic,no
+CUST-10408,Month-to-month,46,45.22,3,Premium,Yes
+CUST-10409,One year,19,114.01,5,Premium,Yes
+CUST-10410,Two year,61,33.96,1,Premium,false
+CUST-10411,Month-to-month,65,72.07,1,Standard,false
+CUST-10412,Two year,2,98.88,5,Premium,0
+CUST-10413,Month-to-month,54,77.40,5,Basic,no
+CUST-10414,One year,66,90.46,3,Standard,Yes
+CUST-10415,Two year,35,71.59,6,Standard,No
+CUST-10416,Two year,40,105.67,5,Basic,no
+CUST-10417,One year,19,72.58,8,Basic,TRUE
+CUST-10418,Two year,18,108.91,4,Premium,false
+CUST-10419,Two year,18,42.86,7,Basic,no
+CUST-10420,Two year,69,47.91,3,Standard,FALSE
+CUST-10421,One year,6,18.45,6,Basic,1
+CUST-10422,Two year,27,65.15,9,Standard,false
+CUST-10423,Month-to-month,24,98.01,0,Premium,FALSE
+CUST-10424,Two year,55,73.42,4,Standard,FALSE
+CUST-10425,Month-to-month,65,98.34,3,Basic,no
+CUST-10426,Month-to-month,66,89.36,1,Basic,N
+CUST-10427,Month-to-month,6,62.09,1,Basic,no
+CUST-10428,One year,30,38.50,1,Premium,false
+CUST-10429,One year,15,82.68,7,Premium,No
+CUST-10430,Month-to-month,46,34.65,3,Basic,0
+CUST-10431,Two year,65,20.64,7,Standard,0
+CUST-10432,Month-to-month,17,33.06,5,Standard,FALSE
+CUST-10433,Month-to-month,46,99.05,1,Basic,no
+CUST-10434,One year,2,25.81,7,Basic,FALSE
+CUST-10435,Two year,71,66.22,2,Basic,No
+CUST-10436,One year,55,67.73,0,Standard,false
+CUST-10437,Month-to-month,8,87.16,5,Basic,TRUE
+CUST-10438,One year,6,38.84,2,Premium,FALSE
+CUST-10439,Two year,58,64.75,0,Basic,No
+CUST-10440,Two year,22,100.21,5,Standard,false
+CUST-10441,One year,26,118.30,1,Premium,false
+CUST-10442,Two year,32,23.09,8,Premium,0
+CUST-10443,Month-to-month,69,34.67,0,Premium,1
+CUST-10444,Two year,35,37.91,6,Premium,N
+CUST-10445,Month-to-month,2,99.55,6,Standard,N
+CUST-10446,Month-to-month,40,66.18,7,Premium,FALSE
+CUST-10447,Month-to-month,6,37.12,3,Standard,yes
+CUST-10448,One year,41,22.20,8,Standard,Yes
+CUST-10449,Two year,11,65.93,4,Basic,no
+CUST-10450,Two year,69,110.11,1,Basic,No
+CUST-10451,Two year,23,30.33,6,Premium,0
+CUST-10452,Two year,6,56.93,9,Premium,0
+CUST-10453,One year,5,72.94,1,Basic,0
+CUST-10454,Two year,2,59.10,3,Basic,No
+CUST-10455,Two year,8,49.18,7,Standard,0
+CUST-10456,One year,29,89.65,1,Basic,No
+CUST-10457,One year,54,81.23,4,Standard,Yes
+CUST-10458,One year,23,39.11,3,Premium,no
+CUST-10459,Two year,49,75.52,3,Premium,N
+CUST-10460,Month-to-month,46,102.56,5,Premium,false
+CUST-10461,Two year,34,34.14,2,Standard,false
+CUST-10462,Month-to-month,16,55.86,6,Basic,true
+CUST-10463,One year,12,27.77,8,Premium,FALSE
+CUST-10464,Two year,62,27.50,3,Basic,FALSE
+CUST-10465,One year,53,72.44,3,Basic,no
+CUST-10466,Two year,58,109.89,7,Basic,no
+CUST-10467,One year,19,29.94,9,Premium,No
+CUST-10468,One year,24,107.44,0,Standard,false
+CUST-10469,One year,1,93.94,6,Premium,Y
+CUST-10470,Two year,26,108.31,0,Standard,false
+CUST-10471,Month-to-month,39,105.73,7,Premium,N
+CUST-10472,Two year,49,35.93,2,Basic,0
+CUST-10473,One year,63,93.46,2,Basic,Y
+CUST-10474,One year,11,50.30,5,Premium,No
+CUST-10475,Month-to-month,52,110.46,3,Premium,false
+CUST-10476,Two year,59,81.08,7,Premium,no
+CUST-10477,Two year,71,94.54,8,Standard,0
+CUST-10478,One year,26,111.78,1,Basic,N
+CUST-10479,One year,64,44.91,6,Premium,no
+CUST-10480,Two year,34,114.80,2,Basic,true
+CUST-10481,One year,59,46.66,6,Basic,1
+CUST-10482,Two year,60,117.30,8,Premium,Yes
+CUST-10483,Month-to-month,54,46.81,8,Standard,false
+CUST-10484,Month-to-month,4,83.41,7,Standard,false
+CUST-10485,Two year,26,37.13,4,Basic,No
+CUST-10486,Two year,15,99.84,4,Premium,N
+CUST-10487,Two year,30,114.98,8,Basic,no
+CUST-10488,One year,7,58.38,5,Premium,0
+CUST-10489,Month-to-month,32,30.34,8,Premium,false
+CUST-10490,Two year,32,114.09,0,Premium,no
+CUST-10491,One year,11,87.74,5,Basic,TRUE
+CUST-10492,Two year,24,37.39,2,Standard,FALSE
+CUST-10493,Two year,29,88.42,4,Basic,FALSE
+CUST-10494,Month-to-month,72,71.94,1,Standard,no
+CUST-10495,Two year,9,94.96,4,Standard,false
+CUST-10496,Two year,2,76.60,5,Premium,0
+CUST-10497,Month-to-month,45,83.10,3,Basic,no
+CUST-10498,Month-to-month,7,80.65,8,Standard,true
+CUST-10499,Two year,11,86.75,5,Basic,no
+CUST-10500,One year,46,43.42,5,Standard,no
+CUST-10501,Two year,61,43.73,0,Standard,0
+CUST-10502,Month-to-month,3,37.62,6,Premium,no
+CUST-10503,Month-to-month,51,103.45,9,Standard,Yes
+CUST-10504,One year,12,31.13,3,Standard,Yes
+CUST-10505,Two year,36,104.27,0,Basic,false
+CUST-10506,Two year,68,34.59,8,Premium,1
+CUST-10507,Two year,72,85.03,2,Standard,no
+CUST-10508,One year,5,96.94,0,Standard,N
+CUST-10509,One year,53,107.78,3,Standard,No
+CUST-10510,One year,26,88.79,0,Premium,N
+CUST-10511,One year,38,29.59,6,Standard,no
+CUST-10512,Two year,46,114.49,4,Basic,No
+CUST-10513,Two year,41,100.73,8,Basic,No
+CUST-10514,Month-to-month,33,115.14,3,Standard,no
+CUST-10515,Two year,58,62.29,1,Standard,false
+CUST-10516,Month-to-month,12,91.22,8,Standard,Y
+CUST-10517,One year,16,44.50,2,Basic,yes
+CUST-10518,Month-to-month,66,75.79,4,Standard,FALSE
+CUST-10519,One year,60,98.05,5,Standard,FALSE
+CUST-10520,Month-to-month,18,92.11,0,Premium,0
+CUST-10521,One year,24,26.73,4,Standard,No
+CUST-10522,One year,36,60.46,0,Basic,Y
+CUST-10523,Month-to-month,69,74.89,7,Premium,yes
+CUST-10524,Two year,59,70.44,5,Premium,no
+CUST-10525,One year,12,52.61,9,Basic,false
+CUST-10526,One year,13,38.11,2,Basic,No
+CUST-10527,One year,7,26.61,9,Standard,No
+CUST-10528,Month-to-month,15,81.54,3,Basic,false
+CUST-10529,Month-to-month,42,38.44,8,Basic,Yes
+CUST-10530,One year,10,103.09,2,Basic,No
+CUST-10531,One year,72,76.29,0,Standard,N
+CUST-10532,Month-to-month,26,80.43,6,Basic,TRUE
+CUST-10533,Month-to-month,49,106.37,3,Standard,N
+CUST-10534,Month-to-month,29,70.80,8,Standard,No
+CUST-10535,Two year,12,97.20,6,Basic,false
+CUST-10536,Month-to-month,6,117.98,7,Basic,No
+CUST-10537,Two year,18,101.64,8,Standard,true
+CUST-10538,Two year,18,109.76,8,Premium,false
+CUST-10539,Two year,46,99.62,5,Standard,no
+CUST-10540,Two year,47,95.14,9,Standard,No
+CUST-10541,Two year,31,44.85,6,Basic,FALSE
+CUST-10542,One year,34,63.76,1,Basic,0
+CUST-10543,One year,70,98.30,2,Standard,No
+CUST-10544,Month-to-month,19,47.97,7,Premium,1
+CUST-10545,Month-to-month,53,24.82,4,Premium,Yes
+CUST-10546,Two year,55,67.60,6,Premium,No
+CUST-10547,Month-to-month,50,78.07,2,Standard,no
+CUST-10548,One year,41,110.09,5,Premium,N
+CUST-10549,One year,2,60.95,4,Standard,N
+CUST-10550,One year,55,38.80,9,Premium,N
+CUST-10551,One year,47,72.20,9,Standard,N
+CUST-10552,Month-to-month,53,116.91,7,Basic,N
+CUST-10553,Month-to-month,61,29.60,4,Standard,No
+CUST-10554,One year,6,105.94,4,Premium,false
+CUST-10555,One year,68,111.04,4,Basic,Yes
+CUST-10556,Two year,15,26.61,1,Basic,FALSE
+CUST-10557,One year,10,56.02,2,Premium,no
+CUST-10558,One year,17,104.07,4,Standard,no
+CUST-10559,Two year,11,60.69,7,Standard,N
+CUST-10560,One year,9,26.44,1,Premium,No
+CUST-10561,One year,44,41.11,1,Premium,0
+CUST-10562,Month-to-month,34,42.57,2,Standard,true
+CUST-10563,Two year,41,53.77,2,Standard,false
+CUST-10564,Two year,46,40.09,4,Premium,N
+CUST-10565,Two year,60,35.20,4,Basic,No
+CUST-10566,Month-to-month,50,23.62,0,Standard,false
+CUST-10567,One year,17,99.90,0,Premium,false
+CUST-10568,Month-to-month,38,64.04,7,Premium,TRUE
+CUST-10569,One year,26,36.81,0,Standard,FALSE
+CUST-10570,One year,8,51.89,6,Premium,N
+CUST-10571,One year,34,112.19,1,Premium,N
+CUST-10572,One year,23,64.70,8,Standard,false
+CUST-10573,Month-to-month,51,63.50,8,Basic,TRUE
+CUST-10574,One year,11,19.93,9,Premium,false
+CUST-10575,One year,21,76.54,4,Basic,false
+CUST-10576,Two year,13,52.99,3,Premium,no
+CUST-10577,One year,48,46.52,2,Premium,FALSE
+CUST-10578,One year,34,29.60,5,Basic,No
+CUST-10579,One year,44,23.55,0,Basic,Y
+CUST-10580,One year,59,51.38,9,Basic,No
+CUST-10581,Two year,30,64.66,5,Premium,no
+CUST-10582,One year,3,70.06,6,Standard,FALSE
+CUST-10583,One year,9,63.37,2,Basic,false
+CUST-10584,Month-to-month,16,68.25,6,Standard,no
+CUST-10585,Month-to-month,42,33.61,4,Standard,1
+CUST-10586,Two year,63,93.12,9,Standard,FALSE
+CUST-10587,One year,53,119.64,9,Premium,N
+CUST-10588,One year,65,42.26,2,Standard,No
+CUST-10589,One year,16,67.55,0,Premium,N
+CUST-10590,Two year,49,26.53,4,Premium,FALSE
+CUST-10591,One year,13,102.73,0,Premium,0
+CUST-10592,Two year,43,104.65,3,Standard,no
+CUST-10593,One year,18,84.91,6,Premium,no
+CUST-10594,Month-to-month,4,22.15,5,Premium,1
+CUST-10595,Two year,46,78.58,5,Standard,0
+CUST-10596,Month-to-month,58,77.53,4,Premium,1
+CUST-10597,Month-to-month,70,44.63,5,Premium,1
+CUST-10598,Two year,45,84.42,1,Standard,FALSE
+CUST-10599,Month-to-month,64,72.36,6,Basic,no
+CUST-10600,Two year,13,91.63,3,Basic,no
+CUST-10601,Two year,42,66.42,9,Basic,No
+CUST-10602,Month-to-month,58,39.95,1,Basic,No
+CUST-10603,Two year,60,112.16,9,Basic,FALSE
+CUST-10604,Two year,8,71.05,0,Standard,false
+CUST-10605,Two year,53,45.12,6,Standard,No
+CUST-10606,Month-to-month,47,82.93,0,Basic,1
+CUST-10607,One year,72,65.56,4,Standard,N
+CUST-10608,One year,71,22.10,2,Standard,N
+CUST-10609,Month-to-month,47,61.84,1,Basic,FALSE
+CUST-10610,Month-to-month,4,92.10,7,Basic,No
+CUST-10611,Month-to-month,21,30.65,6,Standard,0
+CUST-10612,One year,21,88.92,1,Standard,FALSE
+CUST-10613,One year,69,113.24,1,Premium,no
+CUST-10614,One year,54,49.75,2,Premium,FALSE
+CUST-10615,Month-to-month,60,106.76,0,Basic,N
+CUST-10616,One year,50,92.37,4,Standard,N
+CUST-10617,Two year,55,27.96,3,Basic,N
+CUST-10618,Month-to-month,72,99.98,6,Standard,N
+CUST-10619,Two year,30,84.97,6,Premium,FALSE
+CUST-10620,Month-to-month,10,107.00,6,Premium,No
+CUST-10621,Month-to-month,12,67.82,8,Basic,FALSE
+CUST-10622,Month-to-month,32,25.27,9,Premium,0
+CUST-10623,Two year,43,58.95,4,Premium,no
+CUST-10624,One year,36,119.10,5,Standard,no
+CUST-10625,Two year,8,71.34,4,Premium,no
+CUST-10626,Month-to-month,16,77.21,1,Standard,no
+CUST-10627,One year,26,34.92,0,Basic,N
+CUST-10628,Two year,66,52.49,2,Premium,no
+CUST-10629,Two year,28,74.04,1,Premium,N
+CUST-10630,Month-to-month,5,57.96,7,Standard,yes
+CUST-10631,Two year,6,91.10,7,Basic,N
+CUST-10632,One year,19,118.99,3,Premium,FALSE
+CUST-10633,Month-to-month,35,101.65,5,Standard,false
+CUST-10634,Two year,65,97.57,6,Basic,FALSE
+CUST-10635,Month-to-month,1,87.12,8,Basic,false
+CUST-10636,Month-to-month,56,111.18,5,Basic,TRUE
+CUST-10637,Two year,6,23.26,8,Standard,No
+CUST-10638,Month-to-month,40,118.74,4,Standard,1
+CUST-10639,Month-to-month,60,105.29,5,Premium,No
+CUST-10640,One year,52,56.14,4,Standard,No
+CUST-10641,Two year,46,32.87,5,Premium,N
+CUST-10642,Month-to-month,40,91.27,1,Basic,N
+CUST-10643,Two year,22,100.52,4,Basic,FALSE
+CUST-10644,Month-to-month,22,24.27,0,Premium,no
+CUST-10645,Two year,1,19.81,5,Standard,false
+CUST-10646,Two year,28,110.06,2,Standard,No
+CUST-10647,Month-to-month,1,103.55,6,Basic,TRUE
+CUST-10648,Month-to-month,33,67.07,4,Premium,true
+CUST-10649,Month-to-month,49,52.99,2,Premium,no
+CUST-10650,Two year,37,55.34,4,Basic,no
+CUST-10651,Month-to-month,45,114.58,9,Basic,1
+CUST-10652,One year,10,98.46,1,Premium,FALSE
+CUST-10653,Two year,11,22.33,4,Standard,FALSE
+CUST-10654,Month-to-month,33,46.02,4,Basic,FALSE
+CUST-10655,Two year,67,90.39,4,Premium,No
+CUST-10656,Month-to-month,55,104.45,5,Premium,TRUE
+CUST-10657,Two year,27,105.38,3,Premium,false
+CUST-10658,Two year,43,38.41,9,Premium,false
+CUST-10659,Two year,65,111.66,3,Basic,No
+CUST-10660,Month-to-month,27,95.76,4,Standard,Y
+CUST-10661,Two year,45,49.16,5,Basic,No
+CUST-10662,Month-to-month,59,56.08,7,Standard,yes
+CUST-10663,Two year,44,99.14,0,Premium,FALSE
+CUST-10664,Two year,24,66.08,2,Basic,No
+CUST-10665,One year,26,56.98,8,Basic,no
+CUST-10666,Month-to-month,45,37.09,5,Premium,Y
+CUST-10667,One year,40,54.27,2,Premium,N
+CUST-10668,Two year,70,110.52,5,Standard,false
+CUST-10669,Two year,46,44.45,1,Standard,N
+CUST-10670,Two year,50,36.69,4,Premium,N
+CUST-10671,One year,55,36.11,5,Basic,false
+CUST-10672,One year,54,119.96,4,Basic,No
+CUST-10673,Two year,37,116.16,6,Standard,N
+CUST-10674,One year,5,22.13,6,Standard,N
+CUST-10675,One year,59,35.31,9,Standard,FALSE
+CUST-10676,One year,25,51.89,2,Standard,no
+CUST-10677,Month-to-month,22,34.73,3,Standard,N
+CUST-10678,Month-to-month,50,41.59,9,Premium,1
+CUST-10679,One year,51,40.20,1,Standard,yes
+CUST-10680,Month-to-month,18,72.22,7,Basic,TRUE
+CUST-10681,One year,16,45.36,3,Basic,No
+CUST-10682,Two year,40,79.52,2,Standard,No
+CUST-10683,One year,5,38.31,4,Standard,No
+CUST-10684,One year,7,83.38,5,Standard,0
+CUST-10685,Two year,49,116.79,4,Basic,N
+CUST-10686,Month-to-month,33,57.02,3,Basic,No
+CUST-10687,One year,70,30.60,9,Standard,0
+CUST-10688,Month-to-month,65,48.75,6,Basic,TRUE
+CUST-10689,Month-to-month,52,59.19,7,Premium,false
+CUST-10690,One year,37,74.86,9,Premium,false
+CUST-10691,Month-to-month,62,23.66,3,Standard,1
+CUST-10692,One year,29,71.82,0,Premium,0
+CUST-10693,One year,53,69.53,6,Premium,No
+CUST-10694,Two year,52,33.21,9,Premium,0
+CUST-10695,One year,53,107.55,9,Standard,Y
+CUST-10696,Month-to-month,25,31.61,0,Premium,0
+CUST-10697,One year,30,96.27,4,Standard,false
+CUST-10698,Two year,12,60.70,6,Premium,FALSE
+CUST-10699,One year,44,51.14,7,Premium,false
+CUST-10700,One year,43,91.62,1,Premium,no
+CUST-10701,Month-to-month,14,105.39,7,Standard,0
+CUST-10702,One year,28,19.50,1,Basic,true
+CUST-10703,Month-to-month,54,78.53,0,Basic,N
+CUST-10704,Two year,38,90.11,4,Premium,0
+CUST-10705,One year,60,49.90,4,Basic,false
+CUST-10706,Month-to-month,60,88.62,8,Basic,N
+CUST-10707,One year,69,42.05,1,Basic,false
+CUST-10708,One year,10,38.03,1,Standard,FALSE
+CUST-10709,Two year,51,118.26,3,Premium,N
+CUST-10710,Two year,72,52.69,2,Standard,FALSE
+CUST-10711,Two year,70,59.83,0,Standard,No
+CUST-10712,Month-to-month,60,36.96,9,Premium,N
+CUST-10713,Two year,20,116.16,9,Standard,N
+CUST-10714,Two year,60,95.46,2,Premium,No
+CUST-10715,Two year,24,112.53,7,Premium,FALSE
+CUST-10716,Two year,13,99.41,2,Standard,N
+CUST-10717,One year,11,83.72,2,Standard,no
+CUST-10718,Two year,25,71.98,4,Premium,no
+CUST-10719,Month-to-month,19,64.14,0,Basic,1
+CUST-10720,Month-to-month,24,83.03,9,Standard,No
+CUST-10721,Month-to-month,12,42.23,1,Premium,1
+CUST-10722,One year,30,58.97,4,Basic,yes
+CUST-10723,Month-to-month,1,68.06,5,Basic,yes
+CUST-10724,Two year,3,29.74,0,Standard,0
+CUST-10725,Month-to-month,37,86.75,3,Premium,TRUE
+CUST-10726,Two year,37,47.05,4,Basic,false
+CUST-10727,Month-to-month,22,65.87,9,Basic,1
+CUST-10728,Two year,33,26.12,4,Premium,N
+CUST-10729,Two year,9,47.28,4,Premium,no
+CUST-10730,Two year,9,33.47,1,Standard,FALSE
+CUST-10731,Two year,49,92.10,4,Premium,false
+CUST-10732,Month-to-month,36,89.49,5,Basic,no
+CUST-10733,Month-to-month,28,88.52,6,Basic,TRUE
+CUST-10734,One year,69,24.99,6,Basic,false
+CUST-10735,One year,57,57.61,7,Basic,1
+CUST-10736,One year,22,37.77,8,Basic,FALSE
+CUST-10737,Two year,8,59.84,1,Premium,0
+CUST-10738,Month-to-month,40,47.57,6,Basic,no
+CUST-10739,Month-to-month,51,54.45,9,Premium,TRUE
+CUST-10740,Two year,32,82.91,8,Basic,FALSE
+CUST-10741,Month-to-month,23,38.23,1,Basic,0
+CUST-10742,One year,19,39.70,3,Basic,false
+CUST-10743,Two year,43,84.96,4,Standard,TRUE
+CUST-10744,One year,56,47.04,6,Basic,0
+CUST-10745,Two year,30,39.61,3,Standard,no
+CUST-10746,Month-to-month,69,110.12,0,Premium,true
+CUST-10747,Month-to-month,44,81.95,5,Standard,No
+CUST-10748,One year,11,93.74,5,Basic,N
+CUST-10749,One year,48,30.86,1,Standard,Y
+CUST-10750,Month-to-month,57,71.13,4,Premium,yes
+CUST-10751,One year,60,76.59,9,Premium,No
+CUST-10752,Month-to-month,63,98.50,6,Basic,yes
+CUST-10753,Two year,52,119.37,8,Basic,N
+CUST-10754,One year,12,110.45,0,Standard,TRUE
+CUST-10755,Two year,29,32.58,5,Basic,no
+CUST-10756,Month-to-month,8,59.51,4,Basic,0
+CUST-10757,Month-to-month,10,29.10,8,Premium,0
+CUST-10758,Two year,36,110.65,1,Standard,no
+CUST-10759,One year,56,35.37,1,Premium,FALSE
+CUST-10760,Month-to-month,13,96.78,6,Standard,1
+CUST-10761,One year,3,56.49,9,Premium,0
+CUST-10762,One year,46,67.67,2,Basic,No
+CUST-10763,Two year,47,44.52,0,Standard,Y
+CUST-10764,One year,20,73.71,4,Premium,No
+CUST-10765,Month-to-month,23,99.11,1,Standard,No
+CUST-10766,Two year,53,23.97,3,Premium,false
+CUST-10767,Two year,4,116.77,1,Premium,false
+CUST-10768,Month-to-month,71,71.85,9,Premium,TRUE
+CUST-10769,Month-to-month,5,50.38,1,Standard,false
+CUST-10770,One year,2,32.28,9,Basic,N
+CUST-10771,Two year,49,29.40,5,Standard,FALSE
+CUST-10772,One year,70,37.63,0,Basic,1
+CUST-10773,Two year,23,79.08,9,Premium,No
+CUST-10774,Month-to-month,10,28.52,6,Premium,0
+CUST-10775,Month-to-month,45,38.07,1,Standard,false
+CUST-10776,Two year,36,34.33,4,Premium,N
+CUST-10777,One year,54,39.32,3,Premium,0
+CUST-10778,Month-to-month,67,19.23,6,Premium,Y
+CUST-10779,One year,1,39.60,3,Standard,No
+CUST-10780,Month-to-month,20,40.17,4,Standard,no
+CUST-10781,One year,12,30.85,8,Standard,N
+CUST-10782,Month-to-month,24,99.46,3,Standard,no
+CUST-10783,Month-to-month,60,88.75,1,Standard,Yes
+CUST-10784,Two year,70,48.87,1,Premium,N
+CUST-10785,One year,8,88.56,9,Basic,No
+CUST-10786,Two year,38,43.82,9,Basic,No
+CUST-10787,Two year,28,59.38,1,Standard,FALSE
+CUST-10788,One year,23,68.77,5,Premium,no
+CUST-10789,Month-to-month,68,84.74,1,Basic,No
+CUST-10790,Two year,2,45.80,8,Basic,0
+CUST-10791,One year,20,64.41,3,Basic,false
+CUST-10792,Two year,6,98.23,9,Basic,No
+CUST-10793,Month-to-month,25,104.51,9,Standard,N
+CUST-10794,Month-to-month,17,106.57,4,Premium,N
+CUST-10795,One year,57,108.79,5,Basic,N
+CUST-10796,One year,13,51.48,1,Standard,FALSE
+CUST-10797,Month-to-month,31,89.43,4,Standard,FALSE
+CUST-10798,Month-to-month,54,65.89,6,Premium,Yes
+CUST-10799,Two year,2,46.15,7,Basic,TRUE
+CUST-10800,Two year,55,77.39,6,Standard,FALSE
+CUST-10801,Month-to-month,24,70.25,8,Standard,false
+CUST-10802,Month-to-month,68,100.88,6,Standard,Yes
+CUST-10803,Two year,21,73.28,4,Basic,no
+CUST-10804,Two year,13,66.14,5,Basic,N
+CUST-10805,Two year,46,117.96,7,Premium,no
+CUST-10806,Month-to-month,48,56.01,7,Standard,no
+CUST-10807,Month-to-month,45,56.60,0,Basic,yes
+CUST-10808,Month-to-month,63,30.31,9,Standard,0
+CUST-10809,One year,3,48.37,9,Premium,No
+CUST-10810,Month-to-month,27,53.14,2,Basic,false
+CUST-10811,One year,8,51.31,9,Basic,FALSE
+CUST-10812,One year,1,47.13,0,Premium,No
+CUST-10813,Month-to-month,18,67.26,9,Premium,no
+CUST-10814,Month-to-month,18,56.28,5,Premium,false
+CUST-10815,One year,26,114.60,2,Premium,TRUE
+CUST-10816,Month-to-month,16,26.89,8,Standard,false
+CUST-10817,Month-to-month,62,21.73,0,Basic,FALSE
+CUST-10818,One year,25,114.51,6,Standard,No
+CUST-10819,One year,40,78.62,6,Standard,no
+CUST-10820,Two year,46,30.45,3,Standard,0
+CUST-10821,Two year,61,92.71,3,Basic,N
+CUST-10822,One year,54,97.43,7,Premium,false
+CUST-10823,One year,55,26.10,7,Standard,Yes
+CUST-10824,Two year,4,41.65,3,Standard,No
+CUST-10825,Month-to-month,15,68.67,5,Standard,TRUE
+CUST-10826,Two year,70,90.05,0,Premium,TRUE
+CUST-10827,One year,25,27.94,9,Basic,0
+CUST-10828,One year,35,107.75,3,Premium,No
+CUST-10829,One year,3,113.16,2,Premium,FALSE
+CUST-10830,Month-to-month,56,109.92,6,Basic,true
+CUST-10831,Two year,69,22.67,1,Standard,No
+CUST-10832,Two year,43,34.13,0,Basic,0
+CUST-10833,Month-to-month,9,38.12,9,Premium,yes
+CUST-10834,Month-to-month,18,24.97,1,Basic,0
+CUST-10835,Two year,37,104.25,2,Basic,No
+CUST-10836,Month-to-month,50,47.95,1,Premium,Y
+CUST-10837,Two year,36,20.93,2,Basic,1
+CUST-10838,Two year,2,52.46,0,Premium,no
+CUST-10839,Month-to-month,70,83.66,2,Premium,no
+CUST-10840,Two year,67,21.55,9,Basic,false
+CUST-10841,Two year,18,54.04,3,Standard,0
+CUST-10842,Month-to-month,45,40.45,3,Standard,No
+CUST-10843,Month-to-month,70,63.21,4,Basic,1
+CUST-10844,Two year,6,102.97,4,Basic,FALSE
+CUST-10845,One year,56,93.89,1,Basic,FALSE
+CUST-10846,Month-to-month,66,69.76,5,Premium,No
+CUST-10847,Month-to-month,50,30.67,2,Standard,true
+CUST-10848,Two year,1,113.10,2,Standard,N
+CUST-10849,Month-to-month,19,85.86,1,Premium,false
+CUST-10850,Month-to-month,12,72.48,7,Standard,TRUE
+CUST-10851,Month-to-month,63,114.18,4,Basic,no
+CUST-10852,Two year,24,79.49,1,Premium,Yes
+CUST-10853,Month-to-month,70,36.31,8,Basic,Y
+CUST-10854,Month-to-month,18,86.11,3,Premium,true
+CUST-10855,One year,72,77.05,9,Premium,no
+CUST-10856,Two year,40,51.57,4,Premium,No
+CUST-10857,Month-to-month,61,105.61,2,Basic,false
+CUST-10858,Two year,29,24.44,4,Premium,false
+CUST-10859,Two year,34,84.59,6,Premium,N
+CUST-10860,Two year,57,20.60,9,Basic,false
+CUST-10861,Two year,11,73.93,9,Premium,N
+CUST-10862,Month-to-month,52,102.08,1,Standard,no
+CUST-10863,One year,70,104.26,6,Premium,No
+CUST-10864,Month-to-month,30,30.05,7,Premium,Yes
+CUST-10865,One year,12,26.05,7,Standard,FALSE
+CUST-10866,One year,43,62.35,1,Premium,false
+CUST-10867,One year,67,66.85,9,Premium,FALSE
+CUST-10868,One year,36,74.34,9,Standard,N
+CUST-10869,Month-to-month,22,29.72,9,Basic,FALSE
+CUST-10870,Two year,16,90.61,1,Standard,no
+CUST-10871,Two year,17,23.45,9,Standard,false
+CUST-10872,Month-to-month,72,39.97,5,Basic,0
+CUST-10873,Month-to-month,23,54.60,9,Basic,false
+CUST-10874,Month-to-month,57,31.96,5,Basic,TRUE
+CUST-10875,One year,61,102.53,3,Premium,no
+CUST-10876,Month-to-month,18,90.99,8,Basic,Y
+CUST-10877,Month-to-month,7,30.30,3,Standard,Yes
+CUST-10878,Month-to-month,59,33.70,8,Basic,N
+CUST-10879,One year,42,42.51,9,Standard,Yes
+CUST-10880,Month-to-month,19,43.52,7,Standard,N
+CUST-10881,One year,57,102.33,0,Basic,N
+CUST-10882,One year,26,83.69,5,Standard,N
+CUST-10883,One year,33,59.15,6,Premium,0
+CUST-10884,Two year,32,41.62,3,Premium,N
+CUST-10885,Month-to-month,30,64.45,7,Premium,no
+CUST-10886,One year,67,39.14,0,Premium,No
+CUST-10887,One year,4,109.01,0,Premium,false
+CUST-10888,Month-to-month,22,88.62,6,Premium,false
+CUST-10889,One year,69,107.10,2,Basic,no
+CUST-10890,Month-to-month,14,24.05,0,Premium,false
+CUST-10891,Month-to-month,68,88.27,6,Premium,FALSE
+CUST-10892,Two year,43,83.06,3,Basic,false
+CUST-10893,One year,28,43.44,5,Standard,N
+CUST-10894,One year,21,83.62,8,Premium,false
+CUST-10895,Two year,34,36.37,2,Standard,No
+CUST-10896,Two year,45,107.25,1,Basic,No
+CUST-10897,One year,41,91.73,8,Basic,false
+CUST-10898,Two year,42,51.20,7,Standard,FALSE
+CUST-10899,Month-to-month,54,55.47,7,Basic,0

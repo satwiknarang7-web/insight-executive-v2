@@ -1,0 +1,53 @@
+{
+  "note": [
+    "Sales and refunds in one amount column; refunds are genuinely negative."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "order_date",
+    "questions": [
+      {
+        "id": "trend",
+        "text": "How is net revenue moving over time?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "amount"
+          ]
+        ],
+        "over": [
+          "order_date"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-type",
+        "text": "How much do refunds take off sales?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "amount"
+          ]
+        ],
+        "by": [
+          "txn_type"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-category",
+        "text": "Which categories earn the most, net of refunds?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "amount"
+          ]
+        ],
+        "by": [
+          "category"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

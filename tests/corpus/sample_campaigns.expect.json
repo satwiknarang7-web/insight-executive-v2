@@ -1,0 +1,62 @@
+{
+  "note": [
+    "The app sample: monthly campaign rows. cost_per_acquisition is a ratio and never summed."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "month",
+    "measures": {
+      "cost_per_acquisition": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "cpa-by-channel",
+        "text": "Which channel acquires customers most cheaply?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "cost_per_acquisition"
+          ],
+          [
+            "spend",
+            "conversions"
+          ]
+        ],
+        "by": [
+          "channel"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "spend-trend",
+        "text": "How has spend moved over time?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "spend"
+          ]
+        ],
+        "over": [
+          "month"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "conversions-by-audience",
+        "text": "Which audience converts the most?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "conversions"
+          ]
+        ],
+        "by": [
+          "audience"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

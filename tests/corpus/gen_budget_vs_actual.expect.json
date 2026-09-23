@@ -1,0 +1,49 @@
+{
+  "note": [
+    "Budget and actual in one amount column. Adding them together is meaningless."
+  ],
+  "report": {
+    "grain": "long",
+    "time": "month",
+    "long": {
+      "value": "amount",
+      "by": "scenario"
+    },
+    "questions": [
+      {
+        "id": "variance",
+        "text": "Which departments are over or under budget?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "amount"
+          ]
+        ],
+        "by": [
+          "department"
+        ],
+        "scope": [
+          "scenario"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "trend",
+        "text": "How has spending tracked against budget month by month?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "amount"
+          ]
+        ],
+        "over": [
+          "month"
+        ],
+        "scope": [
+          "scenario"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

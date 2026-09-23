@@ -1,0 +1,39 @@
+{
+  "note": [
+    "Ten rows of sales in the repo root. Tiny, and still a report."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "date",
+    "questions": [
+      {
+        "id": "by-region",
+        "text": "Which region sells the most?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "region"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-category",
+        "text": "Which product category sells the most?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "product_category"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

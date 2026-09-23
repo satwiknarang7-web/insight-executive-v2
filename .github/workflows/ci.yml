@@ -53,6 +53,16 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # The generated half of tests/corpus is committed so a test run never
+      # depends on a generator. This proves the committed files still are what
+      # the generators produce — an edited CSV would otherwise pass unnoticed.
+      - name: Corpus matches its generators
+        run: |
+          npm run eval:corpus
+          git diff --exit-code -- tests/corpus
+
+      # Includes tests/scorecard.test.mjs: the ratchet against
+      # eval/scorecard.baseline.json. `npm run eval:scorecard` prints the table.
       - name: Test
         run: npm test
 

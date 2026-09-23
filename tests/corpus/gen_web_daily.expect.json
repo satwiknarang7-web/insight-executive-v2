@@ -1,0 +1,59 @@
+{
+  "note": [
+    "Daily traffic per channel. bounce_rate is a percentage and never summed."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "date",
+    "measures": {
+      "bounce_rate": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "traffic",
+        "text": "Is traffic growing?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "sessions"
+          ]
+        ],
+        "over": [
+          "date"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "conversion-by-channel",
+        "text": "Which channel converts best?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "conversions",
+            "sessions"
+          ]
+        ],
+        "by": [
+          "channel"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "revenue-by-channel",
+        "text": "Where does revenue come from?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "channel"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

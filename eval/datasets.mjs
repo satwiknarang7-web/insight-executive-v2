@@ -11,6 +11,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const OUT = path.join(import.meta.dirname, 'data');
+// Gitignored, so absent on a fresh checkout — CI regenerates from here.
+fs.mkdirSync(OUT, { recursive: true });
 const w = (name, text) => fs.writeFileSync(path.join(OUT, name), text);
 const csv = (header, rows) =>
   [header.join(','), ...rows.map((r) => r.map(cell).join(','))].join('\n') + '\n';
@@ -115,7 +117,7 @@ const int = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
 
 /* ── 4. Entity comparison: the user's own file, copied verbatim ─────────── */
 fs.copyFileSync(
-  '/root/.claude/uploads/33825b30-eedb-5966-9232-1bf5a0494c16/4bf95c3d-ai_subscription_comparison.csv',
+  path.join(import.meta.dirname, '..', 'tests', 'corpus', 'ai_subscriptions.csv'),
   path.join(OUT, '04-entity-comparison.csv')
 );
 

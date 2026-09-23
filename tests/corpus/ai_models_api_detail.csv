@@ -1,0 +1,42 @@
+provider,model_family,model_name,model_id,model_class,generation,input_usd_per_mtok,cached_input_usd_per_mtok,output_usd_per_mtok,blended_usd_per_mtok_3to1,output_to_input_ratio,batch_discount_pct,context_window_k,max_output_k,reasoning,vision,open_weights,intelligence_index,agentic_coding_score,scicode_score,gpqa_reasoning_score,hle_reasoning_score,long_context_score,non_hallucination_score,agentic_work_score,arc_agi_1_score,arc_agi_2_score,capability_source_url,status,price_basis,source_url,as_of
+Anthropic,Fable,Fable 5.1,fable-5-1,Flagship,5.1,10,0.25,50,20.0,5.0,50,,,Yes,Yes,No,53,91,63,94,59,85,27,61,97.5,90.0,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Opus,Opus 5,claude-opus-5,Flagship,5,5,0.5,25,10.0,5.0,50,,,Yes,Yes,No,51,89,56,93,55,79,39,62,97.5,90.4,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Sonnet,Sonnet 5,claude-sonnet-5,Balanced,5,2,0.2,10,4.0,5.0,50,1000,,Yes,Yes,No,38,81,54,91,41,82,61,50,,,https://artificialanalysis.ai/leaderboards/models,Current,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Haiku,Haiku 4.5,claude-haiku-4-5,Fast,4.5,1,0.1,5,2.0,5.0,50,,,Yes,Yes,No,18,44,42,67,10,74,73,18,,,https://artificialanalysis.ai/leaderboards/models,Current,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Fable,Fable 5,fable-5,Flagship,5,10,1.0,50,20.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Opus,Opus 4.8,claude-opus-4-8,Flagship,4.8,5,0.5,25,10.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Opus,Opus 4.7,claude-opus-4-7,Flagship,4.7,5,0.5,25,10.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Opus,Opus 4.6,claude-opus-4-6,Flagship,4.6,5,0.5,25,10.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Opus,Opus 4.5,claude-opus-4-5,Flagship,4.5,5,0.5,25,10.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Sonnet,Sonnet 4.6,claude-sonnet-4-6,Balanced,4.6,3,0.3,15,6.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+Anthropic,Sonnet,Sonnet 4.5,claude-sonnet-4-5,Balanced,4.5,3,0.3,15,6.0,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://claude.com/pricing,2026-09-19
+OpenAI,GPT-6,GPT-6 Astra,gpt-6-astra,Flagship,6,10,1.0,50,20.0,5.0,50,,,Yes,Yes,No,53,88,56,96,55,81,49,54,97.5,95.0,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.6,GPT-5.6 Sol,gpt-5.6-sol,Flagship,5.6,4,0.4,20,8.0,5.0,50,,,Yes,Yes,No,47,88,57,94,49,84,8,54,96.5,92.5,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.6,GPT-5.6 Terra,gpt-5.6-terra,Balanced,5.6,2,0.2,12,4.5,6.0,50,,,Yes,Yes,No,42,88,55,93,43,83,12,49,96.5,83.9,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.6,GPT-5.6 Luna,gpt-5.6-luna,Fast,5.6,0.2,0.02,1.2,0.45,6.0,50,,,No,Yes,No,38,81,54,91,39,84,7,48,88.0,59.5,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.5,GPT-5.5,gpt-5.5,Flagship,5.5,5,0.5,30,11.25,6.0,50,272,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.4,GPT-5.4,gpt-5.4,Balanced,5.4,2.5,0.25,15,5.625,6.0,50,272,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.4,GPT-5.4 mini,gpt-5.4-mini,Fast,5.4,0.75,0.075,4.5,1.688,6.0,50,,,No,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5.4,GPT-5.4 nano,gpt-5.4-nano,Fast,5.4,0.2,0.02,1.25,0.463,6.25,50,,,No,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5,GPT-5,gpt-5,Balanced,5,1.25,0.125,10,3.438,8.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5,GPT-5 mini,gpt-5-mini,Fast,5,0.25,0.025,2,0.688,8.0,50,,,No,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-5,GPT-5 nano,gpt-5-nano,Fast,5,0.05,0.005,0.4,0.138,8.0,50,,,No,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-4o,GPT-4o,gpt-4o,Balanced,4o,2.5,1.25,10,4.375,4.0,50,,,No,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-4o,GPT-4o mini,gpt-4o-mini,Fast,4o,0.15,0.075,0.6,0.262,4.0,50,,,No,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,o-series,o1,o1,Reasoning,o1,15,7.5,60,26.25,4.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,o-series,o3,o3,Reasoning,o3,2,0.5,8,3.5,4.0,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+OpenAI,GPT-3.5,GPT-3.5 Turbo,gpt-3.5-turbo,Fast,3.5,0.5,,1.5,0.75,3.0,50,,,No,No,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://developers.openai.com/api/docs/pricing,2026-09-19
+xAI,Grok,Grok 4.6,grok-4.6,Flagship,4.6,2,,6,3.0,3.0,,500,,Yes,Yes,No,44,88,56,95,43,80,66,57,87.5,67.1,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://x.ai/api,2026-09-19
+Google,Gemini Flash,Gemini 3.8 Flash,gemini-3.8-flash,Balanced,3.8,0.75,0.075,3.75,1.5,5.0,50,,,Yes,Yes,No,41,88,57,95,48,81,45,48,,,https://artificialanalysis.ai/leaderboards/models,Current,vendor_page_verified,https://ai.google.dev/gemini-api/docs/pricing,2026-09-19
+Google,Gemini Flash,Gemini 3.7 Flash,gemini-3.7-flash,Balanced,3.7,0.75,,3.75,1.5,5.0,50,,,Yes,Yes,No,,,,,,,,,,,,Current,third_party_reported,https://docs.perplexity.ai/getting-started/pricing,2026-09-19
+Google,Gemini Flash,Gemini 3.6 Flash,gemini-3.6-flash,Fast,3.6,,,,,,50,,,Yes,Yes,No,,,,,,,,,,,,Legacy,vendor_page_verified,https://ai.google.dev/gemini-api/docs/pricing,2026-09-19
+Google,Gemini Flash,Gemini 3.5 Flash,gemini-3.5-flash,Fast,3.5,1.5,,9.0,3.375,6.0,50,,,No,Yes,No,,,,,,,,,,,,Legacy,third_party_reported,https://docs.perplexity.ai/getting-started/pricing,2026-09-19
+DeepSeek,DeepSeek,DeepSeek-Flash,deepseek-flash,Fast,Flash,0.15,0.003,0.6,0.262,4.0,,1000,384,Yes,Yes,Yes,40,,52,,39,84,4,57,,,https://artificialanalysis.ai/leaderboards/models,Current,vendor_page_verified,https://api-docs.deepseek.com/quick_start/pricing,2026-09-19
+DeepSeek,DeepSeek,DeepSeek-V4-Pro,deepseek-v4-pro,Flagship,V4,0.66,0.022,1.98,0.99,3.0,,,,Yes,No,Yes,36,79,51,93,41,80,5,50,90.5,61.3,https://arcprize.org/leaderboard,Current,vendor_page_verified,https://api-docs.deepseek.com/quick_start/pricing,2026-09-19
+Mistral,Mistral,Mistral Large,mistral-large,Flagship,Large,0.5,,1.5,0.75,3.0,50,,,Yes,Yes,Yes,10,12,37,68,4,36,14,4,,,https://artificialanalysis.ai/leaderboards/models,Current,vendor_page_verified,https://mistral.ai/pricing,2026-09-19
+Cohere,Command,Command R+ 08-2024,command-r-plus-08-2024,Flagship,R+,2.5,,10,4.375,4.0,,,,No,No,Yes,14,23,39,76,12,53,86,8,,,https://artificialanalysis.ai/leaderboards/models,Current,vendor_page_verified,https://cohere.com/pricing,2026-09-19
+Cohere,Command,Command R 03-2024,command-r-03-2024,Balanced,R,0.5,,1.5,0.75,3.0,,,,No,No,Yes,,,,,,,,,,,,Current,vendor_page_verified,https://cohere.com/pricing,2026-09-19
+Cohere,Command,Command (legacy),command,Balanced,1,1.0,,2.0,1.25,2.0,,,,No,No,Yes,,,,,,,,,,,,Legacy,vendor_page_verified,https://cohere.com/pricing,2026-09-19
+Cohere,Command,Command-light (legacy),command-light,Fast,1,0.3,,0.6,0.375,2.0,,,,No,No,Yes,,,,,,,,,,,,Legacy,vendor_page_verified,https://cohere.com/pricing,2026-09-19
+Cohere,Aya,Aya Expanse 8B,aya-expanse-8b,Fast,Expanse,0.5,,1.5,0.75,3.0,,,,No,No,Yes,,,,,,,,,,,,Current,vendor_page_verified,https://cohere.com/pricing,2026-09-19
+Cohere,Aya,Aya Expanse 32B,aya-expanse-32b,Balanced,Expanse,0.5,,1.5,0.75,3.0,,,,No,No,Yes,,,,,,,,,,,,Current,vendor_page_verified,https://cohere.com/pricing,2026-09-19

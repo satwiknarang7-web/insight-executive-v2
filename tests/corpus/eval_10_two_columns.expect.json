@@ -1,0 +1,24 @@
+{
+  "note": [
+    "The degenerate table: one category, one number. Modest is correct."
+  ],
+  "report": {
+    "grain": "observation",
+    "questions": [
+      {
+        "id": "by-team",
+        "text": "Which team scores the most points?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "points"
+          ]
+        ],
+        "by": [
+          "team"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

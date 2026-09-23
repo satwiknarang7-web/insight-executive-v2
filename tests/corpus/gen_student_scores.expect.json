@@ -1,0 +1,64 @@
+{
+  "note": [
+    "Three subjects on one 0–100 scale; attendance drives scores."
+  ],
+  "report": {
+    "grain": "entity",
+    "measures": {
+      "math": {
+        "noSum": true
+      },
+      "reading": {
+        "noSum": true
+      },
+      "science": {
+        "noSum": true
+      },
+      "attendance_pct": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "by-school",
+        "text": "Which schools score highest?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "math"
+          ],
+          [
+            "reading"
+          ],
+          [
+            "science"
+          ]
+        ],
+        "by": [
+          "school"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "attendance",
+        "text": "Does attendance go with better scores?",
+        "intent": "relationship",
+        "answeredBy": [
+          [
+            "attendance_pct",
+            "math"
+          ],
+          [
+            "attendance_pct",
+            "reading"
+          ],
+          [
+            "attendance_pct",
+            "science"
+          ]
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

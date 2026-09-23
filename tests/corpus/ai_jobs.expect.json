@@ -70,5 +70,53 @@
       "expr": "[Average_Salary] / [Tech_Growth_Factor]",
       "rejectedBecause": "does not track"
     }
-  ]
+  ],
+  "report": {
+    "grain": "observation",
+    "outcomes": [
+      "Automation_Probability_2030"
+    ],
+    "questions": [
+      {
+        "id": "by-occupation",
+        "text": "Which occupations are most likely to be automated by 2030?",
+        "intent": "rank",
+        "answeredBy": [
+          [
+            "Automation_Probability_2030"
+          ]
+        ],
+        "by": [
+          "Job_Title"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-education",
+        "text": "Does more education protect against automation?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "Automation_Probability_2030"
+          ]
+        ],
+        "by": [
+          "Education_Level"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "exposure",
+        "text": "Does AI exposure go with automation risk?",
+        "intent": "relationship",
+        "answeredBy": [
+          [
+            "AI_Exposure_Index",
+            "Automation_Probability_2030"
+          ]
+        ],
+        "suggest": true
+      }
+    ]
+  }
 }

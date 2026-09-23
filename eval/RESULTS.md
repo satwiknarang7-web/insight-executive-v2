@@ -269,3 +269,112 @@ makes possible and has not yet run:
 
     node eval/analysis-score.mjs     # the planner, as measured above
     # with a key configured, upload the same ten through the app
+
+---
+
+# Phase 0 baseline — question-first scorecard (2026-09-23)
+
+The first measurement for `docs/design/question-first-reports.md`. Nothing in
+the engine changed; this is the engine as it stands, scored in a way that can
+fail on the thing that actually goes wrong: a report that is arithmetically
+right and does not answer what its file is for.
+
+**How it is measured.** 29 files in `tests/corpus/`: the two that were there,
+nine of the ten shapes above, the app's four samples, two small repo files and
+twelve new tables, each built around a trap a real file has (a price only
+comparable within its buyer unit or currency, a weekly stock level, budget and
+actual in one column, one row carrying most of a measure's spread, a month of
+hourly data). Each `.expect.json` now carries a `report` section, written by
+hand: the table's grain, the ground truth about its measures, and 2–4
+questions a report on it must answer, stated as the columns an answer has to
+be built from. `eval/audit.mjs` checks rules I1–I10 against that truth, never
+against the engine's own reading of the table. `eval/fuzz.mjs` adds 40
+generated tables across eight trap archetypes, under column names drawn from
+several domains and from meaningless codes.
+
+    npm run eval:scorecard          # this table
+    node eval/scorecard.mjs <name>  # every verdict for one file
+    npm run eval:baseline           # accept the current result
+
+`tests/scorecard.test.mjs` runs it in `npm test` as a ratchet against
+`eval/scorecard.baseline.json`: fewer answers or more rule breaks fail, and so
+does an improvement that was not written into the baseline.
+
+## Result
+
+| | answered | files that break no rule | violations |
+|---|---|---|---|
+| corpus, no model | **19 / 77** | 14 / 29 | 53 |
+| corpus, with the recorded brief | 1 / 7 | 0 / 2 | 23 |
+| fuzz | — | 18 / 40 | 45 |
+
+| file | grain | path | answered | charts | I1 | I2 | I3 | I4 | I5 | I6 | I7 | I8 | I9 | I10 |  |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ai_jobs | observation | noModel | 0/3 | 2 | · | · | · | · | · | · | · | · | · | 1 |  |
+| ai_jobs | observation | withBrief | 1/3 | 2 | · | · | · | · | · | · | · | 1 | · | 1 |  |
+| ai_models_api_detail | entity | noModel | 0/3 | 8 | · | · | · | · | · | 2 | · | 2 | · | · |  |
+| ai_subscriptions | entity | noModel | 0/4 | 7 | 2 | 1 | 10 | · | 1 | 3 | · | 3 | · | 1 |  |
+| ai_subscriptions | entity | withBrief | 0/4 | 7 | 2 | 1 | 10 | · | 1 | 3 | · | 3 | · | 1 |  |
+| eval_01_event_log | event | noModel | 1/3 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_02_outcome | entity | noModel | 2/3 | 3 | · | · | · | · | · | · | · | 1 | · | · |  |
+| eval_03_long_panel | long | noModel | 0/2 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_05_survey | response | noModel | 0/2 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_06_sensor_stream | event | noModel | 0/3 | 2 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_07_refunds | event | noModel | 1/3 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_08_wide_sparse | event | noModel | 0/2 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_09_filthy | event | noModel | 0/2 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_10_two_columns | observation | noModel | 1/1 | 2 | · | · | · | · | · | · | · | 1 | · | · |  |
+| gen_ab_test | event | noModel | 0/3 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_budget_vs_actual | long | noModel | 0/2 | 5 | · | · | · | 7 | · | · | · | · | · | · |  |
+| gen_clinical_trial | entity | noModel | 0/3 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_energy_hourly | event | noModel | 1/3 | 4 | · | · | · | · | · | · | · | 1 | · | · |  |
+| gen_hr_attrition | entity | noModel | 2/4 | 4 | · | · | · | · | 1 | · | · | 1 | · | · |  |
+| gen_inventory_snapshots | entityPeriod | noModel | 0/2 | 5 | · | · | 4 | · | · | · | · | · | · | · |  |
+| gen_multi_currency_catalog | entity | noModel | 1/3 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_real_estate | entity | noModel | 0/2 | 2 | · | · | · | · | · | · | · | 1 | · | · |  |
+| gen_saas_pricing | entity | noModel | 0/2 | 5 | · | · | 3 | · | 1 | 1 | · | 1 | · | · |  |
+| gen_student_scores | entity | noModel | 1/2 | 2 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_support_tickets | event | noModel | 1/3 | 4 | · | · | · | · | · | · | · | · | · | 1 |  |
+| gen_web_daily | event | noModel | 0/3 | 4 | · | 1 | · | · | · | · | · | · | · | · |  |
+| repo_sales_data | event | noModel | 2/2 | 6 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_campaigns | event | noModel | 1/3 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_churn | entity | noModel | 2/3 | 5 | · | · | · | · | · | · | · | 1 | · | · |  |
+| sample_messy | event | noModel | 1/3 | 6 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_retail | event | noModel | 2/3 | 6 | · | 1 | · | · | · | · | · | · | · | · |  |
+
+## What it shows
+
+- **A quarter of the questions are answered on the path most people get.**
+  The deck is usually valid and usually beside the point. Even the shape the
+  engine was built for — an event log with money (`eval_01`) — answers 1 of 3:
+  it spends its slots on a revenue trend, a waterfall of the same series and a
+  distribution, and never charts revenue by region or by category. "Region Mix
+  Over Month" tracks the share of one region.
+- **Whole shapes get nothing.** No chart reads the value column of either long
+  table, any survey item, the sensor's temperature, or the outcome of the A/B
+  test and the trial (`converted`, `improved`, `adverse_event`) — outcomes whose
+  names are not on the English list `measureSemantics` recognises.
+- **The rule breaks cluster where the design said they would.** I3 (scope) on
+  every priced entity table; I4 on budget-vs-actual, where all five charts and
+  both KPIs add budget to actual; I8 in 12 files — the "average across N
+  groups" sentence is an unweighted mean of group values and disagrees with
+  the KPI beside it (churn: 23.2% against 23.9%). A weekly stock level is summed
+  per month and totalled in a KPI.
+- **The recorded brief barely moves anything.** With the brief a correct model
+  would return, `ai_subscriptions` runs the same seven queries — only a KPI
+  changes, to "Average Intelligence Index" — and `ai_jobs` gains one answer.
+  The model path is not yet where the leverage is.
+- **Fuzz**, tables breaking a rule out of five per archetype: scope 5, outlier
+  5, outcome 5, long 4, level 2, control 1 (an I8 average), resolution 0,
+  rate 0. Sub-monthly series are bucketed by day or hour correctly now; the
+  I9 defect recorded above is fixed.
+- Found in passing: the support-ticket deck titles a chart "Orders by Product
+  Area" — the lexicon naming a table it does not understand.
+
+## Also fixed
+
+`eval/datasets.mjs` copied the subscription file from an absolute path on
+another machine and wrote into a directory it never created, so it could not
+run from a fresh checkout. It now reads `tests/corpus/ai_subscriptions.csv`
+and creates `eval/data/`; CI regenerates the corpus and fails if the committed
+files differ from what the generators produce.

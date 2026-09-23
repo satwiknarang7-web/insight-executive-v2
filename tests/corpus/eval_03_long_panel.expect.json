@@ -1,0 +1,49 @@
+{
+  "note": [
+    "Four indicators in one value column: GDP in local currency beside life expectancy in years."
+  ],
+  "report": {
+    "grain": "long",
+    "time": "year",
+    "long": {
+      "value": "value",
+      "by": "indicator"
+    },
+    "questions": [
+      {
+        "id": "trend",
+        "text": "How has each indicator moved over the years?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "value"
+          ]
+        ],
+        "over": [
+          "year"
+        ],
+        "scope": [
+          "indicator"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-country",
+        "text": "How do countries compare on each indicator?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "value"
+          ]
+        ],
+        "by": [
+          "country"
+        ],
+        "scope": [
+          "indicator"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "note": [
+    "Attrition is driven by overtime and satisfaction, not department."
+  ],
+  "report": {
+    "grain": "entity",
+    "outcomes": [
+      "attrition"
+    ],
+    "questions": [
+      {
+        "id": "rate",
+        "text": "What share of employees left?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "attrition"
+          ]
+        ],
+        "kpi": "attrition",
+        "suggest": true
+      },
+      {
+        "id": "overtime",
+        "text": "Does overtime drive attrition?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "attrition"
+          ]
+        ],
+        "by": [
+          "overtime"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "department",
+        "text": "Which departments lose the most people?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "attrition"
+          ]
+        ],
+        "by": [
+          "department"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "pay",
+        "text": "How does pay rise with level?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "salary"
+          ]
+        ],
+        "by": [
+          "job_level"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "note": [
+    "One row per model offered over an API: prices per million tokens and benchmark scores.",
+    "All prices are USD per million tokens, so they compare across providers. The file",
+    "exists to choose a model: capability against price."
+  ],
+  "report": {
+    "grain": "entity",
+    "questions": [
+      {
+        "id": "value",
+        "text": "Which model gives the most intelligence for its price?",
+        "intent": "tradeoff",
+        "answeredBy": [
+          [
+            "intelligence_index",
+            "blended_usd_per_mtok_3to1"
+          ],
+          [
+            "intelligence_index",
+            "output_usd_per_mtok"
+          ],
+          [
+            "intelligence_index",
+            "input_usd_per_mtok"
+          ]
+        ],
+        "by": [
+          "model_name",
+          "model_id",
+          "provider"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "price-by-provider",
+        "text": "How do API prices compare across providers?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "blended_usd_per_mtok_3to1"
+          ],
+          [
+            "output_usd_per_mtok"
+          ],
+          [
+            "input_usd_per_mtok"
+          ]
+        ],
+        "by": [
+          "provider"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "open-vs-closed",
+        "text": "Do open-weight models trail closed ones on capability?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "intelligence_index"
+          ]
+        ],
+        "by": [
+          "open_weights"
+        ]
+      }
+    ]
+  }
+}

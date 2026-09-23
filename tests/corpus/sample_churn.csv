@@ -1,0 +1,901 @@
+customer_id,region,contract_type,plan_tier,monthly_charge,tenure_months,support_calls,satisfaction,churned
+C1000,East,Two year,Basic,29.1,46,0,2.4,No
+C1001,North,Month-to-month,Basic,31.89,17,8,2,Yes
+C1002,East,Month-to-month,Standard,62.47,4,4,3,Yes
+C1003,East,Two year,Basic,29.29,44,1,2.4,No
+C1004,West,Two year,Premium,104.3,59,2,2,No
+C1005,North,One year,Premium,88.6,23,3,4.6,No
+C1006,West,Month-to-month,Premium,89.04,23,5,2.9,No
+C1007,West,Month-to-month,Basic,34.25,13,2,1.1,Yes
+C1008,South,Two year,Basic,32.37,22,3,4.3,No
+C1009,North,Two year,Premium,104.68,26,2,2.6,No
+C1010,North,Month-to-month,Enterprise,137.71,4,1,4.1,No
+C1011,East,Month-to-month,Basic,36.15,16,6,1.6,Yes
+C1012,West,Month-to-month,Premium,87.96,16,3,3.3,No
+C1013,South,Two year,Premium,97.78,31,2,2.2,No
+C1014,East,Two year,Premium,97.35,40,3,3.9,No
+C1015,East,Month-to-month,Standard,62.28,6,4,4.4,Yes
+C1016,South,Two year,Standard,62.48,49,1,3.9,No
+C1017,South,One year,Enterprise,163.21,8,3,3.3,No
+C1018,East,Two year,Basic,33.49,37,3,3.1,No
+C1019,West,Two year,Basic,34.83,13,0,1,No
+C1020,East,Month-to-month,Standard,62.2,10,1,2.7,Yes
+C1021,East,Month-to-month,Standard,65.1,24,7,4.2,No
+C1022,West,One year,Premium,100.27,11,3,1.8,No
+C1023,East,One year,Standard,56.74,9,1,1.9,No
+C1024,East,Month-to-month,Enterprise,159.81,16,1,4.6,Yes
+C1025,South,Month-to-month,Premium,94.28,24,5,3.9,No
+C1026,South,Month-to-month,Enterprise,169.1,16,0,3.3,No
+C1027,North,One year,Premium,103.76,19,1,3.9,No
+C1028,North,Two year,Premium,82.97,58,3,2.3,No
+C1029,South,One year,Basic,31.26,35,1,1.4,No
+C1030,East,Month-to-month,Premium,85.1,15,7,3.8,No
+C1031,West,Two year,Premium,88.03,33,0,2.6,No
+C1032,East,One year,Premium,90.29,23,4,4.4,No
+C1033,North,One year,Premium,90.33,22,2,4,No
+C1034,East,Two year,Basic,33.32,38,3,3.5,No
+C1035,West,Two year,Basic,36.36,45,2,2.8,No
+C1036,South,Two year,Basic,32.62,38,3,2.2,No
+C1037,South,Month-to-month,Standard,58.54,15,7,3,Yes
+C1038,North,Two year,Premium,98.14,19,1,3.9,No
+C1039,West,Month-to-month,Basic,36.69,16,6,2.9,No
+C1040,East,One year,Basic,35.1,22,3,1.5,No
+C1041,West,One year,Standard,57.25,13,4,4.8,No
+C1042,West,Month-to-month,Enterprise,147.56,4,3,1.3,Yes
+C1043,North,Two year,Standard,58.87,47,1,4.1,No
+C1044,East,Two year,Standard,63.6,12,2,2.6,No
+C1045,North,Two year,Standard,63.05,38,1,2.4,No
+C1046,East,Month-to-month,Enterprise,137,19,5,2.1,No
+C1047,North,Month-to-month,Standard,55.17,13,4,2.8,No
+C1048,South,Month-to-month,Basic,34.9,4,1,1.6,Yes
+C1049,East,Two year,Basic,32.36,18,0,3.7,No
+C1050,North,Two year,Enterprise,153.08,59,1,3.3,No
+C1051,South,Month-to-month,Enterprise,139.09,8,6,3.9,Yes
+C1052,West,One year,Standard,66.37,27,2,2.8,No
+C1053,North,One year,Enterprise,138.65,10,3,4,No
+C1054,West,Month-to-month,Basic,32.74,21,5,4.4,No
+C1055,North,Month-to-month,Premium,91.91,19,2,3.4,No
+C1056,South,Month-to-month,Premium,96.94,14,6,4.5,No
+C1057,East,Two year,Premium,94.27,16,3,1.6,No
+C1058,North,One year,Basic,29.06,9,1,1.4,Yes
+C1059,North,One year,Basic,31.74,30,4,3.2,No
+C1060,North,Two year,Enterprise,137.44,39,0,4.5,No
+C1061,East,One year,Basic,36.5,15,3,3.6,No
+C1062,East,One year,Standard,65.78,12,1,4.8,No
+C1063,North,Month-to-month,Basic,30.38,5,2,1.6,No
+C1064,West,Month-to-month,Basic,34.01,19,1,2.4,No
+C1065,West,One year,Enterprise,140.16,18,1,4.6,No
+C1066,South,Two year,Premium,99.83,31,3,1.7,Yes
+C1067,West,Two year,Enterprise,168.37,43,1,2.4,No
+C1068,West,Month-to-month,Premium,88.07,8,2,1.3,Yes
+C1069,South,One year,Basic,30.21,15,3,4.5,No
+C1070,North,One year,Enterprise,140.17,30,3,1.7,No
+C1071,South,One year,Basic,30.27,32,1,1.5,No
+C1072,West,Month-to-month,Basic,32.18,6,6,2.4,No
+C1073,West,Two year,Basic,29.72,14,3,1.1,Yes
+C1074,South,Two year,Standard,57.52,42,0,2,No
+C1075,North,Two year,Standard,60.87,35,3,2.4,No
+C1076,East,One year,Enterprise,154.18,8,0,3.7,No
+C1077,East,Two year,Basic,36.32,23,1,3.5,No
+C1078,West,One year,Standard,61.54,30,1,1.8,No
+C1079,West,Two year,Standard,57.49,37,1,2.5,No
+C1080,East,Month-to-month,Premium,101.38,11,3,4,Yes
+C1081,East,Two year,Premium,100.6,35,2,4.2,No
+C1082,East,Two year,Enterprise,133.3,19,0,3.4,No
+C1083,East,Month-to-month,Standard,54.3,15,3,3.9,Yes
+C1084,North,Month-to-month,Premium,94.69,19,9,2.1,Yes
+C1085,East,Month-to-month,Premium,83.33,22,4,4.8,No
+C1086,North,Two year,Standard,57.93,34,3,1.3,No
+C1087,South,Month-to-month,Standard,56.38,9,4,4.2,Yes
+C1088,South,Month-to-month,Basic,32.56,10,2,1.1,Yes
+C1089,East,Month-to-month,Enterprise,149.55,10,7,1.7,Yes
+C1090,East,One year,Premium,92.89,29,0,2.6,No
+C1091,South,Month-to-month,Premium,86.07,18,8,3.3,Yes
+C1092,West,One year,Enterprise,165.85,23,3,3.7,No
+C1093,East,One year,Premium,84.15,12,3,1.4,No
+C1094,West,One year,Standard,65.17,16,4,1.7,No
+C1095,North,Two year,Premium,101.75,31,0,2.5,No
+C1096,West,Month-to-month,Enterprise,158.41,14,6,2.1,No
+C1097,South,Two year,Basic,34.67,26,3,1.3,No
+C1098,West,One year,Premium,85.55,26,2,2,No
+C1099,West,Month-to-month,Enterprise,145.25,18,7,2.9,No
+C1100,East,Month-to-month,Basic,32.19,19,0,4,No
+C1101,South,Month-to-month,Premium,84.57,9,4,2,Yes
+C1102,North,Month-to-month,Enterprise,164,4,5,2.8,No
+C1103,East,Two year,Basic,35.07,14,4,3.1,No
+C1104,West,Month-to-month,Enterprise,142.2,7,4,4.8,Yes
+C1105,West,Month-to-month,Basic,33.43,14,8,3.6,Yes
+C1106,West,Two year,Basic,29.33,40,1,1.5,No
+C1107,North,Two year,Enterprise,152.47,32,1,1.7,No
+C1108,East,Two year,Premium,102.07,53,0,1.4,No
+C1109,West,Month-to-month,Basic,30.72,13,4,2.7,No
+C1110,East,Two year,Enterprise,144.52,26,1,3.9,No
+C1111,West,Two year,Enterprise,146.31,38,0,1.9,No
+C1112,West,One year,Premium,96.79,18,0,4.7,No
+C1113,East,Month-to-month,Premium,82.92,19,3,4.8,No
+C1114,West,Two year,Enterprise,135.84,14,1,4.4,No
+C1115,East,Month-to-month,Basic,36.67,5,4,2.8,Yes
+C1116,East,One year,Basic,31.26,28,3,4.5,No
+C1117,West,Month-to-month,Premium,84.76,17,3,1.1,No
+C1118,East,Two year,Basic,33.67,13,3,4.1,No
+C1119,South,One year,Standard,63.9,35,2,4.5,Yes
+C1120,North,One year,Basic,30.86,14,3,1,Yes
+C1121,West,Two year,Enterprise,159.45,51,0,1.6,No
+C1122,West,Two year,Enterprise,152.44,34,3,4.4,No
+C1123,North,One year,Basic,32.57,36,4,4.3,No
+C1124,East,One year,Enterprise,169.01,21,3,2.3,Yes
+C1125,West,Month-to-month,Standard,65.48,16,3,3.2,Yes
+C1126,East,One year,Basic,36.53,8,0,4.6,No
+C1127,South,Two year,Premium,88.11,19,0,2.9,No
+C1128,South,One year,Premium,85.56,11,3,1.7,Yes
+C1129,North,Two year,Basic,35.88,52,0,1.6,No
+C1130,West,Month-to-month,Enterprise,159.42,18,0,3,No
+C1131,West,Month-to-month,Standard,55.72,14,0,2.2,No
+C1132,South,Two year,Premium,83.31,44,3,3.1,No
+C1133,South,One year,Enterprise,158.31,22,3,3.1,No
+C1134,East,Month-to-month,Enterprise,166.89,21,7,2.7,Yes
+C1135,East,Two year,Standard,61.19,57,2,2.4,No
+C1136,North,Two year,Premium,88.92,27,4,4.8,No
+C1137,South,Month-to-month,Premium,87.92,21,2,4.3,Yes
+C1138,East,Month-to-month,Basic,36.62,5,9,4,Yes
+C1139,East,Month-to-month,Premium,84.84,22,7,4.2,Yes
+C1140,South,Month-to-month,Premium,88.8,4,0,4.7,Yes
+C1141,East,Two year,Premium,104.16,38,3,4.1,No
+C1142,South,Two year,Premium,99.82,53,4,5,No
+C1143,East,Month-to-month,Basic,35.96,9,4,2.7,No
+C1144,North,One year,Basic,36.01,21,0,3.7,No
+C1145,West,One year,Premium,102.94,26,2,2.2,No
+C1146,South,Month-to-month,Enterprise,140.78,14,3,2.6,No
+C1147,South,Month-to-month,Premium,94.95,10,5,3.8,Yes
+C1148,North,Two year,Basic,30.06,58,1,2.7,No
+C1149,South,Two year,Basic,34.43,15,3,1.4,No
+C1150,South,Two year,Basic,33.27,13,1,4,No
+C1151,South,One year,Basic,36.28,14,2,3.9,No
+C1152,East,One year,Premium,94.29,10,3,3.2,Yes
+C1153,North,Month-to-month,Premium,99.26,20,7,3.2,Yes
+C1154,South,Two year,Enterprise,150.83,21,2,1.9,No
+C1155,East,Month-to-month,Basic,29.65,23,4,3.6,No
+C1156,East,Two year,Premium,87.59,60,1,3.6,No
+C1157,East,Month-to-month,Standard,61.62,24,5,2.7,Yes
+C1158,North,One year,Enterprise,155.51,22,3,2.7,No
+C1159,West,One year,Enterprise,164.98,32,1,3,No
+C1160,West,Month-to-month,Premium,95.95,9,8,2.6,Yes
+C1161,North,Month-to-month,Standard,56.22,12,6,2.9,No
+C1162,West,Month-to-month,Premium,84.87,10,5,2.9,No
+C1163,West,Month-to-month,Premium,88.37,8,2,2.5,No
+C1164,North,Month-to-month,Enterprise,141.48,21,7,3.6,Yes
+C1165,West,Month-to-month,Basic,31.36,4,1,2.7,No
+C1166,South,One year,Standard,63.84,22,3,1.1,No
+C1167,North,Month-to-month,Premium,93.92,2,0,4,Yes
+C1168,West,Month-to-month,Basic,30.21,13,8,1.7,No
+C1169,North,Two year,Basic,35.5,51,2,1.1,No
+C1170,South,Month-to-month,Enterprise,164.88,25,3,2.8,No
+C1171,North,Two year,Standard,60.37,20,3,2.2,No
+C1172,South,Month-to-month,Basic,36.41,4,2,4.9,No
+C1173,East,One year,Basic,31.81,10,3,2.4,No
+C1174,West,Two year,Standard,62.63,46,2,1.3,No
+C1175,West,Month-to-month,Enterprise,146.99,1,0,2.8,No
+C1176,West,Two year,Standard,54.21,35,3,4.4,No
+C1177,South,One year,Basic,32.01,7,2,4.3,No
+C1178,North,One year,Premium,98.43,9,3,1.8,No
+C1179,North,Two year,Standard,61.01,58,0,1.2,No
+C1180,South,Two year,Premium,87.89,37,2,2.1,No
+C1181,South,Two year,Standard,64.99,25,2,4,No
+C1182,North,Two year,Premium,86.59,40,3,3.2,No
+C1183,West,Two year,Premium,85.33,47,3,3.7,No
+C1184,East,Month-to-month,Premium,87.87,10,7,4.6,Yes
+C1185,East,Month-to-month,Enterprise,138.74,23,0,2.1,No
+C1186,South,Month-to-month,Standard,52.81,11,8,2.2,No
+C1187,West,Two year,Enterprise,147.32,51,1,4.7,No
+C1188,South,One year,Standard,59.56,23,1,3.1,No
+C1189,West,Month-to-month,Basic,31.34,20,8,1.7,Yes
+C1190,East,Month-to-month,Standard,64.61,22,2,1.1,No
+C1191,South,Month-to-month,Basic,33.71,15,9,2.4,Yes
+C1192,East,Month-to-month,Premium,102.04,13,2,3.9,Yes
+C1193,North,Month-to-month,Basic,32.42,17,6,2.8,Yes
+C1194,West,Month-to-month,Enterprise,149.3,6,6,4.8,Yes
+C1195,North,One year,Premium,102.33,27,1,4,No
+C1196,North,One year,Standard,56.75,34,2,3.8,No
+C1197,East,Two year,Standard,64.73,18,2,3.9,Yes
+C1198,East,One year,Premium,98.41,25,3,5,Yes
+C1199,West,Two year,Enterprise,167.1,57,2,3.8,No
+C1200,East,Month-to-month,Standard,58.25,2,1,2.7,Yes
+C1201,West,Month-to-month,Premium,105.47,21,1,1.6,Yes
+C1202,North,One year,Enterprise,144.29,23,1,4.1,No
+C1203,North,One year,Standard,65.27,31,1,2.5,No
+C1204,North,One year,Basic,30.14,19,4,4.7,Yes
+C1205,North,Two year,Basic,36.05,31,4,4.7,No
+C1206,West,Month-to-month,Standard,60.06,13,5,3.8,Yes
+C1207,South,Month-to-month,Premium,87.98,10,1,4.1,No
+C1208,South,One year,Basic,35.98,31,0,1.2,No
+C1209,North,One year,Standard,63.58,10,0,2.8,No
+C1210,North,One year,Enterprise,145.51,10,3,4.8,No
+C1211,West,One year,Enterprise,134.84,31,2,3.3,No
+C1212,North,Two year,Premium,87.69,57,1,3.5,No
+C1213,East,One year,Basic,32.99,15,3,3.7,No
+C1214,East,Month-to-month,Basic,32.02,3,7,3.7,No
+C1215,West,Month-to-month,Enterprise,146.5,16,1,4.6,No
+C1216,East,Month-to-month,Premium,90.82,14,8,3.7,Yes
+C1217,West,One year,Basic,32.06,18,4,4.5,Yes
+C1218,South,One year,Enterprise,136.82,18,2,1.3,Yes
+C1219,East,Two year,Standard,62.99,38,1,1.6,No
+C1220,West,Month-to-month,Enterprise,145.13,21,1,3.3,Yes
+C1221,North,Month-to-month,Premium,99.03,10,4,4.4,No
+C1222,East,Month-to-month,Standard,62.61,16,4,3.3,No
+C1223,North,Month-to-month,Basic,35.37,20,8,4.6,Yes
+C1224,West,Month-to-month,Enterprise,139.57,2,3,1.1,No
+C1225,South,One year,Standard,65.62,25,2,3.5,No
+C1226,North,Month-to-month,Enterprise,170.08,22,3,3.9,No
+C1227,North,Two year,Basic,34.98,19,2,3.5,Yes
+C1228,South,Two year,Basic,36.68,45,2,3.4,No
+C1229,North,Month-to-month,Enterprise,149.71,11,4,3.2,Yes
+C1230,East,Two year,Premium,94.17,59,1,2,No
+C1231,North,One year,Premium,90.42,16,2,3.1,No
+C1232,North,One year,Basic,30.16,19,3,2.9,Yes
+C1233,West,One year,Standard,65.12,13,2,2.4,No
+C1234,South,Two year,Standard,55.59,29,3,2,No
+C1235,West,Two year,Basic,30.13,17,1,4.1,No
+C1236,North,Month-to-month,Standard,56.87,13,1,3,Yes
+C1237,South,Month-to-month,Premium,88.48,22,5,2.5,No
+C1238,East,Month-to-month,Enterprise,146.87,23,8,3.4,Yes
+C1239,West,Month-to-month,Premium,91.77,15,8,4.1,Yes
+C1240,South,One year,Enterprise,134.53,13,3,3.6,No
+C1241,South,Two year,Enterprise,151.89,53,1,2.8,No
+C1242,West,Month-to-month,Standard,54.67,14,3,1.8,No
+C1243,North,Two year,Enterprise,150.49,30,4,1.1,No
+C1244,North,One year,Premium,99.21,31,3,1.6,No
+C1245,South,One year,Enterprise,169.14,29,1,2.9,No
+C1246,North,Two year,Enterprise,141.43,47,1,2.3,No
+C1247,West,Month-to-month,Basic,32.93,21,2,2.3,Yes
+C1248,North,One year,Standard,53.92,7,3,3.2,Yes
+C1249,South,Two year,Standard,57.01,37,0,2.8,No
+C1250,North,Two year,Basic,34.74,49,2,3.1,No
+C1251,South,One year,Premium,84.9,33,0,2.2,No
+C1252,North,One year,Enterprise,167.38,15,2,1.7,No
+C1253,West,One year,Standard,53.41,6,4,4.6,No
+C1254,South,Month-to-month,Basic,31.4,20,7,1.7,No
+C1255,West,Two year,Enterprise,154.77,34,1,4.9,No
+C1256,East,Two year,Enterprise,134.6,29,0,4.5,No
+C1257,North,Two year,Enterprise,156.38,51,3,3.6,No
+C1258,West,Month-to-month,Standard,53.32,19,4,1.8,Yes
+C1259,South,Two year,Standard,56.36,43,4,1.7,No
+C1260,East,Month-to-month,Enterprise,151.42,23,9,3.8,No
+C1261,North,Month-to-month,Premium,102.91,9,3,3,Yes
+C1262,East,Two year,Enterprise,133.64,53,0,1.3,No
+C1263,East,One year,Standard,61.6,26,3,1.7,No
+C1264,West,Month-to-month,Standard,63.59,16,6,3.3,No
+C1265,West,Month-to-month,Basic,33.76,22,7,3.4,No
+C1266,North,Two year,Basic,31.7,58,4,1.9,No
+C1267,West,Month-to-month,Basic,30.07,22,3,1.7,No
+C1268,North,Month-to-month,Enterprise,135.91,2,2,2.6,No
+C1269,West,One year,Premium,102.21,19,2,4.9,Yes
+C1270,West,One year,Premium,98.91,19,0,1.3,No
+C1271,East,Month-to-month,Premium,88.33,21,1,1.9,Yes
+C1272,South,One year,Enterprise,168.1,20,2,4.4,No
+C1273,North,One year,Premium,96.05,36,2,2.4,No
+C1274,West,Two year,Premium,87.33,26,2,4.3,No
+C1275,West,Two year,Premium,87.63,55,3,2.3,No
+C1276,North,One year,Standard,64.02,15,4,4.4,No
+C1277,East,One year,Enterprise,164.26,11,2,2.1,No
+C1278,South,Two year,Enterprise,139.1,54,0,2.7,No
+C1279,North,Month-to-month,Standard,54.66,13,3,2.8,No
+C1280,South,One year,Enterprise,157.33,30,3,2,No
+C1281,South,Month-to-month,Premium,90.7,20,3,2.7,No
+C1282,East,Month-to-month,Basic,34.25,5,6,4.4,No
+C1283,West,One year,Enterprise,154.07,36,3,1.7,No
+C1284,West,Two year,Standard,57.53,31,3,3.4,No
+C1285,West,Two year,Enterprise,162.99,59,1,4.6,No
+C1286,South,Month-to-month,Premium,83.26,25,5,2.9,Yes
+C1287,South,Month-to-month,Basic,30.07,22,2,1.5,No
+C1288,North,One year,Premium,96.49,14,1,4.2,No
+C1289,North,Month-to-month,Basic,36.19,22,1,3.7,No
+C1290,South,Month-to-month,Premium,99,10,2,4.1,Yes
+C1291,South,Month-to-month,Basic,29.84,9,1,2.6,Yes
+C1292,East,One year,Standard,52.71,33,3,3.5,No
+C1293,South,Two year,Premium,99.9,17,2,1.7,No
+C1294,West,One year,Standard,61.76,26,0,3.9,No
+C1295,South,One year,Standard,52.3,34,0,3.4,No
+C1296,East,Two year,Basic,32.64,34,3,2.4,Yes
+C1297,North,Two year,Enterprise,141.89,18,1,1,No
+C1298,North,Month-to-month,Enterprise,166.48,23,8,2.7,Yes
+C1299,West,One year,Basic,33.5,20,4,2.3,No
+C1300,South,Month-to-month,Standard,60.48,7,0,1.1,No
+C1301,South,Month-to-month,Standard,65.4,13,6,3.9,No
+C1302,South,One year,Basic,30.56,13,4,2.5,No
+C1303,South,One year,Standard,62.68,16,2,3.3,No
+C1304,West,Two year,Standard,56.8,57,4,3.2,No
+C1305,North,Month-to-month,Standard,57.99,18,1,3.8,No
+C1306,South,One year,Basic,31.07,21,3,2.9,No
+C1307,West,Month-to-month,Basic,32.64,2,5,3.2,Yes
+C1308,South,Two year,Enterprise,134.73,50,1,3.5,No
+C1309,South,Two year,Premium,91.46,25,1,3.4,No
+C1310,East,One year,Premium,102.91,22,2,3.1,No
+C1311,North,Month-to-month,Enterprise,147.75,17,2,1.9,Yes
+C1312,East,Two year,Enterprise,161.18,27,0,2.9,No
+C1313,East,One year,Basic,34.51,11,1,1.3,No
+C1314,East,Two year,Enterprise,163.74,31,1,2.7,No
+C1315,South,One year,Enterprise,163.05,32,4,2.1,No
+C1316,South,Two year,Standard,65.3,41,3,3.2,No
+C1317,South,Two year,Basic,32.57,53,0,1.5,No
+C1318,West,Month-to-month,Premium,87.54,9,5,1.8,Yes
+C1319,South,Two year,Basic,33.18,31,2,1.6,No
+C1320,West,Two year,Basic,30.24,37,3,1.1,No
+C1321,West,One year,Enterprise,159.66,36,1,3.6,No
+C1322,East,Month-to-month,Premium,102.19,3,1,4.4,No
+C1323,South,One year,Basic,33.21,25,3,4.3,No
+C1324,South,Month-to-month,Standard,60.81,20,4,3.4,Yes
+C1325,East,One year,Enterprise,138.61,17,1,5,No
+C1326,East,One year,Basic,36.61,33,4,1.7,No
+C1327,East,One year,Premium,104.45,20,2,4.2,No
+C1328,West,Month-to-month,Standard,65.16,25,1,2.2,Yes
+C1329,West,One year,Basic,32.54,31,1,2.7,No
+C1330,East,Month-to-month,Enterprise,143.85,1,7,3.5,Yes
+C1331,North,Month-to-month,Premium,91.48,3,7,2.8,Yes
+C1332,North,Month-to-month,Basic,31,1,3,4.8,No
+C1333,South,One year,Basic,31.16,8,4,3.2,Yes
+C1334,East,One year,Premium,86.66,28,1,1.2,No
+C1335,West,Month-to-month,Enterprise,158.87,16,3,4.5,No
+C1336,East,Month-to-month,Premium,98.45,5,4,2.4,Yes
+C1337,South,One year,Basic,36.73,16,3,2.2,No
+C1338,North,One year,Enterprise,159.98,8,4,4.8,No
+C1339,North,Two year,Basic,31.54,30,3,1.3,No
+C1340,North,Month-to-month,Enterprise,168.75,14,2,4.5,No
+C1341,East,Two year,Enterprise,166.79,13,2,3.5,No
+C1342,North,Two year,Premium,93.81,38,3,4.5,No
+C1343,West,One year,Premium,100.53,32,4,3.9,No
+C1344,East,Month-to-month,Basic,32.77,3,2,3.5,Yes
+C1345,North,Month-to-month,Standard,65.51,15,3,3.6,Yes
+C1346,North,One year,Premium,101.03,7,0,2.3,No
+C1347,East,One year,Standard,52.42,20,3,2.3,No
+C1348,South,Month-to-month,Enterprise,156.76,5,4,1.8,No
+C1349,East,Month-to-month,Enterprise,146.67,10,1,3.7,No
+C1350,East,Two year,Enterprise,159.92,44,2,2.6,No
+C1351,West,Month-to-month,Enterprise,163,7,8,4.9,Yes
+C1352,North,One year,Standard,65.34,9,4,4.2,No
+C1353,West,One year,Premium,97.72,12,4,4.9,Yes
+C1354,East,One year,Basic,36.13,28,2,1.1,No
+C1355,West,Month-to-month,Enterprise,146.06,12,7,3.8,No
+C1356,North,Two year,Basic,36.23,29,1,2,No
+C1357,East,Two year,Standard,64.93,58,1,1.9,No
+C1358,North,One year,Basic,31.93,17,4,2,No
+C1359,East,One year,Basic,34.53,8,0,4.7,No
+C1360,East,Two year,Enterprise,159.64,17,0,2.3,No
+C1361,North,Month-to-month,Basic,32.5,19,0,4.8,No
+C1362,South,Two year,Basic,30.43,53,2,1.5,No
+C1363,East,Month-to-month,Enterprise,161.9,5,2,1.3,Yes
+C1364,South,Two year,Enterprise,154,41,1,2.2,No
+C1365,East,One year,Premium,89.67,7,1,1.8,No
+C1366,North,Two year,Enterprise,133.94,23,1,4.2,No
+C1367,West,Two year,Enterprise,141.62,54,4,2.7,No
+C1368,West,Month-to-month,Basic,28.8,11,4,2.1,Yes
+C1369,East,Two year,Standard,56.47,35,4,2.5,No
+C1370,East,Two year,Standard,60.5,24,3,2.5,No
+C1371,East,One year,Basic,30.23,28,0,2.9,No
+C1372,North,One year,Enterprise,144.63,19,3,5,No
+C1373,East,Month-to-month,Enterprise,155.92,16,6,4.5,Yes
+C1374,North,Month-to-month,Basic,33.46,17,4,4.9,No
+C1375,West,One year,Premium,88.7,8,2,3.4,No
+C1376,East,One year,Enterprise,142.12,28,2,1.9,Yes
+C1377,East,One year,Standard,60.89,35,4,3.2,No
+C1378,West,Two year,Enterprise,137.77,37,2,1.8,No
+C1379,South,Two year,Basic,30.06,23,3,3.6,No
+C1380,South,Month-to-month,Basic,29.35,23,3,4.7,Yes
+C1381,South,Two year,Standard,62.85,13,1,3.9,No
+C1382,East,Two year,Premium,100.75,35,4,1,No
+C1383,West,Month-to-month,Standard,55.13,23,3,4.4,No
+C1384,South,Month-to-month,Enterprise,151.25,4,2,2.5,No
+C1385,North,Month-to-month,Enterprise,164.53,18,6,1.2,Yes
+C1386,East,Month-to-month,Enterprise,144.3,8,3,4.7,No
+C1387,West,One year,Premium,95.22,8,3,2,No
+C1388,South,Month-to-month,Basic,34.15,14,0,1.9,Yes
+C1389,East,One year,Enterprise,166.68,25,2,1.6,No
+C1390,South,Two year,Enterprise,136.94,21,3,2.1,No
+C1391,West,Month-to-month,Enterprise,150.98,11,4,5,Yes
+C1392,West,One year,Standard,60.49,15,3,2.2,Yes
+C1393,North,Month-to-month,Basic,29.11,9,1,1.5,Yes
+C1394,North,One year,Basic,29.68,36,2,2.9,No
+C1395,North,Two year,Enterprise,144.89,39,2,1.1,No
+C1396,North,One year,Basic,33.63,36,4,1.6,No
+C1397,West,Month-to-month,Premium,84.24,24,8,3.3,Yes
+C1398,East,One year,Basic,29.85,11,1,4.3,No
+C1399,South,One year,Enterprise,167.55,30,3,2.6,No
+C1400,South,Two year,Basic,33.89,54,2,3.2,No
+C1401,North,Month-to-month,Basic,31.52,10,7,3.1,No
+C1402,East,One year,Premium,95.97,21,1,3.7,Yes
+C1403,North,Month-to-month,Basic,31.9,6,3,3.9,Yes
+C1404,North,Two year,Basic,34.21,27,1,2.9,No
+C1405,North,One year,Standard,56.74,29,2,2,No
+C1406,North,Month-to-month,Basic,34.09,17,7,3.2,No
+C1407,South,Month-to-month,Basic,31.94,7,1,4.9,Yes
+C1408,North,One year,Enterprise,134.35,15,1,2,No
+C1409,North,Month-to-month,Standard,59.06,16,1,4.5,No
+C1410,West,One year,Basic,36.01,7,2,1.6,No
+C1411,North,One year,Premium,95.02,8,1,1.8,No
+C1412,West,Month-to-month,Basic,31.05,1,1,2.3,Yes
+C1413,East,One year,Enterprise,159.06,24,3,3.6,No
+C1414,North,Month-to-month,Premium,94.25,13,6,2.1,Yes
+C1415,North,Month-to-month,Standard,59.24,15,7,1.4,Yes
+C1416,West,One year,Basic,32.15,23,3,4.6,Yes
+C1417,South,One year,Basic,29.04,22,1,3.9,No
+C1418,North,Month-to-month,Enterprise,157.55,8,1,4.3,No
+C1419,North,Month-to-month,Enterprise,134.73,11,1,2.2,No
+C1420,West,One year,Basic,34.05,27,1,3.7,No
+C1421,North,One year,Premium,90.51,11,1,1.8,Yes
+C1422,West,One year,Standard,52.93,31,2,3,No
+C1423,East,Two year,Standard,64.52,60,2,4.6,No
+C1424,North,Two year,Enterprise,161.01,58,2,4.5,No
+C1425,West,One year,Premium,93.02,29,2,1.5,No
+C1426,West,One year,Enterprise,146.66,19,1,2.7,No
+C1427,South,One year,Enterprise,148.09,8,1,1.8,No
+C1428,West,Month-to-month,Standard,52.6,9,4,2.2,No
+C1429,East,Two year,Enterprise,160.82,29,1,4.5,No
+C1430,North,Two year,Basic,36.8,19,3,1.7,Yes
+C1431,East,Month-to-month,Basic,34.5,9,3,2.2,Yes
+C1432,South,Month-to-month,Enterprise,138.37,7,0,1.5,No
+C1433,North,Month-to-month,Premium,103.93,13,9,4.7,Yes
+C1434,North,One year,Standard,60.19,17,2,2.6,No
+C1435,North,One year,Enterprise,165.79,35,3,4.1,Yes
+C1436,East,One year,Basic,35.76,27,1,4.5,Yes
+C1437,East,Month-to-month,Standard,55.74,11,2,1.7,No
+C1438,South,One year,Standard,62.58,15,4,4.4,Yes
+C1439,West,Two year,Standard,62.31,21,1,2.5,No
+C1440,North,Month-to-month,Premium,101.27,20,5,3.1,No
+C1441,North,One year,Enterprise,152.18,30,2,2.7,No
+C1442,North,Two year,Enterprise,136.78,30,1,5,No
+C1443,East,One year,Premium,90.52,32,0,1.7,No
+C1444,East,Two year,Basic,32.01,43,3,1.7,No
+C1445,North,Month-to-month,Enterprise,134.7,7,1,3.5,No
+C1446,West,Two year,Enterprise,157.08,23,2,2.1,No
+C1447,North,Two year,Standard,53.12,57,3,2,No
+C1448,South,Month-to-month,Standard,57.92,22,7,3.3,No
+C1449,North,One year,Enterprise,159.47,7,4,2.2,Yes
+C1450,North,Month-to-month,Premium,94.55,10,0,3.6,Yes
+C1451,West,One year,Enterprise,170.13,27,3,4.4,No
+C1452,South,Two year,Standard,54.8,55,3,2.9,No
+C1453,South,Month-to-month,Enterprise,139.55,11,0,4.9,Yes
+C1454,South,Two year,Standard,64.07,57,0,1.6,No
+C1455,East,One year,Enterprise,155.01,25,1,1.5,No
+C1456,West,Month-to-month,Standard,61.72,23,8,1.8,Yes
+C1457,East,Two year,Premium,102.21,20,4,1.7,No
+C1458,West,One year,Premium,86.04,16,3,3.5,No
+C1459,South,Two year,Basic,36.04,16,2,1.6,No
+C1460,North,Month-to-month,Premium,101.49,11,8,2.9,No
+C1461,East,Two year,Basic,31.38,24,4,5,No
+C1462,South,Month-to-month,Premium,91.1,23,3,4.7,No
+C1463,South,Two year,Premium,99.54,49,4,2.1,No
+C1464,East,Two year,Standard,61.04,36,4,3.4,No
+C1465,East,Two year,Premium,92.83,48,3,3.3,No
+C1466,North,One year,Enterprise,143.21,9,1,4.7,No
+C1467,East,Two year,Enterprise,154.4,56,0,1.4,No
+C1468,East,One year,Standard,65.07,25,2,3.2,No
+C1469,East,One year,Premium,100.58,15,0,4.4,No
+C1470,North,Two year,Basic,35.25,52,4,1.6,No
+C1471,West,One year,Basic,31.1,7,2,4.6,No
+C1472,West,One year,Enterprise,163.66,20,2,4.5,No
+C1473,East,One year,Standard,54.45,26,0,1.4,No
+C1474,West,One year,Standard,58.74,8,3,4.6,No
+C1475,East,Two year,Basic,31.87,33,3,4.3,No
+C1476,East,One year,Premium,83.06,33,3,2.4,No
+C1477,East,Two year,Basic,33.2,20,1,1.9,No
+C1478,North,One year,Enterprise,146.81,6,2,3,No
+C1479,North,Month-to-month,Basic,30.78,14,2,3.2,No
+C1480,East,Month-to-month,Standard,53.8,16,2,1.1,No
+C1481,West,Month-to-month,Basic,31.57,19,7,3.2,Yes
+C1482,South,One year,Premium,92.03,15,2,2,No
+C1483,North,Two year,Basic,34.5,37,1,3.5,No
+C1484,West,One year,Enterprise,139.12,19,2,4.2,No
+C1485,South,Month-to-month,Enterprise,155.78,18,2,4.7,No
+C1486,North,One year,Standard,54.13,26,1,1.7,No
+C1487,South,Month-to-month,Standard,65.81,6,6,1.9,No
+C1488,West,Month-to-month,Enterprise,142.34,9,1,4,No
+C1489,North,Month-to-month,Standard,60.25,1,2,4.9,No
+C1490,North,Two year,Enterprise,141.05,29,0,3.1,No
+C1491,East,One year,Standard,53.37,11,2,4.8,No
+C1492,South,Month-to-month,Basic,31.9,11,9,1.8,Yes
+C1493,West,Month-to-month,Standard,54.35,5,3,2.3,Yes
+C1494,North,Two year,Enterprise,165.3,59,2,2.8,No
+C1495,South,Two year,Enterprise,141.12,57,3,4.8,No
+C1496,South,One year,Enterprise,153.91,15,3,1.3,Yes
+C1497,East,Month-to-month,Standard,62.36,19,0,2.4,No
+C1498,North,One year,Basic,33.24,35,1,1.5,No
+C1499,West,Two year,Basic,31.4,30,3,1.1,No
+C1500,West,Two year,Basic,34.46,28,0,2.5,No
+C1501,East,One year,Standard,64.99,35,1,4.8,No
+C1502,South,Two year,Premium,98.97,19,1,4.5,No
+C1503,South,Two year,Premium,89.88,45,1,4.7,No
+C1504,West,Month-to-month,Basic,30.01,1,7,3.9,Yes
+C1505,East,One year,Basic,29.28,28,1,3.2,No
+C1506,East,Two year,Premium,84.47,40,3,1.6,No
+C1507,North,Two year,Standard,59.11,60,3,4.3,No
+C1508,West,Month-to-month,Standard,62.94,16,6,3.4,Yes
+C1509,East,One year,Standard,62.98,25,1,2.4,No
+C1510,North,Month-to-month,Premium,100.89,4,4,4.7,Yes
+C1511,South,Two year,Standard,54.98,22,3,3.2,No
+C1512,West,Two year,Basic,33.05,59,2,3.9,No
+C1513,West,One year,Premium,100.77,16,3,3.4,No
+C1514,South,Month-to-month,Standard,55.29,24,3,1.8,No
+C1515,East,Month-to-month,Premium,95.01,8,4,1.6,No
+C1516,East,Two year,Basic,31.18,34,3,3,No
+C1517,East,One year,Standard,64.11,16,4,1.3,No
+C1518,West,One year,Standard,63.42,32,3,3.5,No
+C1519,North,Two year,Standard,53.38,19,1,2.6,No
+C1520,South,Two year,Standard,52.7,41,0,3.1,No
+C1521,South,Two year,Enterprise,158.26,52,3,2.6,No
+C1522,South,One year,Basic,32.22,26,2,1.4,Yes
+C1523,East,Month-to-month,Premium,85.24,5,3,1.8,Yes
+C1524,South,Month-to-month,Premium,99.89,15,4,4,Yes
+C1525,West,Two year,Standard,52.98,12,1,4.3,No
+C1526,North,One year,Premium,94.38,27,4,4.3,No
+C1527,East,One year,Enterprise,143.05,21,1,3.1,No
+C1528,South,One year,Basic,34.04,12,2,2.9,No
+C1529,West,Month-to-month,Enterprise,158.32,24,2,3.8,No
+C1530,East,Two year,Standard,53.16,17,3,2.1,No
+C1531,East,One year,Standard,61.94,18,2,3,No
+C1532,South,Two year,Basic,29.04,36,3,1.3,No
+C1533,South,Month-to-month,Enterprise,150.66,22,1,3.4,Yes
+C1534,West,One year,Enterprise,149.35,28,0,4,No
+C1535,West,Two year,Enterprise,152.54,13,1,4.5,No
+C1536,West,Month-to-month,Premium,97.29,25,3,3.6,No
+C1537,East,One year,Enterprise,151.34,32,1,4.4,No
+C1538,North,One year,Standard,60.11,10,3,1,No
+C1539,West,One year,Basic,31.51,33,0,4.6,No
+C1540,South,Two year,Premium,86.02,32,2,3.7,No
+C1541,East,Month-to-month,Premium,95.09,16,3,1.2,Yes
+C1542,East,Two year,Premium,90.56,51,2,1.4,No
+C1543,West,Two year,Standard,52.25,57,2,2.3,No
+C1544,North,One year,Enterprise,156.98,7,3,1.7,Yes
+C1545,North,Month-to-month,Enterprise,142.98,8,1,1.3,Yes
+C1546,East,One year,Enterprise,145.1,13,2,4.9,Yes
+C1547,South,Two year,Standard,55.04,17,0,1.5,No
+C1548,West,Month-to-month,Premium,94.91,19,2,3.7,No
+C1549,West,One year,Basic,32.43,15,2,4.9,Yes
+C1550,West,Two year,Premium,92.04,50,2,4.4,No
+C1551,West,One year,Enterprise,165.76,28,3,1.7,No
+C1552,South,Month-to-month,Premium,97.61,2,3,1.1,Yes
+C1553,North,Two year,Standard,56.21,44,4,2.7,No
+C1554,West,Two year,Premium,90.69,43,0,4.7,No
+C1555,East,One year,Standard,60.15,9,4,3.7,No
+C1556,West,Two year,Basic,34.94,55,1,4.2,No
+C1557,South,Two year,Basic,35.68,15,1,2.8,No
+C1558,East,Two year,Standard,64.01,20,2,3.8,No
+C1559,East,Month-to-month,Basic,32.81,17,8,4.2,No
+C1560,West,One year,Premium,95.39,16,1,1.4,No
+C1561,North,Two year,Premium,87.33,56,1,3.6,No
+C1562,South,Month-to-month,Standard,60.81,16,4,2.9,Yes
+C1563,North,Month-to-month,Basic,34.13,21,8,1.7,Yes
+C1564,South,Two year,Basic,31.63,16,3,1.3,Yes
+C1565,West,Two year,Enterprise,149.03,35,1,4.3,No
+C1566,East,One year,Enterprise,133.22,11,1,2.4,No
+C1567,East,Two year,Standard,64.65,51,3,4.6,No
+C1568,East,Month-to-month,Standard,52.38,20,3,4.9,Yes
+C1569,East,One year,Enterprise,144.13,7,4,2.9,No
+C1570,North,Two year,Enterprise,142.17,42,4,3.8,No
+C1571,South,Two year,Premium,92.16,40,3,3.8,No
+C1572,South,Two year,Basic,30.88,42,3,2.6,No
+C1573,West,Two year,Standard,58.34,21,1,3.2,No
+C1574,North,Month-to-month,Basic,30.36,25,6,1.8,No
+C1575,East,Two year,Basic,29.9,58,4,3.6,No
+C1576,South,Two year,Premium,97.53,30,3,1.6,No
+C1577,East,Month-to-month,Basic,29.36,13,6,2.8,Yes
+C1578,North,One year,Basic,36.58,15,1,3.4,No
+C1579,West,Two year,Enterprise,136.37,39,4,4.7,No
+C1580,South,Two year,Premium,96.85,13,3,1.3,No
+C1581,East,Month-to-month,Premium,89.19,20,5,2.1,Yes
+C1582,North,Month-to-month,Enterprise,138.4,15,7,4.2,Yes
+C1583,South,Month-to-month,Enterprise,140.78,7,5,1.7,Yes
+C1584,North,One year,Basic,35.5,27,1,4,Yes
+C1585,West,Two year,Enterprise,167.03,53,1,4.7,No
+C1586,East,Month-to-month,Enterprise,167.38,14,5,1,Yes
+C1587,West,One year,Premium,104.08,12,4,2,No
+C1588,West,Two year,Standard,65.4,56,3,3.3,No
+C1589,East,Month-to-month,Standard,63.78,18,8,4.2,Yes
+C1590,East,Month-to-month,Enterprise,169.52,11,6,1.1,No
+C1591,North,Month-to-month,Basic,31.53,2,1,4.6,No
+C1592,East,One year,Basic,35.44,30,2,4.5,No
+C1593,West,One year,Premium,93.22,19,1,4.8,No
+C1594,West,Two year,Basic,31.12,33,0,3.5,No
+C1595,East,Month-to-month,Enterprise,138.09,11,4,2.8,Yes
+C1596,South,Two year,Enterprise,169.31,15,2,3.1,No
+C1597,East,One year,Premium,97.27,6,3,4.8,No
+C1598,West,One year,Standard,56.82,19,1,3.2,No
+C1599,West,One year,Standard,58.1,22,1,1.1,No
+C1600,West,Month-to-month,Standard,64.86,11,7,2.7,Yes
+C1601,North,One year,Enterprise,146.19,28,1,3.3,No
+C1602,West,One year,Basic,29.22,18,2,3.4,Yes
+C1603,North,Month-to-month,Basic,30.54,13,3,2.4,Yes
+C1604,South,One year,Standard,57,17,4,4.4,No
+C1605,North,One year,Standard,57.56,21,1,4,No
+C1606,West,Month-to-month,Basic,32.38,20,1,2.5,No
+C1607,South,Month-to-month,Basic,29.08,19,7,3.6,No
+C1608,North,Month-to-month,Premium,87.22,7,4,1.5,Yes
+C1609,West,Month-to-month,Basic,29.95,18,2,2.5,No
+C1610,South,One year,Basic,36.39,10,0,1,No
+C1611,West,Two year,Standard,60.38,14,4,2,No
+C1612,West,Month-to-month,Enterprise,159.13,3,1,2,Yes
+C1613,South,Two year,Premium,90.27,59,3,1.7,No
+C1614,South,Two year,Premium,91.23,58,4,1.2,No
+C1615,East,Two year,Premium,95.23,36,2,3.4,No
+C1616,East,Month-to-month,Basic,36.02,2,8,3.3,Yes
+C1617,South,Month-to-month,Basic,36.59,3,1,2.9,No
+C1618,South,One year,Premium,98.18,11,1,3.7,No
+C1619,South,One year,Enterprise,163.7,15,3,2.9,No
+C1620,South,One year,Standard,63.43,18,1,3.6,No
+C1621,South,Month-to-month,Basic,33.07,2,3,1.9,No
+C1622,South,One year,Premium,90.13,33,3,3.4,No
+C1623,East,Month-to-month,Premium,84.97,18,5,3.1,No
+C1624,South,One year,Standard,56.8,31,1,3.9,No
+C1625,South,One year,Premium,92.6,11,2,4.3,Yes
+C1626,North,Two year,Enterprise,153.69,42,3,1.8,No
+C1627,East,Two year,Standard,60.43,59,3,4.7,No
+C1628,West,One year,Premium,82.93,23,1,3.5,No
+C1629,North,Two year,Enterprise,149.29,50,1,3.7,No
+C1630,West,Two year,Enterprise,167.13,26,0,3.6,No
+C1631,North,Two year,Basic,30.42,34,1,3.8,No
+C1632,South,Two year,Standard,53.61,55,2,2.6,No
+C1633,West,One year,Premium,89.34,14,3,3,No
+C1634,East,One year,Enterprise,157.08,25,0,2.7,No
+C1635,West,One year,Basic,36.28,28,4,3.6,No
+C1636,West,One year,Standard,52.65,15,2,4.1,No
+C1637,East,Two year,Enterprise,164.78,57,3,4,No
+C1638,West,Month-to-month,Standard,59.11,21,7,1.2,No
+C1639,West,One year,Enterprise,163.92,24,3,1.3,No
+C1640,North,Month-to-month,Standard,61.82,10,5,4.3,No
+C1641,South,Two year,Standard,56.21,22,1,4.4,No
+C1642,West,Month-to-month,Enterprise,144.44,3,8,1.6,Yes
+C1643,South,Month-to-month,Basic,29.48,18,7,3.1,Yes
+C1644,East,Two year,Premium,103.57,28,2,4.5,No
+C1645,South,Month-to-month,Basic,32.27,24,1,4.7,No
+C1646,East,One year,Premium,88.46,17,2,4.3,No
+C1647,West,Month-to-month,Standard,54.19,9,3,3.6,No
+C1648,West,Two year,Standard,54.35,34,2,2.8,No
+C1649,East,One year,Enterprise,159.52,26,3,4.6,Yes
+C1650,East,Two year,Standard,56.41,35,3,1.6,No
+C1651,West,Month-to-month,Standard,63.21,24,7,1.6,Yes
+C1652,North,One year,Standard,54.42,22,4,4.6,No
+C1653,East,One year,Basic,29.29,25,1,1.6,No
+C1654,South,Month-to-month,Standard,59.88,9,4,3.7,No
+C1655,East,Month-to-month,Premium,99.89,15,4,3.2,Yes
+C1656,South,One year,Premium,89.75,26,4,4.7,No
+C1657,East,Month-to-month,Basic,30.23,10,8,1.6,Yes
+C1658,South,Two year,Premium,83.55,44,3,1.6,No
+C1659,West,One year,Basic,34.31,30,2,1.4,No
+C1660,South,Month-to-month,Basic,36.38,14,1,3.9,No
+C1661,West,Month-to-month,Enterprise,144.08,5,5,4.1,No
+C1662,West,Month-to-month,Enterprise,168.41,21,4,3.7,Yes
+C1663,South,Two year,Standard,56.92,18,1,1.4,No
+C1664,South,Two year,Premium,89.06,49,1,2.3,No
+C1665,South,Month-to-month,Basic,31.53,4,7,2.2,Yes
+C1666,South,One year,Enterprise,162.66,10,2,2,No
+C1667,East,One year,Standard,60.22,30,0,1.7,No
+C1668,North,Two year,Enterprise,144.08,31,0,4.8,No
+C1669,South,Two year,Basic,33.11,51,3,2.4,No
+C1670,South,Month-to-month,Premium,86.08,3,8,2.3,Yes
+C1671,East,Two year,Premium,102.8,29,2,3.8,No
+C1672,North,One year,Premium,100.48,19,2,4.2,No
+C1673,North,Two year,Enterprise,155.29,38,1,2,No
+C1674,South,Month-to-month,Basic,36.01,20,3,3.8,Yes
+C1675,West,Month-to-month,Enterprise,135.11,24,8,4.8,Yes
+C1676,South,Month-to-month,Premium,103.36,21,5,3.4,No
+C1677,East,Two year,Standard,64.33,26,2,2,No
+C1678,North,One year,Enterprise,169.01,7,3,4.8,No
+C1679,North,Month-to-month,Standard,62.73,13,5,1.5,Yes
+C1680,West,Two year,Basic,34.99,42,0,3.5,No
+C1681,North,One year,Enterprise,150.85,21,0,3.8,No
+C1682,East,Month-to-month,Premium,87.37,21,1,1.3,No
+C1683,South,Two year,Basic,34.66,30,2,2.4,No
+C1684,South,Two year,Standard,57.57,36,3,1.6,No
+C1685,West,One year,Basic,34.28,11,0,4.5,No
+C1686,South,Month-to-month,Premium,94.08,15,4,1.5,No
+C1687,West,Month-to-month,Standard,58.4,4,5,4,Yes
+C1688,East,Two year,Premium,87.4,38,2,1.9,No
+C1689,North,Month-to-month,Enterprise,149.88,14,6,4.4,No
+C1690,South,One year,Standard,66.17,32,3,3,No
+C1691,West,Month-to-month,Premium,97.07,2,7,4.2,No
+C1692,West,One year,Premium,97.97,18,2,2.2,Yes
+C1693,North,Month-to-month,Enterprise,154.67,6,2,4.5,Yes
+C1694,East,Month-to-month,Standard,62.34,22,4,4,No
+C1695,West,One year,Standard,58.99,22,1,3.5,No
+C1696,West,One year,Basic,33.49,35,2,3.9,No
+C1697,South,Month-to-month,Basic,36.78,24,5,1.3,Yes
+C1698,South,One year,Premium,105.07,10,2,1.3,No
+C1699,West,Month-to-month,Standard,59.83,13,8,3.3,Yes
+C1700,South,One year,Standard,59.16,19,1,1.1,Yes
+C1701,West,Two year,Enterprise,140.34,19,3,4.7,No
+C1702,West,Month-to-month,Basic,34.92,23,3,4.9,No
+C1703,South,Two year,Enterprise,158.34,24,2,1.4,No
+C1704,West,One year,Premium,103.77,26,2,1.7,No
+C1705,East,One year,Standard,55.07,31,1,4,No
+C1706,South,One year,Enterprise,139.84,28,0,1.3,No
+C1707,East,Month-to-month,Basic,35.86,25,5,4.4,No
+C1708,West,One year,Enterprise,146.18,26,1,2.3,No
+C1709,North,One year,Basic,30.61,33,1,4.8,No
+C1710,East,One year,Basic,32.54,32,1,3.4,No
+C1711,East,Month-to-month,Standard,55.68,19,3,4.9,Yes
+C1712,North,One year,Standard,64.01,30,2,3.6,No
+C1713,West,Two year,Enterprise,165.29,15,4,2.8,No
+C1714,South,Month-to-month,Premium,98.2,6,3,3,Yes
+C1715,South,Month-to-month,Standard,59.8,11,5,3.2,Yes
+C1716,West,One year,Standard,58.08,25,2,4,No
+C1717,West,One year,Basic,31.2,27,2,4,Yes
+C1718,North,Two year,Premium,97.46,35,1,1.7,No
+C1719,West,Two year,Basic,33.68,49,1,3.4,No
+C1720,East,Two year,Standard,64.1,12,3,1,No
+C1721,North,Month-to-month,Basic,32.19,10,2,1.1,Yes
+C1722,South,Month-to-month,Premium,92.77,15,3,1.9,Yes
+C1723,East,Month-to-month,Standard,62.65,2,1,3,No
+C1724,North,Two year,Enterprise,166.33,47,1,3.5,No
+C1725,North,Month-to-month,Enterprise,166.56,9,1,2.8,No
+C1726,South,One year,Premium,96.37,29,1,1.8,No
+C1727,East,Two year,Basic,35.92,38,4,4.8,Yes
+C1728,East,One year,Basic,29.01,26,1,4.2,No
+C1729,West,Month-to-month,Basic,31.48,4,2,4.2,No
+C1730,East,Month-to-month,Basic,29.61,8,8,4.2,Yes
+C1731,North,Month-to-month,Basic,32.18,13,5,4.8,No
+C1732,East,Month-to-month,Standard,55.01,7,3,3.8,Yes
+C1733,North,Month-to-month,Basic,35.82,10,0,3.4,No
+C1734,North,One year,Enterprise,162.85,27,3,3.3,No
+C1735,East,One year,Basic,34.4,28,3,1.1,No
+C1736,South,Two year,Enterprise,138.83,29,2,2.1,No
+C1737,East,Two year,Basic,35.07,30,1,1.5,No
+C1738,East,Month-to-month,Premium,95.71,7,7,3.6,No
+C1739,North,Two year,Standard,63.4,23,3,2,No
+C1740,East,Two year,Enterprise,140.29,37,0,4.6,No
+C1741,East,One year,Standard,64.52,23,1,2.3,No
+C1742,South,One year,Basic,34.29,27,2,2.7,No
+C1743,East,Two year,Standard,54.76,21,0,3.2,No
+C1744,North,Two year,Premium,88.54,18,2,2.4,No
+C1745,East,One year,Basic,36.71,25,4,4.2,No
+C1746,West,Two year,Enterprise,169.53,40,4,2,No
+C1747,North,Two year,Enterprise,156.28,37,2,5,No
+C1748,West,Two year,Premium,100.24,29,0,2,No
+C1749,West,Two year,Premium,86.52,57,1,2.8,No
+C1750,North,Two year,Enterprise,158.55,17,1,1.5,Yes
+C1751,North,One year,Premium,104.85,8,3,1.3,No
+C1752,West,Month-to-month,Premium,82.91,3,1,1.9,No
+C1753,West,One year,Basic,35.83,11,4,1.8,No
+C1754,North,Two year,Enterprise,158.02,55,4,1.4,No
+C1755,West,Month-to-month,Basic,33.07,24,7,2.6,No
+C1756,East,Two year,Enterprise,134.56,15,2,1.5,Yes
+C1757,East,One year,Basic,34.01,29,0,1.8,No
+C1758,North,Two year,Basic,32.37,40,2,2.3,No
+C1759,East,Two year,Basic,33.6,15,2,3.3,No
+C1760,North,Month-to-month,Enterprise,135.31,17,2,1.8,No
+C1761,West,Two year,Premium,88.6,49,1,4.7,No
+C1762,South,Month-to-month,Enterprise,147.83,19,3,5,Yes
+C1763,East,Two year,Standard,54.13,57,3,3.2,No
+C1764,East,Month-to-month,Standard,55.73,14,3,3.4,No
+C1765,North,Two year,Enterprise,142.6,15,4,1.7,No
+C1766,West,Two year,Standard,59.31,44,3,2.4,No
+C1767,East,One year,Premium,87.81,27,1,3.3,No
+C1768,East,Two year,Premium,92.95,35,2,3.9,No
+C1769,North,Two year,Basic,35.12,44,0,1.3,No
+C1770,South,Month-to-month,Enterprise,168.14,17,3,2.2,No
+C1771,East,Month-to-month,Basic,33.3,19,3,2.9,Yes
+C1772,South,One year,Premium,92.62,18,1,4.6,No
+C1773,North,Month-to-month,Enterprise,137.95,11,3,1,Yes
+C1774,South,Month-to-month,Enterprise,146.26,3,0,3.5,Yes
+C1775,West,One year,Enterprise,151.39,27,0,2.6,No
+C1776,East,One year,Basic,34.84,16,3,2.3,No
+C1777,East,One year,Enterprise,154.38,32,1,2.9,No
+C1778,North,One year,Enterprise,146.13,6,3,4.7,No
+C1779,North,Month-to-month,Enterprise,142.73,16,9,1.1,Yes
+C1780,South,One year,Premium,95,31,2,2.7,Yes
+C1781,South,Two year,Premium,89.05,34,2,3.5,No
+C1782,South,Two year,Basic,29.82,36,1,5,No
+C1783,South,One year,Premium,87.09,35,2,2.7,No
+C1784,South,Two year,Enterprise,169.72,45,0,4.8,No
+C1785,North,Two year,Standard,62.24,41,3,1.8,No
+C1786,South,Two year,Premium,83.12,18,2,3.7,No
+C1787,South,Two year,Premium,85.79,35,2,2,No
+C1788,South,Two year,Premium,104.85,36,0,2.9,No
+C1789,North,Month-to-month,Standard,56.23,2,9,1.3,No
+C1790,North,Two year,Premium,92.26,52,1,4.2,No
+C1791,West,Two year,Enterprise,154.01,56,3,4.5,No
+C1792,West,One year,Enterprise,147.69,17,1,4.7,No
+C1793,West,Two year,Standard,63.85,50,1,4.7,No
+C1794,West,Two year,Standard,66.36,22,1,4.6,No
+C1795,South,Two year,Enterprise,137.13,41,1,1.9,No
+C1796,West,Two year,Enterprise,158.3,32,2,3.5,No
+C1797,North,Month-to-month,Enterprise,170.18,18,5,1.3,Yes
+C1798,East,Two year,Premium,87.16,33,2,4.6,No
+C1799,South,One year,Standard,53.83,6,3,3.6,No
+C1800,South,Two year,Premium,96.2,38,2,2.6,No
+C1801,West,Month-to-month,Enterprise,157.77,17,1,1.1,No
+C1802,West,Month-to-month,Premium,98.09,17,5,1.3,Yes
+C1803,South,Two year,Enterprise,147.72,26,3,4.6,No
+C1804,North,Month-to-month,Standard,60.38,23,4,3.7,Yes
+C1805,East,Two year,Standard,57.79,34,2,4.8,No
+C1806,West,One year,Standard,56.35,23,2,1.5,Yes
+C1807,North,One year,Standard,52.88,29,0,1.8,No
+C1808,West,One year,Standard,53.62,12,2,4.4,No
+C1809,South,Month-to-month,Basic,34.9,9,0,4.5,No
+C1810,West,Month-to-month,Standard,65.59,24,2,1.5,No
+C1811,East,Two year,Premium,93.62,21,0,1.2,No
+C1812,East,One year,Basic,35.9,30,1,1.9,No
+C1813,East,Two year,Premium,104.73,50,2,1.1,No
+C1814,East,Two year,Standard,64.05,41,3,1.3,No
+C1815,North,Two year,Premium,94.39,35,4,3.6,No
+C1816,East,Two year,Standard,55.11,21,3,2.3,No
+C1817,North,Month-to-month,Enterprise,140.5,10,6,4.5,No
+C1818,East,Month-to-month,Premium,104.92,19,8,4.2,Yes
+C1819,South,Month-to-month,Standard,60.06,5,5,4.4,Yes
+C1820,West,One year,Premium,91.68,18,3,4.9,Yes
+C1821,West,Two year,Standard,62.5,24,1,4.7,No
+C1822,South,One year,Standard,62.67,35,1,4.4,No
+C1823,South,One year,Enterprise,145.62,17,0,4.4,No
+C1824,East,Month-to-month,Standard,60.39,19,0,3.8,No
+C1825,West,Two year,Enterprise,165.8,60,4,4.8,No
+C1826,West,One year,Standard,61.33,17,4,4.2,No
+C1827,North,Month-to-month,Enterprise,155.24,13,3,4.4,Yes
+C1828,North,Month-to-month,Premium,100.25,21,8,3.2,Yes
+C1829,North,Two year,Premium,101.52,43,3,3.5,No
+C1830,North,Month-to-month,Basic,33.51,19,2,3.9,Yes
+C1831,North,One year,Basic,28.88,30,1,4.5,No
+C1832,West,Two year,Standard,57.81,36,0,2.8,No
+C1833,South,One year,Enterprise,139.66,6,0,3.5,No
+C1834,East,Two year,Basic,29.74,35,3,1.5,No
+C1835,North,Month-to-month,Standard,61.18,10,2,3.9,Yes
+C1836,South,Two year,Premium,91.72,56,3,2.6,No
+C1837,North,Month-to-month,Standard,58.58,13,2,1.6,No
+C1838,East,Two year,Enterprise,169.98,44,3,4.3,No
+C1839,North,One year,Standard,61.3,10,1,2.6,No
+C1840,West,Two year,Enterprise,162.56,54,3,2.9,No
+C1841,West,Two year,Standard,61,51,3,2.2,No
+C1842,South,Month-to-month,Basic,35.78,13,3,3.5,Yes
+C1843,West,Two year,Standard,53.93,19,0,3.2,No
+C1844,South,Two year,Premium,100.52,27,0,2.6,No
+C1845,West,One year,Basic,36.29,23,3,4.5,No
+C1846,West,Two year,Enterprise,168.48,33,3,4.7,No
+C1847,West,Month-to-month,Premium,90.08,9,6,3.7,Yes
+C1848,East,Two year,Standard,57.39,59,1,2.1,No
+C1849,North,Two year,Standard,62.77,32,2,3.9,No
+C1850,South,Two year,Standard,57.23,34,1,2.6,No
+C1851,East,Month-to-month,Enterprise,157.29,15,7,1.5,Yes
+C1852,West,Month-to-month,Basic,29.99,19,4,1.6,Yes
+C1853,East,Two year,Premium,99.55,51,2,2.6,No
+C1854,North,Month-to-month,Premium,95.44,9,6,1.2,Yes
+C1855,West,Month-to-month,Premium,91.61,7,1,3.6,Yes
+C1856,North,One year,Basic,31.66,24,2,4.5,No
+C1857,North,Two year,Basic,32.65,33,2,3.4,No
+C1858,South,Month-to-month,Standard,62.32,13,1,2.2,No
+C1859,East,Month-to-month,Standard,57.83,23,5,2.3,No
+C1860,North,Two year,Basic,31.41,25,3,3.6,No
+C1861,North,Month-to-month,Basic,34.05,10,8,1.4,Yes
+C1862,North,Two year,Enterprise,150.83,27,1,4.8,No
+C1863,East,Month-to-month,Premium,85.11,15,6,4,No
+C1864,North,Two year,Premium,100,26,1,2.7,No
+C1865,East,One year,Basic,34.89,29,3,4.8,No
+C1866,West,Month-to-month,Basic,33.06,20,7,4.3,Yes
+C1867,North,One year,Standard,64.16,34,2,1.8,No
+C1868,West,Month-to-month,Enterprise,137.36,8,4,1.4,No
+C1869,South,One year,Basic,29.97,30,4,4.3,No
+C1870,East,Month-to-month,Enterprise,143.92,25,1,1.7,No
+C1871,East,Two year,Basic,29.02,38,2,2.3,No
+C1872,South,Month-to-month,Basic,31.84,15,5,1.1,Yes
+C1873,South,One year,Standard,64.7,22,2,3.6,No
+C1874,West,One year,Enterprise,147.89,7,4,4.5,Yes
+C1875,North,Two year,Premium,94.52,14,3,1.1,No
+C1876,West,One year,Premium,87.26,20,4,4.2,No
+C1877,West,Two year,Standard,60.7,54,4,3.3,No
+C1878,North,Two year,Premium,93.9,31,0,4.5,No
+C1879,West,Month-to-month,Standard,54.1,16,8,1.1,No
+C1880,East,Month-to-month,Basic,32.44,18,2,2.3,Yes
+C1881,East,Two year,Premium,91.57,43,3,2.2,No
+C1882,South,Month-to-month,Standard,66.35,20,0,2.2,No
+C1883,North,One year,Premium,103.46,16,1,2.8,No
+C1884,South,Month-to-month,Standard,65.72,7,1,4.6,No
+C1885,West,One year,Standard,64.49,10,2,1.2,No
+C1886,East,Two year,Basic,32.83,29,2,2.4,No
+C1887,West,Two year,Standard,61.65,25,4,1.4,No
+C1888,West,One year,Premium,90.41,32,1,4.1,No
+C1889,South,Two year,Premium,105.26,59,3,3.7,No
+C1890,West,One year,Premium,91.46,28,2,3,No
+C1891,North,Month-to-month,Standard,54.27,14,1,2.4,Yes
+C1892,East,One year,Standard,64.54,35,3,4.5,No
+C1893,South,One year,Enterprise,159.87,11,3,3.9,No
+C1894,West,Month-to-month,Enterprise,151.24,9,3,1.4,No
+C1895,East,One year,Basic,33.8,29,4,4.5,Yes
+C1896,East,Month-to-month,Basic,33.01,7,6,2.8,Yes
+C1897,South,One year,Enterprise,155.27,16,3,4.1,No
+C1898,South,Month-to-month,Standard,52.78,14,8,4.1,No
+C1899,South,One year,Standard,53.03,10,0,4.3,No

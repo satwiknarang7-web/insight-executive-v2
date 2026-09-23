@@ -1,0 +1,289 @@
+country,year,indicator,value
+Brazil,2014,GDP (current LCU),7318073666477
+Brazil,2014,"Population, total",237467513
+Brazil,2014,Life expectancy at birth,75.23
+Brazil,2014,"Inflation, consumer prices (annual %)",12.91
+Brazil,2015,GDP (current LCU),6575856140291
+Brazil,2015,"Population, total",161413298
+Brazil,2015,Life expectancy at birth,71.39
+Brazil,2015,"Inflation, consumer prices (annual %)",18.91
+Brazil,2016,GDP (current LCU),1806562889417
+Brazil,2016,"Population, total",1379464576
+Brazil,2016,Life expectancy at birth,75.82
+Brazil,2016,"Inflation, consumer prices (annual %)",21.46
+Brazil,2017,GDP (current LCU),3879930307241
+Brazil,2017,"Population, total",1231439972
+Brazil,2017,Life expectancy at birth,76.10
+Brazil,2017,"Inflation, consumer prices (annual %)",2.00
+Brazil,2018,GDP (current LCU),6803660309456
+Brazil,2018,"Population, total",112205634
+Brazil,2018,Life expectancy at birth,58.14
+Brazil,2018,"Inflation, consumer prices (annual %)",4.75
+Brazil,2019,GDP (current LCU),2697695989626
+Brazil,2019,"Population, total",292426312
+Brazil,2019,Life expectancy at birth,72.09
+Brazil,2019,"Inflation, consumer prices (annual %)",-0.32
+Brazil,2020,GDP (current LCU),4382865569872
+Brazil,2020,"Population, total",818518572
+Brazil,2020,Life expectancy at birth,76.01
+Brazil,2020,"Inflation, consumer prices (annual %)",7.16
+Brazil,2021,GDP (current LCU),4633977582182
+Brazil,2021,"Population, total",1279474230
+Brazil,2021,Life expectancy at birth,63.41
+Brazil,2021,"Inflation, consumer prices (annual %)",15.81
+Brazil,2022,GDP (current LCU),1460580135025
+Brazil,2022,"Population, total",1166072017
+Brazil,2022,Life expectancy at birth,79.54
+Brazil,2022,"Inflation, consumer prices (annual %)",14.94
+Brazil,2023,GDP (current LCU),5552230444109
+Brazil,2023,"Population, total",736792608
+Brazil,2023,Life expectancy at birth,77.12
+Brazil,2023,"Inflation, consumer prices (annual %)",12.37
+Brazil,2024,GDP (current LCU),1925099361793
+Brazil,2024,"Population, total",738698546
+Brazil,2024,Life expectancy at birth,66.27
+Brazil,2024,"Inflation, consumer prices (annual %)",6.73
+Brazil,2025,GDP (current LCU),9890338425427
+Brazil,2025,"Population, total",1378270989
+Brazil,2025,Life expectancy at birth,73.27
+Brazil,2025,"Inflation, consumer prices (annual %)",-0.12
+China,2014,GDP (current LCU),5506745731368
+China,2014,"Population, total",123342681
+China,2014,Life expectancy at birth,58.66
+China,2014,"Inflation, consumer prices (annual %)",16.21
+China,2015,GDP (current LCU),1033360243278
+China,2015,"Population, total",1100653669
+China,2015,Life expectancy at birth,64.04
+China,2015,"Inflation, consumer prices (annual %)",6.31
+China,2016,GDP (current LCU),1619503272287
+China,2016,"Population, total",1202090394
+China,2016,Life expectancy at birth,76.09
+China,2016,"Inflation, consumer prices (annual %)",0.67
+China,2017,GDP (current LCU),9683272828154
+China,2017,"Population, total",791690431
+China,2017,Life expectancy at birth,64.08
+China,2017,"Inflation, consumer prices (annual %)",16.26
+China,2018,GDP (current LCU),5432830085854
+China,2018,"Population, total",1292493730
+China,2018,Life expectancy at birth,60.95
+China,2018,"Inflation, consumer prices (annual %)",2.74
+China,2019,GDP (current LCU),3204036970392
+China,2019,"Population, total",423475125
+China,2019,Life expectancy at birth,57.08
+China,2019,"Inflation, consumer prices (annual %)",6.08
+China,2020,GDP (current LCU),879536629086
+China,2020,"Population, total",257593576
+China,2020,Life expectancy at birth,71.18
+China,2020,"Inflation, consumer prices (annual %)",6.44
+China,2021,GDP (current LCU),4541957213563
+China,2021,"Population, total",549582243
+China,2021,Life expectancy at birth,71.12
+China,2021,"Inflation, consumer prices (annual %)",2.87
+China,2022,GDP (current LCU),8448761022998
+China,2022,"Population, total",953390356
+China,2022,Life expectancy at birth,74.77
+China,2022,"Inflation, consumer prices (annual %)",7.36
+China,2023,GDP (current LCU),9204588882394
+China,2023,"Population, total",946836782
+China,2023,Life expectancy at birth,76.84
+China,2023,"Inflation, consumer prices (annual %)",7.25
+China,2024,GDP (current LCU),2067683018170
+China,2024,"Population, total",1275640914
+China,2024,Life expectancy at birth,68.07
+China,2024,"Inflation, consumer prices (annual %)",9.95
+China,2025,GDP (current LCU),7369094565915
+China,2025,"Population, total",346545143
+China,2025,Life expectancy at birth,69.10
+China,2025,"Inflation, consumer prices (annual %)",8.08
+Germany,2014,GDP (current LCU),399923002860
+Germany,2014,"Population, total",497016002
+Germany,2014,Life expectancy at birth,63.46
+Germany,2014,"Inflation, consumer prices (annual %)",5.74
+Germany,2015,GDP (current LCU),5874438634224
+Germany,2015,"Population, total",935386596
+Germany,2015,Life expectancy at birth,75.04
+Germany,2015,"Inflation, consumer prices (annual %)",-1.00
+Germany,2016,GDP (current LCU),6050935975020
+Germany,2016,"Population, total",239449887
+Germany,2016,Life expectancy at birth,66.03
+Germany,2016,"Inflation, consumer prices (annual %)",6.20
+Germany,2017,GDP (current LCU),9395029692210
+Germany,2017,"Population, total",667313366
+Germany,2017,Life expectancy at birth,62.53
+Germany,2017,"Inflation, consumer prices (annual %)",13.10
+Germany,2018,GDP (current LCU),290220117658
+Germany,2018,"Population, total",179080979
+Germany,2018,Life expectancy at birth,57.76
+Germany,2018,"Inflation, consumer prices (annual %)",0.21
+Germany,2019,GDP (current LCU),4126081872371
+Germany,2019,"Population, total",201441269
+Germany,2019,Life expectancy at birth,65.25
+Germany,2019,"Inflation, consumer prices (annual %)",15.29
+Germany,2020,GDP (current LCU),1295730174145
+Germany,2020,"Population, total",568091942
+Germany,2020,Life expectancy at birth,64.62
+Germany,2020,"Inflation, consumer prices (annual %)",1.20
+Germany,2021,GDP (current LCU),2605668244933
+Germany,2021,"Population, total",641070276
+Germany,2021,Life expectancy at birth,55.82
+Germany,2021,"Inflation, consumer prices (annual %)",1.82
+Germany,2022,GDP (current LCU),1557334173404
+Germany,2022,"Population, total",728307368
+Germany,2022,Life expectancy at birth,81.19
+Germany,2022,"Inflation, consumer prices (annual %)",6.98
+Germany,2023,GDP (current LCU),4200280906679
+Germany,2023,"Population, total",706137562
+Germany,2023,Life expectancy at birth,59.20
+Germany,2023,"Inflation, consumer prices (annual %)",7.64
+Germany,2024,GDP (current LCU),1053993189779
+Germany,2024,"Population, total",914300896
+Germany,2024,Life expectancy at birth,72.91
+Germany,2024,"Inflation, consumer prices (annual %)",4.58
+Germany,2025,GDP (current LCU),4693307482355
+Germany,2025,"Population, total",892130304
+Germany,2025,Life expectancy at birth,58.28
+Germany,2025,"Inflation, consumer prices (annual %)",20.14
+India,2014,GDP (current LCU),2422111083158
+India,2014,"Population, total",914066908
+India,2014,Life expectancy at birth,79.81
+India,2014,"Inflation, consumer prices (annual %)",4.77
+India,2015,GDP (current LCU),7545552698265
+India,2015,"Population, total",421326347
+India,2015,Life expectancy at birth,56.09
+India,2015,"Inflation, consumer prices (annual %)",4.01
+India,2016,GDP (current LCU),9892239092380
+India,2016,"Population, total",185917130
+India,2016,Life expectancy at birth,76.27
+India,2016,"Inflation, consumer prices (annual %)",6.34
+India,2017,GDP (current LCU),2303351558281
+India,2017,"Population, total",483361260
+India,2017,Life expectancy at birth,57.64
+India,2017,"Inflation, consumer prices (annual %)",4.35
+India,2018,GDP (current LCU),4456096752526
+India,2018,"Population, total",355914686
+India,2018,Life expectancy at birth,65.07
+India,2018,"Inflation, consumer prices (annual %)",15.54
+India,2019,GDP (current LCU),6615317550355
+India,2019,"Population, total",1331352230
+India,2019,Life expectancy at birth,79.10
+India,2019,"Inflation, consumer prices (annual %)",18.75
+India,2020,GDP (current LCU),7644937339958
+India,2020,"Population, total",404886394
+India,2020,Life expectancy at birth,74.60
+India,2020,"Inflation, consumer prices (annual %)",9.72
+India,2021,GDP (current LCU),1022057736349
+India,2021,"Population, total",647721135
+India,2021,Life expectancy at birth,63.48
+India,2021,"Inflation, consumer prices (annual %)",13.39
+India,2022,GDP (current LCU),1033693051773
+India,2022,"Population, total",960309822
+India,2022,Life expectancy at birth,70.86
+India,2022,"Inflation, consumer prices (annual %)",6.64
+India,2023,GDP (current LCU),4711055793525
+India,2023,"Population, total",310832353
+India,2023,Life expectancy at birth,63.25
+India,2023,"Inflation, consumer prices (annual %)",-0.77
+India,2024,GDP (current LCU),2883298942625
+India,2024,"Population, total",739880410
+India,2024,Life expectancy at birth,56.63
+India,2024,"Inflation, consumer prices (annual %)",8.40
+India,2025,GDP (current LCU),1724996484083
+India,2025,"Population, total",1202885358
+India,2025,Life expectancy at birth,73.30
+India,2025,"Inflation, consumer prices (annual %)",17.78
+Nigeria,2014,GDP (current LCU),6590707424325
+Nigeria,2014,"Population, total",152310553
+Nigeria,2014,Life expectancy at birth,69.18
+Nigeria,2014,"Inflation, consumer prices (annual %)",8.16
+Nigeria,2015,GDP (current LCU),8466481010041
+Nigeria,2015,"Population, total",131270604
+Nigeria,2015,Life expectancy at birth,65.59
+Nigeria,2015,"Inflation, consumer prices (annual %)",19.20
+Nigeria,2016,GDP (current LCU),6391359856674
+Nigeria,2016,"Population, total",1318412037
+Nigeria,2016,Life expectancy at birth,76.66
+Nigeria,2016,"Inflation, consumer prices (annual %)",14.57
+Nigeria,2017,GDP (current LCU),5676685478900
+Nigeria,2017,"Population, total",862748585
+Nigeria,2017,Life expectancy at birth,60.07
+Nigeria,2017,"Inflation, consumer prices (annual %)",5.50
+Nigeria,2018,GDP (current LCU),2118300593839
+Nigeria,2018,"Population, total",114266411
+Nigeria,2018,Life expectancy at birth,61.21
+Nigeria,2018,"Inflation, consumer prices (annual %)",19.79
+Nigeria,2019,GDP (current LCU),5496770622859
+Nigeria,2019,"Population, total",1042673512
+Nigeria,2019,Life expectancy at birth,78.37
+Nigeria,2019,"Inflation, consumer prices (annual %)",7.11
+Nigeria,2020,GDP (current LCU),1683512259267
+Nigeria,2020,"Population, total",764256193
+Nigeria,2020,Life expectancy at birth,55.21
+Nigeria,2020,"Inflation, consumer prices (annual %)",4.46
+Nigeria,2021,GDP (current LCU),4275806011714
+Nigeria,2021,"Population, total",1272433639
+Nigeria,2021,Life expectancy at birth,65.89
+Nigeria,2021,"Inflation, consumer prices (annual %)",-0.25
+Nigeria,2022,GDP (current LCU),1405382606995
+Nigeria,2022,"Population, total",1240813134
+Nigeria,2022,Life expectancy at birth,61.43
+Nigeria,2022,"Inflation, consumer prices (annual %)",19.66
+Nigeria,2023,GDP (current LCU),3821024383847
+Nigeria,2023,"Population, total",397335181
+Nigeria,2023,Life expectancy at birth,66.18
+Nigeria,2023,"Inflation, consumer prices (annual %)",8.45
+Nigeria,2024,GDP (current LCU),8860961751249
+Nigeria,2024,"Population, total",1181790610
+Nigeria,2024,Life expectancy at birth,68.76
+Nigeria,2024,"Inflation, consumer prices (annual %)",17.15
+Nigeria,2025,GDP (current LCU),6734801700821
+Nigeria,2025,"Population, total",773082266
+Nigeria,2025,Life expectancy at birth,71.89
+Nigeria,2025,"Inflation, consumer prices (annual %)",-0.49
+United States,2014,GDP (current LCU),1324553772260
+United States,2014,"Population, total",1304227629
+United States,2014,Life expectancy at birth,72.34
+United States,2014,"Inflation, consumer prices (annual %)",20.59
+United States,2015,GDP (current LCU),1578309369776
+United States,2015,"Population, total",921884681
+United States,2015,Life expectancy at birth,72.59
+United States,2015,"Inflation, consumer prices (annual %)",2.33
+United States,2016,GDP (current LCU),4485256146446
+United States,2016,"Population, total",930699425
+United States,2016,Life expectancy at birth,73.40
+United States,2016,"Inflation, consumer prices (annual %)",9.70
+United States,2017,GDP (current LCU),2021707058848
+United States,2017,"Population, total",156687928
+United States,2017,Life expectancy at birth,81.78
+United States,2017,"Inflation, consumer prices (annual %)",21.00
+United States,2018,GDP (current LCU),9691349630054
+United States,2018,"Population, total",1194781943
+United States,2018,Life expectancy at birth,57.05
+United States,2018,"Inflation, consumer prices (annual %)",18.09
+United States,2019,GDP (current LCU),206537663986
+United States,2019,"Population, total",216106435
+United States,2019,Life expectancy at birth,63.51
+United States,2019,"Inflation, consumer prices (annual %)",12.58
+United States,2020,GDP (current LCU),3563200475398
+United States,2020,"Population, total",641795845
+United States,2020,Life expectancy at birth,75.44
+United States,2020,"Inflation, consumer prices (annual %)",13.89
+United States,2021,GDP (current LCU),8561464790470
+United States,2021,"Population, total",1142143441
+United States,2021,Life expectancy at birth,81.56
+United States,2021,"Inflation, consumer prices (annual %)",2.74
+United States,2022,GDP (current LCU),9401294340054
+United States,2022,"Population, total",1200326706
+United States,2022,Life expectancy at birth,73.56
+United States,2022,"Inflation, consumer prices (annual %)",15.17
+United States,2023,GDP (current LCU),1901469958667
+United States,2023,"Population, total",143111702
+United States,2023,Life expectancy at birth,75.21
+United States,2023,"Inflation, consumer prices (annual %)",0.65
+United States,2024,GDP (current LCU),6809400665904
+United States,2024,"Population, total",958757148
+United States,2024,Life expectancy at birth,55.83
+United States,2024,"Inflation, consumer prices (annual %)",10.15
+United States,2025,GDP (current LCU),7516067281839
+United States,2025,"Population, total",525832305
+United States,2025,Life expectancy at birth,82.04
+United States,2025,"Inflation, consumer prices (annual %)",19.71

@@ -1,0 +1,301 @@
+patient_id,arm,site,age,sex,baseline_score,week12_score,improved,adverse_event
+P-1000,Placebo,Site 4,45,M,74,76,N,N
+P-1001,Drug 10mg,Site 1,71,F,60,40,Y,N
+P-1002,Drug 20mg,Site 1,74,F,47,41,N,N
+P-1003,Placebo,Site 1,25,F,56,54,N,N
+P-1004,Drug 10mg,Site 4,27,M,62,49,Y,N
+P-1005,Drug 20mg,Site 3,74,F,59,61,N,Y
+P-1006,Placebo,Site 4,38,F,59,59,N,N
+P-1007,Drug 10mg,Site 3,60,F,44,43,N,N
+P-1008,Drug 20mg,Site 2,58,F,62,59,N,N
+P-1009,Placebo,Site 2,56,F,65,67,N,N
+P-1010,Drug 10mg,Site 3,38,M,66,70,N,N
+P-1011,Drug 20mg,Site 2,60,F,54,57,N,N
+P-1012,Placebo,Site 1,45,M,47,50,N,N
+P-1013,Drug 10mg,Site 1,67,M,73,73,N,N
+P-1014,Drug 20mg,Site 4,56,M,69,52,Y,N
+P-1015,Placebo,Site 4,60,F,71,51,Y,N
+P-1016,Drug 10mg,Site 4,32,F,68,60,Y,N
+P-1017,Drug 20mg,Site 2,70,M,65,54,Y,N
+P-1018,Placebo,Site 1,51,M,70,61,Y,N
+P-1019,Drug 10mg,Site 3,75,F,63,54,Y,N
+P-1020,Drug 20mg,Site 2,51,M,58,61,N,N
+P-1021,Placebo,Site 4,33,F,60,56,N,Y
+P-1022,Drug 10mg,Site 4,59,M,63,51,Y,N
+P-1023,Drug 20mg,Site 4,70,M,48,43,N,Y
+P-1024,Placebo,Site 1,76,F,61,61,N,N
+P-1025,Drug 10mg,Site 2,63,F,46,35,Y,N
+P-1026,Drug 20mg,Site 3,26,F,66,48,Y,Y
+P-1027,Placebo,Site 3,65,F,56,57,N,N
+P-1028,Drug 10mg,Site 1,78,F,61,55,N,Y
+P-1029,Drug 20mg,Site 3,78,M,70,59,Y,N
+P-1030,Placebo,Site 1,50,F,54,48,N,N
+P-1031,Drug 10mg,Site 1,79,M,78,62,Y,N
+P-1032,Drug 20mg,Site 2,30,M,53,33,Y,N
+P-1033,Placebo,Site 2,31,F,63,48,Y,N
+P-1034,Drug 10mg,Site 4,31,F,73,70,N,N
+P-1035,Drug 20mg,Site 3,35,F,64,51,Y,N
+P-1036,Placebo,Site 1,49,M,52,52,N,N
+P-1037,Drug 10mg,Site 2,77,F,64,65,N,N
+P-1038,Drug 20mg,Site 4,43,M,54,58,N,Y
+P-1039,Placebo,Site 2,68,F,52,41,Y,N
+P-1040,Drug 10mg,Site 3,50,F,51,54,N,N
+P-1041,Drug 20mg,Site 2,42,M,79,66,Y,N
+P-1042,Placebo,Site 4,62,F,74,59,Y,N
+P-1043,Drug 10mg,Site 2,32,M,72,73,N,N
+P-1044,Drug 20mg,Site 4,33,M,56,46,Y,Y
+P-1045,Placebo,Site 1,79,F,73,71,N,N
+P-1046,Drug 10mg,Site 2,49,F,48,36,Y,N
+P-1047,Drug 20mg,Site 4,26,M,59,43,Y,Y
+P-1048,Placebo,Site 4,25,F,61,43,Y,N
+P-1049,Drug 10mg,Site 2,49,F,63,65,N,N
+P-1050,Drug 20mg,Site 4,75,F,75,65,Y,N
+P-1051,Placebo,Site 4,49,F,69,67,N,N
+P-1052,Drug 10mg,Site 4,52,M,58,44,Y,N
+P-1053,Drug 20mg,Site 3,66,M,70,73,N,N
+P-1054,Placebo,Site 4,56,F,67,50,Y,N
+P-1055,Drug 10mg,Site 1,65,F,52,49,N,N
+P-1056,Drug 20mg,Site 1,39,M,42,46,N,N
+P-1057,Placebo,Site 3,58,M,62,65,N,N
+P-1058,Drug 10mg,Site 4,54,F,50,50,N,N
+P-1059,Drug 20mg,Site 2,77,F,60,62,N,N
+P-1060,Placebo,Site 3,74,F,63,66,N,N
+P-1061,Drug 10mg,Site 3,39,M,70,64,N,N
+P-1062,Drug 20mg,Site 1,60,F,77,74,N,N
+P-1063,Placebo,Site 3,45,F,57,48,Y,N
+P-1064,Drug 10mg,Site 1,78,M,65,65,N,N
+P-1065,Drug 20mg,Site 4,76,F,56,41,Y,N
+P-1066,Placebo,Site 1,51,M,60,58,N,N
+P-1067,Drug 10mg,Site 3,50,F,65,57,Y,N
+P-1068,Drug 20mg,Site 3,39,F,61,47,Y,N
+P-1069,Placebo,Site 3,37,F,73,72,N,N
+P-1070,Drug 10mg,Site 2,77,F,53,48,N,N
+P-1071,Drug 20mg,Site 1,69,M,63,52,Y,N
+P-1072,Placebo,Site 1,40,M,66,63,N,N
+P-1073,Drug 10mg,Site 3,58,M,61,51,Y,N
+P-1074,Drug 20mg,Site 4,32,M,55,53,N,Y
+P-1075,Placebo,Site 4,44,M,72,68,N,N
+P-1076,Drug 10mg,Site 3,65,M,61,43,Y,N
+P-1077,Drug 20mg,Site 4,28,M,71,68,N,N
+P-1078,Placebo,Site 1,45,M,76,80,N,N
+P-1079,Drug 10mg,Site 3,42,M,48,52,N,N
+P-1080,Drug 20mg,Site 3,48,M,68,63,N,N
+P-1081,Placebo,Site 3,66,F,62,48,Y,N
+P-1082,Drug 10mg,Site 3,54,F,59,39,Y,N
+P-1083,Drug 20mg,Site 4,66,M,73,71,N,Y
+P-1084,Placebo,Site 4,26,F,65,63,N,N
+P-1085,Drug 10mg,Site 1,24,F,60,63,N,Y
+P-1086,Drug 20mg,Site 4,63,F,67,49,Y,N
+P-1087,Placebo,Site 1,63,M,76,80,N,N
+P-1088,Drug 10mg,Site 2,32,F,75,72,N,N
+P-1089,Drug 20mg,Site 1,71,F,66,58,Y,N
+P-1090,Placebo,Site 1,25,F,59,63,N,N
+P-1091,Drug 10mg,Site 4,60,F,65,48,Y,N
+P-1092,Drug 20mg,Site 1,77,F,67,61,N,N
+P-1093,Placebo,Site 2,50,F,54,50,N,N
+P-1094,Drug 10mg,Site 2,34,F,54,49,N,N
+P-1095,Drug 20mg,Site 4,64,M,68,59,Y,N
+P-1096,Placebo,Site 2,58,M,38,34,N,N
+P-1097,Drug 10mg,Site 1,75,M,51,36,Y,N
+P-1098,Drug 20mg,Site 3,30,F,63,49,Y,N
+P-1099,Placebo,Site 4,38,F,73,75,N,N
+P-1100,Drug 10mg,Site 1,76,F,55,57,N,N
+P-1101,Drug 20mg,Site 2,30,M,60,48,Y,N
+P-1102,Placebo,Site 4,24,F,64,65,N,N
+P-1103,Drug 10mg,Site 1,47,M,66,56,Y,N
+P-1104,Drug 20mg,Site 3,37,M,55,43,Y,N
+P-1105,Placebo,Site 4,56,M,61,56,N,N
+P-1106,Drug 10mg,Site 2,48,M,44,34,Y,N
+P-1107,Drug 20mg,Site 1,30,M,65,60,N,N
+P-1108,Placebo,Site 3,71,M,46,46,N,N
+P-1109,Drug 10mg,Site 3,74,M,69,65,N,Y
+P-1110,Drug 20mg,Site 3,49,F,69,67,N,N
+P-1111,Placebo,Site 2,64,M,45,48,N,N
+P-1112,Drug 10mg,Site 4,71,M,72,68,N,N
+P-1113,Drug 20mg,Site 1,67,M,45,33,Y,N
+P-1114,Placebo,Site 3,51,M,75,76,N,N
+P-1115,Drug 10mg,Site 4,44,M,68,66,N,N
+P-1116,Drug 20mg,Site 3,34,F,63,49,Y,N
+P-1117,Placebo,Site 2,55,F,71,74,N,N
+P-1118,Drug 10mg,Site 2,35,M,61,52,Y,N
+P-1119,Drug 20mg,Site 1,26,M,57,56,N,Y
+P-1120,Placebo,Site 1,54,F,65,68,N,N
+P-1121,Drug 10mg,Site 4,29,F,54,57,N,N
+P-1122,Drug 20mg,Site 2,52,M,46,47,N,N
+P-1123,Placebo,Site 1,35,F,73,75,N,N
+P-1124,Drug 10mg,Site 1,32,F,57,60,N,N
+P-1125,Drug 20mg,Site 2,69,F,57,38,Y,N
+P-1126,Placebo,Site 3,37,M,87,87,N,N
+P-1127,Drug 10mg,Site 2,64,M,61,60,N,N
+P-1128,Drug 20mg,Site 1,34,M,65,51,Y,N
+P-1129,Placebo,Site 3,46,F,55,50,N,N
+P-1130,Drug 10mg,Site 4,67,F,66,53,Y,N
+P-1131,Drug 20mg,Site 4,39,F,62,49,Y,N
+P-1132,Placebo,Site 1,75,F,70,74,N,N
+P-1133,Drug 10mg,Site 1,73,F,65,62,N,Y
+P-1134,Drug 20mg,Site 3,59,M,60,57,N,N
+P-1135,Placebo,Site 2,35,F,64,63,N,N
+P-1136,Drug 10mg,Site 4,29,M,78,62,Y,N
+P-1137,Drug 20mg,Site 4,52,M,68,66,N,N
+P-1138,Placebo,Site 3,48,F,51,53,N,N
+P-1139,Drug 10mg,Site 4,40,M,53,34,Y,N
+P-1140,Drug 20mg,Site 2,34,F,68,66,N,N
+P-1141,Placebo,Site 4,29,F,48,49,N,N
+P-1142,Drug 10mg,Site 4,28,M,61,58,N,N
+P-1143,Drug 20mg,Site 2,37,M,61,55,N,N
+P-1144,Placebo,Site 3,30,M,65,63,N,N
+P-1145,Drug 10mg,Site 1,79,M,68,48,Y,N
+P-1146,Drug 20mg,Site 3,25,F,66,68,N,N
+P-1147,Placebo,Site 2,55,M,70,58,Y,N
+P-1148,Drug 10mg,Site 1,70,M,60,57,N,N
+P-1149,Drug 20mg,Site 1,51,F,57,45,Y,N
+P-1150,Placebo,Site 3,25,F,69,65,N,N
+P-1151,Drug 10mg,Site 1,71,M,57,61,N,N
+P-1152,Drug 20mg,Site 3,75,F,62,52,Y,N
+P-1153,Placebo,Site 1,31,M,55,56,N,N
+P-1154,Drug 10mg,Site 4,61,M,66,54,Y,N
+P-1155,Drug 20mg,Site 1,74,F,58,57,N,N
+P-1156,Placebo,Site 1,41,F,54,43,Y,N
+P-1157,Drug 10mg,Site 3,30,F,69,70,N,N
+P-1158,Drug 20mg,Site 1,28,F,52,44,Y,N
+P-1159,Placebo,Site 1,44,F,59,50,Y,N
+P-1160,Drug 10mg,Site 1,51,M,77,78,N,N
+P-1161,Drug 20mg,Site 1,59,M,51,40,Y,N
+P-1162,Placebo,Site 1,59,M,77,79,N,N
+P-1163,Drug 10mg,Site 4,28,M,66,54,Y,N
+P-1164,Drug 20mg,Site 2,35,F,64,47,Y,N
+P-1165,Placebo,Site 4,37,M,65,64,N,N
+P-1166,Drug 10mg,Site 1,61,M,53,54,N,N
+P-1167,Drug 20mg,Site 2,51,F,75,62,Y,Y
+P-1168,Placebo,Site 3,27,F,65,65,N,N
+P-1169,Drug 10mg,Site 3,76,M,70,54,Y,N
+P-1170,Drug 20mg,Site 1,25,F,59,54,N,N
+P-1171,Placebo,Site 1,53,F,59,61,N,N
+P-1172,Drug 10mg,Site 1,73,F,73,68,N,N
+P-1173,Drug 20mg,Site 4,70,F,53,35,Y,N
+P-1174,Placebo,Site 1,75,M,70,64,N,N
+P-1175,Drug 10mg,Site 2,60,M,67,66,N,N
+P-1176,Drug 20mg,Site 4,71,F,65,47,Y,Y
+P-1177,Placebo,Site 2,47,M,51,35,Y,N
+P-1178,Drug 10mg,Site 4,71,M,64,61,N,N
+P-1179,Drug 20mg,Site 3,61,F,68,54,Y,N
+P-1180,Placebo,Site 1,58,M,64,68,N,N
+P-1181,Drug 10mg,Site 4,62,M,48,31,Y,N
+P-1182,Drug 20mg,Site 2,62,F,62,66,N,N
+P-1183,Placebo,Site 2,27,M,59,61,N,N
+P-1184,Drug 10mg,Site 2,62,M,75,65,Y,N
+P-1185,Drug 20mg,Site 3,75,F,64,51,Y,N
+P-1186,Placebo,Site 3,77,F,59,53,N,N
+P-1187,Drug 10mg,Site 2,33,F,60,58,N,N
+P-1188,Drug 20mg,Site 2,51,M,66,57,Y,N
+P-1189,Placebo,Site 1,45,F,66,66,N,N
+P-1190,Drug 10mg,Site 2,43,F,67,52,Y,Y
+P-1191,Drug 20mg,Site 4,64,F,58,47,Y,N
+P-1192,Placebo,Site 4,42,F,59,63,N,N
+P-1193,Drug 10mg,Site 1,46,F,65,60,N,Y
+P-1194,Drug 20mg,Site 4,71,M,59,51,Y,N
+P-1195,Placebo,Site 3,31,F,61,59,N,N
+P-1196,Drug 10mg,Site 4,45,F,67,66,N,Y
+P-1197,Drug 20mg,Site 1,48,F,51,34,Y,N
+P-1198,Placebo,Site 3,40,F,72,69,N,N
+P-1199,Drug 10mg,Site 1,38,M,65,50,Y,N
+P-1200,Drug 20mg,Site 4,36,F,50,35,Y,N
+P-1201,Placebo,Site 1,26,M,58,58,N,N
+P-1202,Drug 10mg,Site 2,63,F,61,42,Y,Y
+P-1203,Drug 20mg,Site 3,37,F,51,38,Y,Y
+P-1204,Placebo,Site 4,47,M,68,63,N,N
+P-1205,Drug 10mg,Site 3,66,M,67,62,N,N
+P-1206,Drug 20mg,Site 3,73,F,43,25,Y,Y
+P-1207,Placebo,Site 1,60,M,64,64,N,N
+P-1208,Drug 10mg,Site 2,51,M,53,56,N,N
+P-1209,Drug 20mg,Site 1,77,M,50,53,N,N
+P-1210,Placebo,Site 3,35,M,74,68,N,N
+P-1211,Drug 10mg,Site 3,61,F,62,62,N,N
+P-1212,Drug 20mg,Site 1,48,F,52,40,Y,N
+P-1213,Placebo,Site 1,49,M,55,46,Y,N
+P-1214,Drug 10mg,Site 2,25,M,57,45,Y,N
+P-1215,Drug 20mg,Site 1,58,F,61,65,N,N
+P-1216,Placebo,Site 2,74,M,41,40,N,Y
+P-1217,Drug 10mg,Site 4,25,M,64,63,N,N
+P-1218,Drug 20mg,Site 2,74,M,57,59,N,N
+P-1219,Placebo,Site 3,74,M,53,44,Y,N
+P-1220,Drug 10mg,Site 3,69,F,74,62,Y,N
+P-1221,Drug 20mg,Site 2,43,F,83,77,N,N
+P-1222,Placebo,Site 4,67,F,70,70,N,N
+P-1223,Drug 10mg,Site 2,39,F,74,68,N,N
+P-1224,Drug 20mg,Site 4,37,F,64,60,N,N
+P-1225,Placebo,Site 3,72,F,65,63,N,Y
+P-1226,Drug 10mg,Site 4,49,M,51,39,Y,N
+P-1227,Drug 20mg,Site 2,45,F,73,75,N,N
+P-1228,Placebo,Site 4,76,F,71,57,Y,N
+P-1229,Drug 10mg,Site 3,31,F,66,65,N,N
+P-1230,Drug 20mg,Site 2,51,M,55,41,Y,Y
+P-1231,Placebo,Site 1,75,F,49,52,N,N
+P-1232,Drug 10mg,Site 1,29,F,69,49,Y,N
+P-1233,Drug 20mg,Site 2,44,F,71,53,Y,N
+P-1234,Placebo,Site 3,53,F,59,56,N,N
+P-1235,Drug 10mg,Site 3,38,M,63,48,Y,Y
+P-1236,Drug 20mg,Site 2,58,F,52,55,N,N
+P-1237,Placebo,Site 1,62,F,60,63,N,N
+P-1238,Drug 10mg,Site 1,56,M,71,60,Y,N
+P-1239,Drug 20mg,Site 1,27,F,75,58,Y,N
+P-1240,Placebo,Site 2,62,M,55,52,N,N
+P-1241,Drug 10mg,Site 2,24,M,76,75,N,N
+P-1242,Drug 20mg,Site 3,75,M,65,53,Y,N
+P-1243,Placebo,Site 2,33,F,64,49,Y,N
+P-1244,Drug 10mg,Site 1,45,F,70,66,N,Y
+P-1245,Drug 20mg,Site 4,63,M,63,64,N,N
+P-1246,Placebo,Site 4,35,F,54,52,N,Y
+P-1247,Drug 10mg,Site 2,39,F,68,49,Y,N
+P-1248,Drug 20mg,Site 1,40,M,67,64,N,N
+P-1249,Placebo,Site 2,42,F,58,49,Y,N
+P-1250,Drug 10mg,Site 3,36,F,69,59,Y,N
+P-1251,Drug 20mg,Site 2,70,F,67,67,N,N
+P-1252,Placebo,Site 1,71,F,65,49,Y,N
+P-1253,Drug 10mg,Site 2,47,M,60,61,N,N
+P-1254,Drug 20mg,Site 1,66,M,56,54,N,N
+P-1255,Placebo,Site 3,48,M,69,68,N,N
+P-1256,Drug 10mg,Site 4,48,M,63,57,N,N
+P-1257,Drug 20mg,Site 2,60,M,49,32,Y,N
+P-1258,Placebo,Site 1,77,M,63,62,N,N
+P-1259,Drug 10mg,Site 3,45,F,58,43,Y,N
+P-1260,Drug 20mg,Site 2,52,M,71,68,N,N
+P-1261,Placebo,Site 2,76,F,55,54,N,N
+P-1262,Drug 10mg,Site 3,48,M,55,40,Y,N
+P-1263,Drug 20mg,Site 1,38,M,63,47,Y,N
+P-1264,Placebo,Site 2,54,F,57,56,N,N
+P-1265,Drug 10mg,Site 1,37,M,64,61,N,N
+P-1266,Drug 20mg,Site 4,56,F,63,67,N,N
+P-1267,Placebo,Site 2,61,F,53,53,N,N
+P-1268,Drug 10mg,Site 2,65,M,51,45,N,N
+P-1269,Drug 20mg,Site 4,59,M,55,59,N,N
+P-1270,Placebo,Site 3,34,M,53,56,N,N
+P-1271,Drug 10mg,Site 4,77,M,59,59,N,N
+P-1272,Drug 20mg,Site 3,68,M,64,58,N,N
+P-1273,Placebo,Site 3,79,F,60,45,Y,N
+P-1274,Drug 10mg,Site 4,78,M,59,51,Y,N
+P-1275,Drug 20mg,Site 2,26,F,61,65,N,N
+P-1276,Placebo,Site 4,77,F,54,40,Y,N
+P-1277,Drug 10mg,Site 1,61,M,67,61,N,N
+P-1278,Drug 20mg,Site 4,59,M,51,55,N,N
+P-1279,Placebo,Site 1,39,M,75,78,N,N
+P-1280,Drug 10mg,Site 3,37,F,70,54,Y,N
+P-1281,Drug 20mg,Site 3,25,F,60,40,Y,N
+P-1282,Placebo,Site 2,40,F,59,54,N,N
+P-1283,Drug 10mg,Site 4,24,M,55,51,N,N
+P-1284,Drug 20mg,Site 4,67,F,72,63,Y,N
+P-1285,Placebo,Site 4,60,M,64,64,N,Y
+P-1286,Drug 10mg,Site 3,50,M,68,66,N,N
+P-1287,Drug 20mg,Site 4,42,M,63,49,Y,N
+P-1288,Placebo,Site 2,69,M,62,51,Y,N
+P-1289,Drug 10mg,Site 2,48,F,60,62,N,N
+P-1290,Drug 20mg,Site 1,66,F,56,38,Y,N
+P-1291,Placebo,Site 4,38,M,56,57,N,N
+P-1292,Drug 10mg,Site 1,73,M,68,64,N,N
+P-1293,Drug 20mg,Site 2,26,F,50,35,Y,N
+P-1294,Placebo,Site 4,24,F,61,58,N,N
+P-1295,Drug 10mg,Site 2,72,M,66,67,N,N
+P-1296,Drug 20mg,Site 3,61,M,61,60,N,N
+P-1297,Placebo,Site 4,40,F,66,50,Y,Y
+P-1298,Drug 10mg,Site 4,35,M,53,55,N,N
+P-1299,Drug 20mg,Site 2,41,M,64,49,Y,N

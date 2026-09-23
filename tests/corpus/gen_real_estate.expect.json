@@ -1,0 +1,43 @@
+{
+  "note": [
+    "Listings with one 45M estate among homes of 200k–2M."
+  ],
+  "report": {
+    "grain": "entity",
+    "questions": [
+      {
+        "id": "price-per-sqft",
+        "text": "Which cities are most expensive per square foot?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "price_per_sqft"
+          ],
+          [
+            "price",
+            "sqft"
+          ]
+        ],
+        "by": [
+          "city"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "speed",
+        "text": "Where do homes sell fastest?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "days_on_market"
+          ]
+        ],
+        "by": [
+          "neighbourhood",
+          "city"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

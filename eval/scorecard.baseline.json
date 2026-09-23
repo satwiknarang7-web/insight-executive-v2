@@ -1,0 +1,570 @@
+{
+  "corpus": {
+    "ai_jobs": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I10": 1
+        }
+      },
+      "withBrief": {
+        "answered": [
+          "by-occupation"
+        ],
+        "rules": {
+          "I8": 1,
+          "I10": 1
+        }
+      }
+    },
+    "ai_models_api_detail": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I6": 2,
+          "I8": 2
+        }
+      }
+    },
+    "ai_subscriptions": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I1": 2,
+          "I2": 1,
+          "I3": 10,
+          "I5": 1,
+          "I6": 3,
+          "I8": 3,
+          "I10": 1
+        }
+      },
+      "withBrief": {
+        "answered": [],
+        "rules": {
+          "I1": 2,
+          "I2": 1,
+          "I3": 10,
+          "I5": 1,
+          "I6": 3,
+          "I8": 3,
+          "I10": 1
+        }
+      }
+    },
+    "eval_01_event_log": {
+      "noModel": {
+        "answered": [
+          "trend"
+        ],
+        "rules": {}
+      }
+    },
+    "eval_02_outcome": {
+      "noModel": {
+        "answered": [
+          "by-contract",
+          "rate"
+        ],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "eval_03_long_panel": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "eval_05_survey": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "eval_06_sensor_stream": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "eval_07_refunds": {
+      "noModel": {
+        "answered": [
+          "trend"
+        ],
+        "rules": {}
+      }
+    },
+    "eval_08_wide_sparse": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "eval_09_filthy": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "eval_10_two_columns": {
+      "noModel": {
+        "answered": [
+          "by-team"
+        ],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "gen_ab_test": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "gen_budget_vs_actual": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I4": 7
+        }
+      }
+    },
+    "gen_clinical_trial": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "gen_energy_hourly": {
+      "noModel": {
+        "answered": [
+          "by-site"
+        ],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "gen_hr_attrition": {
+      "noModel": {
+        "answered": [
+          "overtime",
+          "rate"
+        ],
+        "rules": {
+          "I5": 1,
+          "I8": 1
+        }
+      }
+    },
+    "gen_inventory_snapshots": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 4
+        }
+      }
+    },
+    "gen_multi_currency_catalog": {
+      "noModel": {
+        "answered": [
+          "best-sellers"
+        ],
+        "rules": {}
+      }
+    },
+    "gen_real_estate": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "gen_saas_pricing": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 3,
+          "I5": 1,
+          "I6": 1,
+          "I8": 1
+        }
+      }
+    },
+    "gen_student_scores": {
+      "noModel": {
+        "answered": [
+          "by-school"
+        ],
+        "rules": {}
+      }
+    },
+    "gen_support_tickets": {
+      "noModel": {
+        "answered": [
+          "volume"
+        ],
+        "rules": {
+          "I10": 1
+        }
+      }
+    },
+    "gen_web_daily": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I2": 1
+        }
+      }
+    },
+    "repo_sales_data": {
+      "noModel": {
+        "answered": [
+          "by-category",
+          "by-region"
+        ],
+        "rules": {}
+      }
+    },
+    "sample_campaigns": {
+      "noModel": {
+        "answered": [
+          "cpa-by-channel"
+        ],
+        "rules": {}
+      }
+    },
+    "sample_churn": {
+      "noModel": {
+        "answered": [
+          "by-contract",
+          "rate"
+        ],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "sample_messy": {
+      "noModel": {
+        "answered": [
+          "trend"
+        ],
+        "rules": {}
+      }
+    },
+    "sample_retail": {
+      "noModel": {
+        "answered": [
+          "by-category",
+          "trend"
+        ],
+        "rules": {
+          "I2": 1
+        }
+      }
+    }
+  },
+  "fuzz": {
+    "fuzz_scope_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 2,
+          "I5": 1
+        }
+      }
+    },
+    "fuzz_scope_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 2,
+          "I5": 1
+        }
+      }
+    },
+    "fuzz_scope_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 2,
+          "I5": 1
+        }
+      }
+    },
+    "fuzz_scope_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 4
+        }
+      }
+    },
+    "fuzz_scope_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 2,
+          "I5": 1
+        }
+      }
+    },
+    "fuzz_outlier_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I6": 1
+        }
+      }
+    },
+    "fuzz_outlier_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I5": 1,
+          "I6": 2,
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_outlier_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I5": 1,
+          "I6": 2,
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_outlier_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I6": 2,
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_outlier_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I5": 1,
+          "I6": 1
+        }
+      }
+    },
+    "fuzz_resolution_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_resolution_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_resolution_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_resolution_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_resolution_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_long_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_long_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I10": 1
+        }
+      }
+    },
+    "fuzz_long_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I10": 1
+        }
+      }
+    },
+    "fuzz_long_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I10": 1
+        }
+      }
+    },
+    "fuzz_long_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I10": 1
+        }
+      }
+    },
+    "fuzz_level_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_level_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I3": 1,
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_level_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_level_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_level_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_rate_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_rate_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_rate_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_rate_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_rate_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_outcome_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I5": 1
+        }
+      }
+    },
+    "fuzz_outcome_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I8": 2
+        }
+      }
+    },
+    "fuzz_outcome_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I5": 1
+        }
+      }
+    },
+    "fuzz_outcome_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I5": 2
+        }
+      }
+    },
+    "fuzz_outcome_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_control_1": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_control_2": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_control_3": {
+      "noModel": {
+        "answered": [],
+        "rules": {
+          "I8": 1
+        }
+      }
+    },
+    "fuzz_control_4": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    },
+    "fuzz_control_5": {
+      "noModel": {
+        "answered": [],
+        "rules": {}
+      }
+    }
+  }
+}

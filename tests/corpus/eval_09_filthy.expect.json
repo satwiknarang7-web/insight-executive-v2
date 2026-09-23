@@ -1,0 +1,38 @@
+{
+  "note": [
+    "Every defect at once. `amount` holds two comma conventions, so it may stay text; the question still stands."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "opened",
+    "questions": [
+      {
+        "id": "amount-by-region",
+        "text": "Which regions carry the most amount?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "amount"
+          ]
+        ],
+        "by": [
+          "region"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "qty-by-region",
+        "text": "Which regions move the most quantity?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "qty"
+          ]
+        ],
+        "by": [
+          "region"
+        ]
+      }
+    ]
+  }
+}

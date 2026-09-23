@@ -1,0 +1,47 @@
+{
+  "note": [
+    "Weekly stock levels. Summing stock across weeks counts the same units sixteen times."
+  ],
+  "report": {
+    "grain": "entityPeriod",
+    "time": "week_start",
+    "measures": {
+      "stock_on_hand": {
+        "noSumAcross": [
+          "week_start"
+        ]
+      }
+    },
+    "questions": [
+      {
+        "id": "stock-trend",
+        "text": "Is stock building up or running down?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "stock_on_hand"
+          ]
+        ],
+        "over": [
+          "week_start"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "movers",
+        "text": "Which SKUs ship the most?",
+        "intent": "rank",
+        "answeredBy": [
+          [
+            "units_shipped"
+          ]
+        ],
+        "by": [
+          "sku",
+          "warehouse"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

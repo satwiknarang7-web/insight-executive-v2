@@ -1,0 +1,11 @@
+date,region,product_category,revenue,units_sold
+2026-04-01,North,Electronics,1200.50,5
+2026-04-01,South,Home Appliances,850.00,3
+2026-04-02,North,Electronics,450.75,2
+2026-04-02,West,Electronics,3300.00,10
+2026-04-03,East,Beauty,200.00,4
+2026-04-03,North,Clothing,500.25,8
+2026-04-04,South,Electronics,150.00,1
+2026-04-04,North,Electronics,900.00,4
+2026-04-05,West,Home Appliances,2100.50,7
+2026-04-05,East,Electronics,800.00,3

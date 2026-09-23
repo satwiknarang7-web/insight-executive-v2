@@ -1,0 +1,67 @@
+{
+  "note": [
+    "Three arms. Improvement depends on the arm, adverse events on the dose."
+  ],
+  "report": {
+    "grain": "entity",
+    "outcomes": [
+      "improved",
+      "adverse_event"
+    ],
+    "measures": {
+      "baseline_score": {
+        "noSum": true
+      },
+      "week12_score": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "efficacy",
+        "text": "Which arm improves the most patients?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "improved"
+          ]
+        ],
+        "by": [
+          "arm"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "safety",
+        "text": "Which arm has the most adverse events?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "adverse_event"
+          ]
+        ],
+        "by": [
+          "arm"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "score-change",
+        "text": "How much does the score fall by arm?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "baseline_score",
+            "week12_score"
+          ],
+          [
+            "week12_score"
+          ]
+        ],
+        "by": [
+          "arm"
+        ]
+      }
+    ]
+  }
+}

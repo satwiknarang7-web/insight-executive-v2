@@ -1,0 +1,78 @@
+{
+  "note": [
+    "Ten 1–5 questions with a refusal option. The report should compare the questions."
+  ],
+  "report": {
+    "grain": "response",
+    "measures": {
+      "q1_ease": {
+        "noSum": true
+      },
+      "q2_speed": {
+        "noSum": true
+      },
+      "q3_support": {
+        "noSum": true
+      },
+      "q4_value": {
+        "noSum": true
+      },
+      "q5_trust": {
+        "noSum": true
+      },
+      "q6_design": {
+        "noSum": true
+      },
+      "q7_reliability": {
+        "noSum": true
+      },
+      "q8_docs": {
+        "noSum": true
+      },
+      "q9_onboarding": {
+        "noSum": true
+      },
+      "q10_recommend": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "items",
+        "text": "Which parts of the product score lowest?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "q1_ease",
+            "q2_speed",
+            "q3_support",
+            "q4_value",
+            "q5_trust",
+            "q6_design",
+            "q7_reliability",
+            "q8_docs",
+            "q9_onboarding",
+            "q10_recommend"
+          ]
+        ],
+        "suggest": true
+      },
+      {
+        "id": "recommend-by-group",
+        "text": "Who is most and least likely to recommend it?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "q10_recommend"
+          ]
+        ],
+        "by": [
+          "department",
+          "status",
+          "age_band"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

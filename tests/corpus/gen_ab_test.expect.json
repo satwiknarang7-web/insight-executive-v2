@@ -1,0 +1,59 @@
+{
+  "note": [
+    "An A/B test over 28 days. Conversion is spelled several ways; the series fits inside one month."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "visit_date",
+    "outcomes": [
+      "converted"
+    ],
+    "questions": [
+      {
+        "id": "conversion-by-variant",
+        "text": "Does B convert better than A?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "converted"
+          ]
+        ],
+        "by": [
+          "variant"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "revenue-by-variant",
+        "text": "Does B earn more per visitor?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "variant"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "daily",
+        "text": "How did conversions move day by day?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "converted"
+          ],
+          [
+            "COUNT(*)"
+          ]
+        ],
+        "over": [
+          "visit_date"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

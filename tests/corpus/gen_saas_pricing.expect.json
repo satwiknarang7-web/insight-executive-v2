@@ -1,0 +1,53 @@
+{
+  "note": [
+    "Plans sold per user, seat, organisation and instance; one dedicated instance at 68k a month."
+  ],
+  "report": {
+    "grain": "entity",
+    "measures": {
+      "monthly_price_usd": {
+        "scope": [
+          "buyer_unit"
+        ]
+      }
+    },
+    "questions": [
+      {
+        "id": "storage-per-dollar",
+        "text": "Which plan gives the most storage for the money?",
+        "intent": "tradeoff",
+        "answeredBy": [
+          [
+            "storage_gb",
+            "monthly_price_usd"
+          ]
+        ],
+        "by": [
+          "plan",
+          "vendor"
+        ],
+        "scope": [
+          "buyer_unit"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "price-by-vendor",
+        "text": "How do vendors compare on price for the same kind of buyer?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "monthly_price_usd"
+          ]
+        ],
+        "by": [
+          "vendor"
+        ],
+        "scope": [
+          "buyer_unit"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

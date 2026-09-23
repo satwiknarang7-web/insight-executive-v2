@@ -7,7 +7,6 @@
     "best' is that 44 rows across 12 providers cannot support one. The deck is",
     "expected to recognise the outcome and still decline to rank on it."
   ],
-
   "brief": {
     "subject": "One row is a paid AI subscription plan from one provider.",
     "outcomes": [
@@ -23,15 +22,141 @@
       "Monthly Price USD": "attribute",
       "Plan Name": "attribute"
     },
-    "questions": ["Which plan gives the most capability per dollar?"]
+    "questions": [
+      "Which plan gives the most capability per dollar?"
+    ]
   },
-
   "expect": {
-    "outcome": { "column": "Intelligence Index", "kind": "continuous" },
+    "outcome": {
+      "column": "Intelligence Index",
+      "kind": "continuous"
+    },
     "dropsClaim": {},
     "kpiMatches": "intelligence index",
     "chartsMustNotMatch": [],
     "chartsMustNotPair": [],
     "withoutBriefMustStillChart": true
+  },
+  "report": {
+    "grain": "entity",
+    "measures": {
+      "Monthly Price USD": {
+        "scope": [
+          "Buyer Unit"
+        ]
+      },
+      "USD per Intelligence Point": {
+        "scope": [
+          "Buyer Unit"
+        ]
+      },
+      "Intelligence per 100 USD": {
+        "scope": [
+          "Buyer Unit"
+        ]
+      },
+      "Monthly Price Local Currency": {
+        "scope": [
+          "Local Currency"
+        ]
+      },
+      "Annual Price Local Currency": {
+        "scope": [
+          "Local Currency"
+        ]
+      },
+      "Usage Multiplier Within Provider": {
+        "scope": [
+          "Provider"
+        ]
+      }
+    },
+    "questions": [
+      {
+        "id": "value-per-dollar",
+        "text": "Which plan gives the most intelligence per dollar?",
+        "intent": "tradeoff",
+        "answeredBy": [
+          [
+            "Intelligence Index",
+            "Monthly Price USD"
+          ],
+          [
+            "USD per Intelligence Point"
+          ],
+          [
+            "Intelligence per 100 USD"
+          ]
+        ],
+        "by": [
+          "Plan Name",
+          "Product",
+          "Provider"
+        ],
+        "scope": [
+          "Buyer Unit"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "price-by-provider",
+        "text": "How do prices compare across providers, for the same kind of buyer?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "Monthly Price USD"
+          ]
+        ],
+        "by": [
+          "Provider",
+          "Product"
+        ],
+        "scope": [
+          "Buyer Unit"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "capability-by-provider",
+        "text": "Which providers offer the most capable models?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "Intelligence Index"
+          ],
+          [
+            "Agentic Coding Score"
+          ]
+        ],
+        "by": [
+          "Provider",
+          "Flagship Model",
+          "Product"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "features",
+        "text": "Which plans include a coding agent, SSO and admin controls?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "Coding Agent"
+          ],
+          [
+            "SSO"
+          ],
+          [
+            "Admin Console"
+          ]
+        ],
+        "by": [
+          "Plan Name",
+          "Provider",
+          "Audience",
+          "Product"
+        ]
+      }
+    ]
   }
 }

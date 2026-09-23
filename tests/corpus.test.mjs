@@ -37,8 +37,11 @@ import { runAnalysis } from '../lib/pipeline.js';
  *
  * ADDING A DATASET, when a report comes out wrong on one:
  *   1. drop the csv in `tests/corpus/` (subsample it if it is large)
- *   2. write `<name>.expect.json` describing the report it should have produced
- *   3. watch this fail, then fix the engine rather than the expectation
+ *   2. write `<name>.expect.json` describing the report it should have produced,
+ *      including a `report` section — grain, measure truth and the questions a
+ *      report must answer (see eval/answers.mjs and eval/audit.mjs)
+ *   3. `npm run eval:baseline` to add it to the scorecard, and commit both
+ *   4. watch this fail, then fix the engine rather than the expectation
  */
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));

@@ -1,0 +1,64 @@
+{
+  "note": [
+    "Skewed resolution times, and one ticket open for three months."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "created_at",
+    "outcomes": [
+      "sla_breached"
+    ],
+    "measures": {
+      "resolution_hours": {
+        "noSum": true
+      },
+      "csat": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "breach-by-priority",
+        "text": "Which priorities breach SLA most?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "sla_breached"
+          ]
+        ],
+        "by": [
+          "priority"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "resolution-by-area",
+        "text": "Which product areas take longest to resolve?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "resolution_hours"
+          ]
+        ],
+        "by": [
+          "product_area"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "volume",
+        "text": "Is ticket volume rising?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "COUNT(*)"
+          ]
+        ],
+        "over": [
+          "created_at"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

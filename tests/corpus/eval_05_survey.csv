@@ -1,0 +1,401 @@
+respondent_id,age_band,department,status,q1_ease,q2_speed,q3_support,q4_value,q5_trust,q6_design,q7_reliability,q8_docs,q9_onboarding,q10_recommend,comments
+R1000,35-44,Marketing,Trial,1,Prefer not to say,1,1,2,2,2,1,2,1,Too slow on large files.
+R1001,45-54,Marketing,Paid,1,1,1,2,1,1,Prefer not to say,1,1,1,
+R1002,45-54,Finance,Trial,Prefer not to say,4,4,5,4,5,4,4,5,4,Too slow on large files.
+R1003,35-44,Marketing,Paid,3,Prefer not to say,1,2,2,Prefer not to say,3,3,1,1,
+R1004,18-24,Marketing,Paid,1,2,3,2,3,Prefer not to say,Prefer not to say,3,3,1,Support was quick to respond.
+R1005,55+,Operations,Trial,2,2,2,1,2,Prefer not to say,Prefer not to say,2,1,2,Support was quick to respond.
+R1006,45-54,Sales,Trial,3,2,3,2,2,2,2,2,2,3,Support was quick to respond.
+R1007,55+,Finance,Paid,2,2,3,3,2,2,2,2,2,3,
+R1008,45-54,Operations,Paid,3,4,4,4,3,4,3,3,4,3,Support was quick to respond.
+R1009,55+,Sales,Churned,3,4,4,2,2,3,3,2,3,4,
+R1010,18-24,Finance,Trial,4,4,4,4,4,4,3,4,Prefer not to say,5,Support was quick to respond.
+R1011,55+,Operations,Paid,Prefer not to say,2,3,2,Prefer not to say,2,Prefer not to say,3,Prefer not to say,2,Too slow on large files.
+R1012,45-54,Engineering,Paid,4,Prefer not to say,3,4,4,4,3,2,3,4,Works well overall.
+R1013,35-44,Finance,Churned,2,1,3,Prefer not to say,2,1,2,1,3,1,"Needs better docs, otherwise fine."
+R1014,25-34,Engineering,Paid,2,3,4,3,2,2,3,3,2,2,
+R1015,55+,Marketing,Paid,3,4,2,3,2,2,2,4,3,3,Works well overall.
+R1016,18-24,Engineering,Paid,3,3,3,3,3,3,4,2,2,2,
+R1017,25-34,Operations,Paid,2,2,2,3,2,3,2,2,4,3,Support was quick to respond.
+R1018,25-34,Finance,Paid,2,1,2,2,1,1,1,1,1,2,Works well overall.
+R1019,55+,Finance,Paid,Prefer not to say,2,2,2,2,2,2,1,1,1,Support was quick to respond.
+R1020,45-54,Marketing,Trial,4,4,5,4,5,5,Prefer not to say,4,4,4,
+R1021,55+,Marketing,Churned,3,5,4,3,4,Prefer not to say,4,3,3,4,Too slow on large files.
+R1022,55+,Finance,Churned,5,5,4,4,4,4,5,4,5,4,Too slow on large files.
+R1023,45-54,Operations,Paid,3,2,2,3,3,2,3,2,2,1,
+R1024,25-34,Operations,Paid,1,2,2,2,Prefer not to say,3,2,3,Prefer not to say,2,
+R1025,35-44,Finance,Paid,3,2,3,3,3,3,2,2,2,2,
+R1026,45-54,Operations,Paid,4,5,4,3,4,4,4,3,4,3,"Needs better docs, otherwise fine."
+R1027,18-24,Marketing,Churned,3,3,3,3,Prefer not to say,3,3,3,4,2,
+R1028,55+,Finance,Trial,3,2,3,3,3,4,4,3,3,2,
+R1029,18-24,Sales,Churned,4,4,4,4,4,3,4,4,3,3,
+R1030,55+,Engineering,Paid,5,4,5,5,4,5,5,4,Prefer not to say,Prefer not to say,
+R1031,35-44,Finance,Trial,3,4,4,3,5,4,4,5,4,Prefer not to say,
+R1032,45-54,Sales,Churned,2,2,2,2,1,2,1,2,Prefer not to say,3,
+R1033,45-54,Sales,Paid,2,2,3,3,Prefer not to say,3,1,1,3,1,
+R1034,18-24,Operations,Churned,5,3,3,5,5,4,5,5,5,4,
+R1035,35-44,Sales,Churned,4,5,5,4,4,4,4,5,5,4,"Needs better docs, otherwise fine."
+R1036,55+,Operations,Trial,3,1,3,3,2,Prefer not to say,2,Prefer not to say,Prefer not to say,2,
+R1037,45-54,Marketing,Churned,1,1,1,2,1,2,1,1,1,1,Too slow on large files.
+R1038,45-54,Finance,Paid,Prefer not to say,3,4,4,3,3,3,4,4,3,Support was quick to respond.
+R1039,55+,Engineering,Churned,2,2,3,3,1,3,3,3,2,2,
+R1040,45-54,Operations,Churned,3,4,4,4,3,Prefer not to say,3,3,Prefer not to say,4,
+R1041,25-34,Finance,Paid,4,4,4,4,5,5,5,4,5,5,Works well overall.
+R1042,55+,Operations,Churned,1,3,2,2,2,2,2,Prefer not to say,3,2,
+R1043,18-24,Operations,Churned,2,2,1,1,1,Prefer not to say,1,Prefer not to say,2,1,Too slow on large files.
+R1044,25-34,Sales,Paid,3,3,3,3,3,4,Prefer not to say,Prefer not to say,4,3,
+R1045,35-44,Marketing,Trial,1,1,1,Prefer not to say,1,2,1,2,2,1,Support was quick to respond.
+R1046,55+,Marketing,Trial,1,Prefer not to say,2,3,3,Prefer not to say,2,1,3,1,"Needs better docs, otherwise fine."
+R1047,35-44,Engineering,Trial,3,4,Prefer not to say,3,4,4,4,2,4,3,Support was quick to respond.
+R1048,45-54,Marketing,Paid,2,1,1,2,Prefer not to say,2,2,2,2,1,
+R1049,18-24,Finance,Trial,2,2,2,3,2,2,3,3,2,Prefer not to say,
+R1050,35-44,Engineering,Paid,2,2,1,1,2,2,2,3,1,2,
+R1051,45-54,Finance,Trial,5,5,4,4,5,5,4,3,4,4,"Needs better docs, otherwise fine."
+R1052,55+,Engineering,Paid,3,3,3,4,3,Prefer not to say,3,4,2,3,
+R1053,25-34,Marketing,Trial,4,3,4,3,3,4,4,3,3,3,
+R1054,25-34,Operations,Paid,2,2,2,2,2,3,2,1,2,Prefer not to say,
+R1055,35-44,Marketing,Trial,4,4,4,3,4,Prefer not to say,3,4,2,4,
+R1056,25-34,Finance,Trial,4,5,4,5,4,4,5,4,4,4,
+R1057,18-24,Engineering,Paid,4,5,5,5,4,5,5,5,5,5,
+R1058,18-24,Operations,Churned,2,4,3,2,3,2,2,2,4,2,
+R1059,25-34,Operations,Paid,4,3,4,3,Prefer not to say,5,3,3,3,4,
+R1060,18-24,Marketing,Trial,1,Prefer not to say,3,1,Prefer not to say,3,2,3,1,3,
+R1061,45-54,Engineering,Trial,4,4,5,5,4,4,4,4,5,4,
+R1062,45-54,Engineering,Churned,4,3,5,4,3,4,3,4,5,4,Works well overall.
+R1063,18-24,Sales,Churned,2,4,2,2,Prefer not to say,4,4,Prefer not to say,Prefer not to say,4,
+R1064,18-24,Engineering,Trial,Prefer not to say,3,3,5,5,4,Prefer not to say,4,4,4,
+R1065,18-24,Finance,Churned,3,3,4,4,4,4,4,4,5,4,"Needs better docs, otherwise fine."
+R1066,35-44,Operations,Churned,4,Prefer not to say,5,4,4,4,4,4,5,4,
+R1067,35-44,Engineering,Trial,Prefer not to say,4,4,5,5,5,4,Prefer not to say,4,5,
+R1068,18-24,Engineering,Trial,1,3,2,1,1,1,3,2,2,2,
+R1069,35-44,Engineering,Churned,2,2,2,3,2,2,2,3,2,2,
+R1070,18-24,Engineering,Trial,2,2,3,Prefer not to say,1,1,1,1,3,2,
+R1071,18-24,Marketing,Trial,4,5,3,4,3,4,4,5,3,4,
+R1072,18-24,Operations,Churned,2,Prefer not to say,1,1,Prefer not to say,2,1,Prefer not to say,1,2,"Needs better docs, otherwise fine."
+R1073,18-24,Operations,Trial,4,5,4,4,Prefer not to say,4,3,3,4,4,Too slow on large files.
+R1074,18-24,Marketing,Churned,Prefer not to say,3,2,4,3,4,4,4,4,2,
+R1075,18-24,Finance,Churned,2,2,2,3,2,2,Prefer not to say,1,3,Prefer not to say,
+R1076,18-24,Engineering,Paid,5,5,5,5,5,5,4,5,5,4,
+R1077,55+,Sales,Paid,3,2,1,3,3,2,3,2,1,2,
+R1078,18-24,Finance,Churned,1,1,2,1,2,1,2,2,1,2,"Needs better docs, otherwise fine."
+R1079,25-34,Sales,Paid,3,3,4,3,4,2,4,3,4,4,Too slow on large files.
+R1080,45-54,Sales,Paid,2,2,2,2,3,3,3,3,3,2,
+R1081,45-54,Engineering,Paid,3,4,4,2,2,3,3,2,3,3,Works well overall.
+R1082,35-44,Engineering,Churned,2,Prefer not to say,4,3,2,2,4,2,4,2,"Needs better docs, otherwise fine."
+R1083,18-24,Engineering,Churned,Prefer not to say,5,4,4,5,4,4,4,5,4,
+R1084,55+,Finance,Churned,2,3,3,Prefer not to say,2,Prefer not to say,3,2,3,3,
+R1085,18-24,Sales,Paid,1,2,2,2,1,Prefer not to say,2,1,3,2,"Needs better docs, otherwise fine."
+R1086,18-24,Finance,Paid,5,4,5,4,5,4,4,3,5,4,
+R1087,55+,Operations,Churned,Prefer not to say,2,2,1,1,2,2,2,2,3,
+R1088,55+,Sales,Paid,2,2,2,2,Prefer not to say,1,2,1,2,2,
+R1089,45-54,Finance,Trial,1,3,3,2,2,2,3,2,2,2,
+R1090,45-54,Marketing,Trial,5,5,Prefer not to say,5,4,5,5,5,Prefer not to say,4,
+R1091,25-34,Marketing,Churned,Prefer not to say,2,3,Prefer not to say,2,3,2,3,4,2,Works well overall.
+R1092,18-24,Marketing,Paid,3,4,4,4,4,3,5,4,4,4,
+R1093,55+,Operations,Trial,Prefer not to say,2,2,Prefer not to say,2,3,2,3,2,3,Too slow on large files.
+R1094,45-54,Sales,Trial,3,3,2,2,2,2,3,3,3,1,
+R1095,35-44,Sales,Churned,3,3,2,2,3,Prefer not to say,2,3,2,3,
+R1096,55+,Engineering,Paid,3,2,3,4,2,2,2,2,2,3,
+R1097,45-54,Operations,Churned,3,2,1,2,2,Prefer not to say,Prefer not to say,3,3,Prefer not to say,
+R1098,55+,Operations,Trial,4,4,4,5,5,3,5,Prefer not to say,4,5,"Needs better docs, otherwise fine."
+R1099,25-34,Finance,Paid,2,2,Prefer not to say,1,1,1,1,Prefer not to say,1,1,
+R1100,25-34,Finance,Paid,2,2,1,2,1,Prefer not to say,1,1,2,1,
+R1101,18-24,Marketing,Churned,4,2,2,2,2,2,2,2,4,3,
+R1102,18-24,Marketing,Churned,3,1,3,2,3,2,3,2,Prefer not to say,3,"Needs better docs, otherwise fine."
+R1103,45-54,Sales,Paid,5,3,5,4,5,4,5,3,4,5,Too slow on large files.
+R1104,18-24,Finance,Paid,3,3,2,4,3,Prefer not to say,3,2,4,3,
+R1105,45-54,Engineering,Paid,4,4,4,4,3,3,5,5,4,5,Works well overall.
+R1106,35-44,Finance,Trial,5,Prefer not to say,5,5,4,5,5,5,5,5,
+R1107,55+,Engineering,Paid,2,3,3,2,2,2,2,3,2,3,Too slow on large files.
+R1108,55+,Marketing,Trial,5,5,5,4,Prefer not to say,4,5,4,5,4,"Needs better docs, otherwise fine."
+R1109,55+,Engineering,Paid,4,4,5,5,5,5,4,4,Prefer not to say,5,Works well overall.
+R1110,18-24,Marketing,Churned,5,4,4,4,3,4,4,3,Prefer not to say,4,
+R1111,35-44,Sales,Trial,4,2,3,3,2,2,Prefer not to say,4,Prefer not to say,4,
+R1112,45-54,Operations,Churned,1,3,1,3,2,2,2,2,3,2,Too slow on large files.
+R1113,45-54,Sales,Churned,2,2,3,3,3,3,2,1,Prefer not to say,2,
+R1114,55+,Engineering,Trial,Prefer not to say,2,3,2,3,2,3,3,2,3,
+R1115,55+,Engineering,Churned,Prefer not to say,5,4,4,Prefer not to say,5,4,5,5,4,
+R1116,18-24,Marketing,Trial,1,2,2,1,2,1,2,1,1,2,
+R1117,55+,Engineering,Churned,2,2,2,3,3,3,2,3,2,2,
+R1118,35-44,Sales,Paid,5,Prefer not to say,5,3,4,5,3,4,3,5,
+R1119,18-24,Sales,Churned,3,2,3,3,4,3,3,3,4,4,
+R1120,55+,Sales,Churned,1,2,3,2,2,2,2,2,2,1,Support was quick to respond.
+R1121,18-24,Marketing,Trial,3,3,3,3,3,3,3,3,4,3,Support was quick to respond.
+R1122,45-54,Sales,Churned,1,2,1,1,1,3,2,2,2,2,
+R1123,25-34,Finance,Paid,5,4,5,4,3,Prefer not to say,4,5,4,4,
+R1124,35-44,Finance,Trial,4,Prefer not to say,4,5,Prefer not to say,4,Prefer not to say,3,5,4,
+R1125,55+,Finance,Churned,4,4,4,4,4,5,4,4,5,3,Too slow on large files.
+R1126,55+,Finance,Paid,5,4,4,5,4,4,5,5,5,4,
+R1127,45-54,Finance,Paid,4,3,4,5,5,4,5,4,4,5,
+R1128,18-24,Engineering,Paid,2,4,3,2,3,Prefer not to say,3,4,3,3,
+R1129,25-34,Finance,Trial,3,4,4,4,4,4,3,4,3,4,
+R1130,55+,Finance,Churned,2,3,3,1,2,3,3,2,2,1,
+R1131,18-24,Engineering,Churned,4,3,3,3,3,3,2,3,3,3,
+R1132,45-54,Operations,Trial,5,5,Prefer not to say,5,4,5,5,5,Prefer not to say,4,Too slow on large files.
+R1133,18-24,Finance,Trial,Prefer not to say,4,4,5,4,4,4,5,5,5,
+R1134,55+,Finance,Trial,2,3,3,Prefer not to say,4,3,3,4,3,3,Works well overall.
+R1135,45-54,Engineering,Paid,3,1,2,1,1,2,2,3,2,1,"Needs better docs, otherwise fine."
+R1136,45-54,Marketing,Paid,1,1,3,3,1,1,2,1,2,2,Too slow on large files.
+R1137,55+,Operations,Paid,3,Prefer not to say,4,3,4,4,4,3,4,3,
+R1138,18-24,Marketing,Trial,5,5,4,5,5,4,Prefer not to say,4,4,3,
+R1139,55+,Sales,Paid,2,2,3,3,3,3,3,3,2,2,
+R1140,18-24,Sales,Paid,Prefer not to say,1,3,3,2,2,1,3,Prefer not to say,2,
+R1141,55+,Engineering,Churned,Prefer not to say,5,4,Prefer not to say,Prefer not to say,Prefer not to say,5,Prefer not to say,4,5,
+R1142,25-34,Engineering,Paid,5,5,5,5,5,4,Prefer not to say,Prefer not to say,5,5,Works well overall.
+R1143,55+,Finance,Trial,1,2,2,2,1,2,2,2,2,2,
+R1144,55+,Operations,Churned,1,1,1,1,2,1,1,1,1,1,
+R1145,35-44,Marketing,Trial,2,3,2,3,2,3,2,2,Prefer not to say,Prefer not to say,
+R1146,25-34,Marketing,Trial,5,5,5,4,5,5,4,4,5,4,
+R1147,55+,Engineering,Trial,Prefer not to say,4,4,5,5,4,5,5,Prefer not to say,4,
+R1148,55+,Marketing,Paid,3,2,2,4,4,3,Prefer not to say,3,2,4,
+R1149,45-54,Engineering,Paid,4,3,3,4,4,3,2,4,3,Prefer not to say,"Needs better docs, otherwise fine."
+R1150,55+,Finance,Trial,2,Prefer not to say,1,Prefer not to say,1,1,1,2,1,1,
+R1151,18-24,Finance,Paid,2,3,3,3,3,2,2,2,3,3,
+R1152,45-54,Sales,Paid,3,2,3,2,1,1,2,3,2,1,
+R1153,55+,Sales,Paid,1,1,2,2,1,2,1,1,2,3,Works well overall.
+R1154,55+,Engineering,Churned,3,4,3,3,3,Prefer not to say,3,4,4,2,Support was quick to respond.
+R1155,18-24,Marketing,Churned,5,5,5,4,5,4,4,5,5,5,
+R1156,18-24,Sales,Churned,2,3,2,3,2,1,2,1,1,1,
+R1157,55+,Engineering,Churned,Prefer not to say,2,3,4,4,2,4,3,3,4,Too slow on large files.
+R1158,35-44,Sales,Trial,2,2,2,2,2,2,2,3,Prefer not to say,2,
+R1159,18-24,Sales,Trial,Prefer not to say,1,1,2,3,2,1,2,2,2,
+R1160,18-24,Operations,Churned,3,5,5,3,3,4,3,4,3,5,
+R1161,35-44,Sales,Churned,1,1,2,2,Prefer not to say,2,1,1,1,1,
+R1162,35-44,Engineering,Trial,5,4,5,5,4,5,5,4,5,4,
+R1163,25-34,Sales,Trial,1,3,Prefer not to say,3,2,3,3,1,2,3,
+R1164,35-44,Engineering,Paid,Prefer not to say,3,Prefer not to say,4,4,4,4,4,3,3,
+R1165,25-34,Engineering,Churned,5,3,4,3,5,5,4,4,4,4,
+R1166,18-24,Finance,Churned,3,2,4,3,2,3,3,2,3,3,
+R1167,55+,Finance,Paid,2,1,2,2,1,1,2,1,2,2,
+R1168,25-34,Marketing,Trial,1,1,Prefer not to say,1,3,Prefer not to say,1,1,1,2,
+R1169,45-54,Engineering,Churned,1,2,1,1,2,1,2,2,1,1,
+R1170,18-24,Sales,Trial,Prefer not to say,3,4,3,4,4,4,4,3,4,
+R1171,55+,Sales,Trial,2,1,3,Prefer not to say,2,2,1,2,3,3,
+R1172,18-24,Operations,Churned,3,3,3,3,2,3,Prefer not to say,3,3,Prefer not to say,
+R1173,35-44,Sales,Churned,1,Prefer not to say,1,1,2,1,1,1,1,1,Works well overall.
+R1174,18-24,Engineering,Churned,3,3,3,Prefer not to say,3,2,3,2,3,3,
+R1175,18-24,Operations,Churned,3,3,2,2,2,3,2,3,2,3,
+R1176,45-54,Operations,Paid,1,1,1,1,2,1,1,1,2,1,Support was quick to respond.
+R1177,18-24,Marketing,Paid,2,2,2,3,Prefer not to say,3,4,3,2,3,Too slow on large files.
+R1178,25-34,Operations,Paid,3,3,3,3,3,Prefer not to say,2,2,2,3,Works well overall.
+R1179,35-44,Marketing,Churned,1,Prefer not to say,1,2,1,1,2,2,1,1,
+R1180,25-34,Operations,Trial,3,2,2,3,2,3,3,Prefer not to say,2,1,
+R1181,45-54,Sales,Paid,4,4,3,Prefer not to say,3,4,4,4,3,3,
+R1182,45-54,Sales,Paid,3,3,2,Prefer not to say,Prefer not to say,3,4,3,3,3,
+R1183,55+,Engineering,Trial,5,Prefer not to say,Prefer not to say,4,4,5,4,4,5,5,
+R1184,25-34,Operations,Churned,4,4,3,4,4,4,4,Prefer not to say,4,4,Too slow on large files.
+R1185,45-54,Engineering,Trial,3,3,4,2,Prefer not to say,2,3,2,2,Prefer not to say,
+R1186,18-24,Sales,Churned,4,4,5,3,5,3,5,5,4,3,Too slow on large files.
+R1187,35-44,Marketing,Trial,2,2,2,3,1,2,2,Prefer not to say,Prefer not to say,2,Support was quick to respond.
+R1188,45-54,Engineering,Trial,2,3,3,2,Prefer not to say,2,1,2,Prefer not to say,1,
+R1189,45-54,Engineering,Trial,4,4,4,4,Prefer not to say,5,4,4,5,5,
+R1190,18-24,Engineering,Churned,3,3,2,3,2,3,2,Prefer not to say,3,3,
+R1191,18-24,Marketing,Paid,5,4,5,5,4,4,Prefer not to say,5,4,5,
+R1192,25-34,Marketing,Trial,2,2,2,1,1,1,1,2,2,1,
+R1193,55+,Operations,Churned,3,Prefer not to say,Prefer not to say,2,3,Prefer not to say,3,4,3,3,
+R1194,45-54,Operations,Paid,1,Prefer not to say,2,Prefer not to say,2,2,2,1,1,1,Too slow on large files.
+R1195,18-24,Engineering,Paid,2,3,3,Prefer not to say,3,Prefer not to say,3,2,2,3,
+R1196,55+,Marketing,Paid,1,2,2,3,1,2,1,2,2,2,Works well overall.
+R1197,25-34,Engineering,Paid,1,2,2,2,2,Prefer not to say,2,1,1,2,
+R1198,55+,Operations,Paid,Prefer not to say,2,2,2,2,1,1,1,2,2,
+R1199,18-24,Operations,Churned,4,3,4,3,4,5,Prefer not to say,4,3,4,
+R1200,55+,Sales,Paid,2,Prefer not to say,2,1,1,2,2,1,1,2,
+R1201,45-54,Sales,Trial,2,2,Prefer not to say,1,1,1,1,2,1,1,
+R1202,18-24,Marketing,Churned,4,Prefer not to say,4,4,3,4,3,Prefer not to say,Prefer not to say,4,
+R1203,25-34,Finance,Churned,2,2,1,Prefer not to say,Prefer not to say,1,2,2,2,1,
+R1204,55+,Finance,Churned,3,4,4,3,4,3,Prefer not to say,3,4,4,
+R1205,25-34,Marketing,Trial,2,1,2,2,1,3,3,2,2,1,
+R1206,18-24,Engineering,Trial,3,3,3,3,4,2,4,3,3,3,
+R1207,25-34,Sales,Churned,2,2,3,2,2,2,2,3,2,3,
+R1208,18-24,Marketing,Paid,5,5,4,4,4,4,5,3,4,Prefer not to say,Too slow on large files.
+R1209,35-44,Sales,Trial,5,4,4,5,5,4,4,4,5,5,
+R1210,45-54,Sales,Paid,3,4,3,4,4,4,4,3,3,Prefer not to say,Too slow on large files.
+R1211,25-34,Sales,Paid,1,3,2,1,Prefer not to say,3,2,Prefer not to say,2,3,Works well overall.
+R1212,45-54,Finance,Paid,3,3,3,2,3,2,3,4,3,3,Too slow on large files.
+R1213,25-34,Marketing,Trial,2,3,2,2,Prefer not to say,2,2,3,2,2,
+R1214,18-24,Sales,Trial,1,1,1,1,2,Prefer not to say,2,2,2,2,
+R1215,25-34,Marketing,Churned,4,3,4,4,4,4,5,4,5,4,
+R1216,55+,Engineering,Trial,2,3,2,3,2,2,2,2,2,2,
+R1217,45-54,Marketing,Trial,2,2,3,3,Prefer not to say,2,2,3,3,2,
+R1218,55+,Engineering,Paid,3,3,3,4,4,3,3,3,3,4,
+R1219,55+,Engineering,Paid,1,2,1,Prefer not to say,1,1,1,2,1,1,Too slow on large files.
+R1220,18-24,Finance,Trial,4,5,4,Prefer not to say,Prefer not to say,5,4,5,4,Prefer not to say,
+R1221,18-24,Finance,Churned,1,1,1,1,2,1,2,2,2,1,
+R1222,55+,Marketing,Churned,3,Prefer not to say,4,3,Prefer not to say,5,3,Prefer not to say,3,3,"Needs better docs, otherwise fine."
+R1223,55+,Sales,Trial,4,4,4,4,Prefer not to say,3,4,4,4,4,
+R1224,55+,Operations,Paid,Prefer not to say,4,4,5,4,5,5,4,5,5,
+R1225,55+,Marketing,Trial,3,1,3,2,1,2,2,1,2,2,Works well overall.
+R1226,55+,Operations,Paid,2,2,2,Prefer not to say,1,1,1,1,1,2,
+R1227,45-54,Marketing,Paid,1,1,1,1,1,Prefer not to say,1,1,1,2,
+R1228,35-44,Operations,Churned,5,5,5,4,Prefer not to say,4,4,4,Prefer not to say,5,
+R1229,18-24,Marketing,Paid,4,5,3,4,3,5,5,4,Prefer not to say,4,
+R1230,55+,Operations,Paid,5,5,5,5,Prefer not to say,5,5,4,5,5,
+R1231,45-54,Engineering,Trial,2,3,3,3,3,2,2,2,2,2,
+R1232,55+,Marketing,Churned,3,5,Prefer not to say,3,4,3,4,Prefer not to say,4,3,
+R1233,45-54,Sales,Churned,4,4,3,3,3,3,4,4,3,3,Works well overall.
+R1234,18-24,Sales,Paid,2,1,2,3,2,2,3,2,2,3,
+R1235,55+,Marketing,Churned,5,4,4,4,4,4,4,5,4,4,Too slow on large files.
+R1236,25-34,Operations,Trial,Prefer not to say,4,4,3,Prefer not to say,5,5,5,Prefer not to say,3,Support was quick to respond.
+R1237,55+,Finance,Trial,3,3,3,4,3,4,4,4,3,4,
+R1238,35-44,Operations,Trial,1,2,1,2,2,2,2,Prefer not to say,1,2,
+R1239,35-44,Marketing,Trial,1,1,2,2,1,1,2,2,1,Prefer not to say,
+R1240,18-24,Marketing,Churned,3,3,Prefer not to say,3,4,4,5,3,4,4,
+R1241,18-24,Engineering,Paid,3,Prefer not to say,3,3,3,Prefer not to say,3,2,3,2,"Needs better docs, otherwise fine."
+R1242,55+,Marketing,Paid,3,2,Prefer not to say,3,2,Prefer not to say,4,2,Prefer not to say,3,
+R1243,25-34,Finance,Trial,2,2,2,3,3,2,3,2,2,2,"Needs better docs, otherwise fine."
+R1244,35-44,Operations,Churned,2,2,1,2,2,1,1,1,1,Prefer not to say,
+R1245,45-54,Finance,Trial,4,4,3,4,2,4,3,3,3,4,
+R1246,35-44,Marketing,Trial,3,4,3,3,3,4,3,4,3,Prefer not to say,
+R1247,25-34,Marketing,Trial,3,2,2,3,3,3,2,3,Prefer not to say,2,Support was quick to respond.
+R1248,45-54,Sales,Trial,3,3,4,2,2,4,3,2,3,4,
+R1249,25-34,Engineering,Trial,Prefer not to say,4,Prefer not to say,5,4,4,3,3,4,3,
+R1250,25-34,Marketing,Churned,Prefer not to say,1,2,3,3,3,2,3,3,2,Works well overall.
+R1251,25-34,Sales,Churned,Prefer not to say,Prefer not to say,4,3,4,3,4,4,5,4,Too slow on large files.
+R1252,45-54,Marketing,Paid,3,4,5,4,3,4,4,4,3,4,
+R1253,35-44,Sales,Trial,2,2,2,2,2,2,3,3,3,3,
+R1254,25-34,Operations,Paid,Prefer not to say,4,Prefer not to say,5,Prefer not to say,Prefer not to say,5,5,4,5,
+R1255,18-24,Marketing,Paid,3,Prefer not to say,3,2,Prefer not to say,Prefer not to say,2,3,3,3,Support was quick to respond.
+R1256,25-34,Operations,Trial,3,2,3,3,3,3,3,4,Prefer not to say,3,
+R1257,25-34,Operations,Churned,4,3,4,4,3,Prefer not to say,4,3,3,3,Works well overall.
+R1258,55+,Finance,Churned,1,2,2,1,1,1,Prefer not to say,Prefer not to say,1,1,
+R1259,18-24,Operations,Trial,Prefer not to say,5,4,4,5,4,5,5,4,5,
+R1260,25-34,Marketing,Churned,3,Prefer not to say,1,2,3,3,Prefer not to say,1,2,3,
+R1261,55+,Engineering,Trial,4,5,5,5,4,4,4,5,5,4,
+R1262,35-44,Engineering,Churned,5,5,5,4,5,5,4,Prefer not to say,5,4,
+R1263,18-24,Operations,Churned,2,2,3,1,1,1,Prefer not to say,2,1,2,
+R1264,55+,Sales,Paid,Prefer not to say,3,3,3,3,3,3,3,3,3,"Needs better docs, otherwise fine."
+R1265,55+,Finance,Paid,1,1,2,1,1,1,1,1,1,2,
+R1266,55+,Engineering,Trial,2,2,1,1,2,3,Prefer not to say,3,2,2,
+R1267,25-34,Engineering,Paid,3,Prefer not to say,4,3,3,4,3,3,4,4,
+R1268,25-34,Operations,Paid,3,4,5,3,4,3,4,4,3,5,
+R1269,55+,Sales,Churned,Prefer not to say,4,5,5,Prefer not to say,5,5,4,5,5,
+R1270,45-54,Operations,Churned,Prefer not to say,Prefer not to say,1,2,1,1,2,1,2,1,
+R1271,35-44,Sales,Paid,3,3,4,4,3,2,2,4,3,Prefer not to say,
+R1272,45-54,Marketing,Churned,4,5,Prefer not to say,5,4,5,4,5,Prefer not to say,4,
+R1273,18-24,Finance,Paid,1,1,1,1,2,1,2,1,1,1,
+R1274,18-24,Sales,Trial,4,4,5,5,5,5,5,5,4,5,
+R1275,25-34,Operations,Paid,5,4,3,4,4,4,3,4,4,4,
+R1276,45-54,Engineering,Churned,1,1,2,1,Prefer not to say,2,2,2,2,1,
+R1277,18-24,Marketing,Churned,4,5,5,Prefer not to say,5,4,4,5,4,4,
+R1278,55+,Engineering,Churned,4,Prefer not to say,3,4,4,3,3,4,3,3,"Needs better docs, otherwise fine."
+R1279,18-24,Engineering,Paid,2,3,2,1,1,3,3,2,2,3,"Needs better docs, otherwise fine."
+R1280,45-54,Sales,Churned,5,5,5,5,5,5,4,5,5,4,
+R1281,18-24,Marketing,Paid,2,2,3,2,3,2,2,2,3,2,
+R1282,45-54,Sales,Trial,2,2,2,2,1,2,2,1,2,2,
+R1283,55+,Finance,Trial,3,3,2,Prefer not to say,2,2,Prefer not to say,3,4,Prefer not to say,
+R1284,55+,Marketing,Churned,3,2,Prefer not to say,1,3,3,1,3,1,2,"Needs better docs, otherwise fine."
+R1285,18-24,Marketing,Churned,2,3,2,3,3,3,4,4,3,3,Works well overall.
+R1286,35-44,Engineering,Paid,4,Prefer not to say,5,5,4,5,Prefer not to say,5,Prefer not to say,5,
+R1287,25-34,Engineering,Paid,4,2,3,Prefer not to say,3,3,2,2,3,3,
+R1288,25-34,Marketing,Churned,2,Prefer not to say,3,1,2,1,2,3,3,Prefer not to say,
+R1289,25-34,Finance,Paid,3,3,4,Prefer not to say,3,3,4,Prefer not to say,3,4,Too slow on large files.
+R1290,35-44,Sales,Churned,3,3,4,4,4,3,3,5,5,4,"Needs better docs, otherwise fine."
+R1291,35-44,Engineering,Trial,5,5,5,4,4,4,5,4,3,4,
+R1292,45-54,Sales,Paid,5,5,5,Prefer not to say,5,5,5,5,4,5,Works well overall.
+R1293,18-24,Operations,Paid,3,2,3,3,Prefer not to say,2,Prefer not to say,1,2,3,
+R1294,45-54,Sales,Trial,1,1,2,2,1,1,1,Prefer not to say,1,2,
+R1295,55+,Marketing,Trial,Prefer not to say,3,4,Prefer not to say,4,4,4,4,4,4,
+R1296,45-54,Finance,Churned,5,5,5,5,4,5,5,5,5,Prefer not to say,Works well overall.
+R1297,18-24,Marketing,Churned,4,3,3,2,4,4,3,4,3,3,Support was quick to respond.
+R1298,55+,Engineering,Paid,5,3,3,3,4,3,4,5,4,5,
+R1299,18-24,Finance,Trial,5,5,5,5,5,5,4,5,Prefer not to say,5,
+R1300,18-24,Finance,Churned,4,4,3,4,3,3,3,3,3,3,Support was quick to respond.
+R1301,45-54,Engineering,Paid,1,2,2,Prefer not to say,2,1,1,2,1,1,
+R1302,35-44,Engineering,Churned,3,2,3,3,3,3,3,3,4,2,Works well overall.
+R1303,35-44,Marketing,Trial,2,Prefer not to say,1,2,1,1,1,1,2,2,"Needs better docs, otherwise fine."
+R1304,25-34,Engineering,Churned,2,2,2,1,1,1,2,1,1,1,
+R1305,55+,Finance,Trial,2,2,3,Prefer not to say,2,2,2,2,2,3,
+R1306,25-34,Sales,Trial,5,5,4,4,5,4,5,5,4,4,
+R1307,45-54,Finance,Paid,4,4,4,4,Prefer not to say,5,5,4,5,5,"Needs better docs, otherwise fine."
+R1308,25-34,Engineering,Churned,5,Prefer not to say,5,4,4,5,4,5,4,5,
+R1309,25-34,Sales,Paid,4,3,4,5,5,3,5,4,3,3,
+R1310,25-34,Engineering,Trial,1,1,Prefer not to say,2,1,1,1,1,2,1,
+R1311,45-54,Marketing,Paid,2,2,2,Prefer not to say,2,Prefer not to say,2,2,1,2,
+R1312,45-54,Engineering,Churned,1,2,1,2,1,2,1,1,3,1,"Needs better docs, otherwise fine."
+R1313,55+,Operations,Churned,5,5,5,5,5,5,5,5,4,5,Support was quick to respond.
+R1314,25-34,Sales,Churned,3,3,4,3,2,3,4,2,2,4,
+R1315,35-44,Finance,Trial,1,1,2,1,Prefer not to say,1,2,1,1,1,
+R1316,35-44,Operations,Paid,3,4,3,Prefer not to say,3,3,3,3,4,3,
+R1317,55+,Finance,Trial,3,3,3,2,2,2,3,3,2,3,"Needs better docs, otherwise fine."
+R1318,55+,Finance,Paid,4,5,4,4,5,4,4,5,5,4,
+R1319,18-24,Operations,Paid,2,3,3,2,2,3,2,3,2,2,Too slow on large files.
+R1320,25-34,Sales,Paid,3,3,2,3,2,2,3,2,3,3,
+R1321,35-44,Finance,Paid,Prefer not to say,Prefer not to say,4,4,4,Prefer not to say,3,4,4,4,
+R1322,35-44,Marketing,Paid,1,2,1,2,2,1,3,2,2,1,Works well overall.
+R1323,35-44,Sales,Trial,3,3,4,3,Prefer not to say,4,4,3,3,4,
+R1324,18-24,Engineering,Trial,3,3,2,3,3,Prefer not to say,2,2,2,3,
+R1325,45-54,Finance,Paid,Prefer not to say,2,1,2,2,3,2,3,Prefer not to say,3,
+R1326,55+,Operations,Churned,1,1,1,1,2,1,2,1,2,2,
+R1327,55+,Operations,Paid,2,3,3,2,Prefer not to say,2,2,2,2,2,
+R1328,18-24,Sales,Paid,3,4,5,4,Prefer not to say,5,3,4,4,3,
+R1329,35-44,Operations,Trial,3,3,Prefer not to say,5,5,5,4,4,5,4,
+R1330,25-34,Engineering,Churned,4,5,4,5,4,4,4,5,4,5,
+R1331,55+,Marketing,Trial,2,Prefer not to say,2,1,2,Prefer not to say,1,1,1,2,
+R1332,18-24,Sales,Churned,4,4,5,4,4,4,4,5,4,5,
+R1333,45-54,Operations,Trial,3,3,2,3,Prefer not to say,3,3,2,3,2,"Needs better docs, otherwise fine."
+R1334,45-54,Operations,Trial,4,5,5,5,4,5,5,5,5,5,"Needs better docs, otherwise fine."
+R1335,18-24,Engineering,Paid,2,3,Prefer not to say,2,2,3,2,3,3,2,
+R1336,18-24,Finance,Churned,5,5,5,5,5,5,4,5,4,5,Works well overall.
+R1337,45-54,Engineering,Trial,4,Prefer not to say,5,4,4,4,4,4,5,5,Support was quick to respond.
+R1338,25-34,Operations,Churned,2,2,3,2,2,2,2,4,2,2,
+R1339,18-24,Finance,Paid,2,3,Prefer not to say,2,Prefer not to say,3,3,2,Prefer not to say,3,
+R1340,18-24,Operations,Churned,2,1,3,3,2,2,3,2,1,3,Works well overall.
+R1341,35-44,Marketing,Paid,3,2,Prefer not to say,2,Prefer not to say,Prefer not to say,Prefer not to say,2,Prefer not to say,3,
+R1342,25-34,Operations,Paid,1,2,2,2,1,1,2,1,1,1,
+R1343,18-24,Engineering,Paid,3,3,3,4,3,3,3,Prefer not to say,4,4,
+R1344,25-34,Finance,Trial,3,5,4,4,3,5,4,5,4,5,
+R1345,18-24,Operations,Trial,3,2,2,2,Prefer not to say,2,3,3,3,3,
+R1346,18-24,Finance,Paid,5,4,5,5,5,5,5,4,5,5,
+R1347,55+,Marketing,Paid,5,4,4,4,5,5,4,5,5,Prefer not to say,Works well overall.
+R1348,55+,Finance,Paid,1,1,2,1,1,1,1,2,2,2,
+R1349,18-24,Finance,Churned,2,1,1,1,2,1,2,Prefer not to say,1,1,
+R1350,18-24,Finance,Churned,2,1,3,2,3,2,2,2,1,3,Too slow on large files.
+R1351,25-34,Sales,Paid,4,5,4,4,3,5,4,4,4,4,
+R1352,25-34,Sales,Trial,Prefer not to say,1,1,2,2,2,1,1,1,2,
+R1353,45-54,Engineering,Paid,2,3,3,3,Prefer not to say,3,2,2,3,3,Works well overall.
+R1354,35-44,Marketing,Trial,2,2,1,2,2,2,Prefer not to say,Prefer not to say,2,2,
+R1355,18-24,Marketing,Paid,4,3,4,3,Prefer not to say,2,3,3,4,4,Works well overall.
+R1356,55+,Marketing,Trial,3,3,4,4,4,4,4,4,4,3,
+R1357,55+,Finance,Trial,2,3,2,3,2,3,4,3,3,4,
+R1358,45-54,Engineering,Paid,5,3,5,3,Prefer not to say,4,4,4,4,4,
+R1359,45-54,Sales,Paid,4,4,5,4,4,5,5,Prefer not to say,5,5,"Needs better docs, otherwise fine."
+R1360,25-34,Operations,Churned,Prefer not to say,2,2,3,2,Prefer not to say,3,3,2,3,
+R1361,18-24,Engineering,Paid,2,3,3,2,3,4,2,Prefer not to say,2,2,
+R1362,55+,Finance,Churned,3,2,3,2,2,2,3,3,1,1,"Needs better docs, otherwise fine."
+R1363,55+,Operations,Paid,4,4,5,5,3,5,5,4,4,5,
+R1364,55+,Sales,Paid,1,2,1,2,2,1,1,2,1,Prefer not to say,Works well overall.
+R1365,18-24,Engineering,Trial,1,2,2,1,1,1,2,Prefer not to say,2,2,Works well overall.
+R1366,25-34,Finance,Trial,2,3,2,2,3,3,3,4,4,3,Works well overall.
+R1367,55+,Finance,Trial,5,4,4,5,Prefer not to say,5,5,4,4,5,Works well overall.
+R1368,18-24,Finance,Churned,4,4,3,3,3,4,3,3,3,4,
+R1369,55+,Engineering,Paid,Prefer not to say,4,4,5,5,5,5,4,4,5,"Needs better docs, otherwise fine."
+R1370,25-34,Sales,Paid,1,2,1,Prefer not to say,2,2,2,1,2,3,
+R1371,45-54,Sales,Paid,1,3,3,2,2,1,2,2,2,3,Support was quick to respond.
+R1372,25-34,Operations,Paid,3,2,2,3,3,Prefer not to say,2,2,3,3,Support was quick to respond.
+R1373,35-44,Marketing,Churned,3,Prefer not to say,4,3,3,3,3,4,3,4,Works well overall.
+R1374,55+,Sales,Paid,3,1,3,3,3,2,Prefer not to say,1,1,3,Support was quick to respond.
+R1375,35-44,Finance,Churned,1,1,1,1,2,1,2,1,1,1,
+R1376,45-54,Finance,Trial,3,3,5,5,4,4,3,5,4,3,"Needs better docs, otherwise fine."
+R1377,45-54,Finance,Churned,1,1,1,1,1,2,Prefer not to say,1,2,1,
+R1378,18-24,Sales,Trial,2,2,1,1,1,Prefer not to say,2,2,1,2,
+R1379,18-24,Operations,Paid,2,Prefer not to say,4,4,3,2,3,2,4,2,Too slow on large files.
+R1380,35-44,Engineering,Paid,4,Prefer not to say,4,3,4,4,4,3,4,3,
+R1381,25-34,Sales,Paid,4,2,4,Prefer not to say,3,2,3,3,Prefer not to say,Prefer not to say,"Needs better docs, otherwise fine."
+R1382,25-34,Engineering,Churned,1,2,2,1,3,1,1,2,2,Prefer not to say,
+R1383,55+,Engineering,Churned,2,2,1,2,1,1,3,2,1,1,Support was quick to respond.
+R1384,55+,Engineering,Trial,2,2,2,3,3,3,Prefer not to say,3,2,3,
+R1385,35-44,Sales,Paid,3,1,1,2,1,2,1,2,1,3,
+R1386,35-44,Operations,Paid,2,2,2,3,1,2,1,1,1,2,
+R1387,45-54,Engineering,Paid,1,1,2,1,1,2,Prefer not to say,2,2,2,
+R1388,18-24,Finance,Paid,3,2,2,3,2,2,2,2,3,2,"Needs better docs, otherwise fine."
+R1389,45-54,Marketing,Churned,4,4,3,3,4,4,3,4,3,3,"Needs better docs, otherwise fine."
+R1390,25-34,Marketing,Trial,4,Prefer not to say,Prefer not to say,4,3,4,3,3,4,3,
+R1391,45-54,Operations,Trial,Prefer not to say,Prefer not to say,2,2,2,3,4,4,2,3,
+R1392,18-24,Sales,Churned,2,2,3,2,3,2,3,Prefer not to say,2,3,
+R1393,18-24,Sales,Trial,4,3,4,4,4,2,3,4,4,3,
+R1394,25-34,Finance,Paid,5,4,3,3,4,5,3,4,3,4,
+R1395,55+,Sales,Churned,Prefer not to say,5,3,4,5,3,4,5,4,4,
+R1396,55+,Finance,Trial,1,1,2,2,1,2,2,Prefer not to say,1,2,Works well overall.
+R1397,25-34,Engineering,Trial,Prefer not to say,1,2,1,2,1,1,2,Prefer not to say,2,Too slow on large files.
+R1398,45-54,Engineering,Churned,3,5,Prefer not to say,4,Prefer not to say,3,4,3,3,3,
+R1399,25-34,Sales,Trial,3,3,1,1,2,1,2,1,1,1,"Needs better docs, otherwise fine."

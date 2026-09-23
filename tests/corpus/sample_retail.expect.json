@@ -1,0 +1,64 @@
+{
+  "note": [
+    "The app sample: retail orders with a seasonal trend."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "order_date",
+    "measures": {
+      "unit_price": {
+        "noSum": true
+      },
+      "discount_pct": {
+        "noSum": true
+      },
+      "satisfaction_score": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "trend",
+        "text": "How is revenue moving over time?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "over": [
+          "order_date"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-category",
+        "text": "Which categories bring in the most revenue?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "product_category"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-channel",
+        "text": "Which channels bring in the most revenue?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "revenue"
+          ]
+        ],
+        "by": [
+          "channel"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "note": [
+    "The app sample: customers with a churn outcome."
+  ],
+  "report": {
+    "grain": "entity",
+    "outcomes": [
+      "churned"
+    ],
+    "measures": {
+      "satisfaction": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "rate",
+        "text": "What share of customers churned?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "churned"
+          ]
+        ],
+        "kpi": "churn",
+        "suggest": true
+      },
+      {
+        "id": "by-contract",
+        "text": "Does contract type change who churns?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "churned"
+          ]
+        ],
+        "by": [
+          "contract_type"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-tier",
+        "text": "Which plan tier churns most?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "churned"
+          ]
+        ],
+        "by": [
+          "plan_tier"
+        ],
+        "suggest": true
+      }
+    ]
+  }
+}

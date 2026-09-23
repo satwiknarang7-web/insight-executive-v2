@@ -1,0 +1,58 @@
+{
+  "note": [
+    "Prices in five currencies. price_local compares only within its currency; price_usd everywhere."
+  ],
+  "report": {
+    "grain": "entity",
+    "measures": {
+      "price_local": {
+        "scope": [
+          "currency"
+        ]
+      }
+    },
+    "questions": [
+      {
+        "id": "price-by-category",
+        "text": "Which categories are most expensive?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "price_usd"
+          ]
+        ],
+        "by": [
+          "category"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "best-sellers",
+        "text": "Which products sell the most?",
+        "intent": "rank",
+        "answeredBy": [
+          [
+            "units_sold_30d"
+          ]
+        ],
+        "by": [
+          "product_name",
+          "sku",
+          "category"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "price-vs-rating",
+        "text": "Do pricier products rate better?",
+        "intent": "relationship",
+        "answeredBy": [
+          [
+            "price_usd",
+            "rating"
+          ]
+        ]
+      }
+    ]
+  }
+}

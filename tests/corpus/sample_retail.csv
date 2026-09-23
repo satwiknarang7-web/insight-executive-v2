@@ -1,0 +1,721 @@
+order_date,region,product_category,channel,units_sold,unit_price,discount_pct,revenue,satisfaction_score
+2025-01-01,East,Beauty,Store,15,50.52,17.7,623.69,3.2
+2025-01-01,East,Grocery,Store,10,24.53,0,245.31,4
+2025-01-01,North,Beauty,Partner,24,45.13,15.9,910.95,4
+2025-01-02,Central,Apparel,Partner,20,74.64,19.2,1206.24,4
+2025-01-02,South,Electronics,Online,9,459.22,0,4132.96,4.9
+2025-01-02,South,Sports,Online,11,83.4,0,917.38,3.2
+2025-01-04,East,Beauty,Online,6,48.76,0,292.58,4
+2025-01-04,Central,Apparel,Online,12,59.65,0,715.84,3.1
+2025-01-04,Central,Apparel,Store,5,63.95,12.2,280.76,4.7
+2025-01-05,East,Apparel,Online,17,63.72,0,1083.23,4.3
+2025-01-05,North,Grocery,Partner,27,24.64,0,665.25,4.1
+2025-01-05,West,Home & Garden,Partner,25,130.83,0,3270.68,3.7
+2025-01-07,North,Beauty,Store,21,50.48,0,1060.12,4.7
+2025-01-07,West,Apparel,Partner,12,56.75,11.9,599.95,3.7
+2025-01-07,East,Apparel,Partner,4,55.26,0,221.05,4.8
+2025-01-08,East,Electronics,Online,25,435.4,1.6,10710.74,4.3
+2025-01-08,West,Home & Garden,Partner,32,123.85,0,3963.07,3.7
+2025-01-08,East,Grocery,Online,15,26.62,11,355.41,4.2
+2025-01-10,South,Electronics,Partner,11,454.58,0,5000.34,4.2
+2025-01-10,West,Apparel,Partner,30,58.89,17.6,1455.82,4.9
+2025-01-10,Central,Beauty,Online,6,45.14,10.8,241.57,3.1
+2025-01-11,Central,Sports,Store,3,91.01,0,273.04,4.6
+2025-01-11,North,Home & Garden,Partner,8,127.83,0,1022.66,3.1
+2025-01-11,East,Sports,Store,14,104.41,0,1461.67,3.7
+2025-01-13,North,Apparel,Partner,26,58.62,0,1524.03,3.9
+2025-01-13,South,Grocery,Partner,18,28.21,0,507.76,4.9
+2025-01-13,East,Grocery,Online,14,26.44,0,370.17,4.1
+2025-01-14,West,Home & Garden,Online,6,124.96,0,749.77,4.2
+2025-01-14,West,Apparel,Partner,27,73.42,0,1982.27,3.2
+2025-01-14,East,Electronics,Store,25,371.84,19,7529.72,4.3
+2025-01-16,South,Apparel,Store,19,56.56,0,1074.66,3.7
+2025-01-16,North,Beauty,Partner,25,48.51,0,1212.78,3.5
+2025-01-16,North,Home & Garden,Partner,17,131.01,0,2227.21,3.3
+2025-01-17,West,Electronics,Store,31,466.6,0,14464.62,4.8
+2025-01-17,South,Beauty,Store,23,39.72,0,913.51,3.9
+2025-01-17,North,Grocery,Online,20,26.87,0,537.32,3.9
+2025-01-19,South,Electronics,Online,23,474.05,10.1,9802.03,4.3
+2025-01-19,Central,Grocery,Partner,10,30.1,4.3,288.01,5
+2025-01-19,North,Grocery,Partner,20,28.39,0,567.87,3.2
+2025-01-20,North,Home & Garden,Store,27,112.01,0,3024.25,4.4
+2025-01-20,North,Grocery,Partner,23,30.92,0,711.13,4.7
+2025-01-20,South,Grocery,Partner,9,29.82,0,268.39,3.7
+2025-01-22,East,Apparel,Store,20,74.01,7.6,1367.79,4.5
+2025-01-22,West,Apparel,Partner,10,59.33,0,593.35,3.6
+2025-01-22,Central,Electronics,Online,3,476.96,22.8,1104.63,3.7
+2025-01-23,North,Grocery,Online,28,31.13,12.5,762.61,4.6
+2025-01-23,North,Home & Garden,Online,14,115,0,1610.01,4.3
+2025-01-23,South,Beauty,Partner,21,49.32,19.8,830.71,3.7
+2025-01-25,South,Sports,Partner,11,96.64,20.8,841.89,4.4
+2025-01-25,North,Sports,Store,7,109.24,14.2,656.09,3.3
+2025-01-25,West,Electronics,Store,27,403.33,0,10889.96,3.7
+2025-01-26,East,Grocery,Partner,16,25.91,0,414.54,4.6
+2025-01-26,North,Sports,Online,12,108.71,7.1,1211.86,4.2
+2025-01-26,West,Sports,Partner,19,95.7,3.4,1756.42,4.9
+2025-01-28,East,Sports,Online,20,101.32,11.4,1795.4,3.7
+2025-01-28,South,Electronics,Store,4,376.03,12.9,1310.07,3.9
+2025-01-28,North,Grocery,Partner,5,25.23,0,126.17,3.4
+2025-01-29,North,Beauty,Store,8,38.54,0,308.31,4.5
+2025-01-29,South,Grocery,Online,15,27.93,18.5,341.5,4.4
+2025-01-29,West,Grocery,Store,28,31.99,0,895.73,4
+2025-01-31,North,Beauty,Partner,26,48.53,0,1261.7,3.6
+2025-01-31,East,Beauty,Partner,4,40.22,0,160.89,4.1
+2025-01-31,West,Home & Garden,Partner,13,133.73,0,1738.51,4.9
+2025-02-01,East,Sports,Online,13,81.96,0,1065.46,3.4
+2025-02-01,North,Grocery,Online,32,26.38,0,844.06,3.6
+2025-02-01,Central,Sports,Online,10,108.38,0,1083.76,3.6
+2025-02-03,South,Beauty,Online,14,39.79,0,557.13,3
+2025-02-03,South,Sports,Partner,8,104.91,0,839.3,3.2
+2025-02-03,North,Electronics,Online,32,446.07,0,14274.17,4.7
+2025-02-04,East,Beauty,Store,23,47.29,0,1087.65,3.1
+2025-02-04,West,Apparel,Store,16,65.53,0,1048.55,3.3
+2025-02-04,East,Electronics,Partner,4,361.45,0,1445.78,3.7
+2025-02-06,South,Home & Garden,Store,26,136.44,21.2,2795.35,4.4
+2025-02-06,East,Sports,Partner,10,86.43,0,864.25,4
+2025-02-06,West,Sports,Store,12,86.31,0,1035.71,4.3
+2025-02-07,Central,Beauty,Online,9,49.63,0,446.64,4.3
+2025-02-07,North,Apparel,Online,32,64.07,0,2050.39,4.5
+2025-02-07,South,Apparel,Store,23,73.36,0,1687.23,3.6
+2025-02-09,East,Grocery,Online,8,31.28,8.9,227.95,3.3
+2025-02-09,East,Beauty,Store,7,43.58,7.2,283.11,3.9
+2025-02-09,South,Grocery,Partner,8,24.9,0,199.19,3.7
+2025-02-10,South,Beauty,Online,22,48.22,22.7,820.02,4.3
+2025-02-10,East,Beauty,Partner,7,39.05,20.2,218.15,3.5
+2025-02-10,South,Apparel,Online,27,71.07,17.8,1577.41,3.3
+2025-02-12,West,Electronics,Partner,38,385.47,0,14647.79,5
+2025-02-12,Central,Grocery,Online,23,30.47,18.6,570.52,4.3
+2025-02-12,North,Beauty,Online,4,45.39,0,181.56,4
+2025-02-13,East,Beauty,Partner,12,45.42,0,545.04,3.4
+2025-02-13,West,Grocery,Online,38,29.34,0,1114.74,4.2
+2025-02-13,West,Apparel,Online,18,74.01,0,1332.2,3.8
+2025-02-15,East,Beauty,Partner,30,47.08,7.9,1300.78,4.2
+2025-02-15,East,Beauty,Online,29,38.72,0,1122.82,3.3
+2025-02-15,West,Apparel,Online,7,57.53,0,402.68,3.1
+2025-02-16,North,Grocery,Online,19,30.14,0,572.64,3.1
+2025-02-16,Central,Apparel,Online,16,69.97,16.6,933.66,3.3
+2025-02-16,North,Home & Garden,Partner,6,130.65,0,783.87,3.7
+2025-02-18,South,Electronics,Online,15,415.47,19.6,5010.52,4.2
+2025-02-18,North,Electronics,Online,8,481.97,9,3508.71,3.2
+2025-02-18,North,Beauty,Store,24,39.08,0,937.93,4.8
+2025-02-19,Central,Apparel,Online,8,63.37,5.7,478.06,3.9
+2025-02-19,North,Grocery,Online,20,25.12,0,502.38,4
+2025-02-19,Central,Sports,Partner,13,104.14,0,1353.83,4.5
+2025-02-21,North,Home & Garden,Online,22,135.37,0,2978.15,4
+2025-02-21,East,Sports,Online,23,84.97,13.8,1684.66,4.8
+2025-02-21,North,Electronics,Online,8,442.67,20.6,2811.86,4
+2025-02-22,Central,Electronics,Online,12,427.58,7.8,4730.71,3.3
+2025-02-22,West,Electronics,Partner,20,415.99,18.7,6763.94,4.2
+2025-02-22,West,Beauty,Partner,13,48.93,0,636.13,3.1
+2025-02-24,North,Sports,Partner,24,80.76,0,1938.24,3.7
+2025-02-24,Central,Electronics,Online,14,449.49,13.1,5468.48,4.6
+2025-02-24,South,Home & Garden,Online,23,115.83,0,2663.99,4.3
+2025-02-25,South,Grocery,Store,17,27.69,0,470.67,4.3
+2025-02-25,North,Electronics,Online,20,407.31,21.4,6402.86,3.5
+2025-02-25,East,Beauty,Store,19,44.64,0,848.17,3.9
+2025-02-27,Central,Sports,Partner,21,80.91,0,1699.15,5
+2025-02-27,West,Beauty,Online,7,46.14,0,322.96,3.7
+2025-02-27,East,Electronics,Online,16,376.88,0,6030.15,3
+2025-02-28,West,Electronics,Partner,6,368.65,0,2211.9,4
+2025-02-28,South,Beauty,Store,24,49.36,0,1184.71,3.9
+2025-02-28,Central,Home & Garden,Partner,23,111.7,9,2337.84,4.8
+2025-03-02,West,Home & Garden,Online,28,113.04,0,3165.09,4.5
+2025-03-02,Central,Electronics,Online,8,360.06,0,2880.52,4.2
+2025-03-02,West,Apparel,Online,24,69.3,16.3,1392.17,3.4
+2025-03-03,East,Sports,Partner,32,89.03,6.2,2672.4,3.2
+2025-03-03,South,Beauty,Online,21,39.18,0,822.8,3
+2025-03-03,South,Apparel,Online,5,61.8,11.2,274.39,4.2
+2025-03-05,West,Electronics,Online,17,381.39,0,6483.66,3.7
+2025-03-05,Central,Grocery,Partner,5,26.8,0,134.02,4
+2025-03-05,South,Grocery,Store,5,28.01,0,140.06,4.4
+2025-03-06,West,Electronics,Partner,15,473.01,15.8,5974.18,4.5
+2025-03-06,Central,Sports,Partner,5,98.06,0,490.31,3.8
+2025-03-06,North,Apparel,Partner,34,70.65,0,2402.13,3.1
+2025-03-08,South,Sports,Store,16,102.69,3.1,1592.1,3.9
+2025-03-08,East,Home & Garden,Store,8,118.06,8,868.95,3.6
+2025-03-08,Central,Grocery,Store,23,31.1,0.9,708.93,4.7
+2025-03-09,West,Apparel,Partner,13,59.3,0,770.88,3.6
+2025-03-09,South,Grocery,Online,26,28.4,0,738.3,4.3
+2025-03-09,South,Beauty,Partner,19,47.08,0,894.5,4.9
+2025-03-11,South,Beauty,Store,8,49.73,22.4,308.7,3.9
+2025-03-11,Central,Beauty,Partner,6,45.35,0,272.1,3.8
+2025-03-11,East,Home & Garden,Online,9,102.24,24,699.33,3
+2025-03-12,East,Sports,Online,9,84.89,12.8,666.2,4.5
+2025-03-12,South,Electronics,Partner,23,384.12,12.8,7704,4.3
+2025-03-12,Central,Apparel,Partner,14,65.54,0,917.55,3.3
+2025-03-14,Central,Sports,Online,6,87.56,0,525.35,3.3
+2025-03-14,South,Electronics,Partner,23,468.58,0,10777.25,4.6
+2025-03-14,South,Apparel,Online,30,73.39,0,2201.79,4.1
+2025-03-15,East,Beauty,Partner,13,51.15,0,664.89,4.7
+2025-03-15,North,Sports,Online,26,81.96,0,2130.96,4
+2025-03-15,North,Home & Garden,Store,19,127.18,0,2416.45,4.6
+2025-03-17,Central,Home & Garden,Online,16,116.48,0,1863.68,4.3
+2025-03-17,South,Electronics,Partner,22,415.64,0,9143.99,3.3
+2025-03-17,North,Sports,Online,13,92.54,0,1203.05,4.5
+2025-03-18,North,Grocery,Online,33,29.78,0,982.83,4.9
+2025-03-18,North,Electronics,Online,17,399.91,6.5,6356.52,4
+2025-03-18,South,Sports,Store,8,85.33,0,682.62,3.1
+2025-03-20,South,Apparel,Partner,22,58.82,8.4,1185.31,3.6
+2025-03-20,West,Beauty,Online,27,47.05,0,1270.42,4.9
+2025-03-20,South,Grocery,Store,13,27.71,3.9,346.18,4.9
+2025-03-21,North,Home & Garden,Store,37,121.75,0,4504.67,3.4
+2025-03-21,Central,Beauty,Online,22,43.42,0,955.23,5
+2025-03-21,West,Apparel,Partner,11,64.4,0,708.38,3.3
+2025-03-23,Central,Sports,Store,23,97.4,0,2240.1,3.1
+2025-03-23,East,Electronics,Store,20,425.3,0,8506.07,4.8
+2025-03-23,Central,Home & Garden,Partner,11,122.45,5.2,1276.88,3.9
+2025-03-24,North,Apparel,Online,37,74.26,0,2747.69,4.8
+2025-03-24,North,Apparel,Partner,26,67.6,0,1757.49,4.6
+2025-03-24,Central,Grocery,Partner,5,25.65,0,128.24,3.5
+2025-03-26,East,Home & Garden,Store,30,124.33,0,3729.83,3.8
+2025-03-26,South,Electronics,Online,10,397.43,19.1,3215.2,3.9
+2025-03-26,West,Home & Garden,Online,12,105.29,0,1263.44,3.7
+2025-03-27,South,Home & Garden,Partner,28,109.02,0,3052.48,4.7
+2025-03-27,Central,Electronics,Partner,7,482.24,0,3375.69,3
+2025-03-27,East,Apparel,Partner,20,62.81,0,1256.15,3.2
+2025-03-29,North,Sports,Store,16,107.65,0,1722.34,4.9
+2025-03-29,East,Beauty,Partner,12,47.7,19.6,460.23,4.7
+2025-03-29,South,Beauty,Online,28,50.23,0,1406.36,3.7
+2025-03-30,North,Electronics,Online,17,386.79,0,6575.43,3.9
+2025-03-30,South,Electronics,Online,27,412.2,0,11129.34,4
+2025-03-30,South,Home & Garden,Online,6,133.98,0,803.91,3.4
+2025-04-01,Central,Electronics,Online,12,406.87,0,4882.44,3.7
+2025-04-01,Central,Home & Garden,Online,16,113.82,0,1821.15,3.1
+2025-04-01,Central,Sports,Partner,24,91.08,0,2185.81,4.9
+2025-04-02,South,Home & Garden,Online,7,134.68,0,942.74,3.5
+2025-04-02,West,Sports,Online,35,84.23,14.4,2523.42,3.1
+2025-04-02,West,Beauty,Store,24,43.82,0,1051.8,4.3
+2025-04-04,South,Grocery,Partner,25,24.91,0,622.84,3.4
+2025-04-04,West,Electronics,Partner,8,426.85,0,3414.78,4.7
+2025-04-04,South,Home & Garden,Store,17,109.22,0,1856.81,3.3
+2025-04-05,South,Grocery,Store,25,30.43,0,760.69,4.8
+2025-04-05,North,Home & Garden,Partner,24,116.42,0,2794.06,4.8
+2025-04-05,South,Apparel,Online,14,56.73,0,794.24,4.2
+2025-04-07,South,Sports,Store,19,99.14,0,1883.74,4.6
+2025-04-07,West,Electronics,Store,25,396.86,11.5,8780.58,3.9
+2025-04-07,South,Grocery,Partner,26,30.21,0,785.57,3.8
+2025-04-08,East,Home & Garden,Online,26,132.67,0,3449.38,3.1
+2025-04-08,East,Beauty,Partner,10,46.92,5,445.72,3.8
+2025-04-08,West,Apparel,Online,23,72.06,18.2,1355.66,4.2
+2025-04-10,East,Electronics,Store,7,373.97,0,2617.77,4
+2025-04-10,North,Grocery,Store,38,23.93,12,800.22,3.6
+2025-04-10,Central,Home & Garden,Store,12,127.59,12.5,1339.65,3.4
+2025-04-11,West,Grocery,Partner,24,26.58,0,637.87,3.2
+2025-04-11,North,Apparel,Online,30,56.46,0,1693.74,4.2
+2025-04-11,North,Electronics,Online,7,457.19,0,3200.34,3.7
+2025-04-13,North,Electronics,Partner,8,425.98,0,3407.88,4.7
+2025-04-13,Central,Home & Garden,Partner,6,107.4,0,644.38,3.4
+2025-04-13,West,Apparel,Online,14,57.01,24.5,602.59,3.7
+2025-04-14,West,Electronics,Partner,14,370.36,0,5185.07,4.6
+2025-04-14,South,Grocery,Store,26,28.26,0,734.88,3.7
+2025-04-14,North,Grocery,Store,7,28.06,7.1,182.48,3
+2025-04-16,Central,Grocery,Online,6,30.27,0,181.61,3.2
+2025-04-16,East,Sports,Online,22,94.88,4,2003.77,3.9
+2025-04-16,South,Sports,Online,26,83.95,0,2182.62,3.9
+2025-04-17,South,Apparel,Partner,27,68.87,0,1859.41,4.9
+2025-04-17,Central,Apparel,Online,14,71.39,0,999.49,3.7
+2025-04-17,East,Beauty,Partner,27,44.52,0,1202.06,3.2
+2025-04-19,East,Home & Garden,Partner,6,106.95,0,641.68,4.7
+2025-04-19,Central,Home & Garden,Store,18,121.46,0,2186.32,3.6
+2025-04-19,North,Electronics,Online,18,372.47,0,6704.43,3.9
+2025-04-20,East,Sports,Online,18,91.99,0,1655.85,3.9
+2025-04-20,East,Sports,Online,25,81.1,21.3,1595.59,5
+2025-04-20,Central,Electronics,Store,22,407.82,0.3,8945.1,4.4
+2025-04-22,West,Electronics,Online,39,362,17.6,11633.12,3.7
+2025-04-22,East,Grocery,Partner,22,24.63,0,541.77,4
+2025-04-22,West,Sports,Store,39,83.7,9.6,2950.97,4.7
+2025-04-23,Central,Grocery,Store,23,30.45,0,700.28,3.7
+2025-04-23,North,Sports,Partner,34,99.41,0,3379.85,4.3
+2025-04-23,South,Sports,Store,24,104.54,7.2,2328.25,4.6
+2025-04-25,East,Grocery,Partner,14,30.83,0,431.55,5
+2025-04-25,North,Sports,Store,36,98.78,14.8,3029.89,3.4
+2025-04-25,East,Grocery,Online,31,28.16,0,873.08,4.9
+2025-04-26,East,Electronics,Partner,7,418.66,17.9,2406.05,4.9
+2025-04-26,North,Apparel,Partner,16,74.34,0,1189.41,3.7
+2025-04-26,East,Grocery,Partner,20,28.84,0,576.78,4.7
+2025-04-28,East,Grocery,Store,21,30.42,0,638.89,3.8
+2025-04-28,North,Electronics,Partner,24,404.48,0,9707.41,3.5
+2025-04-28,South,Beauty,Online,8,40.09,1.1,317.17,4.3
+2025-04-29,West,Sports,Store,23,104.44,0,2402.09,3.6
+2025-04-29,Central,Home & Garden,Partner,23,124.55,10.7,2558.2,4.3
+2025-04-29,West,Apparel,Partner,24,61.97,0,1487.34,3.3
+2025-05-01,Central,Home & Garden,Partner,9,109.65,15.8,830.89,3.4
+2025-05-01,West,Beauty,Partner,39,42.55,0,1659.4,4.1
+2025-05-01,South,Apparel,Online,22,56.64,0,1246.07,4.1
+2025-05-02,East,Grocery,Partner,17,24.1,0,409.76,3.4
+2025-05-02,West,Apparel,Store,12,73.32,0,879.87,3.5
+2025-05-02,Central,Home & Garden,Online,12,137.08,0,1644.98,4.9
+2025-05-04,North,Electronics,Partner,32,427.44,0,13677.97,3.5
+2025-05-04,North,Apparel,Store,30,64.39,0,1931.82,4.2
+2025-05-04,West,Beauty,Online,8,47.95,22,299.18,4.2
+2025-05-05,South,Home & Garden,Partner,7,118.34,0,828.36,3.6
+2025-05-05,East,Sports,Online,12,81.31,0,975.72,4.8
+2025-05-05,Central,Grocery,Online,20,27.06,0,541.18,4
+2025-05-07,Central,Electronics,Store,10,400.98,0,4009.82,3.9
+2025-05-07,East,Grocery,Online,24,26.24,0,629.67,4.1
+2025-05-07,West,Apparel,Online,21,56.28,14.8,1006.95,4.8
+2025-05-08,North,Beauty,Partner,31,48.7,20.2,1204.73,4.2
+2025-05-08,East,Home & Garden,Online,8,117.59,0,940.73,4.3
+2025-05-08,South,Sports,Online,4,80.77,0,323.06,4.4
+2025-05-10,Central,Apparel,Store,27,65.07,0,1756.93,4.6
+2025-05-10,North,Home & Garden,Online,11,113.46,0,1248.06,3.2
+2025-05-10,North,Electronics,Partner,20,366.95,0,7339,3.7
+2025-05-11,Central,Apparel,Store,14,56.01,0,784.19,4.4
+2025-05-11,Central,Electronics,Online,4,453.13,0,1812.52,3.3
+2025-05-11,West,Apparel,Partner,33,63.99,14.5,1805.46,4.1
+2025-05-13,South,Grocery,Store,26,29.1,3.6,729.34,4.5
+2025-05-13,North,Electronics,Store,11,363.09,0,3993.94,4.5
+2025-05-13,South,Home & Garden,Partner,27,116.7,0,3150.79,4.6
+2025-05-14,North,Beauty,Store,30,44.53,4.2,1279.85,4.6
+2025-05-14,South,Home & Garden,Online,12,121.51,0,1458.09,4.9
+2025-05-14,North,Apparel,Online,6,59.48,0,356.87,4.2
+2025-05-16,South,Apparel,Partner,10,63.56,0,635.61,4.3
+2025-05-16,South,Home & Garden,Online,13,110.3,8.5,1312.03,3.1
+2025-05-16,South,Grocery,Online,30,32.12,12.2,845.98,4.2
+2025-05-17,Central,Electronics,Store,6,381.44,16.9,1901.88,3.9
+2025-05-17,South,Home & Garden,Online,12,124.11,0,1489.27,3.4
+2025-05-17,West,Grocery,Partner,6,26.89,0,161.31,3.3
+2025-05-19,South,Electronics,Store,21,452.38,15.6,8018.03,4
+2025-05-19,North,Home & Garden,Partner,25,118.16,0,2954.1,4.2
+2025-05-19,North,Beauty,Store,34,42.32,0,1439.03,3.5
+2025-05-20,East,Grocery,Online,18,24.33,0,437.9,3.5
+2025-05-20,East,Apparel,Store,27,64.92,0,1752.84,3.1
+2025-05-20,West,Home & Garden,Store,28,113.39,0,3174.99,4.3
+2025-05-22,West,Home & Garden,Online,39,109.48,5.3,4043.5,3.6
+2025-05-22,South,Grocery,Online,21,30.97,0,650.3,3.3
+2025-05-22,Central,Home & Garden,Partner,7,124.76,0,873.33,4
+2025-05-23,South,Beauty,Online,28,45.24,0,1266.66,3.8
+2025-05-23,East,Sports,Online,27,94.71,0,2557.07,4
+2025-05-23,West,Sports,Store,10,100.03,15.4,846.29,3.6
+2025-05-25,South,Home & Garden,Store,20,132.93,0,2658.55,4.2
+2025-05-25,North,Grocery,Partner,7,28.29,0,198.06,3.9
+2025-05-25,Central,Electronics,Partner,21,373.55,23.3,6016.84,5
+2025-05-26,Central,Grocery,Store,20,26.1,0,521.96,3.6
+2025-05-26,Central,Electronics,Store,8,447.35,20.8,2834.39,4.4
+2025-05-26,North,Home & Garden,Store,9,118.86,0,1069.76,3.3
+2025-05-28,North,Beauty,Store,8,39.41,10.8,281.2,4.9
+2025-05-28,South,Sports,Online,27,93.58,0,2526.69,3.1
+2025-05-28,West,Apparel,Partner,34,57.45,0,1953.45,4.8
+2025-05-29,North,Beauty,Online,14,51.69,19.2,584.73,4.9
+2025-05-29,West,Apparel,Online,40,63.02,5.4,2384.7,4.9
+2025-05-29,South,Home & Garden,Partner,5,114.27,0,571.37,3.4
+2025-05-31,East,Apparel,Store,13,69.35,0,901.59,3.6
+2025-05-31,Central,Grocery,Partner,18,27.17,0,489,3.8
+2025-05-31,South,Grocery,Partner,23,28.26,0,649.99,3
+2025-06-01,South,Home & Garden,Online,4,128.27,0,513.07,4.6
+2025-06-01,North,Beauty,Partner,9,38.55,0,346.98,4.4
+2025-06-01,East,Beauty,Partner,14,49.76,11.2,618.65,4.4
+2025-06-03,South,Beauty,Store,20,45.51,0,910.1,3.9
+2025-06-03,West,Sports,Partner,11,97.64,22.5,832.39,4.8
+2025-06-03,East,Home & Garden,Online,22,112.95,0,2484.84,4.7
+2025-06-04,North,Apparel,Store,5,61.36,0,306.78,4.2
+2025-06-04,North,Electronics,Partner,21,477.24,0,10022.11,3.4
+2025-06-04,Central,Apparel,Partner,9,58.13,19.5,421.19,4.3
+2025-06-06,East,Sports,Partner,13,85.5,8.4,1018.11,4.9
+2025-06-06,Central,Sports,Online,19,105.44,0,2003.39,4
+2025-06-06,North,Sports,Store,29,84.74,8.5,2248.68,3.4
+2025-06-07,West,Apparel,Online,24,58.69,0,1408.6,3.1
+2025-06-07,East,Sports,Store,11,103.45,0,1137.97,3.6
+2025-06-07,South,Electronics,Partner,16,396.21,0,6339.34,3.5
+2025-06-09,South,Electronics,Partner,18,370.24,4.1,6391.13,3.6
+2025-06-09,South,Electronics,Store,28,379.5,0,10626.12,3.3
+2025-06-09,East,Home & Garden,Online,27,108.4,0,2926.79,3.1
+2025-06-10,North,Sports,Store,23,105.42,0,2424.61,3
+2025-06-10,West,Beauty,Online,25,47.2,0.1,1178.77,4.4
+2025-06-10,South,Home & Garden,Store,25,137.94,0,3448.41,4.1
+2025-06-12,Central,Grocery,Online,10,25.96,11.7,229.19,4.2
+2025-06-12,East,Home & Garden,Online,8,126.69,0,1013.53,4.3
+2025-06-12,North,Home & Garden,Online,10,121.97,0,1219.72,4.9
+2025-06-13,East,Grocery,Online,30,24.39,0,731.58,3.1
+2025-06-13,East,Grocery,Store,19,25.64,0,487.18,4.6
+2025-06-13,South,Sports,Online,25,101.57,0,2539.23,4.6
+2025-06-15,East,Sports,Partner,7,91.54,0,640.79,3.1
+2025-06-15,North,Grocery,Online,7,28.11,0,196.75,3.6
+2025-06-15,South,Home & Garden,Partner,26,104.05,0,2705.25,4.9
+2025-06-16,East,Home & Garden,Online,18,108.58,0,1954.4,4.4
+2025-06-16,West,Electronics,Partner,37,382.44,0,14150.24,5
+2025-06-16,North,Sports,Store,17,96.41,22.1,1276.78,4.1
+2025-06-18,West,Home & Garden,Partner,15,111.17,13.4,1444.16,3.6
+2025-06-18,North,Electronics,Partner,29,437.32,2.4,12377.93,4.4
+2025-06-18,East,Beauty,Online,21,39.82,16,702.34,3.1
+2025-06-19,East,Beauty,Partner,30,44.42,23.5,1019.51,4.5
+2025-06-19,Central,Beauty,Store,12,38.43,20.6,366.17,3.6
+2025-06-19,Central,Apparel,Partner,17,68.2,0,1159.32,4.2
+2025-06-21,South,Beauty,Store,9,46.18,22.1,323.8,4.3
+2025-06-21,North,Beauty,Store,32,40.67,0,1301.45,4.1
+2025-06-21,West,Sports,Online,23,106.07,0,2439.59,4.2
+2025-06-22,East,Beauty,Store,13,50.97,0.7,657.97,3.8
+2025-06-22,North,Beauty,Online,22,41.4,0,910.84,3.4
+2025-06-22,West,Beauty,Store,12,48.18,22.3,449.26,3.1
+2025-06-24,North,Grocery,Online,10,30.58,0,305.78,4.2
+2025-06-24,North,Grocery,Store,8,30.82,0,246.56,4.1
+2025-06-24,Central,Beauty,Online,10,41.79,0,417.9,4.2
+2025-06-25,East,Apparel,Store,30,66.9,0,2006.89,3.6
+2025-06-25,East,Electronics,Online,5,412.01,0,2060.06,5
+2025-06-25,South,Beauty,Partner,27,44.9,0,1212.26,3.9
+2025-06-27,North,Home & Garden,Partner,34,115.1,0,3913.23,3.5
+2025-06-27,Central,Home & Garden,Online,22,116.24,0,2557.2,4.6
+2025-06-27,South,Apparel,Partner,7,65.14,0,456,3.4
+2025-06-28,East,Grocery,Online,27,24.23,0,654.24,3.3
+2025-06-28,West,Apparel,Partner,11,55.86,6.6,573.94,3.3
+2025-06-28,South,Electronics,Online,27,362,8.5,8943.19,3.4
+2025-06-30,West,Sports,Partner,14,89.43,0,1252.04,4
+2025-06-30,East,Home & Garden,Store,29,136.99,19.7,3189.99,3.6
+2025-06-30,Central,Grocery,Online,20,28.22,8.2,518.15,3.4
+2025-07-01,East,Apparel,Partner,29,60.92,0,1766.63,4.1
+2025-07-01,Central,Electronics,Online,6,389.14,0,2334.83,4.4
+2025-07-01,East,Grocery,Store,20,28.17,15.9,473.84,3.4
+2025-07-03,Central,Electronics,Store,3,482.08,2,1417.32,4
+2025-07-03,Central,Beauty,Store,16,50.65,0,810.43,3.1
+2025-07-03,Central,Apparel,Partner,17,57.24,21.1,767.73,4.9
+2025-07-04,West,Apparel,Partner,30,61.68,0,1850.52,4.5
+2025-07-04,West,Electronics,Partner,20,422.08,0,8441.57,3.5
+2025-07-04,North,Sports,Partner,19,100.46,0,1908.7,4.4
+2025-07-06,Central,Apparel,Online,14,68.63,0,960.77,4.8
+2025-07-06,North,Home & Garden,Online,22,137,13.9,2595.04,3.8
+2025-07-06,West,Apparel,Online,21,59.85,0,1256.86,4.7
+2025-07-07,West,Apparel,Partner,19,57.08,0,1084.59,3.7
+2025-07-07,South,Beauty,Online,15,42.9,0,643.55,3.7
+2025-07-07,North,Beauty,Partner,30,40.83,0,1224.98,4.6
+2025-07-09,North,Home & Garden,Partner,26,131.83,0,3427.68,3.8
+2025-07-09,East,Apparel,Store,4,69.36,8,255.24,4.4
+2025-07-09,East,Beauty,Partner,16,46.16,0,738.58,4.8
+2025-07-10,North,Home & Garden,Online,32,129.12,3.7,3979.12,3.1
+2025-07-10,Central,Beauty,Partner,21,48.13,0,1010.8,4
+2025-07-10,Central,Sports,Partner,18,98.43,0,1771.75,3.2
+2025-07-12,South,Apparel,Store,10,60.18,0,601.79,4.2
+2025-07-12,East,Apparel,Store,5,61.63,0,308.15,3.8
+2025-07-12,South,Grocery,Online,25,28.32,0,707.96,3.7
+2025-07-13,North,Sports,Store,7,96.54,1.9,662.95,3.1
+2025-07-13,South,Beauty,Partner,12,45.99,0,551.93,4
+2025-07-13,South,Home & Garden,Store,7,108.34,0,758.41,3.7
+2025-07-15,South,Electronics,Online,20,371.42,0,7428.31,3.8
+2025-07-15,East,Beauty,Online,16,44.41,0,710.53,4.1
+2025-07-15,South,Home & Garden,Partner,16,114.2,16.8,1520.19,4.2
+2025-07-16,Central,Sports,Online,4,83.03,0,332.13,4.7
+2025-07-16,South,Apparel,Store,16,72.18,0,1154.87,4.6
+2025-07-16,North,Home & Garden,Store,31,111.6,0,3459.71,4.8
+2025-07-18,East,Home & Garden,Online,17,117.57,16.1,1676.94,4.3
+2025-07-18,East,Beauty,Partner,7,48.3,0,338.12,3.7
+2025-07-18,West,Beauty,Online,4,50.38,0,201.54,4.5
+2025-07-19,North,Apparel,Partner,6,72.75,0,436.51,3.6
+2025-07-19,West,Grocery,Store,33,25.68,12,745.67,5
+2025-07-19,West,Beauty,Online,14,47.11,7.4,610.71,4.4
+2025-07-21,East,Apparel,Online,15,68.69,0,1030.28,3
+2025-07-21,West,Beauty,Partner,7,41.37,0,289.56,5
+2025-07-21,North,Apparel,Online,29,67.68,0,1962.58,4.6
+2025-07-22,South,Sports,Store,6,107.01,0,642.04,4.2
+2025-07-22,West,Apparel,Partner,20,69.78,0,1395.56,3.4
+2025-07-22,South,Electronics,Partner,15,379.6,0,5693.93,3.1
+2025-07-24,North,Home & Garden,Online,21,134.46,0,2823.76,4.3
+2025-07-24,West,Apparel,Online,17,73.47,0,1248.96,3.9
+2025-07-24,South,Home & Garden,Store,21,103.94,22.3,1695.94,3.6
+2025-07-25,North,Sports,Partner,19,92.01,1.7,1718.42,4.4
+2025-07-25,East,Beauty,Partner,12,38.74,17.6,383.02,4.9
+2025-07-25,North,Grocery,Partner,20,28.25,0,564.94,4.3
+2025-07-27,South,Grocery,Online,16,26.09,0,417.37,4.7
+2025-07-27,East,Beauty,Partner,6,47.8,4.6,273.6,4.1
+2025-07-27,Central,Beauty,Online,5,40.55,0,202.77,4.3
+2025-07-28,South,Grocery,Online,14,27.47,2.7,374.21,4.2
+2025-07-28,East,Home & Garden,Store,6,107.45,20.1,515.09,4.6
+2025-07-28,South,Home & Garden,Partner,20,132.4,0,2648,4.9
+2025-07-30,South,Sports,Partner,20,106.34,14,1829.03,4.7
+2025-07-30,West,Electronics,Store,21,384.99,0,8084.79,4.2
+2025-07-30,South,Electronics,Partner,17,390.45,0,6637.57,3.2
+2025-07-31,East,Home & Garden,Online,12,125.16,0,1501.92,3
+2025-07-31,East,Sports,Store,21,89.06,0,1870.16,4.4
+2025-07-31,East,Electronics,Store,20,403.28,0,8065.61,3.6
+2025-08-02,East,Electronics,Online,25,360.17,0,9004.36,4.2
+2025-08-02,Central,Home & Garden,Partner,4,132.06,0,528.24,3.3
+2025-08-02,South,Electronics,Partner,8,458.94,0,3671.51,4.3
+2025-08-03,Central,Electronics,Online,10,377.47,9.9,3400.99,4.5
+2025-08-03,West,Sports,Store,23,99.72,0,2293.5,4.7
+2025-08-03,West,Grocery,Online,5,23.9,0,119.51,4.5
+2025-08-05,Central,Sports,Store,20,99.59,7.8,1836.39,3.7
+2025-08-05,East,Apparel,Partner,5,59.5,0,297.52,3.9
+2025-08-05,South,Home & Garden,Partner,4,121.9,0,487.61,3.2
+2025-08-06,West,Home & Garden,Store,17,136.33,0,2317.54,3
+2025-08-06,South,Home & Garden,Online,14,106.74,0,1494.31,4.7
+2025-08-06,West,Home & Garden,Store,8,113.92,0,911.37,3.6
+2025-08-08,Central,Beauty,Online,16,40.14,0,642.25,3.2
+2025-08-08,South,Apparel,Partner,14,71.62,0,1002.75,4.8
+2025-08-08,West,Beauty,Online,28,40.97,0,1147.22,4.3
+2025-08-09,West,Beauty,Online,6,51.39,9.7,278.43,4.1
+2025-08-09,Central,Sports,Partner,5,85.98,0,429.91,3.7
+2025-08-09,West,Electronics,Partner,27,429.37,23.2,8903.52,3.3
+2025-08-11,East,Electronics,Online,14,459.28,0,6429.9,3.9
+2025-08-11,South,Beauty,Online,21,41.17,0,864.59,5
+2025-08-11,South,Apparel,Store,13,72.77,15.3,801.32,3.3
+2025-08-12,East,Grocery,Online,14,24.64,0,345.03,3.8
+2025-08-12,South,Electronics,Partner,6,392.91,0,2357.48,4.5
+2025-08-12,East,Electronics,Online,23,415.63,5.6,9024.19,4
+2025-08-14,South,Beauty,Online,17,38.36,20.3,519.79,3.3
+2025-08-14,South,Sports,Online,17,93.62,15.4,1346.45,4.9
+2025-08-14,North,Apparel,Partner,16,70.04,0,1120.63,4.6
+2025-08-15,West,Home & Garden,Store,32,112.85,18.2,2953.9,4.4
+2025-08-15,Central,Beauty,Partner,6,43.49,17.3,215.81,4.6
+2025-08-15,East,Beauty,Store,17,47.81,0,812.77,4.9
+2025-08-17,East,Home & Garden,Store,9,106.6,4.4,917.21,3.5
+2025-08-17,South,Electronics,Online,11,428.98,2.9,4581.96,3.7
+2025-08-17,South,Grocery,Online,18,27.54,0,495.78,4.9
+2025-08-18,East,Grocery,Store,13,28.08,0,365.06,4.9
+2025-08-18,Central,Electronics,Store,13,371.83,9.4,4379.41,3.2
+2025-08-18,West,Sports,Store,15,94.63,0,1419.46,3.4
+2025-08-20,East,Sports,Online,5,92.91,0,464.56,3.8
+2025-08-20,East,Home & Garden,Store,13,105.57,1.9,1346.31,4
+2025-08-20,North,Beauty,Store,18,43.32,13.6,673.72,3.7
+2025-08-21,Central,Sports,Online,10,96.47,0,964.66,3.9
+2025-08-21,North,Electronics,Store,15,463.14,7.3,6439.93,3.8
+2025-08-21,North,Beauty,Partner,23,47.13,0,1083.9,3
+2025-08-23,South,Sports,Partner,4,103.68,23.3,318.08,4.3
+2025-08-23,East,Home & Garden,Online,4,112.71,0.7,447.7,3.2
+2025-08-23,Central,Apparel,Store,18,65.88,0,1185.88,3.2
+2025-08-24,Central,Apparel,Online,5,60.17,0,300.85,3.2
+2025-08-24,East,Apparel,Store,9,57.15,12.3,451.07,3
+2025-08-24,East,Home & Garden,Partner,4,108.99,0,435.95,3.2
+2025-08-26,South,Sports,Partner,13,104.2,0,1354.64,4.7
+2025-08-26,North,Home & Garden,Online,17,124.71,0,2120.03,3.4
+2025-08-26,North,Electronics,Store,7,383.95,9.7,2426.92,3.6
+2025-08-27,West,Apparel,Online,28,72.46,0,2028.91,4.9
+2025-08-27,North,Home & Garden,Store,19,137.02,9,2369.06,3.1
+2025-08-27,East,Apparel,Store,21,72.54,0,1523.43,4.9
+2025-08-29,East,Sports,Partner,21,97.72,0,2052.2,3.6
+2025-08-29,Central,Electronics,Online,17,455.06,0,7736.02,4.4
+2025-08-29,East,Sports,Store,14,98.53,0,1379.35,4.1
+2025-08-30,South,Electronics,Partner,8,407.41,0,3259.31,3.9
+2025-08-30,East,Sports,Online,9,104.3,0,938.7,4.1
+2025-08-30,Central,Grocery,Partner,15,26.93,0,404,3.5
+2025-09-01,Central,Sports,Store,12,87.99,19.9,845.78,4.9
+2025-09-01,Central,Electronics,Store,16,381.08,15,5182.68,4.5
+2025-09-01,East,Sports,Partner,10,104.37,9.7,942.5,3.4
+2025-09-02,East,Electronics,Partner,6,374,0,2244.03,4.7
+2025-09-02,East,Sports,Store,13,99.13,0,1288.71,4.1
+2025-09-02,West,Home & Garden,Online,25,113.82,23.4,2179.72,4.2
+2025-09-04,West,Sports,Store,29,82.57,0,2394.55,4.3
+2025-09-04,Central,Electronics,Online,3,427.1,21.8,1001.98,5
+2025-09-04,South,Sports,Store,11,83.05,0,913.51,4.9
+2025-09-05,East,Electronics,Online,20,389.66,0,7793.27,4.7
+2025-09-05,Central,Electronics,Partner,18,427.1,0,7687.71,3.2
+2025-09-05,West,Apparel,Store,14,58.82,0,823.42,3.9
+2025-09-07,South,Electronics,Partner,11,386.47,0,4251.2,4.4
+2025-09-07,East,Grocery,Partner,8,26.62,0,212.94,4.5
+2025-09-07,West,Electronics,Online,10,456.69,0,4566.91,3.8
+2025-09-08,East,Home & Garden,Store,7,135.61,7.9,874.27,3.7
+2025-09-08,Central,Electronics,Online,16,372.81,7.9,5493.7,3.2
+2025-09-08,Central,Home & Garden,Online,18,110.15,1.3,1956.95,4.1
+2025-09-10,East,Home & Garden,Store,12,113.84,0,1366.02,3.5
+2025-09-10,North,Electronics,Partner,16,364.57,0,5833.07,3.6
+2025-09-10,South,Home & Garden,Store,14,108.03,3.4,1461.01,4.4
+2025-09-11,Central,Sports,Store,12,88.7,0,1064.4,3.6
+2025-09-11,West,Home & Garden,Online,28,107.06,0,2997.77,3.2
+2025-09-11,South,Grocery,Partner,14,25.29,0,354.02,3
+2025-09-13,East,Grocery,Online,20,28.63,0,572.63,3.9
+2025-09-13,West,Grocery,Online,13,24.77,14.7,274.62,3.6
+2025-09-13,Central,Electronics,Online,7,410.85,0,2875.94,4.5
+2025-09-14,East,Grocery,Partner,17,26.23,0,445.96,4.5
+2025-09-14,West,Home & Garden,Online,17,118.37,17,1670.21,3.6
+2025-09-14,South,Electronics,Store,5,407.98,0,2039.9,3.9
+2025-09-16,South,Apparel,Partner,4,66.01,0,264.05,5
+2025-09-16,West,Sports,Partner,7,98.45,0,689.16,4.6
+2025-09-16,North,Beauty,Partner,28,43.59,23.8,929.95,3.4
+2025-09-17,East,Sports,Online,4,86.16,0,344.65,4.2
+2025-09-17,West,Beauty,Online,19,49.21,0,935.02,3.3
+2025-09-17,East,Home & Garden,Online,11,114.87,0,1263.59,4.9
+2025-09-19,South,Apparel,Partner,21,66.58,22,1090.59,3.8
+2025-09-19,South,Apparel,Online,13,57.66,0,749.57,4.1
+2025-09-19,South,Electronics,Online,14,442.26,0,6191.62,4.9
+2025-09-20,East,Apparel,Online,5,74.36,0,371.79,3.5
+2025-09-20,Central,Grocery,Partner,16,25.45,0,407.28,4.5
+2025-09-20,East,Home & Garden,Store,19,107.35,11.3,1809.11,3
+2025-09-22,East,Grocery,Partner,21,31.91,18.7,544.74,3.2
+2025-09-22,Central,Beauty,Online,8,47.59,0,380.69,4.6
+2025-09-22,West,Electronics,Partner,26,420.37,0,10929.54,4.4
+2025-09-23,West,Home & Garden,Online,19,130.09,0,2471.64,4.3
+2025-09-23,North,Apparel,Store,24,61.59,0,1478.25,4.4
+2025-09-23,West,Beauty,Partner,14,50.11,7.8,646.79,4.9
+2025-09-25,North,Beauty,Partner,4,45.02,0,180.08,4.7
+2025-09-25,Central,Beauty,Online,9,40.15,0,361.35,4.8
+2025-09-25,North,Sports,Partner,13,91.19,0,1185.43,3.1
+2025-09-26,South,Grocery,Partner,9,23.86,0,214.75,3.9
+2025-09-26,East,Sports,Online,17,85.01,0,1445.15,4.8
+2025-09-26,West,Sports,Online,9,90.47,0,814.27,4.5
+2025-09-28,North,Beauty,Partner,12,51.48,0,617.73,3.7
+2025-09-28,North,Beauty,Store,8,51.34,0,410.69,4.6
+2025-09-28,East,Grocery,Store,11,31.95,0,351.41,3.9
+2025-09-29,South,Home & Garden,Online,11,135.76,16.5,1246.93,4.5
+2025-09-29,West,Grocery,Store,28,28.86,15,686.84,3.2
+2025-09-29,Central,Electronics,Store,8,415.2,20.4,2644.02,4
+2025-10-01,South,Beauty,Store,9,38.58,0,347.26,3.9
+2025-10-01,South,Apparel,Partner,19,72.07,11.2,1215.93,4.6
+2025-10-01,East,Sports,Store,12,82.75,0,993,3.3
+2025-10-02,West,Sports,Partner,27,83.34,0,2250.11,4.9
+2025-10-02,East,Electronics,Online,10,401.75,0,4017.54,4.4
+2025-10-02,East,Grocery,Partner,21,25.94,14.5,465.67,3.1
+2025-10-04,South,Home & Garden,Store,9,127.22,0,1144.96,4.2
+2025-10-04,West,Grocery,Online,10,28.84,0.2,287.86,5
+2025-10-04,Central,Sports,Partner,6,82.73,0,496.38,4.2
+2025-10-05,Central,Grocery,Store,10,26.05,0,260.53,3.5
+2025-10-05,West,Home & Garden,Store,28,113.91,0,3189.59,4.9
+2025-10-05,West,Sports,Online,16,88.68,0,1418.87,5
+2025-10-07,South,Sports,Online,15,92.66,0,1389.86,3.8
+2025-10-07,North,Electronics,Store,4,371.86,0,1487.44,4.1
+2025-10-07,East,Electronics,Online,11,370.38,0,4074.22,3.7
+2025-10-08,West,Sports,Partner,21,101.55,0,2132.54,3.3
+2025-10-08,North,Home & Garden,Partner,12,120.06,0,1440.7,4.7
+2025-10-08,West,Apparel,Store,8,68.6,0,548.83,3.3
+2025-10-10,South,Apparel,Online,12,70.72,0,848.64,3.8
+2025-10-10,Central,Grocery,Online,3,25.44,0,76.31,3.1
+2025-10-10,North,Home & Garden,Online,24,133.96,0,3215.13,3.9
+2025-10-11,East,Beauty,Store,9,50.04,0,450.39,4
+2025-10-11,North,Apparel,Online,5,61.46,0,307.28,3.3
+2025-10-11,North,Grocery,Online,29,31.37,0,909.87,4.8
+2025-10-13,Central,Sports,Online,20,105.44,10.8,1880.99,3.3
+2025-10-13,Central,Grocery,Store,7,28.19,0,197.36,3.4
+2025-10-13,West,Grocery,Store,11,25.74,23.6,216.29,4.3
+2025-10-14,West,Home & Garden,Partner,17,117.13,5.6,1879.63,3.5
+2025-10-14,Central,Apparel,Online,17,62.61,0,1064.41,3.2
+2025-10-14,Central,Grocery,Partner,20,29.27,0,585.42,4.5
+2025-10-16,West,Apparel,Online,26,66.06,15.3,1454.73,3
+2025-10-16,West,Sports,Online,24,99.97,17.4,1981.82,3.3
+2025-10-16,North,Grocery,Partner,23,25.66,0,590.15,4.4
+2025-10-17,East,Beauty,Store,11,47.21,0,519.35,3.1
+2025-10-17,East,Home & Garden,Store,15,126.91,0,1903.63,4.2
+2025-10-17,Central,Apparel,Online,10,67.86,0,678.57,3.4
+2025-10-19,North,Beauty,Store,23,40.6,19.7,749.89,4.2
+2025-10-19,East,Apparel,Store,24,61.73,9.5,1340.7,4.8
+2025-10-19,Central,Apparel,Partner,7,66.88,5.2,443.79,3.2
+2025-10-20,South,Beauty,Online,6,39.24,0,235.42,4.3
+2025-10-20,Central,Electronics,Store,7,466.49,0,3265.4,3.8
+2025-10-20,Central,Grocery,Partner,14,27.46,16.9,319.41,3.6
+2025-10-22,East,Apparel,Store,10,74.17,0,741.72,3.7
+2025-10-22,Central,Home & Garden,Store,8,104.58,0,836.66,4.7
+2025-10-22,North,Beauty,Partner,19,44.59,0,847.18,3.3
+2025-10-23,South,Sports,Store,4,85.44,3.8,328.76,4.7
+2025-10-23,West,Electronics,Online,14,459.43,22.8,4965.49,4.3
+2025-10-23,West,Sports,Store,9,82.75,9.1,676.96,4.8
+2025-10-25,South,Grocery,Store,17,30.36,10.5,461.92,3.3
+2025-10-25,North,Electronics,Partner,23,482.82,20,8883.86,3.8
+2025-10-25,South,Sports,Partner,23,81.65,0,1877.91,3.8
+2025-10-26,West,Electronics,Partner,7,407.09,0,2849.6,4.8
+2025-10-26,South,Apparel,Store,10,69.3,0,692.98,3.7
+2025-10-26,Central,Home & Garden,Store,14,107.38,10.4,1347.02,3.7
+2025-10-28,Central,Sports,Store,12,102.16,0,1225.9,3.8
+2025-10-28,West,Electronics,Store,4,450.29,0,1801.16,4.6
+2025-10-28,North,Apparel,Store,10,63.87,5.9,600.99,4.4
+2025-10-29,East,Apparel,Partner,26,70.38,16.3,1531.51,4.8
+2025-10-29,West,Sports,Online,19,108.77,3.7,1990.12,3.2
+2025-10-29,South,Sports,Store,4,83.38,0.1,333.17,3.2
+2025-10-31,West,Apparel,Partner,9,73.42,0,660.76,3.4
+2025-10-31,Central,Home & Garden,Store,12,107.67,0,1292,3.4
+2025-10-31,South,Beauty,Online,11,51.4,5.7,533.16,4.1
+2025-11-01,West,Apparel,Online,13,69.72,0,906.34,3.4
+2025-11-01,West,Home & Garden,Online,5,124.39,0,621.94,3.8
+2025-11-01,North,Grocery,Store,14,28.27,0,395.71,3.4
+2025-11-03,South,Sports,Partner,17,95.9,0,1630.38,3.8
+2025-11-03,North,Grocery,Online,23,29.15,0,670.43,4.2
+2025-11-03,West,Sports,Online,9,100.1,0,900.92,4.5
+2025-11-04,East,Home & Garden,Online,23,109.27,0,2513.15,4.5
+2025-11-04,North,Home & Garden,Partner,6,116.01,0,696.06,4.4
+2025-11-04,Central,Apparel,Store,7,67.85,0,474.98,4.3
+2025-11-06,East,Home & Garden,Partner,10,106.87,0,1068.7,4.4
+2025-11-06,South,Beauty,Online,5,41.98,9.3,190.38,3.2
+2025-11-06,North,Apparel,Store,29,62.51,15.3,1535.5,4.9
+2025-11-07,West,Electronics,Store,26,447.82,0,11643.43,4.2
+2025-11-07,Central,Apparel,Online,20,73.31,0,1466.13,4.4
+2025-11-07,South,Apparel,Online,11,63.12,0,694.27,3.6
+2025-11-09,Central,Beauty,Store,22,44.31,21.5,765.2,4.1
+2025-11-09,East,Home & Garden,Partner,7,104.33,0,730.29,3.7
+2025-11-09,West,Apparel,Partner,30,61.45,0,1843.57,4.3
+2025-11-10,Central,Beauty,Online,5,43.69,0,218.44,3.7
+2025-11-10,East,Home & Garden,Partner,25,124.66,0,3116.46,4
+2025-11-10,East,Electronics,Online,12,470.45,13.9,4860.69,3.5
+2025-11-12,North,Beauty,Partner,12,50.74,21.6,477.41,4.1
+2025-11-12,East,Sports,Store,12,87.77,0,1053.3,4.5
+2025-11-12,North,Apparel,Store,9,70.51,17.3,524.77,3.6
+2025-11-13,East,Apparel,Online,22,73.47,24.8,1215.54,4.1
+2025-11-13,North,Beauty,Store,13,43.09,24.9,420.64,4
+2025-11-13,East,Apparel,Partner,13,67.94,0,883.22,4.2
+2025-11-15,Central,Electronics,Store,15,420.86,6.7,5889.97,4
+2025-11-15,South,Electronics,Partner,25,435.36,0,10883.93,4.9
+2025-11-15,North,Beauty,Partner,11,42.74,0,470.12,3.4
+2025-11-16,West,Home & Garden,Partner,11,113.93,0,1253.22,4.2
+2025-11-16,West,Home & Garden,Online,35,128.67,4.9,4282.66,4.6
+2025-11-16,East,Sports,Store,10,107.72,23.7,821.89,4.4
+2025-11-18,Central,Beauty,Store,3,51.31,0,153.94,3.7
+2025-11-18,East,Beauty,Store,17,50.33,0,855.65,3.7
+2025-11-18,Central,Apparel,Online,14,61.03,0,854.36,4.5
+2025-11-19,Central,Sports,Online,6,86.59,0,519.55,4.7
+2025-11-19,East,Grocery,Partner,13,25.77,1,331.7,4.2
+2025-11-19,South,Grocery,Store,9,26.32,0,236.91,4.8
+2025-11-21,East,Sports,Online,16,100.29,0,1604.71,3
+2025-11-21,South,Apparel,Store,24,73.55,0,1765.18,4.3
+2025-11-21,West,Apparel,Store,15,62.14,0,932.16,3.4
+2025-11-22,West,Electronics,Online,11,357.98,0,3937.79,4.7
+2025-11-22,South,Beauty,Store,19,46.49,16.6,736.75,3.5
+2025-11-22,North,Electronics,Partner,11,472.19,0,5194.09,4.8
+2025-11-24,East,Apparel,Online,8,69.7,0,557.58,4
+2025-11-24,West,Home & Garden,Partner,7,125.52,0,878.61,4.1
+2025-11-24,East,Grocery,Store,17,27.29,0,463.97,4.5
+2025-11-25,East,Electronics,Partner,6,425.55,0,2553.33,3.1
+2025-11-25,Central,Apparel,Store,8,70.7,0,565.62,3.7
+2025-11-25,East,Home & Garden,Partner,21,127.3,0,2673.4,4.4
+2025-11-27,West,Home & Garden,Partner,24,122.97,0,2951.19,3.8
+2025-11-27,North,Apparel,Store,23,56.67,0,1303.35,3.1
+2025-11-27,West,Apparel,Online,21,73.74,0,1548.57,4.8
+2025-11-28,West,Beauty,Store,26,38.61,0,1003.95,4.8
+2025-11-28,Central,Beauty,Online,9,41.91,18.1,308.9,3.3
+2025-11-28,West,Apparel,Online,22,67.99,21.9,1168.16,4.9
+2025-11-30,South,Apparel,Online,16,71.59,0,1145.45,3.1
+2025-11-30,West,Beauty,Partner,19,44.33,0,842.19,3.8
+2025-11-30,West,Electronics,Online,25,449.37,0,11234.37,3.7
+2025-12-01,North,Beauty,Partner,10,41.69,0,416.92,4.6
+2025-12-01,Central,Sports,Store,22,81.15,9.9,1608.5,3.2
+2025-12-01,West,Sports,Online,10,98.71,0,987.09,5
+2025-12-03,North,Beauty,Online,30,42.8,0,1283.97,3.2
+2025-12-03,North,Home & Garden,Partner,5,136.64,17.1,566.38,4.5
+2025-12-03,North,Apparel,Online,30,59.84,0,1795.12,5
+2025-12-04,North,Sports,Store,7,82.62,24,439.54,3.4
+2025-12-04,Central,Grocery,Partner,17,27.26,21.2,365.22,3.1
+2025-12-04,West,Beauty,Store,19,45.35,22.7,666.03,3.1
+2025-12-06,South,Home & Garden,Store,13,131.3,0,1706.91,4.1
+2025-12-06,South,Home & Garden,Store,4,102.76,0,411.06,4.3
+2025-12-06,West,Electronics,Partner,19,407.18,22.7,5980.32,3
+2025-12-07,Central,Grocery,Online,25,30.91,0,772.82,4.7
+2025-12-07,West,Sports,Partner,5,100.2,0,500.99,4.4
+2025-12-07,South,Apparel,Online,27,71.4,13.4,1669.51,3.6
+2025-12-09,East,Sports,Partner,15,86.5,0,1297.43,3.2
+2025-12-09,West,Beauty,Online,17,51.19,0,870.3,3.4
+2025-12-09,West,Apparel,Store,23,57.98,10.2,1197.56,4.5
+2025-12-10,South,Electronics,Partner,26,479.09,16.1,10450.91,3.7
+2025-12-10,North,Grocery,Store,12,23.87,0,286.42,4.4
+2025-12-10,North,Sports,Partner,13,97.06,0,1261.8,3.2
+2025-12-12,South,Apparel,Online,10,72.2,0,722.02,4.5
+2025-12-12,North,Grocery,Online,21,30.44,0,639.23,3.8
+2025-12-12,Central,Grocery,Partner,6,24.86,0,149.17,3.6
+2025-12-13,East,Home & Garden,Online,7,116.97,0,818.79,3.6
+2025-12-13,South,Sports,Partner,27,101.68,0,2745.35,4.6
+2025-12-13,Central,Apparel,Partner,14,71.86,0,1006.07,4.9
+2025-12-15,East,Grocery,Online,9,29.66,0,266.95,4
+2025-12-15,North,Beauty,Store,36,42.75,0,1539.04,4.6
+2025-12-15,East,Grocery,Partner,11,24.3,0,267.27,4.5
+2025-12-16,North,Sports,Partner,30,103.46,0,3103.86,3.8
+2025-12-16,North,Apparel,Partner,33,57.54,0,1898.76,4.5
+2025-12-16,Central,Sports,Store,24,88.53,11.5,1880.43,4.9
+2025-12-18,South,Sports,Store,9,104,0,936.03,4.7
+2025-12-18,East,Home & Garden,Online,9,121.26,19.5,878.55,4.4
+2025-12-18,West,Beauty,Partner,15,48.22,0,723.37,4.5
+2025-12-19,East,Grocery,Online,25,24.25,0,606.23,4.8
+2025-12-19,Central,Sports,Online,17,90.64,21.7,1206.47,3.1
+2025-12-19,North,Apparel,Partner,19,62.43,0,1186.15,4.4
+2025-12-21,Central,Grocery,Online,9,31.51,0,283.58,3
+2025-12-21,South,Apparel,Online,5,71.63,0,358.13,4.1
+2025-12-21,North,Electronics,Partner,20,384.17,0,7683.44,5
+2025-12-22,West,Beauty,Store,17,42.35,0,719.96,3.9
+2025-12-22,Central,Sports,Online,23,97.91,0,2251.99,4.1
+2025-12-22,Central,Apparel,Store,17,56.87,0,966.87,3
+2025-12-24,East,Beauty,Online,32,46.68,0,1493.68,4.5
+2025-12-24,South,Electronics,Partner,15,420.22,0,6303.35,3.6
+2025-12-24,West,Beauty,Store,12,50.11,0,601.37,4.3
+2025-12-25,South,Sports,Partner,10,83.08,0,830.83,4.5
+2025-12-25,South,Sports,Store,17,99.9,0,1698.28,3.5
+2025-12-25,Central,Grocery,Online,7,32.08,0,224.58,4.5

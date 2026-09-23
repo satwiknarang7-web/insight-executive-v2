@@ -1,0 +1,62 @@
+{
+  "note": [
+    "Five sensors over 35 days at ten-minute resolution (every tenth row of the eval stream)."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "reading_ts",
+    "measures": {
+      "temperature_c": {
+        "noSum": true
+      },
+      "humidity_pct": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "trend",
+        "text": "How has temperature moved over the period?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "temperature_c"
+          ]
+        ],
+        "over": [
+          "reading_ts"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-line",
+        "text": "Which line or sensor runs hottest?",
+        "intent": "compare",
+        "answeredBy": [
+          [
+            "temperature_c"
+          ]
+        ],
+        "by": [
+          "line",
+          "sensor_id"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "faults",
+        "text": "Where do faults happen?",
+        "intent": "outcome-rate",
+        "answeredBy": [
+          [
+            "status"
+          ]
+        ],
+        "by": [
+          "line",
+          "sensor_id"
+        ]
+      }
+    ]
+  }
+}

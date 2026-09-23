@@ -1,0 +1,56 @@
+{
+  "note": [
+    "Two weeks of hourly readings. A monthly bucket draws one point."
+  ],
+  "report": {
+    "grain": "event",
+    "time": "timestamp",
+    "measures": {
+      "temperature_c": {
+        "noSum": true
+      }
+    },
+    "questions": [
+      {
+        "id": "trend",
+        "text": "How does consumption move through the day and the fortnight?",
+        "intent": "trend",
+        "answeredBy": [
+          [
+            "kwh"
+          ]
+        ],
+        "over": [
+          "timestamp"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "by-site",
+        "text": "Which site uses the most energy?",
+        "intent": "composition",
+        "answeredBy": [
+          [
+            "kwh"
+          ]
+        ],
+        "by": [
+          "site",
+          "meter_id"
+        ],
+        "suggest": true
+      },
+      {
+        "id": "weather",
+        "text": "Does consumption follow temperature?",
+        "intent": "relationship",
+        "answeredBy": [
+          [
+            "kwh",
+            "temperature_c"
+          ]
+        ]
+      }
+    ]
+  }
+}
