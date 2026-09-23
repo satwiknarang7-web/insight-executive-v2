@@ -88,7 +88,7 @@ export default function UpgradePage() {
                 </div>
                 <p className="mt-1 text-[12px] leading-relaxed text-white/45">
                   {selected === PRO
-                    ? 'The AI features are enabled on this account. Load a dataset and choose an AI-assisted dashboard.'
+                    ? 'The AI features are enabled on this account. Add your own model key, load a dataset and choose an AI-assisted dashboard.'
                     : 'The AI features are switched off on this account. Everything the engine computes itself still works.'}
                 </p>
                 <Link

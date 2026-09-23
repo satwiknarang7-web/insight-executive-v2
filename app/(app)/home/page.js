@@ -1,7 +1,7 @@
 'use client';
 
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   UploadCloud,
@@ -18,6 +18,7 @@ import {
   Sparkles,
   PencilRuler,
   Lock,
+  Wand2,
 } from 'lucide-react';
 import { useActions, useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
 import { useTutorial } from '../../../lib/store/TutorialProvider';
@@ -32,6 +33,7 @@ import SourcePicker from '../../../components/panels/SourcePicker';
 import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
+import { keySnapshot, serverKeySnapshot, subscribeToKey } from '../../../lib/geminiKey';
 
 
 export default function LandingPage() {
@@ -57,6 +59,12 @@ export default function LandingPage() {
   const inputRef = useRef(null);
   const { start: startTutorial } = useTutorial();
   const { can: planAllows, loading: planLoading } = usePlan();
+  // Whether a model will take part at all. Every model route declines without
+  // the viewer's own key, so without one the automatic build is the playbook
+  // alone — and a button that says "AI" over it is a claim the run never keeps.
+  const hasModelKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
+  const autoLabel = hasModelKey ? 'AI-assisted dashboard' : 'Automatic dashboard';
+  const AutoIcon = hasModelKey ? Sparkles : Wand2;
   const revealRefs = useRef([]);
 
   /**
@@ -323,8 +331,8 @@ export default function LandingPage() {
                         : 'mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]'
                     }
                   >
-                    <Sparkles size={hasAnalysis ? 14 : 16} />
-                    {hasAnalysis ? 'Re-run the analysis' : 'AI-assisted dashboard'}
+                    <AutoIcon size={hasAnalysis ? 14 : 16} />
+                    {hasAnalysis ? 'Re-run the analysis' : autoLabel}
                   </button>
                 ) : (
                   !planLoading && (
@@ -333,13 +341,20 @@ export default function LandingPage() {
                       className="mt-5 flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.04]"
                     >
                       <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-white/40">
-                        <Lock size={14} /> AI-assisted dashboard
+                        <Lock size={14} /> {autoLabel}
                       </span>
                       <span className="shrink-0 rounded-full border border-accent-500/30 bg-accent-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-accent-400">
                         Pro
                       </span>
                     </button>
                   )
+                )}
+
+                {planAllows('autoAnalysis') && !hasAnalysis && !hasModelKey && (
+                  <p className="mt-2 text-center text-[11px] leading-relaxed text-white/35">
+                    Charts chosen from the data&apos;s own statistics. Add a model key below to have a model
+                    choose them and write the summary too.
+                  </p>
                 )}
 
                 <button
