@@ -216,3 +216,56 @@ test('the KPI and every "average over all records" in the deck are one number', 
   assert.ok(stated.length, 'at least one sentence compares with the overall rate');
   for (const s of stated) assert.equal(`${s}%`, kpi.value);
 });
+
+/* ── The question card (phase 3) ───────────────────────────────────────── */
+
+const churnTable = () =>
+  range(600, (i) => {
+    const contract = ['Month-to-month', 'One year', 'Two year'][i % 3];
+    const churned = contract === 'Month-to-month' ? i % 2 === 0 : i % 7 === 0;
+    return { customer_id: `C${i}`, contract_type: contract, region: `R${i % 4}`, tenure_months: 1 + (i % 48), churned: churned ? 'Yes' : 'No' };
+  });
+
+test('a report answers the questions it was given, and says which', () => {
+  const rows = churnTable();
+  const offered = runAnalysis(rows).questions;
+  const picked = offered.filter((q) => q.intent === 'outcome-rate' && q.by === 'region');
+  assert.equal(picked.length, 1, 'the catalogue offers churn by region');
+
+  const result = runAnalysis(rows, { questions: picked });
+  assert.deepEqual(result.asked.map((q) => q.id), picked.map((q) => q.id));
+  const findings = result.charts.filter((c) => c.chart_type !== 'slicer');
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].question.id, picked[0].id);
+});
+
+test('a question in the reader’s own words is drawn as they asked it', () => {
+  const rows = churnTable();
+  const spec = {
+    title: 'Average tenure by region',
+    chart_type: 'bar',
+    sql: 'SELECT [region], AVG([tenure_months]) AS [Average Tenure] FROM SalesData GROUP BY [region]',
+    xAxisKey: 'region',
+    yAxisKey: 'Average Tenure',
+  };
+  const result = runAnalysis(rows, { questions: [{ id: 'custom|x', intent: 'custom', text: 'average tenure by region', spec }] });
+  const [chart] = result.charts.filter((c) => c.chart_type !== 'slicer');
+  assert.equal(chart.question.text, 'average tenure by region');
+  assert.equal(chart.resultData.length, 4);
+});
+
+test('the card offers more than it recommends, and never pre-ticks the tail', () => {
+  const { questions } = plan(churnTable());
+  const recommended = questions.filter((q) => q.recommended);
+  assert.ok(recommended.length > 0 && recommended.length <= 8);
+  assert.ok(questions.length > recommended.length, 'nothing offered beyond the recommended set');
+  // Recommended first: a reader sees the pre-ticked ones before the tail.
+  const firstTail = questions.findIndex((q) => !q.recommended);
+  assert.ok(questions.slice(firstTail).every((q) => !q.recommended));
+});
+
+test('every question is phrased for any outcome, not one domain', () => {
+  const { questions } = plan(churnTable());
+  const headline = questions.find((q) => q.intent === 'outcome-rate' && !q.by);
+  assert.equal(headline.text, 'How often is Churned “Yes”?');
+});

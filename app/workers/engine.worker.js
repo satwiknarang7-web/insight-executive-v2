@@ -38,7 +38,9 @@ import { planKpis } from '../../lib/analystPlanner.js';
 import { filterWhere } from '../../lib/filters.js';
 import { acceptBrief } from '../../lib/datasetBrief.js';
 import { gateRatios } from '../../lib/preparation.js';
-import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
+import { classifyColumns, deriveMeasures, outcomeVariable } from '../../lib/measureSemantics.js';
+import { buildTableModel } from '../../lib/tableModel.js';
+import { suggestQuestions } from '../../lib/questionCatalogue.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
@@ -1306,11 +1308,36 @@ function sourceRows() {
   return out;
 }
 
+/**
+ * What this table can answer, before anything is built — the question card.
+ *
+ * The catalogue's questions (lib/questionCatalogue.js), recommended ones
+ * marked, and one line on what a row is so the reader can catch a table read
+ * wrongly before a chart exists. Nothing leaves the worker but questions: they
+ * name columns and carry no values beyond an outcome's event level.
+ */
+function suggest(id) {
+  if (!state) {
+    reply(id, 'error', { message: 'No dataset loaded.' });
+    return;
+  }
+  const rows = state.view.rows;
+  const model = buildTableModel(rows, { temporal: state.viewProfile?.temporal || [] });
+  const cardinality = Object.fromEntries(Object.entries(model.columns).map(([c, info]) => [c, info.distinct]));
+  const outcome = outcomeVariable({ columns: Object.keys(model.columns), sample: rows.slice(0, 500), cardinality });
+  reply(id, 'suggestions', {
+    questions: suggestQuestions(rows, model, { outcome }),
+    grain: { kind: model.grain.kind, why: model.grain.why },
+    rowCount: rows.length,
+  });
+}
+
 function analyze(
   id,
   {
     focus,
     maxCharts,
+    questions = null,
     claims = null,
     voidClaim = null,
     includeVoid = false,
@@ -1341,6 +1368,9 @@ function analyze(
   const result = runAnalysis(state.view.rows, {
     focus,
     maxCharts,
+    // The questions the reader chose on the card. Null: the catalogue's
+    // recommended ones, which is also what "choose for me" asks for.
+    questions,
     tables: sourceRows(),
     // Which table each column came from, and whether that table is the fact or
     // a dimension. Without it the planner cannot tell a fact measure from
@@ -1749,6 +1779,8 @@ self.onmessage = async (e) => {
         return setTransforms(id, payload);
       case 'testRelationship':
         return testRelationship(id, payload);
+      case 'suggest':
+        return suggest(id);
       case 'analyze':
         return analyze(id, payload);
       case 'ask':

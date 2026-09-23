@@ -1,8 +1,9 @@
 # Question-first reports
 
 Status: **approved**, 2026-09-23. Replaces the chart-selection core of the
-analysis pipeline. Phases 0 (the baseline), 1 (the table model) and 2 (question
-compilers) are done — results in `eval/RESULTS.md`; phases 3–5 are not started.
+analysis pipeline. Phases 0 (the baseline), 1 (the table model), 2 (question
+compilers) and 3 (the question card) are done — results in `eval/RESULTS.md`;
+phases 4–5 are not started.
 
 Decisions taken: questions are asked of the reader as a multiple-choice card;
 Pro gets the server model key, Free stays deterministic; Free gets the question
@@ -277,7 +278,7 @@ The design is only finished when it is measured.
 | 0. Baseline ✅ | expect v2, corpus to ~30, fuzz harness, scorecard of *today's* engine | the scorecard exists and CI runs it — 19/77 answered, 53 violations |
 | 1. Table model ✅ | `tableModel.js` with grain, scope, units, aggregations, robustness | grain and scope correct on the whole corpus — 29/29 corpus, 40/40 fuzz |
 | 2. Compilers + invariants ✅ | intent compilers, I1–I10 enforced at construction, planner core removed | zero invariant violations on corpus and fuzz; `mustAnswer` passes for the catalogue path — 0 violations, 62/77 answered |
-| 3. Question card | the multiple-choice step, saved questions, "Change questions", sections per question | subscription file: "intelligence per dollar" answered, recommended and pre-ticked with no model |
+| 3. Question card ✅ | the multiple-choice step, saved questions, "Change questions", sections per question | subscription file: "intelligence per dollar" answered, recommended and pre-ticked with no model — and 69/77 reachable from the card |
 | 4. Model pass + Pro server key | merged model pass, `canGenerate` change, privacy copy | model path beats catalogue path on the scorecard, never violates an invariant |
 | 5. Cleanup | delete superseded filters and passes, update README | no dead planner code; README describes the new pipeline |
 

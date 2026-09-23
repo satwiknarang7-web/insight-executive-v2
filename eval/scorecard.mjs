@@ -15,6 +15,8 @@
  *
  *   noModel    what the deployment does with no model key — the path most
  *              people get, and the one that had no quality test at all.
+ *   offered    every question the catalogue suggests, ticked — what the
+ *              question card can reach without a model.
  *   withBrief  the brief a correct model would return, recorded in the
  *              expectation and verified by `acceptBrief` as the app does.
  *
@@ -65,6 +67,7 @@ function score(rows, truth, questions, options) {
     violations,
     rules: ruleCounts(violations),
     answers,
+    suggestions: result.questions || [],
   };
 }
 
@@ -79,6 +82,10 @@ export function scoreCorpus({ only = null } = {}) {
     const { questions = [], ...truth } = spec.report;
     const model = buildTableModel(rows, { temporal: profileColumns(rows).temporal });
     const paths = { noModel: score(rows, truth, questions, {}) };
+    // What the question card offers: the report a reader gets by ticking every
+    // question the catalogue suggests. Every one of them has to compile
+    // without breaking a rule, not just the recommended few.
+    paths.offered = score(rows, truth, questions, { questions: paths.noModel.suggestions });
     if (spec.brief) {
       const brief = acceptBrief(spec.brief, { rows, profile: profileColumns(rows) });
       paths.withBrief = score(rows, truth, questions, { brief });
@@ -165,7 +172,7 @@ function printTable(card, markdown) {
     for (const r of rows) console.log(line(r));
   }
   console.log('');
-  for (const p of ['noModel', 'withBrief']) {
+  for (const p of ['noModel', 'offered', 'withBrief']) {
     const t = totals(card.corpus, p);
     if (!t.files) continue;
     console.log(

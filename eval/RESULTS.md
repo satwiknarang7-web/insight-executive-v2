@@ -570,3 +570,47 @@ disable it and a test fails.
   as a league table ("8 has the highest churn rate of any support calls"), and
   the dashboard's "Some columns are never totalled" banner still describes the
   old planner's fallback to record counts.
+
+---
+
+# Phase 3 — the question card (2026-09-23)
+
+A report is now built from questions the reader picks. After cleaning, "Build
+a report" opens a card: what one row was read as ("each row is one
+customer_id · 900 rows"), the catalogue's questions with the recommended ones
+ticked, a "Something else" box read by the Ask page's offline planner, and
+**Build the report** or **Choose for me**. Each chart carries the question it
+answers above its title; **Change questions** on the dashboard reopens the
+card on what was chosen and rebuilds without reloading the file. A report
+saved before this has no questions and says so, with a button to choose them.
+
+Free gets the card: nothing in it calls a model. What Pro adds is the model —
+its suggestions, its prose, its narration.
+
+| | answered | rule violations |
+|---|---|---|
+| automatic (recommended, "Choose for me") | 62 / 77 | 0 |
+| **offered** (every question on the card ticked) | **69 / 77** | **0** |
+| with the recorded brief | 4 / 7 | 0 |
+
+`offered` is new in the scorecard: the report a reader gets by ticking every
+suggestion. It is also the strongest check on the compiler yet — every
+question the catalogue can propose, not just the recommended few, compiles
+without breaking a rule. Getting there needed one fix: a ranking of the top
+twelve rows compared its leader with the mean of those twelve, a figure
+nowhere else on the page. It now compares with every row ("8.6× the 1.1
+median over all records").
+
+The card offers a tail it never pre-ticks: every driver of an outcome, each
+measure by the leading splits, further splits of the main total, rankings of
+entities. That is where the null effects live — "does plan tier change how
+often Churned is 'Yes'?" — which the evidence ranking rightly does not pick
+and a reader may still want answered.
+
+Questions are phrased around the column and its level, so they read right in
+any domain: "How often is Converted 'true'?", "Does variant change how often
+Converted is 'true'?".
+
+Not yet: suggestions come from the catalogue alone, before any model pass; a
+reader with a key gets the brief's outcome only through "Choose for me".
+Phase 4 puts a model's questions on the card.

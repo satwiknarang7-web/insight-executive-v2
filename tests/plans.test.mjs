@@ -34,10 +34,10 @@ test('a real plan survives sloppy casing and whitespace', () => {
   assert.equal(normalizePlan('FREE'), FREE);
 });
 
-test('free may build by hand and may not reach a model', () => {
+test('free may build by hand or from its questions, and may not reach a model', () => {
   assert.equal(planAllows(FREE, 'manualDashboard'), true);
+  assert.equal(planAllows(FREE, 'autoAnalysis'), true);
   assert.equal(planAllows(FREE, 'model'), false);
-  assert.equal(planAllows(FREE, 'autoAnalysis'), false);
 });
 
 test('pro may do everything free may, and the rest', () => {
@@ -60,7 +60,7 @@ test('an unknown capability is refused, not assumed', () => {
 
 test('an unknown plan is refused everything a paid plan has', () => {
   assert.equal(planAllows('enterprise', 'model'), false);
-  assert.equal(planAllows(undefined, 'autoAnalysis'), false);
+  assert.equal(planAllows(undefined, 'model'), false);
 });
 
 test('planInfo always returns a plan to draw', () => {
@@ -87,12 +87,17 @@ test('every plan declares every capability, so none is undefined by omission', (
   }
 });
 
-test('free is offered one way to start a dataset, pro is offered both', () => {
+test('both plans can start a dataset either way; the model is what is paid', () => {
+  // Since phase 3 of docs/design/question-first-reports.md a report is built
+  // from the questions a reader picks, with no model involved, so it is not a
+  // paid feature. What Pro adds is the model: its suggestions and its prose.
   const free = buildModesFor(FREE).map((m) => m.id);
   const pro = buildModesFor(PRO).map((m) => m.id);
 
-  assert.deepEqual(free, ['scratch']);
+  assert.deepEqual(free.sort(), ['assisted', 'scratch']);
   assert.deepEqual(pro.sort(), ['assisted', 'scratch']);
+  assert.equal(PLANS[FREE].capabilities.model, false);
+  assert.equal(PLANS[PRO].capabilities.model, true);
 });
 
 test('every build mode names a capability that exists', () => {

@@ -45,6 +45,7 @@ import DatasetNotices from '../../../components/panels/DatasetNotices';
 import PreparationNotice from '../../../components/panels/PreparationNotice';
 import NarrationNote from '../../../components/panels/NarrationNote';
 import EvidenceBadge from '../../../components/panels/EvidenceBadge';
+import QuestionCard from '../../../components/panels/QuestionCard';
 import { modelConcerns } from '../../../lib/dataModel';
 import { chartTypeLabel } from '../../../lib/chartSpecs';
 import { slideLayout, slideStyle } from '../../../lib/slideSize';
@@ -209,7 +210,21 @@ export default function DashboardPage() {
    * line, because being able to see it is not the same as being shown it.
    */
 
-  const run = useCallback(() => analyze().catch(() => {}), [analyze]);
+  /**
+   * What the report answers, changed in place: the card reopens on the
+   * questions this analysis was built from, and building re-runs the analysis
+   * without the file being loaded again. An analysis saved before reports were
+   * built from questions has none, and says so (`unasked` below).
+   */
+  const [askingQuestions, setAskingQuestions] = useState(false);
+  const rebuildFor = useCallback(
+    (questions) => {
+      setAskingQuestions(false);
+      analyze(questions ? { questions } : {}).catch(() => {});
+    },
+    [analyze]
+  );
+  const unasked = !!analysis?.generatedAt && !Array.isArray(analysis?.questions);
 
   /**
    * The notes, each kind folded to one line per distinct thing said.
@@ -265,17 +280,23 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm leading-relaxed text-white/45">
               {dataset?.rowCount.toLocaleString()} rows are loaded and cleaned.{' '}
               {planAllows('autoAnalysis')
-                ? 'Run the analysis to plan the charts, execute the queries and compute the findings. The statistics are computed here; the AI reads your columns and their values to decide what is worth asking.'
+                ? 'Choose the questions the report should answer, and every chart is built to answer one of them. The statistics are computed here, from your rows.'
                 : 'Start an empty dashboard and add the charts you want, or upgrade to have the analyst build one for you.'}
             </p>
           </div>
           {planAllows('autoAnalysis') ? (
-            <button
-              onClick={run}
-              className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
-            >
-              Analyse dataset
-            </button>
+            askingQuestions ? (
+              <div className="w-full">
+                <QuestionCard onBuild={(questions) => rebuildFor(questions)} onSkip={() => rebuildFor(null)} onCancel={() => setAskingQuestions(false)} />
+              </div>
+            ) : (
+              <button
+                onClick={() => setAskingQuestions(true)}
+                className="rounded-xl bg-accent-500 px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-on-accent transition-colors hover:bg-accent-400"
+              >
+                Choose questions
+              </button>
+            )
           ) : (
             <div className="flex flex-wrap gap-2">
               <button
@@ -381,15 +402,47 @@ export default function DashboardPage() {
           </button>
           {planAllows('autoAnalysis') && (
             <button
-              onClick={run}
+              onClick={() => setAskingQuestions(true)}
               className="rounded-lg border border-white/10 min-h-11 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] sm:min-h-0 text-white/45 transition-colors hover:bg-white/5 hover:text-white"
             >
-              Re-run
+              Change questions
             </button>
           )}
         </div>
       }
     >
+      {askingQuestions && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-16 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Change the questions this report answers"
+        >
+          <div className="w-full max-w-xl">
+            <QuestionCard
+              initial={analysis?.questions || null}
+              onBuild={(questions) => rebuildFor(questions)}
+              onSkip={() => rebuildFor(null)}
+              onCancel={() => setAskingQuestions(false)}
+            />
+          </div>
+        </div>
+      )}
+      {unasked && planAllows('autoAnalysis') && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="min-w-0 flex-1 text-[13px] leading-relaxed text-white/60">
+            This report was built before reports answered questions you choose. Pick the questions it should
+            answer and it is rebuilt from them.
+          </div>
+          <button
+            type="button"
+            onClick={() => setAskingQuestions(true)}
+            className="shrink-0 rounded-lg border border-accent-500/30 bg-accent-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-300 transition-colors hover:bg-accent-500/15"
+          >
+            Choose questions
+          </button>
+        </div>
+      )}
       <DatasetNotices notices={notices} />
       <PreparationNotice preparation={preparation} />
       {joinNotice && <JoinNotice notice={joinNotice} />}
@@ -950,6 +1003,11 @@ function FindingCard({
               />
             )}
           </div>
+          {/* The question this chart answers, from the card — the reason it is
+              on the page at all. */}
+          {!isSlicer && slide.chart?.question?.text && (
+            <p className="mt-1.5 text-[12px] leading-snug text-accent-300/80">{slide.chart.question.text}</p>
+          )}
           <EditableText
             as="h3"
             editing={editing}

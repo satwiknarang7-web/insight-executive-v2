@@ -33,6 +33,7 @@ import SourcePicker from '../../../components/panels/SourcePicker';
 import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
+import QuestionCard from '../../../components/panels/QuestionCard';
 import { keySnapshot, serverKeySnapshot, subscribeToKey } from '../../../lib/geminiKey';
 
 
@@ -63,7 +64,9 @@ export default function LandingPage() {
   // the viewer's own key, so without one the automatic build is the playbook
   // alone — and a button that says "AI" over it is a claim the run never keeps.
   const hasModelKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
-  const autoLabel = hasModelKey ? 'AI-assisted dashboard' : 'Automatic dashboard';
+  // The button opens the question card either way; with a key a model also
+  // reads the table and writes the summary, and only then does it say so.
+  const autoLabel = hasModelKey ? 'Build a report · AI-assisted' : 'Build a report';
   const AutoIcon = hasModelKey ? Sparkles : Wand2;
   const revealRefs = useRef([]);
 
@@ -198,14 +201,24 @@ export default function LandingPage() {
     await reset();
   }, [reset]);
 
-  const runAnalysis = useCallback(async () => {
-    try {
-      await analyze();
-      router.push('/dashboard');
-    } catch {
-      /* surfaced through context error */
-    }
-  }, [analyze, router]);
+  /**
+   * A report is built from questions (docs/design/question-first-reports.md,
+   * phase 3): the button opens the card, and the card decides what is asked.
+   * `questions` null is "choose for me" — the catalogue's recommended set.
+   */
+  const [asking, setAsking] = useState(false);
+  const runAnalysis = useCallback(
+    async (questions = null) => {
+      setAsking(false);
+      try {
+        await analyze(questions ? { questions } : {});
+        router.push('/dashboard');
+      } catch {
+        /* surfaced through context error */
+      }
+    },
+    [analyze, router]
+  );
 
   /**
    * The other way in: an empty dashboard, filled by hand.
@@ -322,9 +335,19 @@ export default function LandingPage() {
                   * than hidden — a locked door you can see is information; a
                   * missing one is confusion.
                   */}
-                {planAllows('autoAnalysis') ? (
+                {asking && (
+                  <div className="mt-5">
+                    <QuestionCard
+                      initial={hasAnalysis ? analysis?.questions : null}
+                      onBuild={(questions) => runAnalysis(questions)}
+                      onSkip={() => runAnalysis(null)}
+                      onCancel={() => setAsking(false)}
+                    />
+                  </div>
+                )}
+                {asking ? null : planAllows('autoAnalysis') ? (
                   <button
-                    onClick={runAnalysis}
+                    onClick={() => setAsking(true)}
                     className={
                       hasAnalysis
                         ? 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white'
@@ -332,7 +355,7 @@ export default function LandingPage() {
                     }
                   >
                     <AutoIcon size={hasAnalysis ? 14 : 16} />
-                    {hasAnalysis ? 'Re-run the analysis' : autoLabel}
+                    {hasAnalysis ? 'Change the questions' : autoLabel}
                   </button>
                 ) : (
                   !planLoading && (
@@ -350,10 +373,10 @@ export default function LandingPage() {
                   )
                 )}
 
-                {planAllows('autoAnalysis') && !hasAnalysis && !hasModelKey && (
+                {planAllows('autoAnalysis') && !hasAnalysis && !hasModelKey && !asking && (
                   <p className="mt-2 text-center text-[11px] leading-relaxed text-white/35">
-                    Charts chosen from the data&apos;s own statistics. Add a model key below to have a model
-                    choose them and write the summary too.
+                    You pick the questions; every chart answers one, computed from your rows. Add a model key
+                    below to have a model read the table and write the summary too.
                   </p>
                 )}
 
