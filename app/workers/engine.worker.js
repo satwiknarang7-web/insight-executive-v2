@@ -41,6 +41,7 @@ import { gateRatios } from '../../lib/preparation.js';
 import { classifyColumns, deriveMeasures, outcomeVariable } from '../../lib/measureSemantics.js';
 import { buildTableModel } from '../../lib/tableModel.js';
 import { suggestQuestions } from '../../lib/questionCatalogue.js';
+import { acceptModelQuestions, mergeSuggestions } from '../../lib/modelQuestions.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
@@ -1316,19 +1317,46 @@ function sourceRows() {
  * wrongly before a chart exists. Nothing leaves the worker but questions: they
  * name columns and carry no values beyond an outcome's event level.
  */
+function catalogue() {
+  const rows = state.view.rows;
+  const model = buildTableModel(rows, { temporal: state.viewProfile?.temporal || [] });
+  const cardinality = Object.fromEntries(Object.entries(model.columns).map(([c, info]) => [c, info.distinct]));
+  const outcome = outcomeVariable({ columns: Object.keys(model.columns), sample: rows.slice(0, 500), cardinality });
+  return { rows, model, questions: suggestQuestions(rows, model, { outcome }) };
+}
+
 function suggest(id) {
   if (!state) {
     reply(id, 'error', { message: 'No dataset loaded.' });
     return;
   }
-  const rows = state.view.rows;
-  const model = buildTableModel(rows, { temporal: state.viewProfile?.temporal || [] });
-  const cardinality = Object.fromEntries(Object.entries(model.columns).map(([c, info]) => [c, info.distinct]));
-  const outcome = outcomeVariable({ columns: Object.keys(model.columns), sample: rows.slice(0, 500), cardinality });
+  const { rows, model, questions } = catalogue();
   reply(id, 'suggestions', {
-    questions: suggestQuestions(rows, model, { outcome }),
+    questions,
     grain: { kind: model.grain.kind, why: model.grain.why },
     rowCount: rows.length,
+  });
+}
+
+/**
+ * A model's proposal, checked against the rows — here, because here is where
+ * the rows are. Picks must be questions the catalogue offered; new questions
+ * must name real columns of the right kind and compile into a chart
+ * (lib/modelQuestions.js). The catalogue is rebuilt rather than taken from the
+ * page, so the list the proposal is checked against is the engine's own.
+ */
+function acceptQuestions(id, { proposal = null } = {}) {
+  if (!state) {
+    reply(id, 'error', { message: 'No dataset loaded.' });
+    return;
+  }
+  const { rows, model, questions } = catalogue();
+  const accepted = acceptModelQuestions(proposal, { rows, model, catalogue: questions });
+  reply(id, 'suggestions', {
+    questions: mergeSuggestions(questions, accepted),
+    subject: accepted.subject,
+    dropped: accepted.dropped,
+    fromModel: accepted.picks.length + accepted.added.length > 0,
   });
 }
 
@@ -1781,6 +1809,8 @@ self.onmessage = async (e) => {
         return testRelationship(id, payload);
       case 'suggest':
         return suggest(id);
+      case 'acceptQuestions':
+        return acceptQuestions(id, payload);
       case 'analyze':
         return analyze(id, payload);
       case 'ask':

@@ -614,3 +614,47 @@ Converted is 'true'?".
 Not yet: suggestions come from the catalogue alone, before any model pass; a
 reader with a key gets the brief's outcome only through "Choose for me".
 Phase 4 puts a model's questions on the card.
+
+---
+
+# Phase 4 — a model's questions, checked before they are shown (2026-09-23)
+
+When a model is available, the question card asks it which questions matter.
+`app/api/questions` sends the briefing the app already sends (column names,
+values or ranges, twenty rows) and the catalogue's own list; the model picks
+from the list, best first, and adds what is missing in the catalogue's typed
+form. The worker checks the reply against the rows before the card sees it
+(`lib/modelQuestions.js`):
+
+- a pick must be a question that was on the list;
+- a new question must name columns that exist and are the right kind for its
+  intent — a price is not a total to split, an outcome has exactly two values
+  and the event is one of them;
+- and it must compile, through the same compiler as every other question, into
+  at least one chart. So a model-proposed question keeps every rule by
+  construction: asked to compare a price across buyer units, the compiler
+  filters to one buyer unit whoever asked.
+
+What fails is dropped with its reason. The model's picks and questions lead the
+card, ticked, marked "Model"; with nothing usable the card is the catalogue's,
+unchanged. The purpose and compose passes are no longer called — they fed the
+playbook — which saves two model calls per report.
+
+**Whose key.** `modelCredential` in `lib/llm.server.js`: the reader's own key
+always; otherwise the deployment's key for an account on the Pro plan, and for
+nobody else (not Free, not signed out, not a deployment without accounts).
+All twelve model routes ask it. The landing page, tutorial, README and
+DEPLOY.md now say that on Pro without a key of one's own, the summary goes to
+the deployment's provider.
+
+**Not yet measured.** The exit criterion is that the model path beats the
+catalogue path on the scorecard without breaking a rule. That needs a real
+model's answers, recorded once: `eval/record-model.mjs` sends the production
+prompt through `generateJson` for every corpus file and saves the raw reply as
+`tests/corpus/<name>.model.json`; the scorecard's `withModel` path puts each
+through the same gate and merge the worker uses. The model keys in this
+machine's `.env.local` are empty, so no recording exists yet — hand-written
+"model answers" would measure the author, not a model, and were not made.
+
+    node --env-file=.env.local eval/record-model.mjs
+    npm run eval:scorecard

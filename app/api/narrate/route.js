@@ -1,4 +1,4 @@
-import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { generateJson, modelCredential } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 
@@ -162,10 +162,12 @@ export async function POST(request) {
 
     // The viewer's own key counts as a provider, so a deployment configured
     // with none of its own still answers for anyone who brought one.
-    if (!canGenerate(request)) {
+    // The reader's own key, or the deployment's for a Pro account — see
+    // modelCredential in lib/llm.server.js.
+    const credential = await modelCredential(request);
+    if (!credential) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'narrate');
     if (refused) return refused;

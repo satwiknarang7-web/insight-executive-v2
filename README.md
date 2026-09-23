@@ -7,13 +7,20 @@ the query behind each claim.
 Everything — parsing, cleaning, SQL, statistics — runs in your browser. Every
 number in a report is computed on your own device from your own rows.
 
-When a model provider is configured, a **summary** of the table goes out and is
-used to decide what the report is *about*: the column names, each column's
-distinct values or numeric range, and twenty whole rows taken at a stride
-through the file. Nothing else leaves, no figure is ever computed from it, and
-everything it comes back with is re-checked against the rows before it can
-affect a chart — see "What the dataset is about" below. With no provider
-configured nothing leaves at all.
+When a model is in use, a **summary** of the table goes out and is used to
+decide what the report is *about* and which questions it answers: the column
+names, each column's distinct values or numeric range, and twenty whole rows
+taken at a stride through the file. Nothing else leaves, no figure is ever
+computed from it, and everything it comes back with is re-checked against the
+rows before it can affect a chart — see "What the dataset is about" below.
+
+A model is in use in two cases: the reader brought their own key (it goes to
+their provider, billed to them), or the account is on the Pro plan with no key
+of its own (it goes to the deployment's provider — `SERVER_MODEL_PROVIDER`, or
+whichever of `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`,
+`XAI_API_KEY` is set). Free accounts, signed-out visitors and deployments
+without accounts never use the deployment's key. With no model in use nothing
+leaves at all.
 
 ## How it works
 

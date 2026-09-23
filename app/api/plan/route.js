@@ -16,19 +16,24 @@ import { NextResponse } from 'next/server';
 import { FREE, PRO, normalizePlan, planInfo } from '../../../lib/plans.js';
 import { currentPlan, plansEnforced, setPlan } from '../../../lib/plans.server';
 import { currentUser } from '../../../lib/vault/supabase.server';
+import { serverModelKey } from '../../../lib/llm.server';
 
 export const runtime = 'nodejs';
 
-function describe(plan) {
+function describe(plan, { enforced = true } = {}) {
   const info = planInfo(plan);
-  return { plan: info.id, capabilities: info.capabilities };
+  // Whether this account is served on the deployment's model key: Pro, on a
+  // deployment with accounts, holding one. The app says "AI-assisted" only
+  // when a model will actually run — see modelCredential in lib/llm.server.js.
+  const serverModel = enforced && info.id === PRO && !!serverModelKey();
+  return { plan: info.id, capabilities: info.capabilities, serverModel };
 }
 
 export async function GET() {
   // No accounts on this deployment means no plans, and nothing gated. Say so
   // explicitly rather than returning "free", which the UI would paywall.
   if (!plansEnforced()) {
-    return NextResponse.json({ enforced: false, ...describe(PRO) });
+    return NextResponse.json({ enforced: false, ...describe(PRO, { enforced: false }) });
   }
 
   const user = await currentUser();

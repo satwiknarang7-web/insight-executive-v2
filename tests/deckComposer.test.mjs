@@ -200,7 +200,10 @@ test('a composed chart is executed, graded and critiqued like a planned one', as
     { columns: Object.keys(rows[0]) }
   );
 
-  const result = runAnalysis(rows, { maxCharts: 6, composed: deck.charts });
+  // A composed deck is the playbook's; on the question path a model proposes
+  // questions instead (lib/modelQuestions.js). Both go in phase 5 of
+  // docs/design/question-first-reports.md.
+  const result = runAnalysis(rows, { maxCharts: 6, composed: deck.charts, planner: 'playbook' });
   const mine = (result.charts || []).find((c) => c.title === 'Where the revenue is');
   assert.ok(mine, 'the composed chart never reached the deck');
   // Run against the reader's own rows by the same engine.

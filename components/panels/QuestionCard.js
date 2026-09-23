@@ -25,7 +25,7 @@ import { planQuestion } from '../../lib/questionPlanner';
  * @param {object}   props
  * @param {object[]} [props.initial]  questions already chosen (Change questions)
  * @param {(questions: object[]) => void} props.onBuild
- * @param {() => void} [props.onSkip]  build with the recommended set
+ * @param {(questions: object[]) => void} [props.onSkip]  build with the pre-ticked set
  * @param {() => void} [props.onCancel]
  */
 export default function QuestionCard({ initial = null, onBuild, onSkip, onCancel }) {
@@ -45,7 +45,15 @@ export default function QuestionCard({ initial = null, onBuild, onSkip, onCancel
       .then((found) => {
         if (cancelled) return;
         const questions = found?.questions || [];
-        setState({ loading: false, error: null, questions, grain: found?.grain || null, rowCount: found?.rowCount || 0 });
+        setState({
+          loading: false,
+          error: null,
+          questions,
+          grain: found?.grain || null,
+          rowCount: found?.rowCount || 0,
+          fromModel: !!found?.fromModel,
+          subject: found?.subject || null,
+        });
         // Reopened on a report: what it answers. Otherwise: what is recommended.
         const earlier = (initial || []).filter((q) => q.intent === 'custom');
         setCustom(earlier);
@@ -114,7 +122,8 @@ export default function QuestionCard({ initial = null, onBuild, onSkip, onCancel
       </div>
       {state.grain && (
         <p className="mb-4 text-[12px] leading-relaxed text-white/45">
-          Read as: {state.grain.why} · {state.rowCount.toLocaleString()} rows. Every chart answers one of the questions you tick.
+          Read as: {state.subject || state.grain.why} · {state.rowCount.toLocaleString()} rows. Every chart answers one of the questions you tick.
+          {state.fromModel && ' A model read the table and chose the ticked questions; every one was checked against your rows first.'}
         </p>
       )}
 
@@ -155,6 +164,9 @@ export default function QuestionCard({ initial = null, onBuild, onSkip, onCancel
                     </span>
                     <span className="min-w-0 flex-1 text-[13px] leading-snug text-white/80">
                       {q.text}
+                      {q.source === 'model' && (
+                        <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.12em] text-accent-300/90">Model</span>
+                      )}
                       {q.recommended && !initial?.length && (
                         <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.12em] text-accent-400/80">Recommended</span>
                       )}
@@ -224,7 +236,9 @@ export default function QuestionCard({ initial = null, onBuild, onSkip, onCancel
         {onSkip && (
           <button
             type="button"
-            onClick={onSkip}
+            // The pre-ticked set, whoever ticked it — the model's picks when
+            // a model answered, the catalogue's otherwise.
+            onClick={() => onSkip(state.questions.filter((q) => q.recommended))}
             className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white"
           >
             Choose for me

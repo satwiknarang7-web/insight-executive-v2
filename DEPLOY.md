@@ -33,11 +33,20 @@ In the Repl, open the **Secrets** panel (lock icon) and add:
 | `SMTP_HOST` / `SMTP_PORT` | optional | Defaults to `smtp.gmail.com` / `465` |
 | `SMTP_FROM` | optional | Overrides the From header |
 | `AUTH_OTP_PEPPER` | optional | Peppers one-time-code hashes; falls back to `VAULT_MASTER_KEY` |
+| `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` / `OPENAI_API_KEY` / `XAI_API_KEY` | optional | The model **Pro** accounts use when they have not brought a key of their own. Billed to you. |
+| `SERVER_MODEL_PROVIDER` | optional | Which of those to use when several are set: `anthropic`, `google`, `openai` or `xai` |
 
-**All three are optional.** Analysis, charts and every number are computed in the
-browser and are correct with no keys at all; a key only buys nicer wording on the
-narrative and natural-language questions on `/ask` (which otherwise falls back to
-matching the question against the planner's own charts).
+**All of these are optional.** Analysis, charts and every number are computed in
+the browser and are correct with no keys at all. A model key buys a model's
+suggestions on the question card, the written summary and narration, and
+natural-language questions on `/ask`.
+
+**Whose model key is spent.** A reader's own key (saved in their browser) always
+wins, billed to them. Otherwise a model runs on the deployment's key only for an
+account on the **Pro** plan — never for Free, signed-out visitors, or a
+deployment without accounts. When it does, the table summary (column names,
+values or ranges, twenty sample rows) goes to that provider, and the landing
+page says so. Each model route is rate-limited per account (`lib/routeLimits.js`).
 
 Do **not** commit these — `.env` is gitignored.
 

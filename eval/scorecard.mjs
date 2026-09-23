@@ -17,6 +17,9 @@
  *              people get, and the one that had no quality test at all.
  *   offered    every question the catalogue suggests, ticked — what the
  *              question card can reach without a model.
+ *   withModel  a real model's recorded proposal (tests/corpus/<name>.model.json,
+ *              from eval/record-model.mjs), checked and merged as the worker
+ *              does, and the report built from its pre-ticked questions.
  *   withBrief  the brief a correct model would return, recorded in the
  *              expectation and verified by `acceptBrief` as the app does.
  *
@@ -41,6 +44,7 @@ import { buildTableModel } from '../lib/tableModel.js';
 import { runAnalysis } from '../lib/pipeline.js';
 import { profileColumns } from '../lib/chartResolver.js';
 import { acceptBrief } from '../lib/datasetBrief.js';
+import { acceptModelQuestions, mergeSuggestions } from '../lib/modelQuestions.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CORPUS = path.join(HERE, '..', 'tests', 'corpus');
@@ -86,6 +90,17 @@ export function scoreCorpus({ only = null } = {}) {
     // question the catalogue suggests. Every one of them has to compile
     // without breaking a rule, not just the recommended few.
     paths.offered = score(rows, truth, questions, { questions: paths.noModel.suggestions });
+    // A real model's reading, recorded by eval/record-model.mjs and put
+    // through the same gate and merge the worker uses: the report "Choose for
+    // me" builds when a model answered.
+    const recorded = path.join(CORPUS, `${name}.model.json`);
+    if (fs.existsSync(recorded)) {
+      const { proposal } = JSON.parse(fs.readFileSync(recorded, 'utf8'));
+      const accepted = acceptModelQuestions(proposal, { rows, model, catalogue: paths.noModel.suggestions });
+      const merged = mergeSuggestions(paths.noModel.suggestions, accepted);
+      paths.withModel = score(rows, truth, questions, { questions: merged.filter((q) => q.recommended) });
+      paths.withModel.dropped = accepted.dropped;
+    }
     if (spec.brief) {
       const brief = acceptBrief(spec.brief, { rows, profile: profileColumns(rows) });
       paths.withBrief = score(rows, truth, questions, { brief });
@@ -172,7 +187,7 @@ function printTable(card, markdown) {
     for (const r of rows) console.log(line(r));
   }
   console.log('');
-  for (const p of ['noModel', 'offered', 'withBrief']) {
+  for (const p of ['noModel', 'offered', 'withModel', 'withBrief']) {
     const t = totals(card.corpus, p);
     if (!t.files) continue;
     console.log(
@@ -202,6 +217,7 @@ function printDetail(card) {
       console.log(`\n${name} · ${p}${entry.trap ? ` · trap: ${entry.trap}` : ''}${s.error ? ` · THREW ${s.error}` : ''}`);
       for (const a of s.answers) console.log(`  ${a.answered ? '✓' : '✗'} ${a.id}: ${a.why}`);
       for (const v of s.violations) console.log(`  ! ${v.rule} ${v.chart}: ${v.detail}`);
+      for (const d of s.dropped || []) console.log(`  - model: "${d.claim}" dropped: ${d.reason}`);
     }
     for (const m of entry.model || []) console.log(`  ~ model ${m}`);
   }

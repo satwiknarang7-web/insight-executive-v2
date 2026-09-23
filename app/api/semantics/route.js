@@ -1,4 +1,4 @@
-import { callerModelKey, canGenerate, generateJson } from '../../../lib/llm.server';
+import { generateJson, modelCredential } from '../../../lib/llm.server';
 import { refusedFor } from '../../../lib/plans.server';
 import { enforceLimit } from '../../../lib/routeLimits.server';
 import { acceptUnitClaims } from '../../../lib/semanticClaims';
@@ -149,10 +149,12 @@ export async function POST(request) {
     const denied = await refusedFor('model');
     if (denied) return Response.json(denied, { status: 402 });
 
-    if (!canGenerate(request)) {
+    // The reader's own key, or the deployment's for a Pro account — see
+    // modelCredential in lib/llm.server.js.
+    const credential = await modelCredential(request);
+    if (!credential) {
       return Response.json({ unavailable: true, reason: 'no_provider' });
     }
-    const credential = callerModelKey(request);
 
     const refused = await enforceLimit(request, 'semantics');
     if (refused) return refused;

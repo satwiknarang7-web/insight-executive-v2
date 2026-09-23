@@ -287,7 +287,7 @@ export default function DashboardPage() {
           {planAllows('autoAnalysis') ? (
             askingQuestions ? (
               <div className="w-full">
-                <QuestionCard onBuild={(questions) => rebuildFor(questions)} onSkip={() => rebuildFor(null)} onCancel={() => setAskingQuestions(false)} />
+                <QuestionCard onBuild={(questions) => rebuildFor(questions)} onSkip={(picked) => rebuildFor(picked.length ? picked : null)} onCancel={() => setAskingQuestions(false)} />
               </div>
             ) : (
               <button
@@ -422,7 +422,7 @@ export default function DashboardPage() {
             <QuestionCard
               initial={analysis?.questions || null}
               onBuild={(questions) => rebuildFor(questions)}
-              onSkip={() => rebuildFor(null)}
+              onSkip={(picked) => rebuildFor(picked.length ? picked : null)}
               onCancel={() => setAskingQuestions(false)}
             />
           </div>

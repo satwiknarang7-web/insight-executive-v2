@@ -59,13 +59,15 @@ export default function LandingPage() {
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
   const { start: startTutorial } = useTutorial();
-  const { can: planAllows, loading: planLoading } = usePlan();
-  // Whether a model will take part at all. Every model route declines without
-  // the viewer's own key, so without one the automatic build is the playbook
-  // alone — and a button that says "AI" over it is a claim the run never keeps.
-  const hasModelKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
-  // The button opens the question card either way; with a key a model also
-  // reads the table and writes the summary, and only then does it say so.
+  const { can: planAllows, loading: planLoading, serverModel } = usePlan();
+  // Whether a model will take part at all. Without one the report is built from
+  // the catalogue's questions alone — and a button that says "AI" over it is a
+  // claim the run never keeps.
+  const ownKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
+  // A model runs on the reader's own key, or on the deployment's for Pro.
+  const hasModelKey = ownKey || serverModel;
+  // The button opens the question card either way; with a model it also reads
+  // the table and writes the summary, and only then does the button say so.
   const autoLabel = hasModelKey ? 'Build a report · AI-assisted' : 'Build a report';
   const AutoIcon = hasModelKey ? Sparkles : Wand2;
   const revealRefs = useRef([]);
@@ -340,7 +342,7 @@ export default function LandingPage() {
                     <QuestionCard
                       initial={hasAnalysis ? analysis?.questions : null}
                       onBuild={(questions) => runAnalysis(questions)}
-                      onSkip={() => runAnalysis(null)}
+                      onSkip={(picked) => runAnalysis(picked.length ? picked : null)}
                       onCancel={() => setAsking(false)}
                     />
                   </div>
