@@ -137,8 +137,8 @@ export default function GeminiKeyPanel() {
               </span>
             )}
           </span>
-          <span className="mt-0.5 block truncate text-[11px] leading-relaxed text-white/35">
-            {saved ? maskKey(saved) : 'Numbers and charts are computed either way — a key only rephrases them.'}
+          <span className={`mt-0.5 block text-[11px] leading-relaxed text-white/35 ${saved ? 'truncate' : ''}`}>
+            {saved ? maskKey(saved) : 'Numbers are computed here either way. A key sends your provider column summaries and twenty sample rows.'}
           </span>
         </span>
         <ChevronDown

@@ -404,7 +404,7 @@ export default function LandingPage() {
               <div className="card relative z-20 p-4" data-tutorial="source-catalog">
                 <div className="mb-3 flex items-center gap-2">
                   <span className="label">Source</span>
-                  <span className="text-[11px] text-white/30">Files stay in your browser. Links and databases are fetched by the server and handed straight to it.</span>
+                  <span className="text-[11px] text-white/30">Files are read in your browser. Links and databases are fetched by the server and handed straight to it.</span>
                 </div>
                 <SourcePicker value={source} onChange={setSource} allowsModel={planAllows('model')} />
 
@@ -484,7 +484,7 @@ export default function LandingPage() {
                   <div className="text-xs text-white/35">
                     {chosen.id === 'document'
                       ? 'A PDF or a photograph, read by a model on your own key'
-                      : 'CSV, Excel, JSON, XML, Parquet, SQLite — nothing leaves your browser'}
+                      : 'CSV, Excel, JSON, XML, Parquet, SQLite — read in your browser'}
                   </div>
                   <input
                     ref={inputRef}

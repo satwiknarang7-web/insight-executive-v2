@@ -374,8 +374,8 @@ export default function LandingPage() {
         <footer className="mt-auto border-t border-white/6">
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6 text-[13px] text-white/45 md:px-10">
             <span>
-              Parsed, cleaned and queried in your browser. Only summary statistics reach a model —
-              never your rows.
+              Parsed, cleaned and queried in your browser. With no model key, nothing leaves it; with
+              your own key, column summaries and twenty sample rows go to your provider.
             </span>
             <Link
               href="/sign-in"
