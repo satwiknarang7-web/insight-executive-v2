@@ -126,7 +126,9 @@ test('histogram buckets are ordered low to high, whatever order SQL returns', ()
     const tail = i > 270 ? 5 : i > 240 ? 2.5 : 1;
     rows.push({ channel: ['A', 'B', 'C'][i % 3], impressions: (45000 + ((i * 7919) % 90000)) * tail });
   }
-  const { charts } = runAnalysis(rows);
+  // The playbook's histogram; the question planner asks no distribution
+  // question. Both go in phase 5 of docs/design/question-first-reports.md.
+  const { charts } = runAnalysis(rows, { planner: 'playbook' });
   const hist = charts.find((c) => /Distribution/.test(c.title));
   assert.ok(hist, 'expected a distribution chart');
 

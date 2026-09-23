@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import Papa from 'papaparse';
+import { ingest } from '../eval/chain.mjs';
 
 import { profileColumns } from '../lib/chartResolver.js';
 import { acceptBrief } from '../lib/datasetBrief.js';
@@ -56,14 +56,13 @@ function corpus() {
       const name = file.replace(/\.csv$/, '');
       const expectPath = path.join(CORPUS, `${name}.expect.json`);
       assert.ok(fs.existsSync(expectPath), `${name}.csv has no ${name}.expect.json beside it`);
-      const parsed = Papa.parse(fs.readFileSync(path.join(CORPUS, file), 'utf8'), {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-      });
+      // Through the app's own ingest chain, as an upload would be: the report
+      // is about cleaned rows, and raw Papa output — "Prefer not to say" left
+      // in a column of scores — is a table the product never analyses.
+      const { rows } = ingest(fs.readFileSync(path.join(CORPUS, file), 'utf8'));
       return {
         name,
-        rows: parsed.data,
+        rows,
         spec: JSON.parse(fs.readFileSync(expectPath, 'utf8')),
       };
     });

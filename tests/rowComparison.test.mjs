@@ -182,13 +182,14 @@ test('a deliberately row-level query is not "healed" into an aggregate', async (
      writes can opt itself out of the heal. */
   const { runAnalysis } = await import('../lib/pipeline.js');
   const charts = runAnalysis(plansTable(), { maxCharts: 8 }).charts || [];
-  const perRow = charts.filter((c) => /\(rows\)/.test(c.dimension || ''));
+  const perRow = charts.filter((c) => c.rowLevel);
 
   assert.ok(perRow.length, `no row-level chart survived execution: ${JSON.stringify(titles(charts))}`);
   for (const c of perRow) {
-    assert.equal(c.xAxisKey, 'Plan', `the row chart was healed into an aggregate by ${c.xAxisKey}`);
-    // Named plans, not vendors.
-    assert.match(String(c.resultData?.[0]?.Plan ?? ''), / · /);
+    // Named plans, not vendors: a healed chart is keyed by one column and its
+    // labels are that column's values.
+    const label = String(c.resultData?.[0]?.[c.xAxisKey] ?? '');
+    assert.match(label, / · /, `the row chart was healed into an aggregate by ${c.xAxisKey}`);
   }
 });
 

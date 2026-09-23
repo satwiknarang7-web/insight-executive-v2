@@ -5,19 +5,16 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "answered": [
+          "by-occupation"
+        ],
+        "rules": {}
       },
       "withBrief": {
         "answered": [
           "by-occupation"
         ],
-        "rules": {
-          "I8": 1,
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "ai_models_api_detail": {
@@ -25,11 +22,11 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I6": 2,
-          "I8": 2
-        }
+        "answered": [
+          "price-by-provider",
+          "value"
+        ],
+        "rules": {}
       }
     },
     "ai_subscriptions": {
@@ -37,28 +34,20 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I1": 2,
-          "I2": 1,
-          "I3": 10,
-          "I5": 1,
-          "I6": 3,
-          "I8": 3,
-          "I10": 1
-        }
+        "answered": [
+          "capability-by-provider",
+          "price-by-provider",
+          "value-per-dollar"
+        ],
+        "rules": {}
       },
       "withBrief": {
-        "answered": [],
-        "rules": {
-          "I1": 2,
-          "I2": 1,
-          "I3": 10,
-          "I5": 1,
-          "I6": 3,
-          "I8": 3,
-          "I10": 1
-        }
+        "answered": [
+          "capability-by-provider",
+          "price-by-provider",
+          "value-per-dollar"
+        ],
+        "rules": {}
       }
     },
     "eval_01_event_log": {
@@ -67,6 +56,8 @@
       },
       "noModel": {
         "answered": [
+          "by-category",
+          "by-region",
           "trend"
         ],
         "rules": {}
@@ -79,11 +70,10 @@
       "noModel": {
         "answered": [
           "by-contract",
+          "by-tenure",
           "rate"
         ],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "eval_03_long_panel": {
@@ -91,7 +81,10 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
+        "answered": [
+          "by-country",
+          "trend"
+        ],
         "rules": {}
       }
     },
@@ -100,7 +93,10 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
+        "answered": [
+          "items",
+          "recommend-by-group"
+        ],
         "rules": {}
       }
     },
@@ -109,7 +105,10 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
+        "answered": [
+          "by-line",
+          "trend"
+        ],
         "rules": {}
       }
     },
@@ -119,6 +118,8 @@
       },
       "noModel": {
         "answered": [
+          "by-category",
+          "by-type",
           "trend"
         ],
         "rules": {}
@@ -150,9 +151,7 @@
         "answered": [
           "by-team"
         ],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "gen_ab_test": {
@@ -160,7 +159,11 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
+        "answered": [
+          "conversion-by-variant",
+          "daily",
+          "revenue-by-variant"
+        ],
         "rules": {}
       }
     },
@@ -169,10 +172,11 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I4": 7
-        }
+        "answered": [
+          "trend",
+          "variance"
+        ],
+        "rules": {}
       }
     },
     "gen_clinical_trial": {
@@ -181,11 +185,10 @@
       },
       "noModel": {
         "answered": [
+          "safety",
           "score-change"
         ],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "gen_energy_hourly": {
@@ -194,11 +197,11 @@
       },
       "noModel": {
         "answered": [
-          "by-site"
+          "by-site",
+          "trend",
+          "weather"
         ],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "gen_hr_attrition": {
@@ -207,13 +210,12 @@
       },
       "noModel": {
         "answered": [
+          "department",
           "overtime",
+          "pay",
           "rate"
         ],
-        "rules": {
-          "I5": 1,
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "gen_inventory_snapshots": {
@@ -221,10 +223,10 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I3": 4
-        }
+        "answered": [
+          "stock-trend"
+        ],
+        "rules": {}
       }
     },
     "gen_multi_currency_catalog": {
@@ -233,7 +235,9 @@
       },
       "noModel": {
         "answered": [
-          "best-sellers"
+          "best-sellers",
+          "price-by-category",
+          "price-vs-rating"
         ],
         "rules": {}
       }
@@ -243,10 +247,10 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I8": 1
-        }
+        "answered": [
+          "price-per-sqft"
+        ],
+        "rules": {}
       }
     },
     "gen_saas_pricing": {
@@ -254,13 +258,11 @@
         "misses": []
       },
       "noModel": {
-        "answered": [],
-        "rules": {
-          "I3": 3,
-          "I5": 1,
-          "I6": 1,
-          "I8": 1
-        }
+        "answered": [
+          "price-by-vendor",
+          "storage-per-dollar"
+        ],
+        "rules": {}
       }
     },
     "gen_student_scores": {
@@ -269,11 +271,10 @@
       },
       "noModel": {
         "answered": [
+          "attendance",
           "by-school"
         ],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "gen_support_tickets": {
@@ -282,6 +283,7 @@
       },
       "noModel": {
         "answered": [
+          "breach-by-priority",
           "volume"
         ],
         "rules": {}
@@ -293,7 +295,9 @@
       },
       "noModel": {
         "answered": [
-          "revenue-by-channel"
+          "conversion-by-channel",
+          "revenue-by-channel",
+          "traffic"
         ],
         "rules": {}
       }
@@ -316,7 +320,8 @@
       },
       "noModel": {
         "answered": [
-          "cpa-by-channel"
+          "cpa-by-channel",
+          "spend-trend"
         ],
         "rules": {}
       }
@@ -330,9 +335,7 @@
           "by-contract",
           "rate"
         ],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "sample_messy": {
@@ -341,6 +344,8 @@
       },
       "noModel": {
         "answered": [
+          "by-region",
+          "by-rep",
           "trend"
         ],
         "rules": {}
@@ -353,11 +358,10 @@
       "noModel": {
         "answered": [
           "by-category",
+          "by-channel",
           "trend"
         ],
-        "rules": {
-          "I2": 1
-        }
+        "rules": {}
       }
     }
   },
@@ -368,10 +372,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I3": 2,
-          "I5": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_scope_2": {
@@ -380,10 +381,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I3": 2,
-          "I5": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_scope_3": {
@@ -392,10 +390,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I3": 2,
-          "I5": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_scope_4": {
@@ -404,9 +399,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I3": 4
-        }
+        "rules": {}
       }
     },
     "fuzz_scope_5": {
@@ -415,10 +408,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I3": 2,
-          "I5": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outlier_1": {
@@ -427,9 +417,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I6": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outlier_2": {
@@ -438,11 +426,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I5": 1,
-          "I6": 2,
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outlier_3": {
@@ -451,11 +435,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I5": 1,
-          "I6": 2,
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outlier_4": {
@@ -464,10 +444,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I6": 2,
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outlier_5": {
@@ -476,10 +453,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I5": 1,
-          "I6": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_resolution_1": {
@@ -542,9 +516,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_long_3": {
@@ -553,9 +525,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_long_4": {
@@ -564,9 +534,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_long_5": {
@@ -575,9 +543,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_level_1": {
@@ -595,9 +561,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I3": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_level_3": {
@@ -606,10 +570,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I8": 1,
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_level_4": {
@@ -627,9 +588,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_rate_1": {
@@ -638,9 +597,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I10": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_rate_2": {
@@ -685,9 +642,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I5": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outcome_2": {
@@ -696,9 +651,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I8": 2
-        }
+        "rules": {}
       }
     },
     "fuzz_outcome_3": {
@@ -707,9 +660,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I5": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_outcome_4": {
@@ -718,9 +669,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I5": 2
-        }
+        "rules": {}
       }
     },
     "fuzz_outcome_5": {
@@ -729,9 +678,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_control_1": {
@@ -758,9 +705,7 @@
       },
       "noModel": {
         "answered": [],
-        "rules": {
-          "I8": 1
-        }
+        "rules": {}
       }
     },
     "fuzz_control_4": {

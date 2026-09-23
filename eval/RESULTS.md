@@ -435,3 +435,138 @@ worth knowing in itself. Two tables keyed (channel, day) and (meter, hour)
 were relabelled `entityPeriod`, consistent with (sku, week); resolution hours
 lost their `noSum`, since total handling time is meaningful. Reports, no
 model: 21 / 77 answered, 53 violations.
+
+---
+
+# Phase 2 — reports built from questions (2026-09-23)
+
+`runAnalysis` no longer asks the playbook which charts the column types
+permit. It reads the table (`lib/tableModel.js`), the catalogue proposes the
+questions the table can answer (`lib/questionCatalogue.js`), and each question
+compiles into charts that are built to satisfy the rules
+(`lib/questionCompiler.js`). The flat-chart, tied-ranking and record-count
+filters no longer run on this path: a question whose answer is "no
+difference" has been answered, and the chart stays.
+
+| | before (phase 1) | after |
+|---|---|---|
+| questions answered, no model | 21 / 77 | **62 / 77** |
+| questions answered, with the recorded brief | 1 / 7 | 4 / 7 |
+| corpus files that break a rule | 15 / 29 | **0 / 29** |
+| rule violations, corpus | 53 | **0** |
+| rule violations, fuzz (40 tables) | 47 | **0** |
+
+| file | grain | path | answered | charts | I1 | I2 | I3 | I4 | I5 | I6 | I7 | I8 | I9 | I10 |  |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ai_jobs | observation | noModel | 1/3 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| ai_jobs | observation | withBrief | 1/3 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| ai_models_api_detail | entity | noModel | 2/3 | 7 | · | · | · | · | · | · | · | · | · | · |  |
+| ai_subscriptions | entity | noModel | 3/4 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| ai_subscriptions | entity | withBrief | 3/4 | 6 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_01_event_log | event | noModel | 3/3 | 6 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_02_outcome | entity | noModel | 3/3 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_03_long_panel | long | noModel | 2/2 | 2 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_05_survey | response | noModel | 2/2 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_06_sensor_stream | event | noModel | 2/3 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_07_refunds | event | noModel | 3/3 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_08_wide_sparse | event | noModel | 0/2 | 7 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_09_filthy | event | noModel | 0/2 | 3 | · | · | · | · | · | · | · | · | · | · |  |
+| eval_10_two_columns | observation | noModel | 1/1 | 1 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_ab_test | event | noModel | 3/3 | 7 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_budget_vs_actual | long | noModel | 2/2 | 2 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_clinical_trial | entity | noModel | 2/3 | 6 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_energy_hourly | entityPeriod | noModel | 3/3 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_hr_attrition | entity | noModel | 4/4 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_inventory_snapshots | entityPeriod | noModel | 1/2 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_multi_currency_catalog | entity | noModel | 3/3 | 6 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_real_estate | entity | noModel | 1/2 | 7 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_saas_pricing | entity | noModel | 2/2 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_student_scores | entity | noModel | 2/2 | 4 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_support_tickets | event | noModel | 2/3 | 7 | · | · | · | · | · | · | · | · | · | · |  |
+| gen_web_daily | entityPeriod | noModel | 3/3 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| repo_sales_data | event | noModel | 2/2 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_campaigns | event | noModel | 2/3 | 8 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_churn | entity | noModel | 2/3 | 5 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_messy | event | noModel | 3/3 | 7 | · | · | · | · | · | · | · | · | · | · |  |
+| sample_retail | event | noModel | 3/3 | 8 | · | · | · | · | · | · | · | · | · | · |  |
+
+The subscription file, which started this, leads with "Intelligence Index per
+Monthly Price USD, by provider · plan name — Buyer Unit: user": the question it
+was built to answer, within one buyer unit.
+
+## How the rules hold
+
+Every rule is met where the SQL is written, not checked afterwards:
+
+- **Scope (I3):** a measure with a scope is filtered to its most common level,
+  and the heading says which ("— Buyer Unit: user"). A split the filter leaves
+  with one group is not drawn.
+- **Long tables (I4):** split by the column naming the quantity — as series
+  when the quantities share a scale (budget beside actual), one chart each when
+  they do not (GDP, life expectancy).
+- **No inventory counts (I5):** entity tables are compared by averages; a
+  total across entities is the size of a group, not a property of its members.
+- **Outliers (I6):** MEDIAN wherever one row would move a group's average by
+  a quarter, and the sentence says "median".
+- **One average (I8):** each ranking carries `baselineSql`, the figure over all
+  its rows. The sentence reads "2.2× the 23.9% average over all records" — the
+  number in the KPI strip — instead of the unweighted mean of the bars (23.2%).
+- **Time (I9):** the coarsest grain with four points; a level never coarser
+  than it was recorded.
+- **What leads (I10):** question order, with thin-evidence charts moved behind.
+  A split now shows all its groups (up to twenty) rather than the top twelve,
+  which had been costing an evidence tier.
+
+## What the catalogue had to learn, as general rules
+
+Each was a wrong question on some corpus file, fixed for every file:
+
+- **Evidence picks the splits.** Outcome drivers are ranked by how far the
+  rate moves across them; comparisons by adjusted eta squared. The coarser
+  split wins when it explains 80% as much (city over neighbourhood).
+- **A restatement is not a driver.** A driver that separates an outcome
+  perfectly is the outcome — revenue is non-zero exactly when a visitor
+  converted.
+- **A banding of the measure is not a split of it**, detected from values:
+  `Risk_Category` cut from the automation probability, whatever its name.
+- **Yes/no columns are outcomes only where the table records what happened.**
+  In a priced table, or one with three or more of them, they are features.
+- **"Most for the money" needs a price**, a currency measure never summed —
+  not a monthly charge per customer.
+- **Ordinal scales are splits** (support calls, job level), kept in order.
+- **A column of unreadable numbers is neither a measure nor a split.**
+
+Each rule has a test in `tests/reportQuestions.test.mjs`, checked by mutation:
+disable it and a test fails.
+
+## What is still missed, and why
+
+15 of 77, in three kinds:
+
+- **Null effects the evidence ranking skips** — department on attrition, plan
+  tier on churn, neighbourhood on days on the market, open weights on
+  capability. The reader can ask them (phase 3's question card); the
+  automatic set asks the questions the rows can answer.
+- **Intent no rule can read** — which of two flows is "the" one (units
+  shipped or received), whether volume or revenue leads, that the jobs file is
+  about education. This is the model's job (phase 4) or the reader's.
+- **By design** — `amount` in the filthy file holds two comma conventions and
+  stays unread; the feature matrix of the subscription file ("which plans
+  include SSO") has no catalogue question yet.
+
+## Changed alongside
+
+- A model-composed deck (a reader's own key) is appended after the questions'
+  charts rather than dropped, until phase 4 routes model questions through the
+  compiler. The rules are not yet guaranteed for those charts.
+- The playbook planner remains reachable as `runAnalysis(rows, { planner:
+  'playbook' })` for its own tests; phase 5 removes both.
+- `tests/corpus.test.mjs` reads files through the app's ingest chain, not raw
+  Papa: the report is about cleaned rows.
+- `tests/rowComparison.test.mjs` identifies row-level charts by their
+  `rowLevel` flag rather than a title suffix the old planner wrote, and still
+  requires named rows ("OpenAI · Pro").
+- Known and left for later: the ranking sentence reads an ordered numeric axis
+  as a league table ("8 has the highest churn rate of any support calls"), and
+  the dashboard's "Some columns are never totalled" banner still describes the
+  old planner's fallback to record counts.

@@ -131,6 +131,8 @@ export function partitioning(sql) {
  * adds four weeks of the same stock together.
  */
 function keepsApart(sql, col, rows) {
+  // Filtered to one value, nothing is summed across it.
+  if (new Set(filteredRows(sql, rows).map((r) => String(r?.[col] ?? ''))).size <= 1) return true;
   const grouped = /\bGROUP\s+BY\s+([\s\S]*?)(?:\bHAVING\b|\bORDER\s+BY\b|\bLIMIT\b|$)/i.exec(String(sql || ''))?.[1] || '';
   const name = `[${col}]`;
   if (!grouped.includes(name)) return false;
@@ -138,6 +140,13 @@ function keepsApart(sql, col, rows) {
   if (!cut) return true;
   const values = rows.map((r) => r?.[col]).filter((v) => v !== null && v !== undefined && v !== '').map(String);
   return new Set(values).size === new Set(values.map((v) => v.slice(0, Number(cut[1])))).size;
+}
+
+/** The rows a query keeps, as far as its plain `[col] = value` filters say. */
+function filteredRows(sql, rows) {
+  const where = /\bWHERE\s+([\s\S]*?)(?:\bGROUP\s+BY\b|\bORDER\s+BY\b|\bLIMIT\b|$)/i.exec(String(sql || ''))?.[1] || '';
+  const tests = [...where.matchAll(/\[([^\]]+)\]\s*=\s*(?:'((?:[^']|'')*)'|(-?[\d.]+))/g)].map((m) => [m[1], m[2] !== undefined ? m[2].replace(/''/g, "'") : m[3]]);
+  return tests.length ? rows.filter((r) => tests.every(([c, v]) => String(r?.[c]) === String(v))) : rows;
 }
 
 function groupByColumns(sql) {
@@ -299,7 +308,7 @@ export function audit(result, rows, truth = {}) {
       const col = agg.cols[0];
       const group = groupByColumns(sql).find((g) => columns.has(g));
       const buckets = new Map();
-      for (const r of rows) {
+      for (const r of filteredRows(sql, rows)) {
         const v = r?.[col];
         if (typeof v !== 'number' || !Number.isFinite(v)) continue;
         const k = group ? String(r?.[group]) : '';
@@ -360,7 +369,7 @@ export function audit(result, rows, truth = {}) {
   for (const chart of charts) {
     if (hasFilter(chart.sql)) continue;
     const headline = (result.perChart || []).find((p) => p.id === chart.id)?.headline || '';
-    const m = /the\s+(-?[\d.,]+\s*[KMB]?%?)\s+average across/i.exec(headline);
+    const m = /the\s+(-?[\d.,]+\s*[KMB]?%?)\s+average (?:across|over all records)/i.exec(headline);
     if (m && chart.yAxisKey) state(chart.yAxisKey, readFigure(m[1]), chart.id);
   }
   for (const figures of stated.values()) {
@@ -374,8 +383,11 @@ export function audit(result, rows, truth = {}) {
   }
 
   // I10 — whatever leads has to be able to carry it.
+  // Only when something could have led instead: a report whose every finding
+  // is thin has nothing better to open with.
   const lead = charts[0];
-  if (lead && evidenceOf(result, lead) === 'thin') add('I10', lead.id, `${lead.title}`);
+  const stronger = charts.some((c) => evidenceOf(result, c) && evidenceOf(result, c) !== 'thin');
+  if (lead && evidenceOf(result, lead) === 'thin' && stronger) add('I10', lead.id, `${lead.title}`);
 
   return out;
 }
