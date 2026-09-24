@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildTableModel } from '../lib/tableModel.js';
+import { buildTableModel, sampleOf, SAMPLE_ROWS } from '../lib/tableModel.js';
 
 /* What lib/tableModel.js reads from a table. The corpus and the fuzz tables
  * score it end to end (eval/scorecard.mjs); these pin each reading on a table
@@ -163,4 +163,34 @@ test('columns: a list of URLs is not a category, and the cleaner flag is not a c
   const model = buildTableModel(rows);
   assert.equal(model.columns.source.type, 'url');
   assert.equal(model.columns.isAnomaly, undefined);
+});
+
+test('a table of a quarter of a million rows is read, not overflowed', () => {
+  // Every column's range was taken with Math.max(...values), which passes each
+  // value as an argument and ran out of stack on a 250,000-row file: the
+  // question card showed "Maximum call stack size exceeded" instead of questions.
+  const rows = range(250000, (i) => ({
+    order: `O${i}`,
+    region: ['North', 'South', 'East', 'West'][i % 4],
+    a: 1 + (i % 5), b: 1 + ((i * 3) % 5), c: 1 + ((i * 7) % 5), d: 1 + ((i * 11) % 5),
+    amount: 10 + (i % 997) * 0.37,
+  }));
+  const model = buildTableModel(rows);
+  assert.equal(model.columns.amount.type, 'number');
+  assert.ok(model.measures.amount, 'amount is read as a measure');
+});
+
+test('the sample of a large table cannot lock onto a table that cycles', () => {
+  // A panel sorted by date, ten stores a day: every tenth row is the same
+  // store, so a stride of ten read one store as the whole table.
+  const rows = range(250000, (i) => ({ store: `S${i % 10}`, day: Math.floor(i / 10) }));
+  const sample = sampleOf(rows);
+  assert.ok(Math.abs(sample.length - SAMPLE_ROWS) < SAMPLE_ROWS * 0.05, `about ${SAMPLE_ROWS} rows, not ${sample.length}`);
+  const perStore = {};
+  for (const r of sample) perStore[r.store] = (perStore[r.store] || 0) + 1;
+  assert.equal(Object.keys(perStore).length, 10, 'every store is in the sample');
+  for (const n of Object.values(perStore)) assert.ok(n > SAMPLE_ROWS / 10 * 0.8, `a store is under-read: ${n}`);
+  assert.deepEqual(sampleOf(rows).slice(0, 50), sample.slice(0, 50), 'the same file is always read the same way');
+  const small = range(100, (i) => ({ i }));
+  assert.equal(sampleOf(small), small, 'a small table is read whole');
 });
