@@ -169,10 +169,16 @@ any chart is built, one card:
 >
 > `[Build the report]`  ·  `Skip — choose for me`
 
-- Options are multi-select, recommended ones pre-ticked, each with a one-line
-  description when the wording alone is ambiguous — the same pattern as a
-  clarifying question in a chat.
-- "Skip" takes the pre-ticked set, so the one-click path still exists.
+- **As built:** not one checklist but a short questionnaire
+  (`lib/questionnaire.js`) — five to ten multiple-choice questions, one at a
+  time ("What should Revenue be compared across?"), each with up to three
+  answers the rows can draw and a fourth, "Other", in the reader's own words.
+  The suggestions are grouped by topic (a measure's comparisons, its
+  breakdowns, the trends, an outcome's drivers); a table too small for five
+  topics is asked fewer rather than padded. Every answer compiles into a chart
+  — suggestions that draw nothing are dropped in the worker first.
+- "Choose for me" takes the recommended answer to every question, so the
+  one-click path still exists.
 - The chosen questions are saved with the analysis and editable later from the
   dashboard ("Change questions"), which re-plans without re-ingesting.
 - The subject line ("One row is…") is the grain, stated back so the reader can

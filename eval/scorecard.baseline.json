@@ -202,7 +202,8 @@
       },
       "offered": {
         "answered": [
-          "score-by-site"
+          "score-by-site",
+          "status"
         ],
         "rules": {}
       }

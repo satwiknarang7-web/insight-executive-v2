@@ -176,6 +176,6 @@ test('a total is not split by one of its own factors', () => {
   assert.equal(factorOf(rows, 'amount', 'qty'), true);
   assert.equal(factorOf(rows, 'amount', 'category'), false);
   const model = buildTableModel(rows, { temporal: ['order_date'] });
-  const bad = suggestQuestions(rows, model).filter((q) => q.intent === 'composition' && q.by === 'qty');
+  const bad = suggestQuestions(rows, model).filter((q) => q.intent === 'composition' && q.measure === 'amount' && q.by === 'qty');
   assert.deepEqual(bad.map((q) => q.text), []);
 });

@@ -42,6 +42,7 @@ import { readTable } from '../../lib/tableModel.js';
 import { suggestQuestions } from '../../lib/questionCatalogue.js';
 import { headlineFigures } from '../../lib/questionCompiler.js';
 import { acceptModelQuestions, mergeSuggestions } from '../../lib/modelQuestions.js';
+import { answerable } from '../../lib/questionnaire.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
@@ -1336,7 +1337,7 @@ function suggest(id) {
   }
   const { rows, model, questions } = catalogue();
   reply(id, 'suggestions', {
-    questions,
+    questions: answerable(questions, rows, model),
     grain: { kind: model.grain.kind, why: model.grain.why },
     rowCount: rows.length,
   });
@@ -1357,7 +1358,7 @@ function acceptQuestions(id, { proposal = null } = {}) {
   const { rows, model, questions } = catalogue();
   const accepted = acceptModelQuestions(proposal, { rows, model, catalogue: questions });
   reply(id, 'suggestions', {
-    questions: mergeSuggestions(questions, accepted),
+    questions: answerable(mergeSuggestions(questions, accepted), rows, model),
     subject: accepted.subject,
     dropped: accepted.dropped,
     fromModel: accepted.picks.length + accepted.added.length > 0,
