@@ -185,7 +185,7 @@ export default function PresentPage() {
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-10">
-          <div key={page} className="ld-rise mx-auto flex h-full max-w-6xl flex-col justify-center">
+          <FitSlide key={page}>
             {page === 0 ? (
               <div className="space-y-7">
                 <div>
@@ -225,7 +225,7 @@ export default function PresentPage() {
                 </div>
               )
             )}
-          </div>
+          </FitSlide>
         </main>
 
         <footer className="relative z-20 flex justify-center px-4 pb-5 pt-2">
@@ -278,5 +278,42 @@ function IconButton({ children, label, onClick, disabled }) {
     <button type="button" onClick={onClick} disabled={disabled} aria-label={label} title={label} className="flex h-10 w-10 items-center justify-center rounded-xl text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white disabled:opacity-30">
       {children}
     </button>
+  );
+}
+
+/**
+ * A slide shrinks to fit the window, like a slide in a presentation app, so
+ * a short or narrow window never cuts off its top. Below 60% it would be
+ * unreadable, so from there it scrolls instead, starting from the top.
+ */
+function FitSlide({ children }) {
+  const outer = useRef(null);
+  const inner = useRef(null);
+  const [fit, setFit] = useState({ scale: 1, height: 0 });
+  useEffect(() => {
+    const measure = () => {
+      const box = outer.current;
+      const content = inner.current;
+      if (!box || !content) return;
+      const need = content.scrollHeight;
+      const have = box.clientHeight;
+      const scale = need > have ? Math.max(0.6, have / need) : 1;
+      setFit((f) => (f.scale === scale && f.height === need ? f : { scale, height: need }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (outer.current) ro.observe(outer.current);
+    if (inner.current) ro.observe(inner.current);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={outer} className="ld-rise mx-auto flex h-full max-w-6xl flex-col">
+      {/* my-auto centres when there is room and starts at the top when there is not. */}
+      <div className="my-auto w-full" style={{ height: fit.scale < 1 ? fit.height * fit.scale : undefined }}>
+        <div ref={inner} style={{ transform: fit.scale < 1 ? `scale(${fit.scale})` : undefined, transformOrigin: 'top center' }}>
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
