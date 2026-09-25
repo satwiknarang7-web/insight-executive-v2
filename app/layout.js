@@ -3,6 +3,7 @@ import { DatasetProvider } from '../lib/store/DatasetProvider';
 import { DashboardProvider } from '../lib/store/DashboardProvider';
 import { PlanProvider } from '../lib/store/PlanProvider';
 import Assistant from '../components/assistant/Assistant';
+import AssistantBoundary from '../components/assistant/AssistantBoundary';
 import { AppearanceScript } from '../components/shell/ThemeToggle';
 
 export const metadata = {
@@ -39,7 +40,9 @@ export default function RootLayout({ children }) {
           <DashboardProvider>
           <PlanProvider>
             {children}
-            <Assistant />
+            <AssistantBoundary>
+              <Assistant />
+            </AssistantBoundary>
           </PlanProvider>
           </DashboardProvider>
         </DatasetProvider>
