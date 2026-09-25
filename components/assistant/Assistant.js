@@ -120,6 +120,8 @@ export default function Assistant() {
           out.push({ id: nid(), state: 'refused', text: c.reason });
           continue;
         }
+        // Already there: offering to open it again is noise.
+        if (c.action.type === 'navigate' && pathname.startsWith(c.action.path)) continue;
         let p = { id: nid(), state: 'pending', text: c.text, action: c.action };
         try {
           if (c.action.type === 'add_chart') {
@@ -163,7 +165,7 @@ export default function Assistant() {
       }
       return out;
     },
-    [state, dash.settings, dash.engine, useModel, draftTransform]
+    [state, dash.settings, dash.engine, dash.board, pathname, useModel, draftTransform]
   );
 
   const send = useCallback(
