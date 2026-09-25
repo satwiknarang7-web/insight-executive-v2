@@ -23,19 +23,61 @@ import { usePlan } from '../../../lib/store/PlanProvider';
 import { keySnapshot, serverKeySnapshot, subscribeToKey } from '../../../lib/geminiKey';
 import { ChartPalette } from '../../../components/charts/palette';
 import KpiStrip from '../../../components/dashboard/KpiStrip';
+import ChartPulse from '../../../components/loading/ChartPulse';
 import Tile from '../../../components/dashboard/Tile';
 import DashboardFilters from '../../../components/dashboard/DashboardFilters';
 import TileEditor, { defaultSpec } from '../../../components/dashboard/TileEditor';
 import FieldsPanel from '../../../components/dashboard/FieldsPanel';
 import SaveDashboard from '../../../components/dashboard/SaveDashboard';
 
-function Building({ stage }) {
+/**
+ * While the dashboard is planned: the shape of what is coming (KPI cards and
+ * chart tiles, sheened) beside the steps, so the real thing lands where the
+ * reader is already looking instead of replacing a spinner.
+ */
+function Building({ stage, useModel }) {
+  const steps = ['Reading the columns', ...(useModel ? ['Asking the model what this table is'] : []), 'Choosing the charts'];
+  const at = Math.max(0, steps.indexOf(stage));
   return (
-    <div className="card flex items-center gap-3 p-6 text-[14px] text-white/70" data-testid="building">
-      <Loader2 size={18} className="animate-spin text-accent-400" />
-      <div>
-        <div className="font-semibold text-white/85">Building your dashboard…</div>
-        <div className="text-[12px] text-white/45">{stage || 'Reading the table'}</div>
+    <div className="space-y-5" data-testid="building" role="status" aria-live="polite" aria-label={`Building your dashboard: ${stage || steps[0]}`}>
+      <div className="card ld-rise flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+        <div className="shrink-0 self-start rounded-xl border border-white/6 bg-white/[0.02] p-3 text-white">
+          <ChartPulse size={88} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="label mb-1.5">Building your dashboard</div>
+          <p className="font-display text-[21px] font-semibold leading-tight text-white/90">{steps[at]}…</p>
+          <ol className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+            {steps.map((s, i) => (
+              <li key={s} className={`flex items-center gap-1.5 text-[12px] transition-colors duration-300 ${i < at ? 'text-white/50' : i === at ? 'font-semibold text-accent-400' : 'text-white/25'}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${i < at ? 'bg-accent-400/60' : i === at ? 'animate-pulse bg-accent-400' : 'bg-white/15'}`} aria-hidden="true" />
+                {s}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="card ld-rise space-y-3 p-4" style={{ animationDelay: `${80 + i * 60}ms` }}>
+            <div className="ld-skeleton h-2.5 w-1/2" />
+            <div className="ld-skeleton h-7 w-2/3" />
+            <div className="ld-skeleton h-8 w-full" />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-12 gap-4" aria-hidden="true">
+        {[7, 5, 5, 7].map((span, i) => (
+          <div key={i} className={`card ld-rise col-span-12 p-4 ${span === 7 ? 'lg:col-span-7' : 'lg:col-span-5'}`} style={{ animationDelay: `${320 + i * 80}ms` }}>
+            <div className="ld-skeleton mb-2 h-3 w-2/5" />
+            <div className="ld-skeleton mb-4 h-2.5 w-3/5" />
+            <div className="flex h-36 items-end gap-2">
+              {[0.5, 0.8, 0.35, 0.65, 0.9, 0.45, 0.7].map((v, k) => (
+                <div key={k} className="ld-skeleton flex-1 rounded-b-none" style={{ height: `${v * 100}%` }} />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -155,7 +197,7 @@ export default function DashboardPage() {
   return (
     <ChartPalette>
       <PageFrame title={title} subtitle={subtitle} action={actions}>
-        {status === 'building' && !board && <Building stage={stage} />}
+        {status === 'building' && !board && <Building stage={stage} useModel={useModel} />}
         {status === 'error' && (
           <div className="card p-5 text-[13px] text-rose-300">
             {error}{' '}
@@ -166,7 +208,7 @@ export default function DashboardPage() {
         )}
         {board && (
           <div className={`flex gap-5 ${panel ? 'lg:pr-[380px]' : ''}`}>
-            <div className="min-w-0 flex-1 space-y-5" data-testid="dashboard">
+            <div className="ld-rise min-w-0 flex-1 space-y-5" data-testid="dashboard">
               {status === 'building' && (
                 <div className="flex items-center gap-2 text-[12px] text-white/50">
                   <Loader2 size={13} className="animate-spin" /> {stage || 'Updating'}…
@@ -183,8 +225,8 @@ export default function DashboardPage() {
                   </button>
                 </div>
               )}
-              {board.sections.map((s) => (
-                <section key={s.id} aria-label={s.title || 'Main chart'}>
+              {board.sections.map((s, si) => (
+                <section key={s.id} aria-label={s.title || 'Main chart'} className="ld-rise" style={{ animationDelay: `${120 + si * 90}ms` }}>
                   {s.title && <h2 className="mb-2.5 mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">{s.title}</h2>}
                   <div className="grid grid-cols-12 gap-4">
                     {s.tiles.map((t, i) => (

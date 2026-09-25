@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 
 import { useProgress } from '../../lib/store/DatasetProvider';
 import { stepIndexFor } from '../../lib/progressSteps';
+import ChartPulse from '../loading/ChartPulse';
 
 /**
  * Reads the progress context only. Because progress lives in its own context,
@@ -25,70 +26,67 @@ export default function ProgressPanel({ title }) {
   const steps = job.steps || [];
   const current = stepIndexFor(steps, job.stage);
   const done = job.percent >= 100;
+  const active = steps[current];
+  const headline = done ? 'Ready' : active?.label || job.stage || 'Working…';
+  // The last few things the engine said, newest last. Keyed by position in the
+  // whole log, so each new line animates in and the old ones stay put.
+  const offset = Math.max(0, job.logs.length - 4);
+  const feed = job.logs.slice(offset);
 
   return (
-    <div className="card w-full p-5">
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <span className="label">{title || (job.kind === 'ingest' ? 'Ingesting' : 'Analysing')}</span>
-        <span className="font-mono text-xs font-bold tabular-nums text-accent-400">{job.percent}%</span>
-      </div>
-
-      <div className="h-1 w-full overflow-hidden rounded-full bg-white/6">
-        <div
-          className="h-full rounded-full bg-accent-500 transition-[width] duration-200 ease-out"
-          style={{ width: `${job.percent}%` }}
-        />
-      </div>
-
-      {steps.length > 0 ? (
-        <ol className="mt-4 space-y-0.5">
-          {steps.map((step, i) => {
-            // Everything before the current step has been passed. Once the job
-            // reports 100% the last step is finished too, so nothing is left
-            // spinning on a panel that is about to be replaced.
-            const isDone = done || (current > -1 && i < current);
-            const isActive = !done && i === current;
-            return (
-              <li
-                key={step.id}
-                className={`flex items-center gap-2.5 rounded-md px-2 py-1 text-[12px] transition-colors ${
-                  isActive ? 'bg-accent-500/8 font-bold text-white/90' : ''
-                } ${isDone ? 'text-white/45' : ''} ${!isDone && !isActive ? 'text-white/25' : ''}`}
-              >
-                <Marker done={isDone} active={isActive} />
-                <span className="min-w-0 truncate">{step.label}</span>
-                {/*
-                  * The engine's own words for what it is doing right now.
-                  *
-                  * The step label is written ahead of time and stays general;
-                  * this is the live stage, which is where the detail lives —
-                  * "Querying: Revenue by region" under "Run the queries". They
-                  * are only worth showing together when they differ.
-                  */}
-                {isActive && job.stage && job.stage !== step.label && (
-                  <span className="ml-auto min-w-0 shrink truncate font-mono text-[10px] font-normal text-accent-400/70">
-                    {job.stage}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      ) : (
-        // No plan announced — an older job, or one that reports stages without
-        // declaring them. Falls back to the single line this panel used to show.
-        <p className="mt-3 text-sm font-semibold text-white/70">{job.stage || 'Working…'}</p>
-      )}
-
-      {job.logs.length > 0 && (
-        <div className="mt-4 max-h-32 overflow-y-auto rounded-lg border border-white/6 code-surface p-3 font-mono text-[11px] leading-relaxed">
-          {job.logs.map((line, i) => (
-            <div key={i}>
-              <span className="text-accent-500/60">›</span> {line}
-            </div>
-          ))}
+    <div className="card ld-rise w-full overflow-hidden p-0" role="status" aria-live="polite" aria-label={`${headline}, ${job.percent}%`}>
+      <div className="flex items-center gap-5 border-b border-white/6 p-5 sm:p-6">
+        <div className="hidden shrink-0 rounded-xl border border-white/6 bg-white/[0.02] p-3 text-white sm:block">
+          <ChartPulse size={96} />
         </div>
-      )}
+        <div className="min-w-0 flex-1">
+          <div className="label mb-1.5">{title || (job.kind === 'ingest' ? 'Preparing your data' : 'Analysing')}</div>
+          <div className="flex items-baseline justify-between gap-4">
+            <p className="min-w-0 truncate font-display text-[22px] font-semibold leading-tight text-white/90">{headline}</p>
+            <span className="shrink-0 font-mono text-[22px] font-semibold tabular-nums text-accent-400">
+              {job.percent}
+              <span className="text-[13px] text-white/40">%</span>
+            </span>
+          </div>
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/6">
+            <div className="ld-progress h-full rounded-full bg-accent-500 transition-[width] duration-500 ease-out" style={{ width: `${Math.max(2, job.percent)}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        {steps.length > 0 && (
+          <ol className="relative p-5 sm:p-6">
+            {steps.map((step, i) => {
+              const isDone = done || (current > -1 && i < current);
+              const isActive = !done && i === current;
+              return (
+                <li key={step.id} className="relative flex items-center gap-3 py-1.5 text-[13px]">
+                  {i < steps.length - 1 && (
+                    <span aria-hidden="true" className={`absolute left-[7.5px] top-[22px] h-[calc(100%-10px)] w-px transition-colors duration-500 ${isDone ? 'bg-accent-400/50' : 'bg-white/10'}`} />
+                  )}
+                  <Marker done={isDone} active={isActive} />
+                  <span className={`min-w-0 truncate transition-colors duration-300 ${isActive ? 'font-semibold text-white/90' : isDone ? 'text-white/55' : 'text-white/30'}`}>{step.label}</span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+        <div className={`min-w-0 border-white/6 p-5 sm:p-6 ${steps.length ? 'border-t sm:border-l sm:border-t-0' : ''}`}>
+          <div className="label mb-2">Activity</div>
+          {job.stage && !done && (
+            <p className="mb-2 truncate font-mono text-[11.5px] text-accent-400/80">{job.stage}</p>
+          )}
+          <ul className="space-y-1 font-mono text-[11.5px] leading-relaxed">
+            {feed.map((line, i) => (
+              <li key={offset + i} className="ld-feed truncate text-white/50" style={{ opacity: 0.45 + (i / Math.max(1, feed.length - 1)) * 0.55 }}>
+                <span className="text-accent-500/60">›</span> {line}
+              </li>
+            ))}
+            {!feed.length && <li className="text-white/30">Starting…</li>}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
