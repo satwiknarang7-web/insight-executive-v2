@@ -55,7 +55,9 @@ export default function PresentPage() {
 
   // The chart takes whatever height the screen leaves it.
   useEffect(() => {
-    const fit = () => setHeight(Math.max(260, Math.min(640, window.innerHeight - 390)));
+    // Wide windows put the narration beside the chart, so it gets nearly
+    // the whole height; narrow ones stack it underneath.
+    const fit = () => setHeight(Math.max(260, Math.min(760, window.innerHeight - (window.innerWidth >= 1024 ? 250 : 390))));
     fit();
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
@@ -187,7 +189,7 @@ export default function PresentPage() {
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-10">
           <FitSlide key={page}>
             {page === 0 ? (
-              <div className="space-y-7">
+              <div className="mx-auto max-w-6xl space-y-7">
                 <div>
                   <span className="eyebrow">{bullets.length} key {bullets.length === 1 ? "finding" : "findings"} · {tiles.length} {tiles.length === 1 ? "chart" : "charts"}</span>
                   <h1 className="display mt-4 max-w-4xl text-[30px] leading-[1.12] text-white/95 sm:text-[44px]">{board.headline || board.subject || 'What the data says'}</h1>
@@ -206,9 +208,9 @@ export default function PresentPage() {
               </div>
             ) : (
               tile && (
-                <div className="flex min-h-0 flex-col gap-4">
-                  <div className="card flex min-h-0 flex-col p-5 sm:p-7">
-                    <div className="mb-4 flex items-baseline gap-3">
+                <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-stretch">
+                  <div className="card flex min-h-0 flex-col p-5 sm:p-6">
+                    <div className="mb-3 flex items-baseline gap-3">
                       <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.08em] text-white/40">Fig. {page}</span>
                       <h2 className="text-[20px] font-semibold leading-snug text-white/95 sm:text-[26px]">{tile.title}</h2>
                     </div>
@@ -217,7 +219,7 @@ export default function PresentPage() {
                     </div>
                   </div>
                   {tile.insight && (
-                    <div className="flex items-start gap-3 rounded-2xl border border-accent-400/25 bg-accent-400/[0.06] p-4 sm:p-5">
+                    <div className="flex items-start gap-3 rounded-2xl border border-accent-400/25 bg-accent-400/[0.06] p-4 sm:p-5 lg:flex-col lg:self-center">
                       <AnalystAvatar avatar={avatar} size={32} />
                       <p className="text-[15px] leading-relaxed text-white/85 sm:text-[17px]">{tile.insight}</p>
                     </div>
@@ -307,7 +309,7 @@ function FitSlide({ children }) {
     return () => ro.disconnect();
   }, []);
   return (
-    <div ref={outer} className="ld-rise mx-auto flex h-full max-w-6xl flex-col">
+    <div ref={outer} className="ld-rise mx-auto flex h-full max-w-[1500px] flex-col">
       {/* my-auto centres when there is room and starts at the top when there is not. */}
       <div className="my-auto w-full" style={{ height: fit.scale < 1 ? fit.height * fit.scale : undefined }}>
         <div ref={inner} style={{ transform: fit.scale < 1 ? `scale(${fit.scale})` : undefined, transformOrigin: 'top center' }}>

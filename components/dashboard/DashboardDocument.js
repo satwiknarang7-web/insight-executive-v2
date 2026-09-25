@@ -30,6 +30,11 @@ export default function DashboardDocument({ board, measures = [], fields = [], f
             </p>
             <h1 className="display mt-3 text-[30px] leading-[1.1] text-white/95 md:text-[38px]">{board.subject || board.headline || 'What the data says'}</h1>
             {board.summary && <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-white/55">{board.summary}</p>}
+            {board.filterNote && (
+              <p className="mt-4 inline-flex items-center gap-2 rounded-lg border border-accent-400/35 bg-accent-400/10 px-3 py-1.5 text-[12.5px] font-medium text-accent-300" data-testid="report-filter">
+                Filtered to {board.filterNote}
+              </p>
+            )}
             <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-white/8 pt-5 text-[12.5px]">
               <div>
                 <div className="label">Source</div>
@@ -37,7 +42,7 @@ export default function DashboardDocument({ board, measures = [], fields = [], f
               </div>
               {rowCount ? (
                 <div>
-                  <div className="label">Rows</div>
+                  <div className="label">{board.filterNote ? 'Rows in the file' : 'Rows'}</div>
                   <div className="figure mt-1 font-medium text-white/80">{Number(rowCount).toLocaleString()}</div>
                 </div>
               ) : null}
