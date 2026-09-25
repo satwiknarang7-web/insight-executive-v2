@@ -44,3 +44,16 @@ test('a dashboard of places draws them on a map', () => {
   assert.ok(map, 'no map tile');
   assert.equal(board.ds.fields.find((f) => f.name === 'state').map.code, 'IN');
 });
+
+test('UK, France and Australia regions find their maps', () => {
+  assert.equal(t(['London', 'Scotland', 'Wales', 'Northern Ireland', 'South East', 'Yorkshire and the Humber'])?.code, 'GB');
+  assert.equal(regionIds('GB', 'England').length, 9);
+  assert.equal(t(['Île-de-France', 'Brittany', 'Normandy', 'Occitanie', 'PACA', 'Corsica'])?.code, 'FR');
+  assert.equal(t(['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'])?.code, 'AU');
+  assert.equal(t(['New South Wales', 'Victoria', 'Queensland', 'Tasmania'])?.code, 'AU');
+});
+
+test('compass sales territories are not the UK', () => {
+  assert.equal(t(['North East', 'North West', 'South East', 'South West']), null);
+  assert.equal(t(['North East', 'North West', 'South East', 'South West', 'East', 'West']), null);
+});
