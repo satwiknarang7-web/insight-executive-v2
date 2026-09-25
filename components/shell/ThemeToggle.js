@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { APPEARANCE_SCRIPT, applyAppearance, currentAppearance } from '../../lib/appearance';
+import { PREFERENCES_SCRIPT } from '../../lib/preferences';
 
 /**
  * Runs before first paint. Kept as a plain string so it can be injected with
@@ -24,7 +25,7 @@ import { APPEARANCE_SCRIPT, applyAppearance, currentAppearance } from '../../lib
  * the wrong theme for a frame on every single load.
  */
 export function AppearanceScript() {
-  return <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />;
+  return <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT + PREFERENCES_SCRIPT }} />;
 }
 
 export default function ThemeToggle({ compact = false }) {

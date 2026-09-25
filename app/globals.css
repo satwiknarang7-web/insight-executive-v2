@@ -80,7 +80,7 @@
   /* A card's fill: a faint top-lit gradient, so a panel reads as a lit plane. */
   --card-fill: linear-gradient(180deg, rgba(148, 163, 255, 0.075) 0%, rgba(148, 163, 255, 0.025) 100%);
   --accent-2: #818cf8;
-  --glow: 0 0 0 1px rgba(34, 211, 238, 0.18), 0 10px 40px -12px rgba(34, 211, 238, 0.35);
+  --glow: 0 0 0 1px color-mix(in oklab, var(--color-accent-400) 20%, transparent), 0 10px 40px -12px color-mix(in oklab, var(--color-accent-400) 40%, transparent);
   --chart-axis: #94a3b8;
   --chart-grid: #ffffff;
   --chart-grid-opacity: 0.05;
@@ -99,8 +99,8 @@
   --scrollbar: rgba(255, 255, 255, 0.12);
   --scrollbar-hover: rgba(255, 255, 255, 0.22);
   --on-accent: #000000;
-  --wash-a: rgba(34, 211, 238, 0.11);
-  --wash-b: rgba(129, 140, 248, 0.10);
+  --wash-a: color-mix(in oklab, var(--color-accent-400) 12%, transparent);
+  --wash-b: color-mix(in oklab, var(--accent-2) 11%, transparent);
   --veil: rgba(148, 163, 214, 0.09);
   /* Inset surface for code/query blocks, and its text. */
   --code-bg: rgba(255, 255, 255, 0.04);
@@ -162,7 +162,7 @@
   --card-border: rgba(15, 23, 42, 0.12);
   --card-fill: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
   --accent-2: #6366f1;
-  --glow: 0 0 0 1px rgba(37, 99, 235, 0.18), 0 10px 30px -14px rgba(37, 99, 235, 0.35);
+  --glow: 0 0 0 1px color-mix(in oklab, var(--color-accent-400) 20%, transparent), 0 10px 30px -14px color-mix(in oklab, var(--color-accent-400) 38%, transparent);
   --chart-axis: #245b93;
   --chart-grid: #0b2545;
   --chart-grid-opacity: 0.10;
@@ -177,8 +177,8 @@
   --scrollbar: rgba(11, 37, 69, 0.22);
   --scrollbar-hover: rgba(11, 37, 69, 0.38);
   --on-accent: #ffffff;
-  --wash-a: rgba(37, 99, 235, 0.08);
-  --wash-b: rgba(99, 102, 241, 0.07);
+  --wash-a: color-mix(in oklab, var(--color-accent-400) 8%, transparent);
+  --wash-b: color-mix(in oklab, var(--accent-2) 7%, transparent);
   --veil: rgba(15, 23, 42, 0.07);
 
   /* Status colours are Tailwind palette tokens, and their default 200–400
@@ -605,7 +605,7 @@ body {
 }
 :root:not([data-theme='light']) .bg-accent-500:hover,
 :root:not([data-theme='light']) .hover\:bg-accent-400:hover {
-  background-image: linear-gradient(135deg, var(--color-accent-300) 0%, #a5b4fc 100%);
+  background-image: linear-gradient(135deg, var(--color-accent-300) 0%, color-mix(in oklab, var(--accent-2) 70%, white) 100%);
 }
 /* Headline text lit by the accent. */
 .text-gradient {
@@ -615,7 +615,7 @@ body {
   color: transparent;
 }
 :root[data-theme='light'] .text-gradient {
-  background: linear-gradient(100deg, #1d4ed8 0%, #6366f1 80%);
+  background: linear-gradient(100deg, var(--color-accent-400) 0%, var(--accent-2) 80%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -833,4 +833,136 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .pp-draw, .pp-bar { animation: none; stroke-dasharray: none; }
+}
+
+
+/* ---------------------------------------------------------------------------
+ * Colour themes (lib/preferences.js). Each re-tints the accent ramp and the
+ * second gradient colour; glows and washes are mixed from those, so they
+ * follow. Dark and light are stepped separately: light needs darker steps so
+ * accent text keeps its contrast on white.
+ * --------------------------------------------------------------------------- */
+:root[data-accent='aurora']:not([data-theme='light']) {
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+  --accent-2: #2dd4bf;
+}
+:root[data-accent='aurora'][data-theme='light'] {
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #064e3b;
+  --color-accent-200: #065f46;
+  --color-accent-300: #047857;
+  --color-accent-400: #059669;
+  --color-accent-500: #047857;
+  --color-accent-600: #065f46;
+  --color-accent-700: #064e3b;
+  --accent-2: #0d9488;
+}
+:root[data-accent='nebula']:not([data-theme='light']) {
+  --color-accent-50: #f5f3ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+  --accent-2: #f472b6;
+}
+:root[data-accent='nebula'][data-theme='light'] {
+  --color-accent-50: #f5f3ff;
+  --color-accent-100: #4c1d95;
+  --color-accent-200: #5b21b6;
+  --color-accent-300: #6d28d9;
+  --color-accent-400: #7c3aed;
+  --color-accent-500: #6d28d9;
+  --color-accent-600: #5b21b6;
+  --color-accent-700: #4c1d95;
+  --accent-2: #db2777;
+}
+:root[data-accent='solar']:not([data-theme='light']) {
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --accent-2: #fb7185;
+}
+:root[data-accent='solar'][data-theme='light'] {
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #78350f;
+  --color-accent-200: #92400e;
+  --color-accent-300: #b45309;
+  --color-accent-400: #b45309;
+  --color-accent-500: #b45309;
+  --color-accent-600: #92400e;
+  --color-accent-700: #78350f;
+  --accent-2: #e11d48;
+}
+:root[data-accent='crimson']:not([data-theme='light']) {
+  --color-accent-50: #fff1f2;
+  --color-accent-100: #ffe4e6;
+  --color-accent-200: #fecdd3;
+  --color-accent-300: #fda4af;
+  --color-accent-400: #fb7185;
+  --color-accent-500: #f43f5e;
+  --color-accent-600: #e11d48;
+  --color-accent-700: #be123c;
+  --accent-2: #fb923c;
+}
+:root[data-accent='crimson'][data-theme='light'] {
+  --color-accent-50: #fff1f2;
+  --color-accent-100: #881337;
+  --color-accent-200: #9f1239;
+  --color-accent-300: #be123c;
+  --color-accent-400: #e11d48;
+  --color-accent-500: #be123c;
+  --color-accent-600: #9f1239;
+  --color-accent-700: #881337;
+  --accent-2: #ea580c;
+}
+:root[data-accent='cobalt']:not([data-theme='light']) {
+  --color-accent-50: #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --accent-2: #a78bfa;
+}
+:root[data-accent='cobalt'][data-theme='light'] {
+  --color-accent-50: #eff6ff;
+  --color-accent-100: #1e3a8a;
+  --color-accent-200: #1e40af;
+  --color-accent-300: #1d4ed8;
+  --color-accent-400: #2563eb;
+  --color-accent-500: #1d4ed8;
+  --color-accent-600: #1e40af;
+  --color-accent-700: #1e3a8a;
+  --accent-2: #7c3aed;
+}
+
+/* Text size: the whole page scales together, px and rem alike. */
+:root[data-scale='small'] body { zoom: 0.92; }
+:root[data-scale='large'] body { zoom: 1.08; }
+
+/* Reduced motion, chosen in the app rather than by the operating system. */
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
