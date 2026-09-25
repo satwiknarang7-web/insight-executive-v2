@@ -73,6 +73,7 @@
  * wrong. The ground lifts away from black so the shadow has somewhere to fall.
  * --------------------------------------------------------------------------- */
 :root[data-surface='clay'] {
+  --card-fill: var(--card-bg);
   --canvas: #15171c;
   --canvas-raised: #191c22;
   --surface: #22262e;
@@ -98,6 +99,7 @@
 }
 
 :root[data-surface='clay'][data-theme='light'] {
+  --card-fill: var(--card-bg);
   /* Warm paper rather than pure white: clay on #fff has nothing to cast onto,
      and the whole material collapses into a flat rectangle. */
   --canvas: #f2efe9;
@@ -129,6 +131,7 @@
  * bottom of this file enforces.
  * --------------------------------------------------------------------------- */
 :root[data-surface='neu'] {
+  --card-fill: var(--card-bg);
   --canvas: #1e2127;
   --canvas-raised: #1e2127;
   --surface: #1e2127;
@@ -153,6 +156,7 @@
 }
 
 :root[data-surface='neu'][data-theme='light'] {
+  --card-fill: var(--card-bg);
   --canvas: #e8ecf2;
   --canvas-raised: #e8ecf2;
   --surface: #e8ecf2;

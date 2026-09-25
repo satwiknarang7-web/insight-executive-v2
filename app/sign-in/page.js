@@ -34,7 +34,7 @@ const HIGHLIGHTS = [
   {
     icon: Gauge,
     title: 'Computed, not guessed',
-    body: 'Statistics come from real SQL over your rows. The model only phrases findings it was handed — it never does the maths.',
+    body: 'Every statistic is computed directly from your rows. A model, if you use one, only words findings it was handed — it never does the maths.',
   },
   {
     icon: ShieldCheck,

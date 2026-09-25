@@ -21,14 +21,14 @@
  * is exactly right.
  */
 @theme {
-  --color-accent-50: #f0fdfa;
-  --color-accent-100: #ccfbf1;
-  --color-accent-200: #99f6e4;
-  --color-accent-300: #5eead4;
-  --color-accent-400: #2dd4bf;
-  --color-accent-500: #14b8a6;
-  --color-accent-600: #0d9488;
-  --color-accent-700: #0f766e;
+  --color-accent-50: #ecfeff;
+  --color-accent-100: #cffafe;
+  --color-accent-200: #a5f3fc;
+  --color-accent-300: #67e8f9;
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+  --color-accent-700: #0e7490;
 
   --color-ink-900: #030303;
   --color-ink-800: #070809;
@@ -57,17 +57,17 @@
    * every figure in a table. It was inheriting the system monospace, which is a
    * different face on every machine the app runs on.
    */
-  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* Dark is the default and needs no attribute. */
 :root {
   --color-white: #ffffff;
-  --canvas: #030303;
-  --canvas-raised: #050607;
-  --surface: #0d0f11;
+  --canvas: #05070d;
+  --canvas-raised: #070a12;
+  --surface: #0b1020;
   /* A card has to read as its own plane, not as text that happens to sit
      together. At 2% fill and a 7% border it was neither: the border composited
      to rgb(30,32,34) against a #0d0f11 surface, a contrast of 1.18:1, which is
@@ -75,8 +75,12 @@
      surface so the card is a plane, the border so it has a boundary — rather
      than drawing one heavy outline, which reads as a box around content rather
      than as a surface holding it. */
-  --card-bg: rgba(255, 255, 255, 0.045);
-  --card-border: rgba(255, 255, 255, 0.16);
+  --card-bg: rgba(148, 163, 255, 0.045);
+  --card-border: rgba(148, 163, 214, 0.16);
+  /* A card's fill: a faint top-lit gradient, so a panel reads as a lit plane. */
+  --card-fill: linear-gradient(180deg, rgba(148, 163, 255, 0.075) 0%, rgba(148, 163, 255, 0.025) 100%);
+  --accent-2: #818cf8;
+  --glow: 0 0 0 1px rgba(34, 211, 238, 0.18), 0 10px 40px -12px rgba(34, 211, 238, 0.35);
   --chart-axis: #94a3b8;
   --chart-grid: #ffffff;
   --chart-grid-opacity: 0.05;
@@ -95,9 +99,9 @@
   --scrollbar: rgba(255, 255, 255, 0.12);
   --scrollbar-hover: rgba(255, 255, 255, 0.22);
   --on-accent: #000000;
-  --wash-a: rgba(20, 184, 166, 0.10);
-  --wash-b: rgba(56, 89, 248, 0.07);
-  --veil: rgba(128, 128, 128, 0.05);
+  --wash-a: rgba(34, 211, 238, 0.11);
+  --wash-b: rgba(129, 140, 248, 0.10);
+  --veil: rgba(148, 163, 214, 0.09);
   /* Inset surface for code/query blocks, and its text. */
   --code-bg: rgba(255, 255, 255, 0.04);
   --code-fg: #cbd5e1;
@@ -141,21 +145,24 @@
 :root[data-theme='light'] .logo-light { display: block; }
 
 :root[data-theme='light'] {
-  --color-accent-50: #eef3fa;
-  --color-accent-100: #1b4f8a;
-  --color-accent-200: #1a4a80;
-  --color-accent-300: #164272;
-  --color-accent-400: #123a63;
-  --color-accent-500: #0f3057;
-  --color-accent-600: #0b2545;
-  --color-accent-700: #081b33;
+  --color-accent-50: #eef4ff;
+  --color-accent-100: #1e3a8a;
+  --color-accent-200: #1e40af;
+  --color-accent-300: #1d4ed8;
+  --color-accent-400: #2563eb;
+  --color-accent-500: #1d4ed8;
+  --color-accent-600: #1e40af;
+  --color-accent-700: #1e3a8a;
 
   --color-white: #0b2545;
-  --canvas: #ffffff;
-  --canvas-raised: #f6f8fb;
+  --canvas: #f7f9fc;
+  --canvas-raised: #f2f5fa;
   --surface: #ffffff;
-  --card-bg: rgba(11, 37, 69, 0.022);
-  --card-border: rgba(11, 37, 69, 0.22);
+  --card-bg: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.12);
+  --card-fill: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  --accent-2: #6366f1;
+  --glow: 0 0 0 1px rgba(37, 99, 235, 0.18), 0 10px 30px -14px rgba(37, 99, 235, 0.35);
   --chart-axis: #245b93;
   --chart-grid: #0b2545;
   --chart-grid-opacity: 0.10;
@@ -170,9 +177,9 @@
   --scrollbar: rgba(11, 37, 69, 0.22);
   --scrollbar-hover: rgba(11, 37, 69, 0.38);
   --on-accent: #ffffff;
-  --wash-a: rgba(15, 48, 87, 0.10);
-  --wash-b: rgba(11, 37, 69, 0.05);
-  --veil: rgba(11, 37, 69, 0.06);
+  --wash-a: rgba(37, 99, 235, 0.08);
+  --wash-b: rgba(99, 102, 241, 0.07);
+  --veil: rgba(15, 23, 42, 0.07);
 
   /* Status colours are Tailwind palette tokens, and their default 200–400
      shades are near-invisible on white — the amber "Review joins" warning was
@@ -329,10 +336,8 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image:
-    linear-gradient(to right, var(--veil) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--veil) 1px, transparent 1px);
-  background-size: 44px 44px;
+  background-image: radial-gradient(circle at 1px 1px, var(--veil) 1px, transparent 1.4px);
+  background-size: 22px 22px;
   mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 60%, transparent 100%);
 }
 
@@ -365,7 +370,7 @@ body {
  * a component never needs to know which material is on.
  */
 .card {
-  background: var(--card-bg);
+  background: var(--card-fill, var(--card-bg));
   border: 1px solid var(--card-border);
   border-radius: var(--radius-panel);
   box-shadow: var(--lift-panel);
@@ -587,9 +592,64 @@ body {
  */
 .display {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 40;
-  letter-spacing: -0.015em;
+  font-weight: 650;
+  letter-spacing: -0.028em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Premium analytics accents.
+ * --------------------------------------------------------------------------- */
+/* Primary actions: a cyan-to-indigo gradient in the dark, solid blue in light. */
+:root:not([data-theme='light']) .bg-accent-500 {
+  background-image: linear-gradient(135deg, var(--color-accent-400) 0%, var(--accent-2) 100%);
+}
+:root:not([data-theme='light']) .bg-accent-500:hover,
+:root:not([data-theme='light']) .hover\:bg-accent-400:hover {
+  background-image: linear-gradient(135deg, var(--color-accent-300) 0%, #a5b4fc 100%);
+}
+/* Headline text lit by the accent. */
+.text-gradient {
+  background: linear-gradient(100deg, var(--color-accent-300) 0%, var(--accent-2) 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+:root[data-theme='light'] .text-gradient {
+  background: linear-gradient(100deg, #1d4ed8 0%, #6366f1 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+/* A panel that carries the eye: accent hairline and a soft glow. */
+.card-glow {
+  box-shadow: var(--glow), var(--lift-panel);
+  border-color: color-mix(in oklab, var(--color-accent-400) 35%, var(--card-border));
+}
+/* A small uppercase tag with a live dot. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.55rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent-400) 30%, transparent);
+  background: color-mix(in oklab, var(--color-accent-400) 8%, transparent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-white) 78%, transparent);
+}
+.eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-accent-400);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent-400) 25%, transparent);
+}
+/* Figures: mono, tabular, tight. */
+.figure {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
 }
 
 /* Prose that is meant to be read rather than scanned. */
@@ -752,4 +812,25 @@ body {
   .ld-dot { animation: none; opacity: 1; }
   .ld-skeleton::after, .ld-progress::after { animation: none; display: none; }
   .ld-rise, .ld-feed { animation: none; }
+}
+
+/* Landing preview: the trend draws, the bars grow. */
+@keyframes pp-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.pp-draw {
+  stroke-dasharray: 1;
+  animation: pp-draw 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+@keyframes pp-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.pp-bar {
+  transform-origin: left;
+  animation: pp-bar 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-draw, .pp-bar { animation: none; stroke-dasharray: none; }
 }

@@ -498,17 +498,20 @@ export default function LandingPage() {
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+                  className={`group relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-dashed px-6 py-12 text-center transition-all duration-300 ${
                     dragging
-                      ? 'border-accent-500 bg-accent-500/8'
-                      : 'border-white/12 bg-white/[0.02] hover:border-accent-500/40 hover:bg-white/[0.035]'
+                      ? 'border-accent-400 bg-accent-400/8 shadow-[var(--glow)]'
+                      : 'border-white/15 bg-white/[0.02] hover:border-accent-400/50 hover:bg-accent-400/[0.04] hover:shadow-[var(--glow)]'
                   }`}
                 >
-                  <UploadCloud size={26} className={dragging ? 'text-accent-400' : 'text-white/30'} />
-                  <div className="text-sm font-bold text-white/80">
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(40%_60%_at_50%_0%,var(--wash-a),transparent_70%)] opacity-70" />
+                  <span className={`relative mb-2 flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-300 ${dragging ? 'border-accent-400 bg-accent-400/15 text-accent-300' : 'border-accent-400/25 bg-accent-400/10 text-accent-300 group-hover:-translate-y-0.5 group-hover:shadow-[var(--glow)]'}`}>
+                    <UploadCloud size={24} />
+                  </span>
+                  <div className="relative text-[15px] font-semibold text-white/90">
                     {chosen.id === 'file' ? 'Drop a file, or several' : `Drop a ${chosen.label.replace(/ workbook| database| page/, '').toLowerCase()} file`}
                   </div>
-                  <div className="text-xs text-white/35">
+                  <div className="relative text-[12.5px] text-white/45">
                     {chosen.id === 'document'
                       ? 'A PDF or a photograph, read by a model on your own key'
                       : 'CSV, Excel, JSON, XML, Parquet, SQLite — read in your browser'}
