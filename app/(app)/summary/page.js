@@ -7,17 +7,22 @@
  */
 
 import Link from 'next/link';
-import { ArrowRight, BarChart3, CalendarRange, FileText, LayoutDashboard, Rows3 } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarRange, FileText, Filter, LayoutDashboard, Rows3 } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
+import { filteredReportBoard } from '../../../lib/engine/reportScope';
 import { ChartPalette } from '../../../components/charts/palette';
 import KpiStrip from '../../../components/dashboard/KpiStrip';
 import TileChart from '../../../components/dashboard/TileChart';
 
 export default function SummaryPage() {
   const { dataset } = useDataset();
-  const { board, engine } = useDashboard();
+  const { board: live, engine, filters } = useDashboard();
+
+  const fieldList = engine?.ds?.fields || live?.ds?.fields || [];
+  // Filters on: the brief is about the filtered rows, like the dashboard.
+  const board = filteredReportBoard(live, filters, fieldList);
 
   if (!board) {
     return (
@@ -33,10 +38,11 @@ export default function SummaryPage() {
   const findings = board.aiSummary?.length ? board.aiSummary.map((text) => ({ text })) : board.findings || [];
   const headline = board.headline || findings[0]?.text || board.summary;
   const facts = [
-    [Rows3, `${Number(board.ds?.rowCount || dataset?.rowCount || 0).toLocaleString()} rows`],
+    board.filterNote ? [Filter, `Filtered to ${board.filterNote}`] : null,
+    [Rows3, `${Number(board.ds?.rowCount || dataset?.rowCount || 0).toLocaleString()} rows${board.filterNote ? ' in the file' : ''}`],
     [BarChart3, `${tiles.length} charts`],
     [FileText, `${(board.ds?.fields || []).length} columns`],
-    /\bfrom\b.+\bto\b/i.test(board.summary || '') ? [CalendarRange, board.summary.replace(/\.\s*$/, '').replace(/^.*?\bfrom\b/i, 'From')] : null,
+    !board.filterNote && /\bfrom\b.+\bto\b/i.test(board.summary || '') ? [CalendarRange, board.summary.replace(/\.\s*$/, '').replace(/^.*?\bfrom\b/i, 'From')] : null,
   ].filter(Boolean);
 
   return (
