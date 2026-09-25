@@ -20,7 +20,8 @@ import {
   Lock,
   Wand2,
 } from 'lucide-react';
-import { useActions, useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
+import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
+import { useDashboard } from '../../../lib/store/DashboardProvider';
 import { useTutorial } from '../../../lib/store/TutorialProvider';
 import { usePlan } from '../../../lib/store/PlanProvider';
 import { isExtractable } from '../../../lib/documentExtraction';
@@ -33,15 +34,14 @@ import SourcePicker from '../../../components/panels/SourcePicker';
 import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
-import QuestionCard from '../../../components/panels/QuestionCard';
 import { keySnapshot, serverKeySnapshot, subscribeToKey } from '../../../lib/geminiKey';
 
 
 export default function LandingPage() {
   const router = useRouter();
   const { dataset, status, error } = useDataset();
-  const { analysis } = useAnalysis();
-  const { ingestFile, ingestText, analyze, startBlank, setError, reset } = useActions();
+  const { board, startBlank } = useDashboard();
+  const { ingestFile, ingestText, setError, reset } = useActions();
   const [dragging, setDragging] = useState(false);
   // Two-step, because discarding a loaded dataset also discards any analysis of
   // it and there is no undo — but a modal for one button is heavier than this.
@@ -68,7 +68,7 @@ export default function LandingPage() {
   const hasModelKey = ownKey || serverModel;
   // The button opens the question card either way; with a model it also reads
   // the table and writes the summary, and only then does the button say so.
-  const autoLabel = hasModelKey ? 'Build a report · AI-assisted' : 'Build a report';
+  const autoLabel = hasModelKey ? 'Open the dashboard · AI-assisted' : 'Open the dashboard';
   const AutoIcon = hasModelKey ? Sparkles : Wand2;
   const revealRefs = useRef([]);
 
@@ -129,7 +129,17 @@ export default function LandingPage() {
   // The logo in the app shell points here, so anyone who taps it lands back on
   // the upload screen with a finished analysis still in memory. Without a way
   // back, the only route in was to run the whole thing again.
-  const hasAnalysis = analysis?.storyboard?.length > 0;
+  const hasAnalysis = !!board;
+
+  // A file just finished loading: its dashboard is the next thing to see.
+  const wasIngesting = useRef(false);
+  useEffect(() => {
+    if (status === 'ingesting') wasIngesting.current = true;
+    else if (wasIngesting.current && dataset && status !== 'booting') {
+      wasIngesting.current = false;
+      if (!error) router.push('/dashboard');
+    }
+  }, [status, dataset, error, router]);
 
   // Several files are one session, not one upload each: the engine relates them
   // to each other exactly as it relates the tabs of a single workbook.
@@ -208,19 +218,8 @@ export default function LandingPage() {
    * phase 3): the button opens the card, and the card decides what is asked.
    * `questions` null is "choose for me" — the catalogue's recommended set.
    */
-  const [asking, setAsking] = useState(false);
-  const runAnalysis = useCallback(
-    async (questions = null) => {
-      setAsking(false);
-      try {
-        await analyze(questions ? { questions } : {});
-        router.push('/dashboard');
-      } catch {
-        /* surfaced through context error */
-      }
-    },
-    [analyze, router]
-  );
+  const asking = false;
+  const openDashboard = useCallback(() => router.push('/dashboard'), [router]);
 
   /**
    * The other way in: an empty dashboard, filled by hand.
@@ -337,27 +336,17 @@ export default function LandingPage() {
                   * than hidden — a locked door you can see is information; a
                   * missing one is confusion.
                   */}
-                {asking && (
-                  <div className="mt-5">
-                    <QuestionCard
-                      initial={hasAnalysis ? analysis?.questions : null}
-                      onBuild={(questions) => runAnalysis(questions)}
-                      onSkip={(picked) => runAnalysis(picked.length ? picked : null)}
-                      onCancel={() => setAsking(false)}
-                    />
-                  </div>
-                )}
-                {asking ? null : planAllows('autoAnalysis') ? (
+                {hasAnalysis ? null : planAllows('autoAnalysis') ? (
                   <button
-                    onClick={() => setAsking(true)}
+                    onClick={openDashboard}
                     className={
                       hasAnalysis
                         ? 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/5 hover:text-white'
                         : 'mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-black uppercase tracking-[0.15em] text-on-accent transition-transform hover:bg-accent-400 active:scale-[0.99]'
                     }
                   >
-                    <AutoIcon size={hasAnalysis ? 14 : 16} />
-                    {hasAnalysis ? 'Change the questions' : autoLabel}
+                    <AutoIcon size={16} />
+                    {autoLabel}
                   </button>
                 ) : (
                   !planLoading && (
@@ -377,8 +366,8 @@ export default function LandingPage() {
 
                 {planAllows('autoAnalysis') && !hasAnalysis && !hasModelKey && !asking && (
                   <p className="mt-2 text-center text-[11px] leading-relaxed text-white/35">
-                    You pick the questions; every chart answers one, computed from your rows. Add a model key
-                    below to have a model read the table and write the summary too.
+                    The dashboard is built from your rows by the built-in analyst. Add a model key below to have a
+                    model read the table first and write the summary too.
                   </p>
                 )}
 

@@ -16,7 +16,7 @@
  * messages may be emitted any number of times before the terminal reply.
  */
 import Papa from 'papaparse';
-import { ANALYZE, INGEST_FILES, INGEST_REMOTE } from '../../lib/progressSteps.js';
+import { INGEST_FILES, INGEST_REMOTE } from '../../lib/progressSteps.js';
 import {
   createMetrics,
   noteMalformedRow,
@@ -26,30 +26,23 @@ import {
   nullifyStrayValues,
   dropEmptyColumns,
 } from '../../lib/dataCleaner.js';
-import {
-  runAnalysis,
-  mountTables,
-  unmountTables,
-  runSql,
-  executeCharts,
-  TABLE,
-} from '../../lib/pipeline.js';
-import { filterWhere } from '../../lib/filters.js';
-import { acceptBrief } from '../../lib/datasetBrief.js';
+import { mountTables, unmountTables, runSql, TABLE } from '../../lib/sqlTables.js';
 import { gateRatios } from '../../lib/preparation.js';
-import { classifyColumns, deriveMeasures, outcomeVariable } from '../../lib/measureSemantics.js';
-import { readTable } from '../../lib/tableModel.js';
-import { suggestQuestions } from '../../lib/questionCatalogue.js';
-import { headlineFigures } from '../../lib/questionCompiler.js';
-import { acceptModelQuestions, mergeSuggestions } from '../../lib/modelQuestions.js';
-import { answerable } from '../../lib/questionnaire.js';
+import { classifyColumns, deriveMeasures } from '../../lib/measureSemantics.js';
+import { buildDashboard, summaryOf } from '../../lib/engine/planner.js';
+import { readDataset } from '../../lib/engine/fields.js';
+import { buildMeasures } from '../../lib/engine/measures.js';
+import { computeTile } from '../../lib/engine/tiles.js';
+import { tileInsight } from '../../lib/engine/caption.js';
+import { formatValue } from '../../lib/engine/format.js';
+import { interpretQuestion, exampleQuestions } from '../../lib/engine/ask.js';
+import { allowedViz } from '../../lib/engine/tiles.js';
 import { profileColumns } from '../../lib/chartResolver.js';
 import { detectRepeatedMeasures } from '../../lib/dataGrain.js';
 import { negativesAreNotable } from '../../lib/dataCleaner.js';
 import { UNCERTAIN, mergeConfidence, noteUncertain } from '../../lib/cellConfidence.js';
 import { confidenceAfterTransforms, planTransforms } from '../../lib/transforms.js';
 import { buildSearchIndex, parseSearch, searchRows } from '../../lib/rowSearch.js';
-import { analyzeStoryboard } from '../../lib/insightEngine.js';
 import { valueVocabulary } from '../../lib/valueBriefing.js';
 import {
   buildDataModel,
@@ -249,25 +242,6 @@ function columnRoles() {
  * whose best columns were disqualified. Six economic indicators disappearing
  * from a 22-column file should be a sentence on screen, not an absence.
  */
-/**
- * Columns the engine profiled and then refused to aggregate.
- *
- * One definition, because two things need it and they must agree: the ingest
- * notice that explains the absence, and the critic, which must NOT ask about a
- * column whose absence is already explained.
- */
-function withheldMeasures() {
-  if (!state) return [];
-  const measures = new Set(state.viewProfile?.measures || []);
-  const roles = columnRoles();
-  return Object.entries(roles)
-    .filter(
-      ([col, r]) =>
-        measures.has(col) &&
-        (r.kind === 'attribute' || r.kind === 'preAggregate' || r.kind === 'denominated')
-    )
-    .map(([col]) => col);
-}
 
 function noteExcludedMeasures() {
   if (!state) return;
@@ -1179,6 +1153,8 @@ function rebuildView() {
   }
 
   state.view = view;
+  state.engine = null;
+  state.values = null;
   state.metrics = {
     ...metrics,
     confidence: confidenceAfterTransforms(metrics.confidence, plan),
@@ -1310,277 +1286,11 @@ function sourceRows() {
   return out;
 }
 
-/**
- * What this table can answer, before anything is built — the question card.
- *
- * The catalogue's questions (lib/questionCatalogue.js), recommended ones
- * marked, and one line on what a row is so the reader can catch a table read
- * wrongly before a chart exists. Nothing leaves the worker but questions: they
- * name columns and carry no values beyond an outcome's event level.
- */
-function catalogue() {
-  const rows = state.view.rows;
-  const model = readTable(rows, {
-    profile: state.viewProfile,
-    provenance: state.view.provenance,
-    roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
-  });
-  const cardinality = Object.fromEntries(Object.entries(model.columns).map(([c, info]) => [c, info.distinct]));
-  const outcome = outcomeVariable({ columns: Object.keys(model.columns), sample: rows.slice(0, 500), cardinality });
-  return { rows, model, questions: suggestQuestions(rows, model, { outcome }) };
-}
 
-function suggest(id) {
-  if (!state) {
-    reply(id, 'error', { message: 'No dataset loaded.' });
-    return;
-  }
-  const { rows, model, questions } = catalogue();
-  reply(id, 'suggestions', {
-    questions: answerable(questions, rows, model),
-    grain: { kind: model.grain.kind, why: model.grain.why },
-    rowCount: rows.length,
-  });
-}
 
-/**
- * A model's proposal, checked against the rows — here, because here is where
- * the rows are. Picks must be questions the catalogue offered; new questions
- * must name real columns of the right kind and compile into a chart
- * (lib/modelQuestions.js). The catalogue is rebuilt rather than taken from the
- * page, so the list the proposal is checked against is the engine's own.
- */
-function acceptQuestions(id, { proposal = null } = {}) {
-  if (!state) {
-    reply(id, 'error', { message: 'No dataset loaded.' });
-    return;
-  }
-  const { rows, model, questions } = catalogue();
-  const accepted = acceptModelQuestions(proposal, { rows, model, catalogue: questions });
-  reply(id, 'suggestions', {
-    questions: answerable(mergeSuggestions(questions, accepted), rows, model),
-    subject: accepted.subject,
-    dropped: accepted.dropped,
-    fromModel: accepted.picks.length + accepted.added.length > 0,
-  });
-}
 
-function analyze(
-  id,
-  {
-    focus,
-    maxCharts,
-    questions = null,
-    claims = null,
-    voidClaim = null,
-    includeVoid = false,
-    briefProposal = null,
-  }
-) {
-  if (!state) {
-    reply(id, 'error', { message: 'No dataset loaded.' });
-    return;
-  }
-  plan(id, ANALYZE);
 
-  /**
-   * What the dataset is about, verified here because here is where the rows are.
-   *
-   * `/api/semantics` asked a model and returned a proposal. It could not check
-   * it: the rows never leave this worker, which is the whole arrangement. So the
-   * gate runs on this side, against the real values, and the planner receives
-   * only the claims that survived — or nothing, which is the behaviour that
-   * shipped before briefs existed.
-   */
-  const brief = briefProposal
-    ? acceptBrief(briefProposal, { rows: state.view.rows, profile: state.viewProfile })
-    : null;
 
-  const result = runAnalysis(state.view.rows, {
-    focus,
-    maxCharts,
-    // The questions the reader chose on the card. Null: the catalogue's
-    // recommended ones, which is also what "choose for me" asks for.
-    questions,
-    tables: sourceRows(),
-    // Which table each column came from, and whether that table is the fact or
-    // a dimension. Without it the planner cannot tell a fact measure from
-    // somebody else's total, and sums the latter once per joined row.
-    provenance: state.view.provenance,
-    roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
-    // The profile and the withheld list are already built on this side, and
-    // rebuilding them inside the pipeline would mean a second full pass over
-    // the rows for facts this side already holds.
-    profile: state.viewProfile,
-    withheld: withheldMeasures(),
-    // Which values in which column mean the row did not stand. Settled before
-    // planning for the same reason as the unit claims: it decides which ROWS
-    // are summed, and every figure below inherits the answer.
-    voidClaim,
-    // Whether the reader asked for the void rows back. Default false: the
-    // narrower total is the one that is what its name says.
-    includeVoid,
-    // What the cleaner had to guess at. A finding computed perfectly over
-    // inferred values is only as good as the inference, and the evidence tier
-    // is where that gets said.
-    confidence: state.metrics?.confidence || null,
-    // The subject, the dependent variable and the column roles — every one of
-    // them re-derived from these rows a few lines above. Null where no model
-    // answered or nothing it said survived.
-    brief,
-    onProgress: ({ stage, percent }) => progress(id, stage, percent),
-  });
-  // What the analysis decided, kept for the filter pass.
-  //
-  // Re-deciding it on every click would mean re-profiling and re-detecting
-  // repeated measures over the filtered rows — five seconds of full passes on a
-  // large table, twice, to answer a question the whole table already answered.
-  // Worse, it would let a click change which columns may be summed: the
-  // semantics of a column are a property of the data, not of the slice being
-  // looked at, and a card that becomes summable because a filter narrowed the
-  // rows would be the deck contradicting itself.
-  state.analysisContext = {
-    provenance: state.view.provenance,
-    roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
-    profile: state.viewProfile,
-    claims,
-    voidClaim,
-    includeVoid,
-    confidence: state.metrics?.confidence || null,
-    // What the report answers, and the table as it was read to answer it. A
-    // filter recomputes the same headline figures over fewer rows; it does not
-    // re-decide which figures they are, or the cards would change under a click.
-    questions: result.asked || [],
-    tableModel: readTable(state.view.rows, {
-      profile: state.viewProfile,
-      provenance: state.view.provenance,
-      roles: Object.fromEntries((state.model?.tables || []).map((t) => [t.name, t.role])),
-    }),
-  };
-  reply(id, 'analyzed', result);
-}
-
-/**
- * The deck again, over a narrower table.
- *
- * The same specs, in the same order — a click filters a dashboard, it does not
- * rebuild one, and a reader who clicks a bar to look closer must not have the
- * charts around it replaced by different charts. So nothing is re-planned here:
- * every chart's own SQL is run again against the rows the filter leaves, and
- * every finding is computed again from those results, because a finding is a
- * reading of a result set and not a caption on it.
- *
- * The specs come from the caller rather than from here, because the board on
- * screen is the one that has been edited: charts retitled, dropped, added from
- * the Ask page. Filtering the deck the worker last planned would quietly undo
- * all of that.
- */
-function refilter(id, { specs = [], filters = [] } = {}) {
-  if (!state) {
-    reply(id, 'error', { message: 'No dataset loaded.' });
-    return;
-  }
-
-  const context = state.analysisContext || {};
-  const all = state.view.rows;
-
-  /**
-   * The rows a filter set leaves, as a query.
-   *
-   * Run the same way every other number here is, so the rows behind a filtered
-   * figure can be reproduced by anybody holding the SQL the page is showing
-   * them. Cached by clause because the board asks for two or three different
-   * ones: the whole filter for the charts, and the filter minus its own column
-   * for each slicer.
-   */
-  const cache = new Map();
-  const rowsWhere = (clause) => {
-    if (!clause) return all;
-    if (cache.has(clause)) return cache.get(clause);
-    const mounted = mountTables({ tables: sourceRows(), view: all });
-    try {
-      const rows = runSql(`SELECT * FROM ${TABLE} WHERE ${clause}`);
-      cache.set(clause, rows);
-      return rows;
-    } finally {
-      unmountTables(mounted);
-    }
-  };
-
-  const where = filterWhere(filters);
-  let rows;
-  try {
-    rows = rowsWhere(where);
-  } catch (e) {
-    reply(id, 'error', { message: `That filter could not be applied: ${e.message}` });
-    return;
-  }
-
-  // Nothing left is not an error — it is an answer, and the dashboard says so
-  // rather than drawing empty charts under sentences about them.
-  if (!rows.length) {
-    reply(id, 'filtered', { charts: [], perChart: [], kpis: [], rowCount: 0, empty: true });
-    return;
-  }
-
-  const mounted = mountTables({ tables: sourceRows(), view: rows });
-  try {
-    const ready = specs.map((c, i) => ({ ...c, id: c.id || `slide_${i + 1}` }));
-
-    /**
-     * A filter tile is not filtered by itself.
-     *
-     * Its rows ARE its checkboxes, so running it under its own filter leaves
-     * one ticked value and no way back to the others. Every other filter still
-     * applies to it — which is what makes the counts beside the boxes true of
-     * what is on screen.
-     */
-    const slicers = ready.filter((c) => c.chart_type === 'slicer' && c.xAxisKey);
-    const others = ready.filter((c) => !slicers.includes(c));
-
-    const charts = executeCharts(others, rows);
-    for (const slicer of slicers) {
-      const clause = filterWhere(filters.filter((f) => f.column !== slicer.xAxisKey));
-      const own = clause === where ? rows : rowsWhere(clause);
-      const mountedOwn = mountTables({ tables: sourceRows(), view: own });
-      try {
-        charts.push(...executeCharts([slicer], own));
-      } finally {
-        unmountTables(mountedOwn);
-      }
-    }
-
-    const { perChart } = analyzeStoryboard(charts, rows, context.confidence || null);
-    // The report's own headline figures, over the filtered rows. The questions
-    // and the table model are the whole table's, deliberately: a filter narrows
-    // the rows, it does not change what the file is about or which cards sit
-    // above the charts.
-    const kpis = context.tableModel ? headlineFigures(context.questions || [], rows, context.tableModel) : [];
-    reply(id, 'filtered', { charts, perChart, kpis, rowCount: rows.length, empty: false });
-  } finally {
-    unmountTables(mounted);
-  }
-}
-
-/** Execute an ad-hoc chart spec (from the Ask page) against the dataset. */
-function askExecute(id, { spec }) {
-  if (!state) {
-    reply(id, 'error', { message: 'No dataset loaded.' });
-    return;
-  }
-  const mounted = mountTables({ tables: sourceRows(), view: state.view.rows });
-  try {
-    const charts = executeCharts([{ ...spec, id: spec.id || 'ask_1' }], state.view.rows);
-    // Compute the same verified findings a dashboard slide gets, so an ad-hoc
-    // answer is grounded in real statistics rather than the model's guess.
-    const { perChart } = analyzeStoryboard(charts, state.view.rows, state.metrics?.confidence || null);
-    reply(id, 'asked', { chart: charts[0] || null, finding: perChart[0] || null });
-  } catch (e) {
-    reply(id, 'error', { message: e.message });
-  } finally {
-    unmountTables(mounted);
-  }
-}
 
 /**
  * Raw SQL escape hatch, used by the SQL console.
@@ -1703,41 +1413,6 @@ function page(
   });
 }
 
-/**
- * Evaluate measures over the rows a filter selects.
- *
- * The measure SQL is compiled on the main thread (where the validator lives) and
- * arrives here as a finished string; this only decides which rows it runs
- * against. Mounting the filtered subset under the view's own name is what makes
- * `SUM(Revenue)` mean "of what I can see" rather than "of everything".
- *
- * One failing measure returns its error rather than failing the batch: a typo in
- * one formula should not blank out the others.
- */
-function measureValues(id, { items = [], filter = '', anomaliesOnly = false, table = null } = {}) {
-  if (!state) {
-    reply(id, 'measureValues', { values: [], total: 0 });
-    return;
-  }
-
-  const { rows } = selectRows({ filter, anomaliesOnly, table });
-  const mounted = mountTables({ tables: sourceRows(), view: rows });
-  const values = [];
-  try {
-    for (const item of items) {
-      if (!item?.sql) continue;
-      try {
-        values.push({ id: item.id, rows: runSql(item.sql) });
-      } catch (e) {
-        values.push({ id: item.id, error: e.message });
-      }
-    }
-  } finally {
-    unmountTables(mounted);
-  }
-
-  reply(id, 'measureValues', { values, total: rows.length });
-}
 
 /** Serialise a cleaned table (the joined view by default) to CSV for download. */
 function exportCsv(id, { table = null, where = '' } = {}) {
@@ -1783,6 +1458,133 @@ async function reset(id) {
 }
 
 // ---------------------------------------------------------------------------
+// The dashboard engine (lib/engine). Row data stays here; the page gets specs,
+// computed tile data and captions.
+// ---------------------------------------------------------------------------
+
+/** The reading of the current view, cached until the view or settings change. */
+function engineFor({ overrides = {}, custom = [] } = {}) {
+  const key = JSON.stringify([state.view?.rows?.length, state.view?.columns, overrides, custom]);
+  if (state.engine?.key === key) return state.engine;
+  const rows = state.view.rows;
+  const ds = readDataset(rows, { name: state.fileName, overrides });
+  const measures = buildMeasures(rows, ds, { custom });
+  state.engine = { key, ds, measures };
+  return state.engine;
+}
+
+/** A tile with its data and caption, under the dashboard's filters. */
+function withData(tile, ds, measures, filters) {
+  const rows = state.view.rows;
+  try {
+    const computed = computeTile(rows, tile, ds, measures, filters);
+    const caption = filters?.length || tile.recaption ? tileInsight(rows, tile, computed, ds, measures, filters) : null;
+    return { ...tile, ...(caption ? { insight: caption.text, facts: caption.facts } : {}), computed, error: null };
+  } catch (err) {
+    return { ...tile, computed: null, error: err?.message || String(err) };
+  }
+}
+
+function buildBoard(id, { overrides = {}, custom = [], hints = null } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const rows = state.view.rows;
+  const board = buildDashboard(rows, { name: state.fileName, overrides, custom, hints });
+  const { ds, measures } = engineFor({ overrides, custom });
+  const sections = board.sections.map((s) => ({ ...s, tiles: s.tiles.map((t) => withData(t, ds, measures, [])) }));
+  reply(id, 'dashboard', { ...board, measures, sections, ingestedAt: state.ingestedAt || null });
+}
+
+function computeTiles(id, { tiles = [], filters = [], overrides = {}, custom = [] } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const { ds, measures } = engineFor({ overrides, custom });
+  reply(id, 'tiles', { tiles: tiles.map((t) => withData(t, ds, measures, filters)) });
+}
+
+/** KPI values under filters (value, sparkline, delta). */
+function computeKpis(id, { kpis = [], filters = [], overrides = {}, custom = [] } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const { ds, measures } = engineFor({ overrides, custom });
+  const rows = state.view.rows;
+  const out = kpis.map((k) => {
+    if (!k.measures?.length) return k;
+    const computed = computeTile(rows, { ...k, kind: 'kpi' }, ds, measures, filters);
+    const m = measures.find((x) => x.id === k.measures[0]);
+    return { ...k, value: computed.value, formatted: m ? formatValue(computed.value, m) : String(computed.value), filtered: filters.length > 0 };
+  });
+  reply(id, 'kpis', { kpis: out });
+}
+
+/** Distinct values of a field, most common first — for slicers. */
+function fieldValues(id, { field, limit = 300 } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const counts = new Map();
+  for (const r of state.view.rows) {
+    const v = r?.[field];
+    if (v === null || v === undefined || v === '') continue;
+    const k = String(v);
+    counts.set(k, (counts.get(k) || 0) + 1);
+  }
+  const values = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit).map(([value, n]) => ({ value, n }));
+  reply(id, 'values', { field, values, total: counts.size });
+}
+
+/** Category values of a field, cached per view — for reading questions. */
+function valuesOf(field) {
+  state.values ||= new Map();
+  if (state.values.has(field)) return state.values.get(field);
+  const set = new Set();
+  for (const r of state.view.rows) {
+    const v = r?.[field];
+    if (v !== null && v !== undefined && v !== '') set.add(String(v));
+    if (set.size > 200) break;
+  }
+  const list = set.size > 200 ? [] : [...set];
+  state.values.set(field, list);
+  return list;
+}
+
+/**
+ * A question, read into a tile and answered. `spec` instead of `text` is a
+ * tile a model proposed (app/api/ask), checked here against the reading: its
+ * fields and measures must exist and its chart type must be one the data allows.
+ */
+function askTile(id, { text = '', spec = null, overrides = {}, custom = [] } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const { ds, measures } = engineFor({ overrides, custom });
+  let tile;
+  let adhoc = null;
+  if (spec) {
+    const field = (n) => !n || !!ds.byName[n];
+    const known = (spec.measures || []).every((m) => measures.some((x) => x.id === m));
+    if (!known || !field(spec.dim) || !field(spec.series) || !field(spec.x) || !field(spec.y) || !field(spec.field)) {
+      return reply(id, 'answer', { error: 'The model proposed a chart of columns this table does not have.' });
+    }
+    tile = { ...spec, filters: (spec.filters || []).filter((f) => ds.byName[f.field]) };
+    const allowed = allowedViz(tile, ds, measures);
+    if (!allowed.includes(tile.viz)) tile.viz = allowed[0];
+  } else {
+    const read = interpretQuestion(text, ds, measures, valuesOf);
+    if (read.error) return reply(id, 'answer', { error: read.error });
+    tile = read.tile;
+    adhoc = read.adhoc || null;
+  }
+  const all = adhoc ? [...measures, adhoc] : measures;
+  const done = withData({ ...tile, id: `ask-${Date.now().toString(36)}`, recaption: true, w: 12, h: 4 }, ds, all, []);
+  reply(id, 'answer', { tile: done, adhoc });
+}
+
+function askExamples(id, { overrides = {}, custom = [] } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const { ds, measures } = engineFor({ overrides, custom });
+  reply(id, 'examples', { examples: exampleQuestions(ds, measures) });
+}
+
+/** The reading and measures alone, for the fields panel and the editor. */
+function describeEngine(id, { overrides = {}, custom = [] } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const { ds, measures } = engineFor({ overrides, custom });
+  reply(id, 'engine', { ds: summaryOf(ds), measures });
+}
 
 self.onmessage = async (e) => {
   const { id, type, payload = {} } = e.data || {};
@@ -1800,22 +1602,10 @@ self.onmessage = async (e) => {
         return setTransforms(id, payload);
       case 'testRelationship':
         return testRelationship(id, payload);
-      case 'suggest':
-        return suggest(id);
-      case 'acceptQuestions':
-        return acceptQuestions(id, payload);
-      case 'analyze':
-        return analyze(id, payload);
-      case 'ask':
-        return askExecute(id, payload);
-      case 'filter':
-        return refilter(id, payload);
       case 'sql':
         return sql(id, payload);
       case 'page':
         return page(id, payload);
-      case 'measureValues':
-        return measureValues(id, payload);
       case 'exportCsv':
         return exportCsv(id, payload);
       case 'saveAnalysis':
@@ -1825,6 +1615,20 @@ self.onmessage = async (e) => {
         return reply(id, 'saved', {});
       case 'reset':
         return reset(id);
+      case 'buildDashboard':
+        return buildBoard(id, payload);
+      case 'computeTiles':
+        return computeTiles(id, payload);
+      case 'computeKpis':
+        return computeKpis(id, payload);
+      case 'fieldValues':
+        return fieldValues(id, payload);
+      case 'describeEngine':
+        return describeEngine(id, payload);
+      case 'askTile':
+        return askTile(id, payload);
+      case 'askExamples':
+        return askExamples(id, payload);
       default:
         return reply(id, 'error', { message: `Unknown command: ${type}` });
     }

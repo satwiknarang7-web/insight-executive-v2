@@ -20,12 +20,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, FolderOpen, Loader2, Presentation, Share2, Trash2, Users, X } from 'lucide-react';
-import { useActions, useDataset } from '../../lib/store/DatasetProvider';
+import { useDataset } from '../../lib/store/DatasetProvider';
+import { useDashboard } from '../../lib/store/DashboardProvider';
 import ShareControls from './ShareControls';
 
 export default function AnalysisLibrary() {
   const router = useRouter();
-  const { restoreAnalysis } = useActions();
+  const { openSaved } = useDashboard();
   const { dataset } = useDataset();
 
   const [mine, setMine] = useState([]);
@@ -63,17 +64,20 @@ export default function AnalysisLibrary() {
         const res = await fetch(`/api/analyses/${id}`);
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error || 'Could not open that analysis.');
-        await restoreAnalysis(body.analysis.payload);
-        // The dashboard reads the loaded rows for its header and its "re-run".
-        // With no dataset in the session there are none, so a restored analysis
-        // opens as the deck it is.
-        router.push(dataset ? '/dashboard' : '/present');
+        const payload = body.analysis.payload;
+        if (payload?.version !== 2 || !payload.dashboard) {
+          throw new Error('This analysis was saved by an earlier version of the app. Load its file again to rebuild it.');
+        }
+        // With the same table loaded it is recomputed against the rows; without
+        // one it opens as saved, to read and present.
+        await openSaved(payload.dashboard);
+        router.push('/dashboard');
       } catch (e) {
         setError(e.message);
         setOpening(null);
       }
     },
-    [restoreAnalysis, router, dataset]
+    [openSaved, router]
   );
 
   const remove = useCallback(async (id) => {

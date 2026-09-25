@@ -1,5 +1,6 @@
 import './globals.css';
 import { DatasetProvider } from '../lib/store/DatasetProvider';
+import { DashboardProvider } from '../lib/store/DashboardProvider';
 import { TutorialProvider } from '../lib/store/TutorialProvider';
 import { PlanProvider } from '../lib/store/PlanProvider';
 import TutorialOverlay from '../components/panels/TutorialOverlay';
@@ -7,7 +8,7 @@ import { AppearanceScript } from '../components/shell/ThemeToggle';
 
 export const metadata = {
   title: 'Insight Executive',
-  description: 'Upload a CSV and get a verified, explainable analysis of it.',
+  description: 'Upload a dataset and get the dashboard an analyst would build for it.',
 };
 
 export const viewport = {
@@ -36,12 +37,14 @@ export default function RootLayout({ children }) {
       </head>
       <body className="antialiased bg-canvas text-white font-sans" suppressHydrationWarning>
         <DatasetProvider>
+          <DashboardProvider>
           <PlanProvider>
             <TutorialProvider>
               {children}
               <TutorialOverlay />
             </TutorialProvider>
           </PlanProvider>
+          </DashboardProvider>
         </DatasetProvider>
       </body>
     </html>

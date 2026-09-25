@@ -1,7 +1,7 @@
 'use client';
 
 import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Code2, ChevronRight, Database, HelpCircle } from 'lucide-react';
-import { useAnalysis, useDataset } from '../../../lib/store/DatasetProvider';
+import { useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import DatasetNotices from '../../../components/panels/DatasetNotices';
 import { formatSql } from '../../../lib/sqlFormat';
@@ -36,7 +36,6 @@ const TYPE_WORDS = {
 
 export default function QualityPage() {
   const { dataset } = useDataset();
-  const { analysis } = useAnalysis();
   if (!dataset) return null;
 
   const m = dataset.metrics;
@@ -334,47 +333,6 @@ export default function QualityPage() {
         </div>
       </section>
 
-      {/* Query audit */}
-      {analysis?.storyboard?.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center gap-3">
-            <Code2 size={14} className="text-accent-400" />
-            <h2 className="label">For the technical reader: every query</h2>
-            <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-          </div>
-          <p className="mb-4 max-w-2xl text-[14px] leading-relaxed text-white/65">
-            You do not need to read this part. It is here so that anybody who wants to check our working
-            can: every chart on the dashboard came from one of the questions below, asked of your cleaned
-            rows inside your own browser. Nothing on screen was written without one of these behind it.
-          </p>
-
-          <div className="flex flex-col gap-2">
-            {analysis.storyboard.map((slide, i) => (
-              <details key={slide.id || i} className="card group p-4">
-                <summary className="flex cursor-pointer list-none items-center gap-3">
-                  <span className="shrink-0 rounded-md bg-white/6 px-2 py-1 font-mono text-[10px] text-white/40">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-white/75">{slide.pageTitle}</span>
-                  {slide.chart?.healed && (
-                    <span className="shrink-0 rounded-full border border-amber-500/25 bg-amber-500/8 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300">
-                      Fallback
-                    </span>
-                  )}
-                  <span className="shrink-0 text-[10px] text-white/25">{slide.chart?.resultData?.length || 0} rows</span>
-                  <ChevronRight size={14} className="shrink-0 text-white/25 transition-transform group-open:rotate-90" />
-                </summary>
-                <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
-                  {formatSql(slide.chart?.sql) || 'No query recorded.'}
-                </pre>
-                {slide.chart?.sqlError && (
-                  <p className="mt-2 text-[11px] text-rose-300/70">Engine error: {slide.chart.sqlError}</p>
-                )}
-              </details>
-            ))}
-          </div>
-        </section>
-      )}
     </PageFrame>
   );
 }

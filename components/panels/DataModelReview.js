@@ -38,7 +38,7 @@ import RelationshipGraph from './RelationshipGraph';
 
 export default function DataModelReview() {
   const { dataset } = useDataset();
-  const { setModel, analyze, testRelationship } = useActions();
+  const { setModel, testRelationship } = useActions();
   const router = useRouter();
 
   const model = dataset?.model;
@@ -103,7 +103,6 @@ export default function DataModelReview() {
         setDisabled(new Set());
         setAdded([]);
         if (thenAnalyse) {
-          await analyze();
           router.push('/dashboard');
         }
       } catch (e) {
@@ -112,7 +111,7 @@ export default function DataModelReview() {
         setBusy(false);
       }
     },
-    [setModel, analyze, factTable, relationships, disabled, router]
+    [setModel, factTable, relationships, disabled, router]
   );
 
   if (!model) return null;

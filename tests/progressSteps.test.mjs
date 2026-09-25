@@ -83,17 +83,6 @@ test('every stage the worker emits belongs to a step of some plan', () => {
   }
 });
 
-test('every stage the analysis pipeline emits belongs to a step', () => {
-  const stages = pipelineStages();
-  assert.ok(stages.length >= 4, `only found ${stages.length} pipeline stages — the scan is broken`);
-
-  for (const stage of stages) {
-    if (UNPLANNED.has(stage)) continue;
-    const claimed = ALL_PLANS.some((plan) => stepIndexFor(plan, stage) > -1);
-    assert.ok(claimed, `no step claims the pipeline stage "${stage}"`);
-  }
-});
-
 test('the templated query stage is matched by its prefix, whatever the title', () => {
   // The one stage whose text is not known ahead of time.
   const query = ANALYZE.findIndex((s) => s.id === 'query');
@@ -141,24 +130,3 @@ test('a remote ingest does not show a file-reading step it will never run', () =
   assert.equal(stepIndexFor(INGEST_FILES, 'Reading data'), 0);
 });
 
-test('every stage the provider emits belongs to a step', () => {
-  const stages = providerStages();
-  assert.ok(stages.length >= 3, `only found ${stages.length} provider stages — the scan is broken`);
-
-  for (const stage of stages) {
-    const claimed = ALL_PLANS.some((plan) => stepIndexFor(plan, stage) > -1);
-    assert.ok(claimed, `no step claims the provider stage "${stage}"`);
-  }
-});
-
-test('the analysis plan ends where the provider ends, not where the worker does', () => {
-  // The worker stops short of 'Ready' on purpose: the deck is built there and
-  // finished two steps later. If the pipeline ever announces 'Ready' again,
-  // the panel ticks its last box while the repair pass is still running.
-  const pipeline = read('../lib/pipeline.js');
-  assert.ok(
-    !/stage:\s*'Ready'/.test(pipeline),
-    'the pipeline announced Ready again — the panel will complete before the repair pass runs'
-  );
-  assert.equal(ANALYZE[ANALYZE.length - 1].id, 'ready');
-});

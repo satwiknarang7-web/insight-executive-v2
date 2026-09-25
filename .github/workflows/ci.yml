@@ -61,8 +61,9 @@ jobs:
           npm run eval:corpus
           git diff --exit-code -- tests/corpus
 
-      # Includes tests/scorecard.test.mjs: the ratchet against
-      # eval/scorecard.baseline.json. `npm run eval:scorecard` prints the table.
+      # Includes tests/dashboards.test.mjs: every corpus table builds a
+      # dashboard that keeps the engine's rules. `npm run eval:dashboards`
+      # prints what each dashboard holds.
       - name: Test
         run: npm test
 

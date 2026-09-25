@@ -147,35 +147,3 @@ test("but a reader's own hour column is left alone", () => {
   assert.deepEqual(profileColumns(rows).measures, ['Delivery Hour']);
 });
 
-test('a scatter grouped by a number names its axes, not its grouping column', async () => {
-  /* One point per hour of the day, temperature against humidity. `extractSeries`
-     looked for a STRING column to use as the label, found none — an hour is a
-     whole number — took the x measure as the label instead, and then named the
-     grouping column as though it were a measure:
-
-       title:  "Average Temperature C vs Average Humidity Pct Correlation"
-       prose:  "Reading Ts Hour and Average Humidity Pct show a strong
-                negative relationship (r = -0.79)."
-
-     The title was right and the sentence under it was about a different pair. */
-  const { analyzeChart } = await import('../lib/insightEngine.js');
-  const chart = {
-    id: 'c1',
-    title: 'Average Temperature C vs Average Humidity Pct Correlation',
-    chart_type: 'scatter',
-    dimension: 'Reading Ts Hour',
-    xAxisKey: 'Average Temperature C',
-    yAxisKey: 'Average Humidity Pct',
-    resultData: Array.from({ length: 24 }, (_, h) => ({
-      'Reading Ts Hour': h,
-      'Average Temperature C': 18 + h * 0.4,
-      'Average Humidity Pct': 60 - h * 0.9,
-    })),
-  };
-  const f = analyzeChart(chart, 50000);
-  assert.ok(
-    !/Reading Ts Hour/i.test(f.headline),
-    `the grouping column was reported as a measure: ${f.headline}`
-  );
-  assert.match(f.headline, /Average Temperature C and Average Humidity Pct/i);
-});

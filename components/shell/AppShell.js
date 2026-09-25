@@ -22,7 +22,8 @@ import {
   Settings,
   Library,
 } from 'lucide-react';
-import { useActions, useAnalysis, useDataset } from '../../lib/store/DatasetProvider';
+import { useActions, useDataset } from '../../lib/store/DatasetProvider';
+import { useDashboard } from '../../lib/store/DashboardProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
 import Logo, { PRODUCT_NAME } from './Logo';
 import NotificationBell from './NotificationBell';
@@ -164,7 +165,7 @@ const actionClass = (rail) =>
 
 export default function AppShell({ children }) {
   const { dataset, status } = useDataset();
-  const { analysis } = useAnalysis();
+  const { board } = useDashboard();
   const { exportCsv } = useActions();
   const { can: planAllows, loading: planLoading } = usePlan();
   // A page whose whole content needs a capability this plan lacks is left out
@@ -300,7 +301,7 @@ export default function AppShell({ children }) {
             collapsed={rail}
           />
         )}
-        {analysis?.storyboard?.length > 0 && (
+        {!!board && (
           <NavLink
             item={{ href: '/present', label: 'Slideshow', icon: Presentation, hint: 'The findings full-screen, one per slide' }}
             active={pathname === '/present'}
@@ -321,7 +322,7 @@ export default function AppShell({ children }) {
         * be discarded is visible while you decide.
         */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
-        {analysis?.storyboard?.length > 0 && (
+        {!!board && (
           <Link
             href="/report"
             title="Report"

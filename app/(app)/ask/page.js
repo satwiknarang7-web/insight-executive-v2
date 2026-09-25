@@ -1,424 +1,160 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { modelHeaders } from '../../../lib/geminiKey';
-import { Send, Loader2, Sparkles, Code2, ChevronRight, Terminal, Info, ShieldCheck } from 'lucide-react';
-import { useActions, useDataset, useMeasures } from '../../../lib/store/DatasetProvider';
+/**
+ * Ask a question of the data in plain words and get a chart that answers it,
+ * with a sentence on what it shows. Read by the built-in engine
+ * (lib/engine/ask.js) against the table's own fields and measures; with a
+ * model key, a question the engine cannot read is passed to the model, whose
+ * proposed chart is checked against the table before it is drawn. Any answer
+ * can be added to the dashboard.
+ */
+
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { ChevronRight, Loader2, Plus, Send, Sparkles, Terminal, X } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
-import LazyChart from '../../../components/charts/LazyChart';
-import ChartBoundary from '../../../components/charts/ChartBoundary';
+import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
+import { useDashboard } from '../../../lib/store/DashboardProvider';
+import { usePlan } from '../../../lib/store/PlanProvider';
+import { call } from '../../../lib/store/engineClient';
+import { keySnapshot, modelHeaders, serverKeySnapshot, subscribeToKey } from '../../../lib/geminiKey';
+import { ChartPalette } from '../../../components/charts/palette';
+import Tile from '../../../components/dashboard/Tile';
 import { formatNumber } from '../../../lib/format';
-import { formatSql } from '../../../lib/sqlFormat';
-import { questionRelevance } from '../../../lib/askIntent';
-import { planQuestion } from '../../../lib/questionPlanner';
-
-const MAP_TYPES = new Set(['filledmap', 'bubblemap', 'shapemap']);
-
-/**
- * Would this map come out blank?
- *
- * The boundary file holds country names. A column called `Region` passes every
- * name test and holds "North", "South", "East", "West" often enough that the
- * only honest check is against the values themselves. The atlas is imported
- * only when a map was actually asked for, so nothing extra is downloaded by
- * anyone asking an ordinary question.
- *
- * @returns {Promise<string|null>} why not, or null when the map will draw.
- */
-async function mapProblem(spec, sample) {
-  if (!spec || !MAP_TYPES.has(spec.chart_type) || !spec.xAxisKey) return null;
-  try {
-    const [topoMod, topojson, geo] = await Promise.all([
-      import('world-atlas/countries-110m.json'),
-      import('topojson-client'),
-      import('../../../lib/geo'),
-    ]);
-    const topo = topoMod.default || topoMod;
-    const names = topojson.feature(topo, topo.objects.countries).features.map((f) => f.properties.name);
-    const column = spec.dimension || spec.xAxisKey;
-    const { matched, unmatched, total } = geo.placeableRegions(
-      (sample || []).map((row) => row?.[column]),
-      names
-    );
-    if (total > 0 && matched.length === 0) {
-      return (
-        `A map can only shade places it can match to a country, and none of the values in “${column}” ` +
-        `match one (${unmatched.slice(0, 4).join(', ')}${unmatched.length > 4 ? '…' : ''}). ` +
-        'Ask for a bar chart of the same thing instead.'
-      );
-    }
-    return null;
-  } catch {
-    // The atlas failed to load. Not a reason to refuse the chart.
-    return null;
-  }
-}
-
-/**
- * Starter questions this dataset can actually answer.
- *
- * These were four fixed retail questions, shown over every file — so the churn
- * and campaigns samples the app ships with were offered a question about
- * revenue and unit price, columns neither of them has. A suggestion that fails
- * on the app's own sample data is worse than no suggestion.
- *
- * Writing them from the columns was not enough on its own: a phrasing can name
- * real columns and still be a shape this page cannot build — "is there a
- * relationship between A and B" asks for a scatter, and a scatter needs a
- * column saying what one point is, which that sentence never says. So every
- * candidate is planned before it is offered, and the ones that come back with a
- * refusal are not shown. Whatever is on this list, clicking it draws a chart.
- */
-function starterQuestions(context) {
-  const profile = context?.profile;
-  const measures = profile?.measures || [];
-  const temporal = profile?.temporal || [];
-  // A date column is listed as a dimension as well as a temporal one, and
-  // "Which order_date has the highest revenue?" is not a question anybody asks.
-  const dimensions = (profile?.dimensions || []).filter((d) => !temporal.includes(d));
-  const candidates = [];
-
-  if (measures[0] && dimensions[0]) candidates.push(`Which ${dimensions[0]} has the highest ${measures[0]}?`);
-  if (measures[0] && temporal[0]) candidates.push(`How has ${measures[0]} changed over ${temporal[0]}?`);
-  if (measures[0] && dimensions[1]) candidates.push(`What is the share of ${measures[0]} by ${dimensions[1]}?`);
-  else if (measures[1] && dimensions[0]) candidates.push(`What is the share of ${measures[1]} by ${dimensions[0]}?`);
-  if (measures[0] && measures[1]) candidates.push(`Is there a relationship between ${measures[0]} and ${measures[1]}?`);
-  // Spares, for when one of the above is refused.
-  if (measures[1] && dimensions[0]) candidates.push(`What is the average ${measures[1]} by ${dimensions[0]}?`);
-  if (dimensions[0]) candidates.push(`How many rows are there for each ${dimensions[0]}?`);
-
-  return candidates.filter((q) => plannable(q, context)).slice(0, 4);
-}
-
-/**
- * Why the model did not write this query, in words, from the route's reason.
- *
- * `no_provider` is the one that is not a failure at all: this deployment holds
- * no key of its own on purpose (see lib/llm.server.js), so a browser that has
- * not saved one never reaches a model, and every answer comes from the offline
- * reader. That is a setting, and it is one screen away, so it gets a link
- * rather than a sentence about being unavailable.
- */
-function fellBackBecause(reason) {
-  if (reason === 'no_provider') {
-    return { settings: true, text: 'No model key is saved in this browser, so the question was read here instead.' };
-  }
-  if (reason === 'generation_failed') {
-    return { text: 'The model did not return a usable query, so the question was read here instead.' };
-  }
-  if (reason === 'error') {
-    return { text: 'The model call failed, so the question was read here instead.' };
-  }
-  // Anything else is the validator's own sentence about the query the model
-  // wrote — the most useful thing on this list, and the one worth repeating
-  // verbatim rather than summarising.
-  return reason ? { text: `The query the model wrote was refused: ${reason}` } : null;
-}
-
-/** Would this question draw something, asked offline? */
-function plannable(question, context) {
-  try {
-    return Boolean(planQuestion(question, context).spec);
-  } catch {
-    return false;
-  }
-}
 
 export default function AskPage() {
   const { dataset } = useDataset();
-  const { askEngine } = useActions();
-  const measures = useMeasures();
-
-  const [question, setQuestion] = useState('');
+  const { engine, settings, addTile, saveMeasure, board } = useDashboard();
+  const { serverModel } = usePlan();
+  const ownKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
+  const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [answers, setAnswers] = useState([]);
-  const [error, setError] = useState(null);
+  const [examples, setExamples] = useState([]);
+  const [added, setAdded] = useState(new Set());
 
-  const examples = useMemo(
-    () =>
-      starterQuestions({
-        columns: dataset?.columns || [],
-        profile: dataset?.profile,
-        sample: dataset?.preview || [],
-        measures,
-      }),
-    [dataset?.columns, dataset?.profile, dataset?.preview, measures]
-  );
+  useEffect(() => {
+    if (!dataset) return;
+    call('askExamples', settings)
+      .then((r) => setExamples(r.examples || []))
+      .catch(() => setExamples([]));
+  }, [dataset, settings]);
 
   const ask = useCallback(
-    async (text) => {
-      const q = (text ?? question).trim();
-      if (!q || busy) return;
-
-      // A question that is not about the data has no honest answer here. The
-      // deterministic planner will always return *something* — its own best
-      // candidate — and presenting that as the answer to "hello how are you"
-      // is a chart with a confident sentence under it about a question nobody
-      // asked. Refusing is the only truthful option.
-      const relevance = questionRelevance(q, { columns: dataset?.columns || [] });
-      if (!relevance.answerable) {
-        setError(relevance.reason);
-        return;
-      }
-
+    async (question) => {
+      const q = String(question || '').trim();
+      if (!q) return;
       setBusy(true);
-      setError(null);
-
       try {
-        // 1. Ask the model for a chart specification. Only the schema goes over
-        //    the wire — never any rows.
-        //
-        //    Why it did not answer is kept. The badge used to say "Matched
-        //    offline" and stop there, which reads as a property of the question
-        //    rather than what it is: this browser has no key saved, or the plan
-        //    does not include a model, or the model wrote a query that was
-        //    refused. Those want three different things done about them, and
-        //    the first one wants a link to Settings.
-        let spec = null;
-        let source = 'model';
-        let why = null;
-        try {
-          const res = await fetch('/api/ask', {
+        let res = await call('askTile', { text: q, ...settings });
+        let via = 'engine';
+        if (res.error && (ownKey || serverModel)) {
+          const model = await fetch('/api/ask', {
             method: 'POST',
             headers: modelHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ question: q, schema: dataset.schema }),
-          });
-          const json = await res.json();
-          if (!json.unavailable && json.sql) spec = json;
-          else why = res.status === 402 ? { plan: true, text: json.error } : fellBackBecause(json.reason);
-        } catch {
-          why = { text: 'The model could not be reached, so the question was read here instead.' };
-        }
-
-        // 2. No model (or it failed): read the question ourselves and compose
-        //    the chart it describes. This is the path that can actually build
-        //    the shape that was asked for — a matrix, a map, a funnel — rather
-        //    than returning the nearest pre-built candidate, which was always a
-        //    bar chart because that is most of what the storyboard contains.
-        let declined = null;
-        if (!spec) {
-          const read = planQuestion(q, {
-            columns: dataset.columns || [],
-            profile: dataset.profile,
-            sample: dataset.preview || [],
-            measures,
-          });
-          if (read.spec) {
-            spec = read.spec;
-            source = 'planner';
-          } else {
-            declined = read.error;
+            body: JSON.stringify({ question: q, fields: engine?.ds?.fields || [], measures: (engine?.measures || []).map((m) => ({ id: m.id, label: m.label })) }),
+          })
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
+          if (model?.spec) {
+            const checked = await call('askTile', { spec: model.spec, ...settings });
+            if (!checked.error) {
+              res = checked;
+              via = 'model';
+            }
           }
         }
-
-        // 3. The reader could not place some part of the question. Its reason
-        //    names that part, which is worth more than a chart: the page used
-        //    to fall back to whichever storyboard candidate shared the most
-        //    words with the question, and a single incidental word was enough
-        //    to qualify. That is how "a matrix of average monthly tenure, with
-        //    row: category and column: Gender" came back as average spend by
-        //    category — the word "category" and nothing else.
-        if (!spec) throw new Error(declined || 'Could not build a chart for that question.');
-
-        // 4. A map can only shade names it can match to a country. Asking for
-        //    one over a column holding "North", "South", "East", "West" draws
-        //    an empty world and says nothing about it — the New Chart dialog
-        //    checks the values against the boundary file, and there is no
-        //    reason this path should be the one that stays quiet.
-        const unplaceable = await mapProblem(spec, dataset.preview || []);
-        if (unplaceable) throw new Error(unplaceable);
-
-        // 5. Execute locally and compute verified statistics.
-        const { chart, finding } = await askEngine(spec);
-        if (!chart || !chart.resultData?.length) {
-          throw new Error('That query returned no rows. Try rephrasing, or check the column names in Explore.');
-        }
-
-        setAnswers((prev) => [
-          { id: Date.now(), question: q, chart, finding, source, why, interpretation: spec.interpretation },
-          ...prev,
-        ]);
-        setQuestion('');
-      } catch (e) {
-        setError(e.message);
+        setAnswers((a) => [{ id: `${Date.now()}`, question: q, via, ...res }, ...a]);
+        setText('');
       } finally {
         setBusy(false);
       }
     },
-    [question, busy, dataset, measures, askEngine]
+    [settings, ownKey, serverModel, engine]
   );
 
-  if (!dataset) return null;
+  const addToDashboard = async (answer) => {
+    if (answer.adhoc) await saveMeasure({ ...answer.adhoc, adhoc: undefined });
+    const { computed, error, id, ...spec } = answer.tile;
+    await addTile({ ...spec, w: 6, h: 4 });
+    setAdded((s) => new Set([...s, answer.id]));
+  };
 
+  if (!dataset) {
+    return (
+      <PageFrame title="Ask a question">
+        <p className="text-sm text-white/40">Load a dataset first.</p>
+      </PageFrame>
+    );
+  }
+
+  const measures = engine?.measures || [];
+  const fields = engine?.ds?.fields || [];
   return (
-    <PageFrame title="Ask a question" subtitle="In plain English. Every answer comes with the query behind it.">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex flex-col gap-5">
-          {/* Prompt */}
-          <div className="card p-4" data-tutorial="ask-input">
-            <div className="flex items-center gap-2">
-              <input
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && ask()}
-                placeholder="e.g. which region has the highest average order value?"
-                disabled={busy}
-                className="min-h-11 min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-white/25 disabled:opacity-50 sm:min-h-0"
-              />
-              <button
-                onClick={() => ask()}
-                disabled={busy || !question.trim()}
-                className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-on-accent transition-colors enabled:hover:bg-accent-400 disabled:opacity-30 sm:min-h-0"
-              >
-                {busy ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                Ask
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="rounded-xl border border-rose-500/25 bg-rose-500/8 px-4 py-3 text-[13px] text-rose-200/80">
-              {error}
-            </div>
-          )}
-
-          {answers.length === 0 && !busy && examples.length > 0 && (
-            <div className="card p-6">
-              <div className="label mb-3">Try one of these</div>
-              <div className="flex flex-col gap-2">
-                {examples.map((ex) => (
-                  <button
-                    key={ex}
-                    onClick={() => ask(ex)}
-                    className="group flex items-center justify-between gap-3 rounded-xl border border-white/7 bg-white/[0.02] px-4 py-3 text-left text-sm text-white/60 transition-colors hover:border-accent-500/30 hover:bg-white/[0.05] hover:text-white"
-                  >
-                    {ex}
-                    <ChevronRight size={14} className="shrink-0 text-white/20 group-hover:text-accent-400" />
-                  </button>
-                ))}
-              </div>
+    <ChartPalette>
+      <PageFrame title="Ask a question" subtitle="In plain words. Every answer is computed from your rows.">
+        <div className="mx-auto max-w-4xl space-y-5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              ask(text);
+            }}
+            className="card flex items-center gap-2 p-2"
+          >
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={examples[0] ? `e.g. ${examples[0]}` : 'e.g. revenue by region'}
+              aria-label="Your question"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none"
+            />
+            <button type="submit" disabled={busy || !text.trim()} className="flex items-center gap-1.5 rounded-lg bg-accent-500 px-4 py-2 text-[12px] font-black uppercase tracking-[0.12em] text-on-accent hover:bg-accent-400 disabled:opacity-40">
+              {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Ask
+            </button>
+          </form>
+          {examples.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {examples.map((e) => (
+                <button key={e} type="button" onClick={() => ask(e)} className="rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/65 hover:border-accent-500/40 hover:text-white">
+                  {e}
+                </button>
+              ))}
             </div>
           )}
 
           {answers.map((a) => (
-            <Answer key={a.id} answer={a} />
+            <section key={a.id} className="space-y-2" data-testid="answer">
+              <div className="flex items-center gap-2 text-[13px] text-white/55">
+                <span className="font-semibold text-white/80">“{a.question}”</span>
+                {a.via === 'model' && (
+                  <span className="flex items-center gap-1 text-[11px] text-accent-300">
+                    <Sparkles size={11} /> read by the model, checked against the table
+                  </span>
+                )}
+                <button type="button" aria-label="Remove answer" onClick={() => setAnswers((x) => x.filter((y) => y.id !== a.id))} className="ml-auto rounded p-1 text-white/30 hover:text-white">
+                  <X size={13} />
+                </button>
+              </div>
+              {a.error ? (
+                <p className="card p-4 text-[13px] text-amber-300/90">{a.error}</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-12">
+                    <Tile tile={{ ...a.tile, w: 12 }} measures={a.adhoc ? [...measures, a.adhoc] : measures} fields={fields} editing={false} />
+                  </div>
+                  {board && (
+                    <button type="button" disabled={added.has(a.id)} onClick={() => addToDashboard(a)} className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white disabled:opacity-50">
+                      <Plus size={13} /> {added.has(a.id) ? 'Added to the dashboard' : 'Add to the dashboard'}
+                    </button>
+                  )}
+                </>
+              )}
+            </section>
           ))}
-        </div>
-
-        <aside className="flex flex-col gap-4">
-          <div className="card p-5">
-            <div className="mb-2 flex items-center gap-2">
-              <ShieldCheck size={13} className="text-emerald-400" />
-              <span className="label !text-emerald-400/70">How this works</span>
-            </div>
-            <p className="text-[12px] leading-relaxed text-white/45">
-              Your question and the column <em>names</em> are sent to a language model, which writes a SQL
-              query. The query runs in your browser against the rows, and the statistics under each chart are
-              computed from the real results — not written by the model.
-            </p>
-            <p className="mt-3 text-[12px] leading-relaxed text-white/35">
-              With no model configured, your question is read here instead — the shape you asked for, what is
-              being measured, and what to break it down by — and the same query is composed from your
-              columns, so the page still works offline. When part of the question names nothing in this data,
-              it says which part rather than showing you a chart that answers something else.
-            </p>
-          </div>
 
           <SqlConsole />
-        </aside>
-      </div>
-    </PageFrame>
-  );
-}
-
-function Answer({ answer }) {
-  const { question, chart, finding, source, why, interpretation } = answer;
-  return (
-    <div className="card overflow-hidden">
-      <div className="border-b border-white/7 px-5 py-4">
-        <div className="flex items-start gap-3">
-          <Sparkles size={15} className="mt-0.5 shrink-0 text-accent-400" />
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-white/85">{question}</p>
-            {source !== 'model' && (
-              <div className="mt-1.5 flex flex-col gap-1">
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.15em] text-amber-400/70">
-                  <Info size={10} />
-                  Read offline
-                </span>
-                {/* The badge alone reads as a verdict on the question. The
-                    reason says whose decision it actually was, and the one
-                    that is a setting rather than a failure says where. */}
-                {why?.text && (
-                  <p className="text-[11px] leading-relaxed text-white/40">
-                    {why.text}
-                    {why.settings && (
-                      <>
-                        {' '}
-                        <Link href="/home#model-key" className="text-accent-400 underline-offset-2 hover:underline">
-                          Add one on the Get data page
-                        </Link>
-                        .
-                      </>
-                    )}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
         </div>
-      </div>
-
-      <div className="p-5">
-        {finding?.headline && <p className="mb-4 text-[15px] leading-relaxed text-white/80">{finding.headline}</p>}
-        {!finding?.headline && interpretation && (
-          <p className="mb-4 text-[15px] leading-relaxed text-white/70">{interpretation}</p>
-        )}
-
-        <div className="h-80 w-full">
-          <ChartBoundary resetKey={answer.id}>
-            <LazyChart
-              data={chart.resultData}
-              type={chart.chart_type}
-              xKey={chart.xAxisKey}
-              yKey={chart.yAxisKey}
-              secondaryYKey={chart.secondaryYAxisKey}
-              seriesKey={chart?.seriesKey}
-              seriesSort={chart?.seriesSort}
-              xLabel={chart.xAxisLabel}
-              yLabel={chart.yAxisLabel}
-              eager
-            />
-          </ChartBoundary>
-        </div>
-
-        {finding?.detail && <p className="mt-4 text-[13px] leading-relaxed text-white/45">{finding.detail}</p>}
-
-        {finding?.verifiedFacts?.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {finding.verifiedFacts.map((f, i) => (
-              <span key={i} className="rounded-lg bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] text-white/50">
-                {f}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {chart.sql && (
-          <details className="group mt-4">
-            <summary className="flex cursor-pointer list-none items-center gap-2 text-white/35 hover:text-white/60">
-              <Code2 size={12} />
-              <span className="label">Query</span>
-              <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
-            </summary>
-            <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg code-surface border border-white/10 p-3 font-mono text-[11px] leading-relaxed">
-              {formatSql(chart.sql)}
-            </pre>
-          </details>
-        )}
-      </div>
-    </div>
+      </PageFrame>
+    </ChartPalette>
   );
 }
 

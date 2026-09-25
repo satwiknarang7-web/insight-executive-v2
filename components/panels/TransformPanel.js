@@ -15,7 +15,7 @@ import {
   Wand2,
   X,
 } from 'lucide-react';
-import { useActions, useDataset, useMeasures } from '../../lib/store/DatasetProvider';
+import { useActions, useDataset } from '../../lib/store/DatasetProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
 import {
   BLANKS,
@@ -234,8 +234,7 @@ const SMALL_BUTTON =
 
 export default function TransformPanel() {
   const { dataset, preparation } = useDataset();
-  const { setTransforms, draftTransform, suggestPreparation, saveMeasure } = useActions();
-  const measures = useMeasures();
+  const { setTransforms, draftTransform, suggestPreparation } = useActions();
   const { can } = usePlan();
 
   const columns = useMemo(() => dataset?.columns || [], [dataset]);
@@ -338,7 +337,7 @@ export default function TransformPanel() {
       const result = await suggestPreparation();
       if (!result) {
         setNotice('The analyst could not be reached. Check the model key on your profile.');
-      } else if (!result.steps.length && !result.measures.length) {
+      } else if (!result.steps.length) {
         setNotice(result.summary ? `${result.summary} Nothing to add.` : 'The analyst had nothing to add to this table.');
       } else {
         setProposal(result);
@@ -361,11 +360,9 @@ export default function TransformPanel() {
   if (!dataset) return null;
 
   const staged = new Set(list.map((s) => s.id));
-  const savedMeasureNames = new Set(measures.map((m) => m.name.toLowerCase()));
   // The suggestions on offer: what was asked for here, else what the analyst
   // left for a person to decide before the analysis ran.
   const suggestedSteps = (proposal?.steps || preparation?.suggested || []).filter((s) => !staged.has(s.id));
-  const suggestedMeasures = (proposal?.measures || []).filter((m) => !savedMeasureNames.has(m.name.toLowerCase()));
   const summary = proposal?.summary || preparation?.summary || '';
 
   return (
@@ -400,7 +397,7 @@ export default function TransformPanel() {
       </p>
 
       {/* What the analyst read, and what it left for a person to decide. */}
-      {(summary || suggestedSteps.length > 0 || suggestedMeasures.length > 0 || preparation?.applied?.length > 0) && (
+      {(summary || suggestedSteps.length > 0 || 0 > 0 || preparation?.applied?.length > 0) && (
         <div className="mb-3 rounded-lg border border-accent-500/20 bg-accent-500/[0.04] p-3">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-accent-300/80">
             <Sparkles size={11} /> The analyst
@@ -426,34 +423,6 @@ export default function TransformPanel() {
                   <button onClick={() => stage(s)} className={`${SMALL_BUTTON} shrink-0`}>
                     <Plus size={10} className="mr-1 inline" />
                     Add
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {suggestedMeasures.length > 0 && (
-            <ul className="mt-2 flex flex-col gap-1.5">
-              {suggestedMeasures.map((m) => (
-                <li key={m.name} className="flex items-start gap-2 rounded-md border border-white/6 bg-black/10 px-2.5 py-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[12px] text-white/80">
-                      Measure: {m.name} <span className="font-mono text-[10px] text-white/35">= {m.expr}</span>
-                    </div>
-                    {m.explanation && <div className="mt-0.5 text-[11px] leading-snug text-white/40">{m.explanation}</div>}
-                  </div>
-                  <button
-                    onClick={() => {
-                      try {
-                        saveMeasure(m);
-                        setNotice(`${m.name} saved as a measure.`);
-                      } catch (e) {
-                        setError(e.message);
-                      }
-                    }}
-                    className={`${SMALL_BUTTON} shrink-0`}
-                  >
-                    <Plus size={10} className="mr-1 inline" />
-                    Save
                   </button>
                 </li>
               ))}
