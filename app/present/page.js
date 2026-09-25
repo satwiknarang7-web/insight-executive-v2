@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Maximize2, Pause, Play, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { useDataset } from '../../lib/store/DatasetProvider';
 import { useDashboard } from '../../lib/store/DashboardProvider';
+import { filteredReportBoard } from '../../lib/engine/reportScope';
 import ThemeToggle from '../../components/shell/ThemeToggle';
 import AnalystAvatar from '../../components/panels/AnalystAvatar';
 import AvatarPicker, { useAvatar } from '../../components/panels/AvatarPicker';
@@ -34,7 +35,9 @@ const SPEEDS = [
 export default function PresentPage() {
   const router = useRouter();
   const { dataset } = useDataset();
-  const { board, engine } = useDashboard();
+  const { board: live, engine, filters } = useDashboard();
+  // Filters on: the slides are about the filtered rows, like the dashboard.
+  const board = useMemo(() => filteredReportBoard(live, filters, engine?.ds?.fields || live?.ds?.fields || []), [live, filters, engine]);
   const [page, setPage] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(0);
@@ -193,6 +196,11 @@ export default function PresentPage() {
                 <div>
                   <span className="eyebrow">{bullets.length} key {bullets.length === 1 ? "finding" : "findings"} · {tiles.length} {tiles.length === 1 ? "chart" : "charts"}</span>
                   <h1 className="display mt-4 max-w-4xl text-[30px] leading-[1.12] text-white/95 sm:text-[44px]">{board.headline || board.subject || 'What the data says'}</h1>
+                  {board.filterNote && (
+                    <p className="mt-4 inline-flex items-center gap-2 rounded-lg border border-accent-400/35 bg-accent-400/10 px-3 py-1.5 text-[13px] font-medium text-accent-300" data-testid="present-filter">
+                      Filtered to {board.filterNote}
+                    </p>
+                  )}
                 </div>
                 {bullets.length > 0 && (
                   <ol className="grid gap-3 md:grid-cols-2">
