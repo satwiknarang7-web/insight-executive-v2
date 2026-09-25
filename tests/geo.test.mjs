@@ -57,3 +57,13 @@ test('compass sales territories are not the UK', () => {
   assert.equal(t(['North East', 'North West', 'South East', 'South West']), null);
   assert.equal(t(['North East', 'North West', 'South East', 'South West', 'East', 'West']), null);
 });
+
+test('UK counties and council areas find the county map', () => {
+  assert.equal(t(['Kent', 'Essex', 'Surrey', 'Devon', 'Cornwall', 'Lancashire', 'Norfolk'])?.code, 'GBC');
+  assert.equal(t(['Greater Manchester', 'West Yorkshire', 'Merseyside', 'Tyne and Wear', 'London', 'Kent'])?.code, 'GBC');
+  assert.equal(t(['Glasgow City', 'City of Edinburgh', 'Fife', 'Highland', 'Perth and Kinross', 'North Ayrshire'])?.code, 'GBC');
+  assert.equal(t(['Wirral', 'St Helens', 'Liverpool', 'Sefton', 'Knowsley'])?.code, 'GBC');
+  assert.equal(regionIds('GBC', 'London').length, 33);
+  // Regions still find the region map, not the county one.
+  assert.equal(t(['London', 'Scotland', 'Wales', 'West Midlands', 'North West', 'South East'])?.code, 'GB');
+});

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, BarChart3, Calculator, Database, FileDown, Grid3x3, MessageCircle, Presentation, ShieldCheck, Sparkles, Upload, Wand2 } from 'lucide-react';
+import { ArrowRight, Calculator, FileDown, Grid3x3, MessageCircle, ShieldCheck, Sparkles, Wand2 } from 'lucide-react';
 import Logo from '../components/shell/Logo';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import ProductPreview from '../components/landing/ProductPreview';
@@ -26,11 +26,30 @@ const FEATURES = [
   { icon: ShieldCheck, title: 'Private by default', body: 'Files are parsed and analysed in your browser. Without a model key, no rows leave it.' },
 ];
 
-const STEPS = [
-  { icon: Upload, title: 'Load', body: 'A file, a link, a database, or a photo of a table. Cleaned and typed as it loads.' },
-  { icon: BarChart3, title: 'Analyse', body: 'The engine reads each column, derives the measures an analyst would, and plans the dashboard.' },
-  { icon: Presentation, title: 'Share', body: 'Edit anything, ask follow-ups, then export or present the findings.' },
+const SAMPLE = [
+  ['2024-06-03', 'Kerala', '1,240'],
+  ['03/06/2024', 'Punjab', '₹ 980'],
+  ['2024-06-04', 'Orissa', '2,115'],
+  ['4 Jun 2024', 'Goa', '640'],
 ];
+
+const READS = [
+  ['order_date', 'Dates in three formats, made one. Trend by month.'],
+  ['state', 'Indian states, Orissa read as Odisha. Drawn as a map.'],
+  ['amount', 'Money, with ₹ and commas stripped. Summed.'],
+];
+
+function Step({ n, title, children }) {
+  return (
+    <div className="bg-[var(--canvas)] p-6">
+      <div className="mb-5 flex items-baseline gap-2.5">
+        <span className="font-mono text-[12px] text-accent-400">{n}</span>
+        <h3 className="text-[15px] font-semibold text-white/90">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
 
 const FACTS = [
   ['In-browser', 'parsing and analysis'],
@@ -132,68 +151,81 @@ export default function LandingPage() {
         <section id="how" className="scroll-mt-20 border-t border-white/6">
           <div className="mx-auto w-full max-w-6xl px-5 py-20 md:px-8">
             <div className="label">How it works</div>
-            <h2 className="display mt-3 text-[32px] leading-tight text-white/95 md:text-[40px]">From file to findings.</h2>
-            <ol className="relative mt-10 grid gap-6 md:grid-cols-3">
-              <span aria-hidden="true" className="absolute left-[10%] right-[10%] top-6 hidden h-px bg-gradient-to-r from-transparent via-accent-400/40 to-transparent md:block" />
-              {STEPS.map(({ icon: Icon, title, body }, i) => (
-                <li key={title} className="relative">
-                  <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-400/30 bg-[var(--canvas)] text-accent-300 shadow-[var(--glow)]">
-                    <Icon size={20} />
-                  </span>
-                  <div className="mt-5 flex items-baseline gap-2">
-                    <span className="font-mono text-[12px] text-accent-400">0{i + 1}</span>
-                    <h3 className="text-[18px] font-semibold text-white/90">{title}</h3>
-                  </div>
-                  <p className="mt-2 max-w-[34ch] text-[14px] leading-relaxed text-white/55">{body}</p>
-                </li>
-              ))}
-            </ol>
+            <h2 className="display mt-3 max-w-2xl text-[32px] leading-tight text-white/95 md:text-[40px]">One messy file, followed through.</h2>
+            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-white/8 bg-white/8 lg:grid-cols-3">
+              <Step n="1" title="You load a file">
+                <table className="w-full font-mono text-[11.5px]">
+                  <thead>
+                    <tr className="text-left text-white/40">
+                      <th className="pb-2 font-normal">order_date</th>
+                      <th className="pb-2 font-normal">state</th>
+                      <th className="pb-2 text-right font-normal">amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-white/70">
+                    {SAMPLE.map(([d, st, a], i) => (
+                      <tr key={i} className="border-t border-white/6">
+                        <td className="py-1.5">{d}</td>
+                        <td className="py-1.5">{st}</td>
+                        <td className={`py-1.5 text-right ${a.startsWith('₹') ? 'text-amber-300/90' : ''}`}>{a}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Step>
+              <Step n="2" title="It reads what each column is">
+                <ul className="space-y-2.5 text-[12.5px]">
+                  {READS.map(([col, what]) => (
+                    <li key={col} className="grid grid-cols-[6.5rem_1fr] gap-3">
+                      <span className="font-mono text-white/80">{col}</span>
+                      <span className="text-white/50">{what}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Step>
+              <Step n="3" title="You get the finding, with the chart">
+                <div className="flex h-16 items-end gap-1.5">
+                  {[38, 44, 41, 52, 58, 71].map((h, i) => (
+                    <span key={i} className={`flex-1 rounded-t-[3px] ${i === 5 ? 'bg-accent-400' : 'bg-white/15'}`} style={{ height: `${h}%` }} />
+                  ))}
+                </div>
+                <p className="mt-4 text-[13.5px] leading-relaxed text-white/75">
+                  Sales rose 23% in June, the best month so far. Kerala and Punjab account for most of the rise.
+                </p>
+              </Step>
+            </div>
           </div>
         </section>
 
         <section id="sources" className="scroll-mt-20 border-t border-white/6">
-          <div className="mx-auto w-full max-w-6xl px-5 py-20 md:px-8">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,22rem)_1fr]">
-              <div>
-                <div className="label">Sources</div>
-                <h2 className="display mt-3 text-[32px] leading-tight text-white/95">Bring data from anywhere.</h2>
-                <p className="mt-3 text-[15px] leading-relaxed text-white/55">Files are read in your browser. Links and databases are fetched and handed straight to it.</p>
-                <div className="mt-6 flex items-center gap-2 text-[13px] text-white/50">
-                  <Database size={15} className="text-accent-400" /> {fileSourceNames().length} file types · {liveSourceNames().length} live sources
-                </div>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <div className="label">Files</div>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {fileSourceNames().map((name) => (
-                      <span key={name} className="chip bg-white/[0.02] text-white/70">{name}</span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <div className="label">Live sources</div>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {liveSourceNames().map((name) => (
-                      <span key={name} className="chip bg-white/[0.02] text-white/70">{name}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-20 md:px-8 lg:grid-cols-[minmax(0,20rem)_1fr]">
+            <div>
+              <div className="label">Sources</div>
+              <h2 className="display mt-3 text-[32px] leading-tight text-white/95">Where the data can come from.</h2>
+              <p className="mt-3 text-[15px] leading-relaxed text-white/55">Files are read in your browser. Links and databases are fetched and handed straight to it.</p>
             </div>
+            <dl className="divide-y divide-white/8 border-y border-white/8">
+              {[['Files', fileSourceNames()], ['Databases and apps', liveSourceNames()]].map(([k, names]) => (
+                <div key={k} className="grid gap-2 py-5 sm:grid-cols-[11rem_1fr]">
+                  <dt className="text-[13px] font-semibold text-white/85">
+                    {k} <span className="ml-1 font-mono text-[12px] font-normal text-white/35">{names.length}</span>
+                  </dt>
+                  <dd className="text-[13.5px] leading-7 text-white/55">{names.join(' · ')}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
-        <section className="px-5 pb-20 md:px-8">
-          <div className="card card-glow relative mx-auto max-w-6xl overflow-hidden px-6 py-12 text-center md:px-12">
-            <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(50%_80%_at_50%_0%,var(--wash-a),transparent_70%)]" />
-            <div className="relative">
-              <h2 className="display text-[30px] leading-tight text-white/95 md:text-[38px]">See your data the way an analyst would.</h2>
-              <p className="mx-auto mt-3 max-w-[52ch] text-[15px] text-white/55">Load a file or pick a sample. Your dashboard is ready before you finish reading this.</p>
-              <Link href="/home" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-[15px] font-semibold text-on-accent shadow-[var(--glow)] transition hover:bg-accent-400">
-                Open the app <ArrowRight size={16} />
-              </Link>
+        <section className="border-t border-white/6">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-6 px-5 py-16 md:px-8">
+            <div className="mr-auto">
+              <h2 className="display text-[26px] leading-tight text-white/95 md:text-[30px]">Try it on your own data.</h2>
+              <p className="mt-2 text-[15px] text-white/55">Load a file, or start from one of the sample datasets.</p>
             </div>
+            <Link href="/home" className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-[15px] font-semibold text-on-accent transition hover:bg-accent-400">
+              Open the app <ArrowRight size={16} />
+            </Link>
           </div>
         </section>
 
