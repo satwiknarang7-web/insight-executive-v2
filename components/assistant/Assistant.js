@@ -25,6 +25,7 @@ import { retrieve } from '../../lib/assistant/retrieve';
 import { checkAction } from '../../lib/assistant/actions';
 import { answerFromPassages, readCommand } from '../../lib/assistant/local';
 import { describeTransform } from '../../lib/transforms';
+import { SAMPLES } from '../../lib/samples';
 
 const HIDDEN = [/^\/present/, /^\/report\/print/, /^\/share\//];
 const STORE = 'insight.assistant.messages';
@@ -40,7 +41,7 @@ function sameTile(board, t) {
 }
 
 function starters(board, dataset) {
-  if (!dataset) return ['How do I load my data?', 'What can this app do?', 'Do I need an AI key?'];
+  if (!dataset) return ['Load a demo dataset', 'How do I load my data?', 'What can this app do?', 'Do I need an AI key?'];
   const tile = board?.sections?.[0]?.tiles?.[0];
   return [
     'What does this dashboard say?',
@@ -54,7 +55,7 @@ export default function Assistant() {
   const pathname = usePathname() || '';
   const router = useRouter();
   const { dataset } = useDataset();
-  const { setTransforms, draftTransform } = useActions();
+  const { setTransforms, draftTransform, ingestText } = useActions();
   const dash = useDashboard();
   const { serverModel } = usePlan();
   const ownKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
@@ -239,6 +240,12 @@ export default function Assistant() {
           case 'navigate':
             router.push(a.path);
             break;
+          case 'load_sample': {
+            const sample = SAMPLES.find((x) => x.key === a.key);
+            await ingestText(sample.csv, `${sample.key}_sample.csv`);
+            router.push('/dashboard');
+            break;
+          }
           case 'add_chart':
             if (a.adhoc) await dash.saveMeasure({ ...a.adhoc, adhoc: undefined });
             await dash.addTile({ ...a.spec, w: 6, h: 4 });
@@ -283,13 +290,13 @@ export default function Assistant() {
           default:
             throw new Error('Unknown change.');
         }
-        if (a.type !== 'navigate') setHistory((h) => [...h.slice(-19), before]);
+        if (a.type !== 'navigate' && a.type !== 'load_sample') setHistory((h) => [...h.slice(-19), before]);
         setProposal(msgId, p.id, { state: 'applied' });
       } catch (e) {
         setProposal(msgId, p.id, { state: 'failed', error: e.message });
       }
     },
-    [dash, dataset, pathname, router, setTransforms, useModel]
+    [dash, dataset, pathname, router, setTransforms, ingestText, useModel]
   );
 
   const undo = useCallback(async () => {

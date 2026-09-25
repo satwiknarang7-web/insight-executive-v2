@@ -94,3 +94,11 @@ test('questions about the columns are answered from the table itself', () => {
   assert.match(r.reply, /Region — category/);
   assert.match(readCommand('how many rows are there', state).reply, /240 rows/);
 });
+
+test('a demo dataset can be loaded by asking', () => {
+  const none = { board: null, engine: null, dataset: null };
+  const a = readCommand('add a demo dataset', none).actions[0];
+  assert.deepEqual(checkAction(a, none).action, { type: 'load_sample', key: 'retail' });
+  assert.equal(checkAction(readCommand('load the churn sample', none).actions[0], none).action.key, 'churn');
+  assert.equal(checkAction({ type: 'load_sample', sample: 'nope' }, none).ok, false);
+});
