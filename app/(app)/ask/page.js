@@ -99,11 +99,11 @@ export default function AskPage() {
   ];
   const geo = fields.find((f) => f.map);
   const kinds = [];
-  for (const [re, Icon, label] of KINDS) {
+  for (const [re, icon, label] of KINDS) {
     const q = examples.find((e) => re.test(e) && !kinds.some((k) => k.q === e));
-    if (q) kinds.push({ q, Icon, label });
+    if (q) kinds.push({ q, icon, label });
   }
-  if (geo && measures[0]) kinds.push({ q: `${measures[0].label} by ${geo.label.toLowerCase()}`, Icon: MapIcon, label: 'Put it on a map' });
+  if (geo && measures[0]) kinds.push({ q: `${measures[0].label} by ${geo.label.toLowerCase()}`, icon: MapIcon, label: 'Put it on a map' });
   return (
     <ChartPalette>
       <PageFrame title="Ask a question" subtitle="In plain words. Every answer is a chart computed from your rows.">
@@ -141,7 +141,7 @@ export default function AskPage() {
             <section>
               <h2 className="label mb-3">What you can ask</h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {kinds.map(({ q, Icon, label }) => (
+                {kinds.map(({ q, icon: Icon, label }) => (
                   <button key={label} type="button" onClick={() => ask(q)} className="card group p-4 text-left transition-colors hover:border-accent-400/40">
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent-400/25 bg-accent-400/10 text-accent-300 transition group-hover:shadow-[var(--glow)]">
                       <Icon size={15} />
