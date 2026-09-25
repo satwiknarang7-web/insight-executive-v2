@@ -102,3 +102,12 @@ test('a demo dataset can be loaded by asking', () => {
   assert.equal(checkAction(readCommand('load the churn sample', none).actions[0], none).action.key, 'churn');
   assert.equal(checkAction({ type: 'load_sample', sample: 'nope' }, none).ok, false);
 });
+
+test('data prep asked in plain words becomes a transform, chart asks do not', () => {
+  const dataset = { columns: ['order_date', 'region', 'revenue', 'discount', 'notes'] };
+  const type = (q) => readCommand(q, { dataset })?.actions?.[0]?.type;
+  for (const q of ['please rename region to area', 'can you remove duplicates', 'I want to drop the notes column', 'delete notes column', 'make a column profit = revenue - discount', 'change discount to text']) {
+    assert.equal(type(q), 'transform', q);
+  }
+  for (const q of ['show revenue by region', 'remove the revenue chart', 'go to the dashboard']) assert.notEqual(type(q), 'transform', q);
+});

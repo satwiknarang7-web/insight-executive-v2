@@ -189,3 +189,9 @@ test('examples are written against the dataset', () => {
     assert.equal(r.ok, true, `${phrase}: ${r.error}`);
   }
 });
+
+test('a formula written with bare column names is bracketed for you', () => {
+  const r = parseTransformPhrase('make a column profit = revenue - unit_price * units', { columns: ['revenue', 'unit_price', 'units', 'unit'] });
+  assert.ok(r.ok, r.error);
+  assert.equal(r.steps[0].expr, '[revenue] - [unit_price] * [units]');
+});
