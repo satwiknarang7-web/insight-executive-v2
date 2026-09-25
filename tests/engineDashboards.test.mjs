@@ -126,3 +126,31 @@ test('a spread chart appears only when the spread says something', () => {
   assert.ok(vizOf(buildDashboard(orderLog())).includes('histogram'));
   assert.ok(!vizOf(buildDashboard(orderLog({ even: true }))).includes('histogram'));
 });
+
+/* Two splits that interact: one tier spends far more in one age group. A
+   heatmap appears only when the cells depart from what each split predicts. */
+function tiered({ interact }) {
+  let s = 5;
+  const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const groups = ['18-25', '26-35', '36-45', '46-55'];
+  return Array.from({ length: 12000 }, (_, i) => {
+    const tier = ['Platinum', 'Gold', 'Silver'][i % 3];
+    const group = groups[Math.floor(r() * 4)];
+    const base = { Platinum: 28000, Gold: 9000, Silver: 7400 }[tier];
+    const boost = interact && tier === 'Silver' && group === '46-55' ? 0.5 : 1;
+    return { order_id: `O${i}`, order_date: `2006-${String(1 + (i % 12)).padStart(2, '0')}-10`, customer_id: `C${i % 7000}`, tier, age_group: group, order_value: +(base * boost * (0.8 + r() * 0.4)).toFixed(2) };
+  });
+}
+
+test('a heatmap of two splits appears only when they interact', () => {
+  const heat = (b) => b.sections.flatMap((x) => x.tiles).find((t) => t.viz === 'heatmap');
+  const withIt = heat(buildDashboard(tiered({ interact: true })));
+  assert.ok(withIt, 'no heatmap for an interaction');
+  assert.match(withIt.insight, /Silver with 46-55/);
+  assert.equal(heat(buildDashboard(tiered({ interact: false }))), undefined);
+});
+
+test('a top-10 table is kept however many customers there are', () => {
+  const b = buildDashboard(tiered({ interact: false }));
+  assert.ok(b.sections.flatMap((x) => x.tiles).some((t) => t.kind === 'table'));
+});
