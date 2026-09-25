@@ -88,3 +88,41 @@ test('the planner is quick on a quarter of a million rows', () => {
   assert.ok(board.sections.length > 0);
   assert.ok(ms < 20000, `${ms} ms`);
 });
+
+/* An order log joined to its customers: each order row repeats the customer's
+   birth date and lifetime order count. Those describe the customer, not the
+   order — the time axis is the order date, and the lifetime count is neither
+   summed nor divided by. */
+function orderLog({ even = false } = {}) {
+  let s = 11;
+  const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const customers = Array.from({ length: 600 }, (_, i) => ({ id: `C${1000 + i}`, dob: `${1950 + (i % 50)}-0${1 + (i % 9)}-1${i % 9}`, total: 1 + (i % 30), tier: ['Gold', 'Silver', 'Platinum'][i % 3] }));
+  return Array.from({ length: 6000 }, (_, i) => {
+    const c = customers[Math.floor(r() * customers.length)];
+    const items = 1 + (i % 5);
+    return {
+      order_id: `O${i}`,
+      order_date: `2006-${String(1 + (i % 12)).padStart(2, '0')}-${String(1 + (i % 28)).padStart(2, '0')}`,
+      customer_id: c.id,
+      date_of_birth: c.dob,
+      total_orders: c.total,
+      customer_tier: c.tier,
+      order_value: even ? 100 + (i % 40) : +(items * Math.exp(2 + r() * 4)).toFixed(2),
+      shipping_cost: +(4 + items * 1.5).toFixed(2),
+    };
+  });
+}
+
+test('columns that describe the customer are not read as the order', () => {
+  const board = buildDashboard(orderLog());
+  assert.equal(board.ds.time, 'order_date');
+  const labels = board.measures.map((m) => m.label).join(' | ');
+  assert.doesNotMatch(labels, /per total order/i);
+  assert.ok(!board.kpis.some((k) => /total orders/i.test(k.title)), board.kpis.map((k) => k.title).join(' | '));
+});
+
+test('a spread chart appears only when the spread says something', () => {
+  const vizOf = (b) => b.sections.flatMap((x) => x.tiles).map((t) => t.viz);
+  assert.ok(vizOf(buildDashboard(orderLog())).includes('histogram'));
+  assert.ok(!vizOf(buildDashboard(orderLog({ even: true }))).includes('histogram'));
+});
