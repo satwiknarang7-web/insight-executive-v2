@@ -27,10 +27,51 @@ import {
   columnUncertainShare,
 } from '../../../lib/cellConfidence';
 import { formatExact, formatNumber } from '../../../lib/format';
+import { call } from '../../../lib/store/engineClient';
 
 const PAGE_SIZE = 50;
 
 const ROLE_ICON = { measure: Hash, dimension: Type, time: Calendar, identifier: Fingerprint };
+
+/** Each column type has its own badge colour, so a glance tells them apart. */
+const ROLE_STYLE = {
+  measure: 'border-cyan-400/30 bg-cyan-400/10 text-cyan-300 [[data-theme=light]_&]:text-cyan-700',
+  time: 'border-violet-400/30 bg-violet-400/10 text-violet-300 [[data-theme=light]_&]:text-violet-700',
+  identifier: 'border-slate-400/30 bg-slate-400/10 text-slate-300 [[data-theme=light]_&]:text-slate-600',
+  dimension: 'border-amber-400/30 bg-amber-400/10 text-amber-300 [[data-theme=light]_&]:text-amber-700',
+};
+
+/** A column's shape in a few pixels: bins for numbers and dates, top values otherwise. */
+function Sketch({ s }) {
+  if (!s) return <div className="h-12" />;
+  if (s.bins) {
+    const max = Math.max(...s.bins, 1);
+    return (
+      <div className="flex h-12 items-end gap-[2px]" aria-hidden="true">
+        {s.bins.map((n, i) => (
+          <span key={i} className="flex-1 rounded-t-[3px] bg-gradient-to-t from-accent-500/35 to-accent-400/80" style={{ height: `${Math.max(4, (n / max) * 100)}%`, opacity: n ? 1 : 0.25 }} />
+        ))}
+      </div>
+    );
+  }
+  const top = (s.top || []).slice(0, 3);
+  const max = Math.max(...top.map((t) => t.n), 1);
+  return (
+    <ul className="h-12 space-y-1" aria-hidden="true">
+      {top.map((t) => (
+        <li key={t.value} className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px]">
+          <span className="relative h-3.5 overflow-hidden rounded-[4px] bg-white/[0.04]">
+            <span className="absolute inset-y-0 left-0 rounded-[4px] bg-accent-400/25" style={{ width: `${(t.n / max) * 100}%` }} />
+            <span className="relative truncate px-1.5 leading-[14px] text-white/70">{t.value}</span>
+          </span>
+          <span className="font-mono tabular-nums text-white/40">{t.n.toLocaleString()}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const fmtEdge = (s, v) => (s.kind === 'date' ? new Date(v).toISOString().slice(0, 10) : formatNumber(v));
 
 /** Paging is the way through the rows on a phone, and 28px of it was a miss
  *  waiting to happen. Full-size targets on touch, the compact pair on desktop. */
@@ -73,6 +114,17 @@ export default function ExplorePage() {
   // no way to look at the other two at all.
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sketches, setSketches] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    call('columnSketches', { table })
+      .then((r) => !cancelled && setSketches(r.columns || null))
+      .catch(() => !cancelled && setSketches(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [table, dataset]);
 
   // Debounce the search box: every keystroke otherwise scans every row.
   const timerRef = useRef(0);
@@ -278,45 +330,64 @@ export default function ExplorePage() {
         </section>
       )}
 
+      {/* The table at a glance. */}
+      <section className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[
+          ['Rows', (sourceTable ? sourceTable.rowCount : dataset.rowCount).toLocaleString()],
+          ['Columns', columns.length.toLocaleString()],
+          ['Numbers · dates · text', `${columns.filter((c) => profile[c]?.role === 'measure').length} · ${columns.filter((c) => profile[c]?.role === 'time').length} · ${columns.filter((c) => !['measure', 'time'].includes(profile[c]?.role)).length}`],
+          ['Cells filled', sketches ? `${(Math.round((Object.values(sketches).reduce((t, x) => t + x.fill, 0) / Math.max(1, Object.keys(sketches).length)) * 1000) / 10).toString()}%` : '…'],
+        ].map(([k, v]) => (
+          <div key={k} className="card px-4 py-3.5">
+            <div className="label">{k}</div>
+            <div className="figure mt-1 text-[22px] font-semibold text-white/90">{v}</div>
+          </div>
+        ))}
+      </section>
+
       {/* Column profile */}
       <section className="mb-5">
         <div className="mb-2.5 flex items-center gap-3">
-          <span className="label">Columns</span>
+          <span className="label">Column profile</span>
           <span className="text-[11px] text-white/30">{columns.length}</span>
           <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
           <Collapse open={showColumns} onToggle={() => setShowColumns((v) => !v)} label="the column profile" />
         </div>
-        <div
-          className={`grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 ${
-            showColumns ? '' : 'hidden'
-          }`}
-        >
+        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${showColumns ? '' : 'hidden'}`}>
           {columns.map((col) => {
             const p = profile[col] || {};
-            const Icon = ROLE_ICON[p.role] || Type;
-            const nullPct = dataset.rowCount ? ((p.nullCount || 0) / dataset.rowCount) * 100 : 0;
+            const sk = sketches?.[col];
+            const role = p.role || 'dimension';
+            const Icon = ROLE_ICON[role] || Type;
+            const fill = sk ? sk.fill : dataset.rowCount ? 1 - (p.nullCount || 0) / dataset.rowCount : 1;
             return (
-              <div key={col} className="card p-3">
+              <div key={col} className="card group p-4 transition-colors hover:border-accent-400/35">
                 <div className="flex items-center gap-2">
-                  <Icon size={12} className="shrink-0 text-accent-400/70" />
-                  <span className="truncate text-xs font-bold text-white/80" title={col}>
-                    {col}
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${ROLE_STYLE[role] || ROLE_STYLE.dimension}`}>
+                    <Icon size={12} />
                   </span>
-                  <span className="ml-auto shrink-0 text-[9px] font-black uppercase tracking-[0.15em] text-white/25">
-                    {p.role || 'text'}
-                  </span>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/35">
-                  <span>
-                    {(p.distinctCount || 0).toLocaleString()}
-                    {p.distinctCapped ? '+' : ''} distinct
-                  </span>
-                  {nullPct > 0 && <span className="text-amber-400/70">{nullPct.toFixed(1)}% blank</span>}
-                  {p.type === 'number' && p.min !== null && (
-                    <span>
-                      {formatNumber(p.min)} – {formatNumber(p.max)}
+                  <span className="min-w-0 truncate text-[13px] font-semibold text-white/90" title={col}>{col}</span>
+                  {doubt[col] && (
+                    <span title={doubt[col].title} className="ml-auto shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-px text-[9px] font-bold tabular-nums text-amber-300">
+                      {doubt[col].label} judged
                     </span>
                   )}
+                </div>
+                <div className="mt-3">
+                  <Sketch s={sk} />
+                </div>
+                {sk?.bins && (
+                  <div className="mt-1 flex justify-between font-mono text-[10px] text-white/35">
+                    <span>{fmtEdge(sk, sk.min)}</span>
+                    <span>{fmtEdge(sk, sk.max)}</span>
+                  </div>
+                )}
+                <div className="mt-3 flex items-center gap-2 text-[10.5px] text-white/45">
+                  <span className="tabular-nums">{(p.distinctCount || sk?.distinct || 0).toLocaleString()}{p.distinctCapped ? '+' : ''} distinct</span>
+                  <span className="ml-auto tabular-nums">{Math.round(fill * 100)}% filled</span>
+                </div>
+                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/6">
+                  <span className={`block h-full rounded-full ${fill < 0.9 ? 'bg-amber-400/70' : 'bg-emerald-400/70'}`} style={{ width: `${fill * 100}%` }} />
                 </div>
               </div>
             );
@@ -356,14 +427,19 @@ export default function ExplorePage() {
 
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs">
-            <thead className="sticky top-0 bg-canvas-raised">
+            <thead className="sticky top-0 z-10 bg-[var(--surface)]">
               <tr>
-                {columns.map((col) => (
-                  <th key={col} className="whitespace-nowrap border-b border-white/7 px-3 py-0 sm:py-2.5">
+                <th className="w-12 border-b border-white/8 px-3 text-right text-[10px] font-semibold text-white/30">#</th>
+                {columns.map((col) => {
+                  const HeadIcon = ROLE_ICON[profile[col]?.role] || Type;
+                  const numeric = profile[col]?.role === 'measure';
+                  return (
+                  <th key={col} className={`whitespace-nowrap border-b border-white/8 px-3 py-0 sm:py-2.5 ${numeric ? 'text-right' : ''}`}>
                     <button
                       onClick={() => toggleSort(col)}
-                      className="flex min-h-11 items-center gap-1 text-[10px] font-black uppercase tracking-[0.15em] text-white/45 transition-colors hover:text-accent-300 sm:min-h-0"
+                      className={`flex min-h-11 items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] transition-colors hover:text-accent-300 sm:min-h-0 ${sortBy === col ? 'text-accent-300' : 'text-white/50'} ${numeric ? 'ml-auto' : ''}`}
                     >
+                      <HeadIcon size={11} className="shrink-0 opacity-60" />
                       {col}
                       {doubt[col] && (
                         <span
@@ -377,19 +453,21 @@ export default function ExplorePage() {
                         (sortDir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />)}
                     </button>
                   </th>
-                ))}
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
               {rows.map((row, i) => (
                 <tr
                   key={offset + i}
-                  className={`border-b border-white/4 transition-colors hover:bg-white/[0.03] ${
-                    row.isAnomaly ? 'bg-rose-500/[0.04]' : ''
+                  className={`border-b border-white/[0.05] transition-colors odd:bg-white/[0.012] hover:bg-accent-400/[0.05] ${
+                    row.isAnomaly ? 'bg-rose-500/[0.06] shadow-[inset_2px_0_0_rgba(244,63,94,0.7)]' : ''
                   }`}
                 >
+                  <td className="px-3 py-2 text-right font-mono text-[10.5px] text-white/25">{offset + i + 1}</td>
                   {columns.map((col) => (
-                    <td key={col} className="max-w-[240px] truncate px-3 py-2 text-white/65" title={String(row[col] ?? '')}>
+                    <td key={col} className={`max-w-[240px] truncate px-3 py-2 text-white/70 ${profile[col]?.role === 'measure' || typeof row[col] === 'number' ? 'text-right tabular-nums' : ''}`} title={String(row[col] ?? '')}>
                       {renderCell(row[col], col)}
                     </td>
                   ))}
@@ -397,7 +475,7 @@ export default function ExplorePage() {
               ))}
               {rows.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={columns.length} className="px-4 py-12 text-center text-white/30">
+                  <td colSpan={columns.length + 1} className="px-4 py-12 text-center text-white/30">
                     No rows match those filters.
                     {filter && (
                       <span className="mt-1 block text-[11px]">

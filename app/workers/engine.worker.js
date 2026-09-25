@@ -1515,6 +1515,57 @@ function computeKpis(id, { kpis = [], filters = [], overrides = {}, custom = [] 
 }
 
 /** Distinct values of a field, most common first — for slicers. */
+/**
+ * A sketch of every column for the data table: fill, a 12-bin histogram for
+ * numbers and dates, the top values for everything else. Over all rows of the
+ * table on screen, not a sample.
+ */
+function columnSketches(id, { table = null } = {}) {
+  if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
+  const { rows, table: t } = selectRows({ filter: '', anomaliesOnly: false, table });
+  const cols = t?.columns || Object.keys(rows[0] || {});
+  const out = {};
+  for (const col of cols) {
+    let filled = 0;
+    const nums = [];
+    const counts = new Map();
+    let dates = 0;
+    for (const r of rows) {
+      const v = r?.[col];
+      if (v === null || v === undefined || v === '') continue;
+      filled++;
+      if (typeof v === 'number' && Number.isFinite(v)) nums.push(v);
+      else if (v instanceof Date || (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v))) {
+        const ms = Date.parse(v instanceof Date ? v.toISOString() : v);
+        if (Number.isFinite(ms)) {
+          nums.push(ms);
+          dates++;
+        }
+      }
+      if (counts.size < 5000 || counts.has(String(v))) counts.set(String(v), (counts.get(String(v)) || 0) + 1);
+    }
+    const kind = dates > 0.8 * filled && filled ? 'date' : nums.length > 0.8 * filled && filled ? 'number' : 'text';
+    const sketch = { kind, fill: rows.length ? filled / rows.length : 0, distinct: counts.size };
+    if ((kind === 'number' || kind === 'date') && nums.length) {
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (const x of nums) {
+        if (x < lo) lo = x;
+        if (x > hi) hi = x;
+      }
+      const bins = new Array(12).fill(0);
+      const w = (hi - lo) / 12 || 1;
+      for (const x of nums) bins[Math.min(11, Math.floor((x - lo) / w))]++;
+      Object.assign(sketch, { min: lo, max: hi, bins });
+    }
+    if (kind === 'text' || counts.size <= 12) {
+      sketch.top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([value, n]) => ({ value, n }));
+    }
+    out[col] = sketch;
+  }
+  reply(id, 'sketches', { columns: out, rows: rows.length });
+}
+
 function fieldValues(id, { field, limit = 300 } = {}) {
   if (!state) return reply(id, 'error', { message: 'No dataset loaded.' });
   const counts = new Map();
@@ -1623,6 +1674,8 @@ self.onmessage = async (e) => {
         return computeKpis(id, payload);
       case 'fieldValues':
         return fieldValues(id, payload);
+      case 'columnSketches':
+        return columnSketches(id, payload);
       case 'describeEngine':
         return describeEngine(id, payload);
       case 'askTile':

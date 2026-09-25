@@ -1,6 +1,6 @@
 'use client';
 
-import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Code2, ChevronRight, Database, HelpCircle } from 'lucide-react';
+import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Database, HelpCircle, Hash, Calendar, Type, Fingerprint, Eraser, Scale, Rows3, Sigma } from 'lucide-react';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import DatasetNotices from '../../../components/panels/DatasetNotices';
@@ -26,6 +26,8 @@ const ROLE_WORDS = {
   measure: 'A number to compare',
   time: 'Marks when',
 };
+
+const ROLE_ICONS = { identifier: Fingerprint, dimension: Type, measure: Hash, time: Calendar };
 
 const TYPE_WORDS = {
   string: 'Text',
@@ -103,41 +105,29 @@ export default function QualityPage() {
         * translate that, and the thing they came to find out is whether their
         * file is all right.
         */}
-      <section className="card mb-6 p-6">
-        <div className="flex flex-wrap items-end justify-between gap-5">
-          <div className="min-w-0">
-            <div className="label">Is your data all right?</div>
-            <div
-              className={`display mt-1.5 text-[26px] leading-tight md:text-[30px] ${
-                good ? 'text-emerald-400' : 'text-amber-400'
-              }`}
-            >
-              {good ? 'Yes — this file is in good shape.' : 'Mostly, but some of it needs a look.'}
+      <section className={`card mb-6 overflow-hidden p-6 md:p-7 ${good ? '' : 'border-amber-400/30'}`}>
+        <div className="flex flex-col gap-6 md:flex-row md:items-center">
+          <Gauge value={integrity} good={good} />
+          <div className="min-w-0 flex-1">
+            <div className="label">Data health</div>
+            <div className={`display mt-1.5 text-[26px] leading-tight md:text-[30px] ${good ? 'text-emerald-400' : 'text-amber-400'}`}>
+              {good ? 'This file is in good shape.' : 'Mostly fine — some of it needs a look.'}
             </div>
             <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-white/65">
-              <strong className="font-semibold text-white/90">{integrity.toFixed(1)}%</strong> of the
-              cells in your file were filled in and within a normal range for their column.{' '}
-              {good
-                ? 'Nothing here needs your attention before reading the dashboard.'
-                : 'The sections below say exactly which columns are involved.'}
+              <strong className="font-semibold text-white/90">{integrity.toFixed(1)}%</strong> of the cells were filled in and
+              within a normal range for their column.{' '}
+              {good ? 'Nothing here needs your attention before reading the dashboard.' : 'The sections below say exactly which columns are involved.'}
+            </p>
+            <p className="mt-3 max-w-xl text-[12.5px] leading-relaxed text-white/40">
+              Tidying a value up does not count against this: reading <span className="font-semibold text-white/65">$1,200</span> as
+              the number 1200 is recognising what it always was.
             </p>
           </div>
-          <p className="max-w-xs text-[13px] leading-relaxed text-white/45">
-            Tidying a value up does not count against this. Reading
-            <span className="mx-1 font-semibold text-white/65">$1,200</span>
-            as the number 1200 is just recognising what it always was.
-          </p>
-        </div>
-        <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-white/6">
-          <div
-            className={`h-full rounded-full ${good ? 'bg-emerald-500' : 'bg-amber-500'}`}
-            style={{ width: `${integrity}%` }}
-          />
         </div>
       </section>
 
       {/* Ingestion metrics */}
-      <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <section className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {/*
           * Named for what happened, not for the operation that did it.
           *
@@ -158,7 +148,7 @@ export default function QualityPage() {
       <section className="card mb-8 p-6">
         <div className="label mb-4">What we changed on the way in</div>
         <ul className="grid gap-3 md:grid-cols-2">
-          <Bullet title="Hid personal details">
+          <Bullet icon={EyeOff} title="Hid personal details" count={m.redactedPII}>
             Anything that looked like an email address, a phone number, a social security number or a
             card number was replaced with a placeholder before anything else happened, so none of it
             reached the charts.{' '}
@@ -166,7 +156,7 @@ export default function QualityPage() {
               ? `${m.redactedPII.toLocaleString()} ${m.redactedPII === 1 ? 'cell was' : 'cells were'} covered up this way.`
               : 'Nothing in this file looked like personal information.'}
           </Bullet>
-          <Bullet title="Recognised numbers and dates">
+          <Bullet icon={Sigma} title="Recognised numbers and dates" count={m.typesCoerced}>
             Values written for people to read — <span className="text-white/75">$1,200</span>,{' '}
             <span className="text-white/75">45%</span>, <span className="text-white/75">(300)</span> for
             minus three hundred — were read as the numbers they stand for, and dates written in any of the
@@ -176,7 +166,7 @@ export default function QualityPage() {
               : 'Every value in this file was already a plain number, date or word.'}
           </Bullet>
           {decimalComma.length > 0 && (
-            <Bullet title="Read commas as decimal points">
+            <Bullet icon={Hash} title="Read commas as decimal points" count={decimalComma.length} unit="column">
               {listColumns(decimalComma)} {decimalComma.length === 1 ? 'is written' : 'are written'} in the
               European convention, where the comma is the decimal point — so{' '}
               <code className="rounded bg-white/6 px-1 py-0.5 font-mono text-[11px]">900,50</code> was read as
@@ -184,14 +174,14 @@ export default function QualityPage() {
             </Bullet>
           )}
           {ambiguousComma.length > 0 && (
-            <Bullet title="Left ambiguous numbers as text">
+            <Bullet icon={Type} title="Left ambiguous numbers as text" count={ambiguousComma.length} unit="column" warn>
               {listColumns(ambiguousComma)} {ambiguousComma.length === 1 ? 'contains' : 'contain'} commas
               used both ways — as a thousands separator in some rows and as a decimal point in others. No
               reading makes every value true, so they were kept as text rather than half of them being
               wrong. Fix the source column to include them in the analysis.
             </Bullet>
           )}
-          <Bullet title="Treated empty markers as empty">
+          <Bullet icon={Eraser} title="Treated empty markers as empty" count={m.nullsFound} unit="blank">
             Cells holding <span className="text-white/75">N/A</span>,{' '}
             <span className="text-white/75">null</span> or a lone{' '}
             <span className="text-white/75">-</span> are ways of writing &ldquo;nothing here&rdquo;, so they
@@ -199,7 +189,7 @@ export default function QualityPage() {
             would otherwise drag down.
           </Bullet>
           {malformedRows > 0 && (
-            <Bullet title="Rows that did not match the header">
+            <Bullet icon={Rows3} title="Rows that did not match the header" count={malformedRows} unit="row" warn>
               {`${malformedRows.toLocaleString()} ${malformedRows === 1 ? 'row' : 'rows'} carried a different number of fields than the header`}
               {malformedSamples.length > 0 ? ` — ${describeMalformed(malformedSamples, dataset.multiTable)}` : ''}.{' '}
               {nullsFromShortRows > 0
@@ -208,7 +198,7 @@ export default function QualityPage() {
               A stray unquoted comma is the usual cause.
             </Bullet>
           )}
-          <Bullet title="Marked unusually large or small values">
+          <Bullet icon={Scale} title="Marked unusually large or small values" count={m.outliersCount} unit="value" warn={m.outliersCount > 0}>
             {m.outliersCount === 0
               ? 'Every value sits within the normal range for its column — nothing stood out as unusual.'
               : `${m.outliersCount.toLocaleString()} ${m.outliersCount === 1 ? 'value is' : 'values are'} far
@@ -285,17 +275,17 @@ export default function QualityPage() {
       {/* Column detail */}
       <section className="card mb-8 overflow-hidden">
         <div className="border-b border-white/7 px-5 py-3">
-          <span className="label">Every column, one by one</span>
+          <span className="label">Column health</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="text-[10px] font-black uppercase tracking-[0.15em] text-white/35">
+              <tr className="bg-white/[0.02] text-[10px] font-semibold uppercase tracking-[0.08em] text-white/45">
                 <th className="px-4 py-2.5">Column</th>
                 <th className="px-4 py-2.5">How it is used</th>
                 <th className="px-4 py-2.5">What it holds</th>
                 <th className="px-4 py-2.5 text-right">Different values</th>
-                <th className="px-4 py-2.5 text-right">Empty</th>
+                <th className="px-4 py-2.5">Filled</th>
                 <th className="px-4 py-2.5 text-right">Hidden</th>
               </tr>
             </thead>
@@ -305,11 +295,18 @@ export default function QualityPage() {
                 const stat = m.columnStats?.[col] || {};
                 const nullPct = dataset.rowCount ? ((p.nullCount || 0) / dataset.rowCount) * 100 : 0;
                 return (
-                  <tr key={col} className="border-t border-white/5">
-                    <td className="max-w-[220px] truncate px-4 py-2.5 font-bold text-white/75" title={col}>
-                      {col}
+                  <tr key={col} className="border-t border-white/5 transition-colors hover:bg-white/[0.03]">
+                    <td className="max-w-[240px] px-4 py-3" title={col}>
+                      <span className="flex items-center gap-2">
+                        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${nullPct > 10 || stat.piiCount ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                        {(() => {
+                          const RoleIcon = ROLE_ICONS[p.role] || Type;
+                          return <RoleIcon size={12} className="shrink-0 text-accent-400/70" />;
+                        })()}
+                        <span className="truncate font-semibold text-white/85">{col}</span>
+                      </span>
                     </td>
-                    <td className="px-4 py-2.5 text-accent-300/70">{ROLE_WORDS[p.role] || p.role || '—'}</td>
+                    <td className="px-4 py-3 text-white/60">{ROLE_WORDS[p.role] || p.role || '—'}</td>
                     <td className="px-4 py-2.5 text-white/45">
                       {p.role === 'time' && p.type === 'string'
                         ? 'Dates'
@@ -319,8 +316,13 @@ export default function QualityPage() {
                       {(p.distinctCount || 0).toLocaleString()}
                       {p.distinctCapped ? '+' : ''}
                     </td>
-                    <td className={`px-4 py-2.5 text-right font-mono ${nullPct > 10 ? 'text-amber-400' : 'text-white/45'}`}>
-                      {nullPct > 0 ? `${nullPct.toFixed(1)}%` : '—'}
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-2">
+                        <span className="h-1.5 w-24 overflow-hidden rounded-full bg-white/8">
+                          <span className={`block h-full rounded-full ${nullPct > 10 ? 'bg-amber-400/80' : 'bg-emerald-400/80'}`} style={{ width: `${100 - nullPct}%` }} />
+                        </span>
+                        <span className={`font-mono tabular-nums ${nullPct > 10 ? 'text-amber-400' : 'text-white/55'}`}>{(100 - nullPct).toFixed(nullPct > 0 && nullPct < 1 ? 1 : 0)}%</span>
+                      </span>
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono text-white/45">
                       {stat.piiCount ? stat.piiCount.toLocaleString() : '—'}
@@ -339,24 +341,42 @@ export default function QualityPage() {
 
 function Metric({ icon: Icon, label, value, tone }) {
   const colors = {
-    emerald: 'text-emerald-400',
-    accent: 'text-accent-400',
-    amber: 'text-amber-400',
-    rose: 'text-rose-400',
+    emerald: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-400',
+    accent: 'border-accent-400/25 bg-accent-400/10 text-accent-400',
+    amber: 'border-amber-400/25 bg-amber-400/10 text-amber-400',
+    rose: 'border-rose-400/25 bg-rose-400/10 text-rose-400',
   };
-  /*
-   * Zero reads as "none", because on a clean file most of these are zero and a
-   * strip of four 0s tells a reader nothing — least of all that the zeros are
-   * the good news. The word also stops "0" being read as a failure to measure.
-   */
+  // Zero reads as "none": on a clean file most of these are zero, and the
+  // zeros are the good news.
   const n = value || 0;
   return (
     <div className="card p-4">
-      <Icon size={14} className={colors[tone] || 'text-white/30'} />
-      <div className={`mt-2.5 tracking-tight ${n === 0 ? 'text-lg font-semibold text-white/55' : 'text-xl font-black text-white'}`}>
+      <span className={`flex h-8 w-8 items-center justify-center rounded-lg border ${colors[tone] || 'border-white/10 bg-white/[0.04] text-white/50'}`}>
+        <Icon size={15} />
+      </span>
+      <div className={`figure mt-3 ${n === 0 ? 'text-[18px] font-semibold text-white/50' : 'text-[24px] font-semibold text-white/95'}`}>
         {n === 0 ? 'None' : n.toLocaleString()}
       </div>
-      <div className="mt-1 text-[11px] font-semibold leading-tight text-white/65">{label}</div>
+      <div className="mt-1 text-[11.5px] leading-tight text-white/55">{label}</div>
+    </div>
+  );
+}
+
+/** The share of healthy cells as a ring. */
+function Gauge({ value, good }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(100, value));
+  return (
+    <div className="relative h-36 w-36 shrink-0" role="img" aria-label={`${v.toFixed(1)}% of cells healthy`}>
+      <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
+        <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" className="text-white/8" />
+        <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} className={good ? 'text-emerald-400' : 'text-amber-400'} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="figure text-[28px] font-semibold text-white/95">{v.toFixed(1)}<span className="text-[15px] text-white/50">%</span></span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/45">healthy</span>
+      </div>
     </div>
   );
 }
@@ -382,11 +402,23 @@ function describeMalformed(samples, multiTable) {
   return shown.join('; ') + rest;
 }
 
-function Bullet({ title, children }) {
+function Bullet({ icon: Icon = Wand2, title, count = null, unit = 'change', warn = false, children }) {
+  const n = count || 0;
+  const tag = count === null ? null : n === 0 ? 'Nothing needed' : `${n.toLocaleString()} ${unit}${n === 1 ? '' : 's'}`;
   return (
-    <li className="rounded-xl border border-white/6 bg-white/[0.02] p-4">
-      <div className="text-sm font-bold text-white/80">{title}</div>
-      <p className="mt-1.5 text-[12px] leading-relaxed text-white/40">{children}</p>
+    <li className="flex gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4 transition-colors hover:border-accent-400/30">
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${warn && n ? 'border-amber-400/25 bg-amber-400/10 text-amber-400' : 'border-accent-400/25 bg-accent-400/10 text-accent-400'}`}>
+        <Icon size={15} />
+      </span>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[14px] font-semibold text-white/90">{title}</span>
+          {tag && (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${n === 0 ? 'bg-white/[0.06] text-white/45' : warn ? 'bg-amber-400/12 text-amber-300' : 'bg-accent-400/12 text-accent-300'}`}>{tag}</span>
+          )}
+        </div>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/50">{children}</p>
+      </div>
     </li>
   );
 }
