@@ -34,6 +34,7 @@ import {
 } from 'recharts';
 import { formatPeriod, formatTick, formatValue } from '../../lib/engine/format';
 import { usePaletteMode, useSeriesColor } from '../charts/palette';
+import GeoMap from './GeoMap';
 
 const INK = {
   dark: { text: '#d4d4d8', strong: '#fafafa', muted: '#8b8b93', grid: 'rgba(255,255,255,0.08)', surface: '#141416', cursor: 'rgba(255,255,255,0.05)', glass: 'rgba(20,20,22,0.9)', border: 'rgba(255,255,255,0.14)' },
@@ -144,6 +145,9 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
 
   /* KPI-like single value is handled by KpiCard; tables are HTML. */
   if (viz === 'table') return <DataTable tile={tile} data={data} byId={byId} field={field} height={height} />;
+  if (viz === 'map' && field(tile.dim)?.map?.code) {
+    return <GeoMap tile={tile} code={field(tile.dim).map.code} data={data} m={m} height={height} mode={mode} ink={ink} onSelect={onSelect && tile.dim ? onSelect : null} selected={selected} />;
+  }
   if (viz === 'heatmap') return <Heatmap tile={tile} data={data} byId={byId} field={field} height={height} mode={mode} ink={ink} />;
 
   // Several measures side by side (survey items), or a histogram: one series of bars.
