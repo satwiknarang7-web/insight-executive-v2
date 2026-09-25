@@ -370,7 +370,7 @@ function Gauge({ value, good }) {
   return (
     <div className="relative h-36 w-36 shrink-0" role="img" aria-label={`${v.toFixed(1)}% of cells healthy`}>
       <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
-        <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" className="text-white/8" />
+        <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" className="text-white/10" />
         <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} className={good ? 'text-emerald-400' : 'text-amber-400'} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
