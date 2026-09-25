@@ -45,6 +45,24 @@ const clip = (s, n) => {
   return t.length > n ? `${t.slice(0, n - 1)}…` : t;
 };
 
+/** The reference line's label, outside the plot, with a halo in the surface colour. */
+function OverallLabel({ viewBox, text, ink, side }) {
+  if (!viewBox) return null;
+  const common = { fill: ink.muted, fontSize: 10, stroke: ink.surface, strokeWidth: 3, paintOrder: 'stroke', strokeLinejoin: 'round' };
+  if (side === 'top') {
+    return (
+      <text x={viewBox.x} y={viewBox.y - 6} textAnchor="middle" {...common}>
+        {text}
+      </text>
+    );
+  }
+  return (
+    <text x={viewBox.x + viewBox.width + 6} y={viewBox.y} dominantBaseline="middle" textAnchor="start" {...common}>
+      {text}
+    </text>
+  );
+}
+
 function TooltipBox({ active, payload, label, fmtLabel, fmtValue, ink }) {
   if (!active || !payload?.length) return null;
   return (
@@ -241,9 +259,19 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
     if (fieldX?.kind === 'number' && fieldX?.role === 'measure' && !tile.edges) return formatValue(Number(v), fieldX);
     return v;
   };
+  // The "Overall" line's label sits outside the plot — beside it on columns,
+  // above it on bars — so no bar can ever cover it.
+  const showOverall = overall !== null && overall !== undefined && !multi;
+  const overallText = showOverall ? `Overall ${valueFmt(overall, series[0])}` : '';
+  const margin = {
+    top: showOverall && horizontal ? 20 : 8,
+    right: showOverall && !horizontal ? Math.min(120, overallText.length * 5.6 + 12) : 20,
+    bottom: 4,
+    left: 4,
+  };
   return (
     <ResponsiveContainer width="100%" height={barH}>
-      <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={{ top: 8, right: 20, bottom: 4, left: 4 }} barCategoryGap="22%">
+      <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={margin} barCategoryGap="22%">
         <CartesianGrid stroke={ink.grid} vertical={horizontal} horizontal={!horizontal} />
         {horizontal ? (
           <>
@@ -258,11 +286,11 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
         )}
         {tooltip}
         {legend}
-        {overall !== null && overall !== undefined && !multi && (
+        {showOverall && (
           horizontal ? (
-            <ReferenceLine x={overall} stroke={ink.muted} strokeDasharray="4 3" label={{ value: `Overall ${valueFmt(overall, series[0])}`, fill: ink.muted, fontSize: 10, position: 'insideBottomRight' }} />
+            <ReferenceLine x={overall} stroke={ink.muted} strokeDasharray="4 3" label={<OverallLabel text={overallText} ink={ink} side="top" />} />
           ) : (
-            <ReferenceLine y={overall} stroke={ink.muted} strokeDasharray="4 3" label={{ value: `Overall ${valueFmt(overall, series[0])}`, fill: ink.muted, fontSize: 10, position: 'insideTopRight' }} />
+            <ReferenceLine y={overall} stroke={ink.muted} strokeDasharray="4 3" label={<OverallLabel text={overallText} ink={ink} side="right" />} />
           )
         )}
         {series.map((k, i) => (
