@@ -1,9 +1,8 @@
 import './globals.css';
 import { DatasetProvider } from '../lib/store/DatasetProvider';
 import { DashboardProvider } from '../lib/store/DashboardProvider';
-import { TutorialProvider } from '../lib/store/TutorialProvider';
 import { PlanProvider } from '../lib/store/PlanProvider';
-import TutorialOverlay from '../components/panels/TutorialOverlay';
+import Assistant from '../components/assistant/Assistant';
 import { AppearanceScript } from '../components/shell/ThemeToggle';
 
 export const metadata = {
@@ -39,10 +38,8 @@ export default function RootLayout({ children }) {
         <DatasetProvider>
           <DashboardProvider>
           <PlanProvider>
-            <TutorialProvider>
-              {children}
-              <TutorialOverlay />
-            </TutorialProvider>
+            {children}
+            <Assistant />
           </PlanProvider>
           </DashboardProvider>
         </DatasetProvider>

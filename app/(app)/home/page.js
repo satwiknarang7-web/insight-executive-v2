@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
-import { useTutorial } from '../../../lib/store/TutorialProvider';
 import { usePlan } from '../../../lib/store/PlanProvider';
 import { isExtractable } from '../../../lib/documentExtraction';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
@@ -58,7 +57,6 @@ export default function LandingPage() {
   const [documents, setDocuments] = useState(false);
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
-  const { start: startTutorial } = useTutorial();
   const { can: planAllows, loading: planLoading, serverModel } = usePlan();
   // Whether a model will take part at all. Without one the report is built from
   // the catalogue's questions alone — and a button that says "AI" over it is a
@@ -430,7 +428,7 @@ export default function LandingPage() {
               * touched it.
               */}
             {!busy && !dataset && (
-              <div className="card relative z-20 p-4" data-tutorial="source-catalog">
+              <div className="card relative z-20 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <span className="label">Source</span>
                   <span className="text-[11px] text-white/30">Files are read in your browser. Links and databases are fetched by the server and handed straight to it.</span>
@@ -489,7 +487,7 @@ export default function LandingPage() {
                 everything else has its own panel inside the card above. */}
             {!busy && !dataset && chosen.kind === 'file' && (
                 <div
-                  data-tutorial="upload-dropzone"
+                 
                   onDragOver={(e) => {
                     e.preventDefault();
                     setDragging(true);
@@ -581,7 +579,7 @@ export default function LandingPage() {
                     ))}
                 </div>
 
-                <div className="card p-4" data-tutorial="sample-datasets">
+                <div className="card p-4">
                   <div className="label mb-2.5">Or try a sample</div>
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                     {SAMPLES.map((s) => (
@@ -615,7 +613,7 @@ export default function LandingPage() {
             {/* The id is a link target: the Ask page sends anyone whose
                 question was read offline for want of a key straight here. */}
             {planAllows('model') && (
-              <div id="model-key" data-tutorial="gemini-key-panel" className="scroll-mt-6">
+              <div id="model-key" className="scroll-mt-6">
                 <GeminiKeyPanel />
               </div>
             )}

@@ -98,6 +98,7 @@ test('a different person is unaffected by someone else hitting the wall', () => 
 const ROUTES = {
   'app/api/understand/route.js': 'understand',
   'app/api/write/route.js': 'write',
+  'app/api/assistant/route.js': 'assistant',
   'app/api/ask/route.js': 'ask',
   'app/api/speech/route.js': 'speech',
   'app/api/export/pdf/route.js': 'pdf',
