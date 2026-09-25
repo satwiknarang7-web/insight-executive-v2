@@ -75,7 +75,7 @@ function alphasUsedInSource() {
   return [...found].sort((a, b) => a - b);
 }
 
-test('the navy ramp is defined, ordered, and readable at every step', () => {
+test('the ink ramp is defined, ordered, and readable at every step', () => {
   const ramp = inkRamp();
   assert.ok(ramp.length >= 6, `expected a full ramp, got ${ramp.length} steps`);
   assert.ok(ramp.every(Boolean), 'no gaps in the ramp');
@@ -86,9 +86,9 @@ test('the navy ramp is defined, ordered, and readable at every step', () => {
       const ratio = contrast(hex, ground);
       assert.ok(ratio >= 4.5, `--ink-${i + 1} (${hex}) is ${ratio.toFixed(2)}:1 on ${ground}`);
     }
-    // Navy, not grey: the blue channel has to lead by a clear margin.
+    // Neutral graphite, not tinted blue: the reader asked for no blue cast.
     const [r, , b] = [0, 2, 4].map((k) => parseInt(hex.slice(1 + k, 3 + k), 16));
-    assert.ok(b - r > 40, `--ink-${i + 1} (${hex}) is not recognisably navy`);
+    assert.ok(b - r <= 12, `--ink-${i + 1} (${hex}) has a blue cast`);
   }
 
   // The ramp gets lighter step by step, which is what preserves the hierarchy

@@ -35,9 +35,9 @@ const ROLE_ICON = { measure: Hash, dimension: Type, time: Calendar, identifier: 
 
 /** Each column type has its own badge colour, so a glance tells them apart. */
 const ROLE_STYLE = {
-  measure: 'border-cyan-400/30 bg-cyan-400/10 text-cyan-300 [[data-theme=light]_&]:text-cyan-700',
+  measure: 'border-accent-400/30 bg-accent-400/10 text-accent-300',
   time: 'border-violet-400/30 bg-violet-400/10 text-violet-300 [[data-theme=light]_&]:text-violet-700',
-  identifier: 'border-slate-400/30 bg-slate-400/10 text-slate-300 [[data-theme=light]_&]:text-slate-600',
+  identifier: 'border-zinc-400/30 bg-zinc-400/10 text-zinc-300 [[data-theme=light]_&]:text-stone-600',
   dimension: 'border-amber-400/30 bg-amber-400/10 text-amber-300 [[data-theme=light]_&]:text-amber-700',
 };
 

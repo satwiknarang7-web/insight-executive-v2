@@ -21,14 +21,14 @@
  * is exactly right.
  */
 @theme {
-  --color-accent-50: #ecfeff;
-  --color-accent-100: #cffafe;
-  --color-accent-200: #a5f3fc;
-  --color-accent-300: #67e8f9;
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
-  --color-accent-600: #0891b2;
-  --color-accent-700: #0e7490;
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
 
   --color-ink-900: #030303;
   --color-ink-800: #070809;
@@ -65,9 +65,9 @@
 /* Dark is the default and needs no attribute. */
 :root {
   --color-white: #ffffff;
-  --canvas: #05070d;
-  --canvas-raised: #070a12;
-  --surface: #0b1020;
+  --canvas: #0a0a0b;
+  --canvas-raised: #0e0e10;
+  --surface: #141416;
   /* A card has to read as its own plane, not as text that happens to sit
      together. At 2% fill and a 7% border it was neither: the border composited
      to rgb(30,32,34) against a #0d0f11 surface, a contrast of 1.18:1, which is
@@ -75,18 +75,18 @@
      surface so the card is a plane, the border so it has a boundary — rather
      than drawing one heavy outline, which reads as a box around content rather
      than as a surface holding it. */
-  --card-bg: rgba(148, 163, 255, 0.045);
-  --card-border: rgba(148, 163, 214, 0.16);
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.11);
   /* A card's fill: a faint top-lit gradient, so a panel reads as a lit plane. */
-  --card-fill: linear-gradient(180deg, rgba(148, 163, 255, 0.075) 0%, rgba(148, 163, 255, 0.025) 100%);
-  --accent-2: #818cf8;
+  --card-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --accent-2: #2dd4bf;
   --glow: 0 0 0 1px color-mix(in oklab, var(--color-accent-400) 20%, transparent), 0 10px 40px -12px color-mix(in oklab, var(--color-accent-400) 40%, transparent);
-  --chart-axis: #94a3b8;
+  --chart-axis: #a1a1aa;
   --chart-grid: #ffffff;
   --chart-grid-opacity: 0.05;
-  --chart-tooltip-bg: rgba(2, 6, 23, 0.9);
+  --chart-tooltip-bg: rgba(20, 20, 22, 0.92);
   --chart-tooltip-fg: #ffffff;
-  --chart-stroke: #020617;
+  --chart-stroke: #0a0a0b;
   /* Labels drawn onto the plot itself, and the halo that keeps them readable
      where they cross a filled segment. Charts must never hardcode #ffffff for
      these: on a white page it is invisible ink. */
@@ -101,10 +101,10 @@
   --on-accent: #000000;
   --wash-a: color-mix(in oklab, var(--color-accent-400) 12%, transparent);
   --wash-b: color-mix(in oklab, var(--accent-2) 11%, transparent);
-  --veil: rgba(148, 163, 214, 0.09);
+  --veil: rgba(255, 255, 255, 0.07);
   /* Inset surface for code/query blocks, and its text. */
   --code-bg: rgba(255, 255, 255, 0.04);
-  --code-fg: #cbd5e1;
+  --code-fg: #d4d4d8;
   color-scheme: dark;
 }
 
@@ -145,41 +145,41 @@
 :root[data-theme='light'] .logo-light { display: block; }
 
 :root[data-theme='light'] {
-  --color-accent-50: #eef4ff;
-  --color-accent-100: #1e3a8a;
-  --color-accent-200: #1e40af;
-  --color-accent-300: #1d4ed8;
-  --color-accent-400: #2563eb;
-  --color-accent-500: #1d4ed8;
-  --color-accent-600: #1e40af;
-  --color-accent-700: #1e3a8a;
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #064e3b;
+  --color-accent-200: #065f46;
+  --color-accent-300: #047857;
+  --color-accent-400: #047857;
+  --color-accent-500: #047857;
+  --color-accent-600: #065f46;
+  --color-accent-700: #064e3b;
 
-  --color-white: #0b2545;
-  --canvas: #f7f9fc;
-  --canvas-raised: #f2f5fa;
+  --color-white: #1c1917;
+  --canvas: #fafaf9;
+  --canvas-raised: #f5f5f4;
   --surface: #ffffff;
   --card-bg: #ffffff;
-  --card-border: rgba(15, 23, 42, 0.12);
-  --card-fill: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-  --accent-2: #6366f1;
+  --card-border: rgba(28, 25, 23, 0.11);
+  --card-fill: linear-gradient(180deg, #ffffff 0%, #fcfcfb 100%);
+  --accent-2: #0d9488;
   --glow: 0 0 0 1px color-mix(in oklab, var(--color-accent-400) 20%, transparent), 0 10px 30px -14px color-mix(in oklab, var(--color-accent-400) 38%, transparent);
-  --chart-axis: #245b93;
-  --chart-grid: #0b2545;
+  --chart-axis: #57534e;
+  --chart-grid: #1c1917;
   --chart-grid-opacity: 0.10;
   --chart-tooltip-bg: rgba(255, 255, 255, 0.96);
-  --chart-tooltip-fg: #0b2545;
+  --chart-tooltip-fg: #1c1917;
   --chart-stroke: #ffffff;
-  --chart-label: #0b2545;
+  --chart-label: #1c1917;
   --chart-label-halo: 0 1px 3px rgba(255, 255, 255, 0.95);
   /* Navy needs far more presence on white than white needs on near-black: the
      same faint alpha that reads as a grid in dark mode disappears entirely. */
-  --chart-web: rgba(11, 37, 69, 0.55);
-  --scrollbar: rgba(11, 37, 69, 0.22);
-  --scrollbar-hover: rgba(11, 37, 69, 0.38);
+  --chart-web: rgba(28, 25, 23, 0.45);
+  --scrollbar: rgba(28, 25, 23, 0.2);
+  --scrollbar-hover: rgba(28, 25, 23, 0.35);
   --on-accent: #ffffff;
   --wash-a: color-mix(in oklab, var(--color-accent-400) 8%, transparent);
   --wash-b: color-mix(in oklab, var(--accent-2) 7%, transparent);
-  --veil: rgba(15, 23, 42, 0.07);
+  --veil: rgba(28, 25, 23, 0.07);
 
   /* Status colours are Tailwind palette tokens, and their default 200–400
      shades are near-invisible on white — the amber "Review joins" warning was
@@ -201,20 +201,20 @@
   --color-rose-500: #e11d48;
 
   /* Query/code blocks: a pale slate inset with navy text, not a dark box. */
-  --code-bg: #f1f5f9;
-  --code-fg: #0f3057;
+  --code-bg: #f5f5f4;
+  --code-fg: #292524;
 
   /* The navy ink ramp light mode reads its muted text from. See the block below
      for why an alpha ramp cannot supply it. Contrast is quoted against the
      white page; every step also clears 4.5:1 against --canvas-raised, the
      slightly darker ground cards sit on, so no tier of the hierarchy drops
      below AA anywhere it is used. */
-  --ink-1: #0b2545; /* 15.4:1 — primary copy, headings */
-  --ink-2: #123a63; /* 11.6:1 — strong secondary */
-  --ink-3: #1a4a80; /*  9.0:1 — secondary */
-  --ink-4: #245b93; /*  7.0:1 — muted; also --chart-axis above */
-  --ink-5: #3d6a92; /*  5.7:1 — faint labels, captions */
-  --ink-6: #457399; /*  5.0:1 — placeholders, disabled, decoration */
+  --ink-1: #1c1917; /* 17.5:1 — primary copy, headings */
+  --ink-2: #292524; /* 15.1:1 — strong secondary */
+  --ink-3: #44403c; /* 10.4:1 — secondary */
+  --ink-4: #57534e; /*  7.6:1 — muted; also --chart-axis above */
+  --ink-5: #6b645e; /*  5.9:1 — faint labels, captions */
+  --ink-6: #78716c; /*  4.8:1 — placeholders, disabled, decoration */
 
   color-scheme: light;
 }
@@ -842,27 +842,27 @@ body {
  * follow. Dark and light are stepped separately: light needs darker steps so
  * accent text keeps its contrast on white.
  * --------------------------------------------------------------------------- */
-:root[data-accent='aurora']:not([data-theme='light']) {
-  --color-accent-50: #ecfdf5;
-  --color-accent-100: #d1fae5;
-  --color-accent-200: #a7f3d0;
-  --color-accent-300: #6ee7b7;
-  --color-accent-400: #34d399;
-  --color-accent-500: #10b981;
-  --color-accent-600: #059669;
-  --color-accent-700: #047857;
-  --accent-2: #2dd4bf;
+:root[data-accent='cyan']:not([data-theme='light']) {
+  --color-accent-50: #ecfeff;
+  --color-accent-100: #cffafe;
+  --color-accent-200: #a5f3fc;
+  --color-accent-300: #67e8f9;
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+  --color-accent-700: #0e7490;
+  --accent-2: #818cf8;
 }
-:root[data-accent='aurora'][data-theme='light'] {
-  --color-accent-50: #ecfdf5;
-  --color-accent-100: #064e3b;
-  --color-accent-200: #065f46;
-  --color-accent-300: #047857;
-  --color-accent-400: #059669;
-  --color-accent-500: #047857;
-  --color-accent-600: #065f46;
-  --color-accent-700: #064e3b;
-  --accent-2: #0d9488;
+:root[data-accent='cyan'][data-theme='light'] {
+  --color-accent-50: #ecfeff;
+  --color-accent-100: #164e63;
+  --color-accent-200: #155e75;
+  --color-accent-300: #0e7490;
+  --color-accent-400: #0e7490;
+  --color-accent-500: #0e7490;
+  --color-accent-600: #155e75;
+  --color-accent-700: #164e63;
+  --accent-2: #4f46e5;
 }
 :root[data-accent='nebula']:not([data-theme='light']) {
   --color-accent-50: #f5f3ff;
@@ -880,7 +880,7 @@ body {
   --color-accent-100: #4c1d95;
   --color-accent-200: #5b21b6;
   --color-accent-300: #6d28d9;
-  --color-accent-400: #7c3aed;
+  --color-accent-400: #6d28d9;
   --color-accent-500: #6d28d9;
   --color-accent-600: #5b21b6;
   --color-accent-700: #4c1d95;
@@ -924,7 +924,7 @@ body {
   --color-accent-100: #881337;
   --color-accent-200: #9f1239;
   --color-accent-300: #be123c;
-  --color-accent-400: #e11d48;
+  --color-accent-400: #be123c;
   --color-accent-500: #be123c;
   --color-accent-600: #9f1239;
   --color-accent-700: #881337;
@@ -946,7 +946,7 @@ body {
   --color-accent-100: #1e3a8a;
   --color-accent-200: #1e40af;
   --color-accent-300: #1d4ed8;
-  --color-accent-400: #2563eb;
+  --color-accent-400: #1d4ed8;
   --color-accent-500: #1d4ed8;
   --color-accent-600: #1e40af;
   --color-accent-700: #1e3a8a;

@@ -36,8 +36,8 @@ import { formatPeriod, formatTick, formatValue } from '../../lib/engine/format';
 import { usePaletteMode, useSeriesColor } from '../charts/palette';
 
 const INK = {
-  dark: { text: '#cbd5e1', strong: '#f1f5f9', muted: '#8391aa', grid: 'rgba(148,163,214,0.10)', surface: '#0d111c', cursor: 'rgba(148,163,214,0.06)', glass: 'rgba(13,17,28,0.88)', border: 'rgba(148,163,214,0.20)' },
-  light: { text: '#334155', strong: '#0f172a', muted: '#64748b', grid: 'rgba(15,23,42,0.07)', surface: '#ffffff', cursor: 'rgba(15,23,42,0.04)', glass: 'rgba(255,255,255,0.94)', border: 'rgba(15,23,42,0.12)' },
+  dark: { text: '#d4d4d8', strong: '#fafafa', muted: '#8b8b93', grid: 'rgba(255,255,255,0.08)', surface: '#141416', cursor: 'rgba(255,255,255,0.05)', glass: 'rgba(20,20,22,0.9)', border: 'rgba(255,255,255,0.14)' },
+  light: { text: '#44403c', strong: '#1c1917', muted: '#78716c', grid: 'rgba(28,25,23,0.07)', surface: '#ffffff', cursor: 'rgba(28,25,23,0.04)', glass: 'rgba(255,255,255,0.95)', border: 'rgba(28,25,23,0.12)' },
 };
 
 /** A vertical fade of one colour, for areas and bars. */
@@ -434,7 +434,7 @@ function Heatmap({ tile, data, byId, field, height, mode, ink }) {
     if (typeof v !== 'number' || hi === lo) return 'transparent';
     const t = (v - lo) / (hi - lo);
     const a = 0.08 + t * 0.8;
-    return mode === 'light' ? `rgba(42,120,214,${a})` : `rgba(57,135,229,${a})`;
+    return `rgba(25,158,112,${a})`;
   };
   // Ink that stays readable on the darkest cells.
   const cellInk = (v) => (typeof v === 'number' && hi !== lo && (v - lo) / (hi - lo) > 0.6 ? '#ffffff' : ink.text);
