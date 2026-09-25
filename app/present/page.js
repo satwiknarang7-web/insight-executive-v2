@@ -55,7 +55,7 @@ export default function PresentPage() {
 
   // The chart takes whatever height the screen leaves it.
   useEffect(() => {
-    const fit = () => setHeight(Math.max(260, Math.min(640, window.innerHeight - 330)));
+    const fit = () => setHeight(Math.max(260, Math.min(640, window.innerHeight - 390)));
     fit();
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
@@ -130,21 +130,44 @@ export default function PresentPage() {
 
   const tile = page > 0 ? tiles[page - 1] : null;
   const bullets = board.aiSummary?.length ? board.aiSummary : (board.findings || []).map((f) => f.text);
+  // Which chapter a chart belongs to, for the header.
+  const chapter = (() => {
+    let n = 0;
+    for (const [si, sec] of (board.sections || []).entries()) {
+      for (const t of sec.tiles) {
+        n += 1;
+        if (n === page) return { index: si + 1, title: sec.title || 'The main picture' };
+      }
+    }
+    return null;
+  })();
 
   return (
     <ChartPalette>
       <div ref={rootRef} className="relative flex h-screen flex-col overflow-hidden bg-canvas" data-testid="present">
-        <header className="relative z-20 flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div className="ambient-wash" />
+        <div className="grid-veil" />
+        {/* Progress through the deck. */}
+        <div className="absolute inset-x-0 top-0 z-30 h-[3px] bg-white/[0.06]" aria-hidden="true">
+          <div className="h-full bg-gradient-to-r from-accent-400 to-[var(--accent-2)] transition-[width] duration-500 ease-out" style={{ width: `${((page + 1) / total) * 100}%` }} />
+        </div>
+
+        <header className="relative z-20 flex items-center justify-between gap-4 px-4 pb-2 pt-4 sm:px-8">
           <div className="min-w-0">
-            <div className="label">{page === 0 ? 'Summary' : `Chart ${page} of ${tiles.length}`}</div>
-            <div className="mt-0.5 truncate text-sm font-bold text-white/60">{board.subject || dataset?.fileName}</div>
+            <div className="label">
+              {page === 0 ? 'Executive summary' : chapter ? `${String(chapter.index).padStart(2, '0')} · ${chapter.title}` : 'Chart'}
+            </div>
+            <div className="mt-0.5 truncate text-sm font-semibold text-white/60">{board.subject || dataset?.fileName}</div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <button onClick={() => setChoosing(true)} title={`Presented by ${avatar.name} — change presenter`} className="hidden items-center gap-2 rounded-lg border border-white/10 py-1.5 pl-1.5 pr-3 hover:bg-white/5 sm:flex">
+            <span className="mr-2 hidden font-mono text-[12px] tabular-nums text-white/45 sm:block">
+              {String(page + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+            </span>
+            <button onClick={() => setChoosing(true)} title={`Presented by ${avatar.name} — change presenter`} className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-1.5 pl-1.5 pr-3 hover:bg-white/[0.06] sm:flex">
               <AnalystAvatar avatar={avatar} size={28} />
               <span className="text-left">
-                <span className="block text-[12px] font-bold text-white/80">{avatar.name}</span>
-                <span className="block text-[10px] uppercase tracking-[0.12em] text-white/40">{avatar.role}</span>
+                <span className="block text-[12px] font-semibold text-white/85">{avatar.name}</span>
+                <span className="block text-[10px] uppercase tracking-[0.1em] text-white/40">{avatar.role}</span>
               </span>
               <Users size={13} className="text-white/40" />
             </button>
@@ -162,53 +185,68 @@ export default function PresentPage() {
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-10">
-          <div className="mx-auto flex h-full max-w-6xl flex-col justify-center">
+          <div key={page} className="ld-rise mx-auto flex h-full max-w-6xl flex-col justify-center">
             {page === 0 ? (
-              <div className="space-y-6">
-                <h1 className="display text-[30px] leading-tight text-white/95 sm:text-[40px]">{board.headline || board.subject || 'What the data says'}</h1>
+              <div className="space-y-7">
+                <div>
+                  <span className="eyebrow">{bullets.length} key {bullets.length === 1 ? "finding" : "findings"} · {tiles.length} {tiles.length === 1 ? "chart" : "charts"}</span>
+                  <h1 className="display mt-4 max-w-4xl text-[30px] leading-[1.12] text-white/95 sm:text-[44px]">{board.headline || board.subject || 'What the data says'}</h1>
+                </div>
                 {bullets.length > 0 && (
-                  <ul className="space-y-2.5">
-                    {bullets.slice(0, 5).map((b, i) => (
-                      <li key={i} className="flex gap-3 text-[16px] leading-relaxed text-white/80 sm:text-[18px]">
-                        <span className="mt-[11px] h-2 w-2 shrink-0 rounded-full bg-accent-400" aria-hidden="true" />
-                        <span>{b}</span>
+                  <ol className="grid gap-3 md:grid-cols-2">
+                    {bullets.slice(0, 4).map((b, i) => (
+                      <li key={i} className="card flex gap-3 p-4">
+                        <span className="figure flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-400/30 bg-accent-400/10 text-[13px] font-semibold text-accent-300">{i + 1}</span>
+                        <span className="text-[15px] leading-relaxed text-white/85">{b}</span>
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 )}
                 <KpiStrip kpis={board.kpis} />
               </div>
             ) : (
               tile && (
-                <div className="card flex min-h-0 flex-col p-5 sm:p-7">
-                  <h2 className="mb-4 text-[20px] font-semibold leading-snug text-white/95 sm:text-[24px]">{tile.title}</h2>
-                  <div className="min-w-0">
-                    <TileChart tile={tile} measures={measures} fields={fields} height={height} />
+                <div className="flex min-h-0 flex-col gap-4">
+                  <div className="card flex min-h-0 flex-col p-5 sm:p-7">
+                    <div className="mb-4 flex items-baseline gap-3">
+                      <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.08em] text-white/40">Fig. {page}</span>
+                      <h2 className="text-[20px] font-semibold leading-snug text-white/95 sm:text-[26px]">{tile.title}</h2>
+                    </div>
+                    <div className="min-w-0">
+                      <TileChart tile={tile} measures={measures} fields={fields} height={height} />
+                    </div>
                   </div>
-                  {tile.insight && <p className="mt-4 border-t border-white/8 pt-4 text-[15px] leading-relaxed text-white/80 sm:text-[17px]">{tile.insight}</p>}
+                  {tile.insight && (
+                    <div className="flex items-start gap-3 rounded-2xl border border-accent-400/25 bg-accent-400/[0.06] p-4 sm:p-5">
+                      <AnalystAvatar avatar={avatar} size={32} />
+                      <p className="text-[15px] leading-relaxed text-white/85 sm:text-[17px]">{tile.insight}</p>
+                    </div>
+                  )}
                 </div>
               )
             )}
           </div>
         </main>
 
-        <footer className="relative z-20 flex items-center justify-center gap-3 px-4 py-3">
-          <IconButton label="Previous" onClick={() => go(-1)} disabled={page === 0}>
-            <ChevronLeft size={18} />
-          </IconButton>
-          <IconButton label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying((p) => !p)}>
-            {playing ? <Pause size={18} /> : <Play size={18} />}
-          </IconButton>
-          <button onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)} className="h-10 rounded-lg border border-white/10 px-3 text-[12px] font-bold text-white/60 hover:bg-white/5" title="Autoplay speed">
-            {SPEEDS[speedIdx].label}
-          </button>
-          <IconButton label="Next" onClick={() => go(1)} disabled={page >= total - 1}>
-            <ChevronRight size={18} />
-          </IconButton>
-          <div className="ml-2 hidden items-center gap-1 sm:flex" aria-hidden="true">
-            {Array.from({ length: total }, (_, i) => (
-              <button key={i} tabIndex={-1} onClick={() => setPage(i)} className={`h-1.5 rounded-full transition-all ${i === page ? 'w-6 bg-accent-400' : 'w-2.5 bg-white/15 hover:bg-white/30'}`} />
-            ))}
+        <footer className="relative z-20 flex justify-center px-4 pb-5 pt-2">
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[color-mix(in_oklab,var(--surface)_80%,transparent)] p-1.5 shadow-2xl backdrop-blur-xl">
+            <IconButton label="Previous" onClick={() => go(-1)} disabled={page === 0}>
+              <ChevronLeft size={18} />
+            </IconButton>
+            <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? 'Pause' : 'Play'} title={playing ? 'Pause' : 'Play'} className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-500 text-on-accent hover:bg-accent-400">
+              {playing ? <Pause size={18} /> : <Play size={18} />}
+            </button>
+            <button onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)} className="h-10 rounded-xl px-3 font-mono text-[12px] font-semibold text-white/60 hover:bg-white/5" title="Autoplay speed">
+              {SPEEDS[speedIdx].label}
+            </button>
+            <IconButton label="Next" onClick={() => go(1)} disabled={page >= total - 1}>
+              <ChevronRight size={18} />
+            </IconButton>
+            <div className="ml-1 hidden items-center gap-1 pr-2 sm:flex" aria-hidden="true">
+              {Array.from({ length: total }, (_, i) => (
+                <button key={i} tabIndex={-1} onClick={() => setPage(i)} className={`h-1.5 rounded-full transition-all ${i === page ? 'w-6 bg-accent-400' : 'w-2.5 bg-white/15 hover:bg-white/30'}`} />
+              ))}
+            </div>
           </div>
         </footer>
         {choosing && (
@@ -237,7 +275,7 @@ export default function PresentPage() {
 
 function IconButton({ children, label, onClick, disabled }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-label={label} title={label} className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-white/60 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30">
+    <button type="button" onClick={onClick} disabled={disabled} aria-label={label} title={label} className="flex h-10 w-10 items-center justify-center rounded-xl text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white disabled:opacity-30">
       {children}
     </button>
   );

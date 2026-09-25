@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
-import { ChevronRight, Loader2, Plus, Send, Sparkles, Terminal, X } from 'lucide-react';
+import { BarChart3, ChevronRight, Cpu, LayoutGrid, ListOrdered, Loader2, Map as MapIcon, Plus, ScatterChart as ScatterIcon, Send, Sparkles, Terminal, TrendingUp, X } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
@@ -89,63 +89,97 @@ export default function AskPage() {
 
   const measures = engine?.measures || [];
   const fields = engine?.ds?.fields || [];
+  // One example per kind of question, from this table's own questions.
+  const KINDS = [
+    [/over time|monthly|weekly|trend/i, TrendingUp, 'See a trend'],
+    [/ vs /i, ScatterIcon, 'Find a relationship'],
+    [/distribution|spread/i, BarChart3, 'See a spread'],
+    [/^top /i, ListOrdered, 'Rank the leaders'],
+    [/ by /i, LayoutGrid, 'Compare groups'],
+  ];
+  const geo = fields.find((f) => f.map);
+  const kinds = [];
+  for (const [re, Icon, label] of KINDS) {
+    const q = examples.find((e) => re.test(e) && !kinds.some((k) => k.q === e));
+    if (q) kinds.push({ q, Icon, label });
+  }
+  if (geo && measures[0]) kinds.push({ q: `${measures[0].label} by ${geo.label.toLowerCase()}`, Icon: MapIcon, label: 'Put it on a map' });
   return (
     <ChartPalette>
-      <PageFrame title="Ask a question" subtitle="In plain words. Every answer is computed from your rows.">
-        <div className="mx-auto max-w-4xl space-y-5">
+      <PageFrame title="Ask a question" subtitle="In plain words. Every answer is a chart computed from your rows.">
+        <div className="mx-auto max-w-4xl space-y-6">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               ask(text);
             }}
-            className="card flex items-center gap-2 p-2"
+            className="card card-glow relative flex items-center gap-3 overflow-hidden p-2.5 pl-4"
           >
+            <Sparkles size={18} className="shrink-0 text-accent-400" />
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={examples[0] ? `e.g. ${examples[0]}` : 'e.g. revenue by region'}
+              placeholder={examples[0] ? `Try "${examples[0]}"` : 'Try "revenue by region"'}
               aria-label="Your question"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none"
+              className="min-w-0 flex-1 bg-transparent py-2.5 text-[16px] text-white/90 placeholder:text-white/35 focus:outline-none"
             />
-            <button type="submit" disabled={busy || !text.trim()} className="flex items-center gap-1.5 rounded-lg bg-accent-500 px-4 py-2 text-[12px] font-black uppercase tracking-[0.12em] text-on-accent hover:bg-accent-400 disabled:opacity-40">
-              {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Ask
+            <button type="submit" disabled={busy || !text.trim()} className="flex items-center gap-1.5 rounded-xl bg-accent-500 px-5 py-2.5 text-[13px] font-semibold text-on-accent hover:bg-accent-400 disabled:opacity-40">
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Ask
             </button>
           </form>
           {examples.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {examples.map((e) => (
-                <button key={e} type="button" onClick={() => ask(e)} className="rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/65 hover:border-accent-500/40 hover:text-white">
+                <button key={e} type="button" onClick={() => ask(e)} className="rounded-full border border-white/10 bg-white/[0.02] px-3.5 py-1.5 text-[12.5px] text-white/65 transition-colors hover:border-accent-400/40 hover:text-white">
                   {e}
                 </button>
               ))}
             </div>
           )}
 
+          {answers.length === 0 && kinds.length > 0 && (
+            <section>
+              <h2 className="label mb-3">What you can ask</h2>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {kinds.map(({ q, Icon, label }) => (
+                  <button key={label} type="button" onClick={() => ask(q)} className="card group p-4 text-left transition-colors hover:border-accent-400/40">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent-400/25 bg-accent-400/10 text-accent-300 transition group-hover:shadow-[var(--glow)]">
+                      <Icon size={15} />
+                    </span>
+                    <span className="mt-3 block text-[13.5px] font-semibold text-white/90">{label}</span>
+                    <span className="mt-1 block text-[12.5px] text-white/50">&ldquo;{q}&rdquo;</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {answers.map((a) => (
-            <section key={a.id} className="space-y-2" data-testid="answer">
-              <div className="flex items-center gap-2 text-[13px] text-white/55">
-                <span className="font-semibold text-white/80">“{a.question}”</span>
-                {a.via === 'model' && (
-                  <span className="flex items-center gap-1 text-[11px] text-accent-300">
-                    <Sparkles size={11} /> read by the model, checked against the table
-                  </span>
-                )}
+            <section key={a.id} className="ld-rise space-y-3" data-testid="answer">
+              <div className="flex items-center gap-2">
+                <span className="max-w-[85%] rounded-2xl rounded-bl-md bg-accent-400/12 px-4 py-2 text-[14px] text-white/90">{a.question}</span>
                 <button type="button" aria-label="Remove answer" onClick={() => setAnswers((x) => x.filter((y) => y.id !== a.id))} className="ml-auto rounded p-1 text-white/30 hover:text-white">
-                  <X size={13} />
+                  <X size={14} />
                 </button>
               </div>
               {a.error ? (
-                <p className="card p-4 text-[13px] text-amber-300/90">{a.error}</p>
+                <p className="card border-amber-400/30 p-4 text-[13px] text-amber-300/90">{a.error}</p>
               ) : (
                 <>
                   <div className="grid grid-cols-12">
                     <Tile tile={{ ...a.tile, w: 12 }} measures={a.adhoc ? [...measures, a.adhoc] : measures} fields={fields} editing={false} />
                   </div>
-                  {board && (
-                    <button type="button" disabled={added.has(a.id)} onClick={() => addToDashboard(a)} className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white disabled:opacity-50">
-                      <Plus size={13} /> {added.has(a.id) ? 'Added to the dashboard' : 'Add to the dashboard'}
-                    </button>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-white/50">
+                      {a.via === 'model' ? <Sparkles size={11} className="text-accent-400" /> : <Cpu size={11} className="text-accent-400" />}
+                      {a.via === 'model' ? 'Read by the model, checked against the table' : 'Read by the built-in engine'}
+                    </span>
+                    {board && (
+                      <button type="button" disabled={added.has(a.id)} onClick={() => addToDashboard(a)} className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-[12px] font-semibold text-white/70 hover:bg-white/5 hover:text-white disabled:opacity-50">
+                        <Plus size={13} /> {added.has(a.id) ? 'Added to the dashboard' : 'Add to the dashboard'}
+                      </button>
+                    )}
+                  </div>
                 </>
               )}
             </section>
