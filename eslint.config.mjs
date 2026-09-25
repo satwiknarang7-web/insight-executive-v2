@@ -57,6 +57,21 @@ const config = [
       'no-undef': 'error',
 
       /**
+       * An effect written as \`() => something()\` returns whatever that call
+       * returns, and React calls it as the cleanup. Newer browsers return a
+       * Promise from scrollIntoView, so the assistant crashed with "i is not a
+       * function" on the reader's browser and never on ours. Effects take a
+       * block body, or return a function explicitly.
+       */
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.name=/^use(Layout|Insertion)?Effect$/] > ArrowFunctionExpression.arguments:first-child[body.type=/^(CallExpression|ChainExpression|AwaitExpression|AssignmentExpression)$/]",
+          message: 'Give the effect a block body: an expression body is returned and React calls it as the cleanup.',
+        },
+      ],
+
+      /**
        * And a name used BEFORE it is defined is the same crash wearing a
        * different hat.
        *

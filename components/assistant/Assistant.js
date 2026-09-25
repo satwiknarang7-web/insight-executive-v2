@@ -89,7 +89,11 @@ export default function Assistant() {
       /* storage full or blocked: the chat still works */
     }
   }, [messages]);
-  useEffect(() => endRef.current?.scrollIntoView({ block: 'end' }), [messages, busy]);
+  // Braces matter: newer browsers return a Promise from scrollIntoView, and an
+  // effect that returns one hands React a "cleanup" it then tries to call.
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: 'end' });
+  }, [messages, busy]);
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 50);
   }, [open]);

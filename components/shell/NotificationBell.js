@@ -77,7 +77,9 @@ export default function NotificationBell({ onNavigate }) {
 
   // The body is only there after mount, and a portal rendered during the
   // server pass has nothing to render into.
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const load = useCallback(async () => {
     try {

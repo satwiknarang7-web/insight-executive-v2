@@ -19,7 +19,9 @@ export default function AnalystAvatar({ avatar, size = 64, speaking = false, mut
   const [broken, setBroken] = useState(false);
 
   // A different avatar means a different image; give it a fresh chance to load.
-  useEffect(() => setBroken(false), [avatar.id]);
+  useEffect(() => {
+    setBroken(false);
+  }, [avatar.id]);
 
   return (
     <span
