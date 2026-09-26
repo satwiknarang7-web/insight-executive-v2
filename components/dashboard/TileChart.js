@@ -72,12 +72,19 @@ function Fade({ id, color, from = 0.9, to = 0.55, horizontal = false }) {
 }
 
 /** The legend as small pills above the plot. Identity is colour plus the name. */
-function PillLegend({ payload = [], ink }) {
+/**
+ * The series names as pills. A bar filled with a gradient reports its colour
+ * as `url(#…)`, which means nothing to an HTML dot — every stacked, grouped
+ * and combo legend showed blank swatches. `colors` gives the real colour per
+ * series name, and a url colour is never used as a background.
+ */
+function PillLegend({ payload = [], ink, colors = null }) {
+  const swatch = (p) => colors?.[p.value] || (String(p.color || '').startsWith('url(') ? ink.muted : p.color);
   return (
     <ul className="mb-2 flex flex-wrap gap-1.5">
       {payload.map((p) => (
         <li key={p.value} className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px]" style={{ border: `1px solid ${ink.border}`, color: ink.text }}>
-          <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+          <span className="h-2 w-2 rounded-full" style={{ background: swatch(p) }} />
           {p.value}
         </li>
       ))}
@@ -504,7 +511,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           <YAxis yAxisId="a" {...axis} width={56} tickFormatter={(v) => fmt(v, ma)} />
           <YAxis yAxisId="b" orientation="right" {...axis} width={56} tickFormatter={(v) => fmt(v, mb)} />
           <Tooltip cursor={{ fill: ink.cursor, radius: 6 }} content={<TooltipBox ink={ink} fmtLabel={labelX} fmtValue={(v, k) => fmt(v, byId.get(k))} />} />
-          <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} />} />
+          <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} colors={{ [ma?.label || a]: color(0), [mb?.label || b]: color(1) }} />} />
           <Bar yAxisId="a" dataKey={a} name={ma?.label || a} fill={`url(#${uid}-c)`} radius={[4, 4, 0, 0]} {...anim(0)} onClick={click || undefined} cursor={click ? 'pointer' : 'default'} />
           <Line yAxisId="b" type="monotone" dataKey={b} name={mb?.label || b} stroke={color(1)} strokeWidth={2.5} dot={{ r: 3, strokeWidth: 2, stroke: ink.surface, fill: color(1) }} connectNulls {...anim(1, 1100)} />
         </ComposedChart>
@@ -562,7 +569,9 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
   const nameOf = (k) => (c.series ? k : byId.get(k)?.label || k);
   const valueFmt = (v, k) => fmt(v, c.series ? m : byId.get(k) || m);
   const overall = c.totals && m && !m.additive ? c.totals[m.id] : null;
-  const legend = multi ? <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} />} /> : null;
+  const seriesColor = (k, i) => (k === 'Other' ? ink.muted : color(i));
+  const legendColors = Object.fromEntries(series.map((k, i) => [nameOf(k), seriesColor(k, i)]));
+  const legend = multi ? <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} colors={legendColors} />} /> : null;
   const lineish = viz === 'line' || viz === 'area' || viz === 'stackedArea';
   const tooltip = (
     <Tooltip
@@ -570,7 +579,6 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
       content={<TooltipBox ink={ink} fmtLabel={labelX} fmtValue={(v, k) => valueFmt(v, k)} />}
     />
   );
-  const seriesColor = (k, i) => (k === 'Other' ? ink.muted : color(i));
 
   if (viz === 'line' || viz === 'area' || viz === 'stackedArea') {
     const Chart = viz === 'line' ? LineChart : AreaChart;
