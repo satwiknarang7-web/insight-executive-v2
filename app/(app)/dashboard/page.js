@@ -15,7 +15,7 @@
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { Check, Columns3, Loader2, Pencil, Plus, RefreshCw, ShieldCheck, UploadCloud } from 'lucide-react';
+import { Check, Columns3, Loader2, Pencil, Plus, RefreshCw, UploadCloud } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
@@ -84,20 +84,13 @@ function Building({ stage, useModel }) {
   );
 }
 
-function Findings({ board, ai }) {
+function Findings({ board }) {
   const bullets = board.aiSummary?.length ? board.aiSummary : (board.findings || []).map((f) => f.text);
   if (!bullets.length && !board.headline) return null;
   return (
     <section className="card p-5" data-testid="findings" aria-labelledby="key-findings">
       <div className="mb-2 flex items-center gap-2">
         <h2 id="key-findings" className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Key findings</h2>
-        {ai?.written && (
-          // A quiet provenance note, not a sticker: the claim is that the
-          // numbers were checked, so that is what the mark shows.
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-white/12 px-2 py-0.5 text-[11px] font-medium text-white/55">
-            <ShieldCheck size={12} strokeWidth={1.75} className="text-accent-400" /> Model-written · numbers verified
-          </span>
-        )}
       </div>
       {board.headline && <p className="mb-2 text-[16px] font-semibold leading-snug text-white/90">{board.headline}</p>}
       <ul className="stagger space-y-1.5">
@@ -220,7 +213,7 @@ export default function DashboardPage() {
                   <Loader2 size={13} className="animate-spin" /> {stage || 'Updating'}…
                 </div>
               )}
-              <Findings board={board} ai={ai} />
+              <Findings board={board} />
               {!readOnly && <DashboardFilters board={board} fields={fields} />}
               <KpiStrip kpis={board.kpis} editing={editing} onRemove={dash.removeKpi} />
               {board.sections.length === 0 && !readOnly && (
