@@ -23,6 +23,9 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Funnel,
+  FunnelChart,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -33,6 +36,7 @@ import {
   Scatter,
   ScatterChart,
   Tooltip,
+  Treemap,
   XAxis,
   YAxis,
   ZAxis,
@@ -116,6 +120,31 @@ function TooltipBox({ active, payload, label, fmtLabel, fmtValue, ink }) {
         ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * One rectangle of a treemap. Recharts hands it the box and the datum; the
+ * colour, the dimming and the click come in from the chart. Labelled only
+ * where the label fits, since the tooltip names every box anyway.
+ */
+function TreemapBox({ x, y, width, height, name, value, partColor, dim, pick, fmt, ink }) {
+  if (!name || width <= 0 || height <= 0) return null;
+  const roomy = width > 70 && height > 38;
+  return (
+    <g style={{ cursor: pick ? 'pointer' : 'default' }} onClick={pick ? () => pick(name) : undefined}>
+      <rect x={x} y={y} width={width} height={height} rx={6} fill={partColor(name)} fillOpacity={0.85 * dim(name)} stroke={ink.surface} strokeWidth={3} />
+      {roomy && (
+        <>
+          <text x={x + 10} y={y + 20} fill="#ffffff" fontSize={12} fontWeight={600} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+            {clip(name, Math.floor((width - 16) / 7))}
+          </text>
+          <text x={x + 10} y={y + 36} fill="#ffffff" fillOpacity={0.85} fontSize={11}>
+            {fmt(value)}
+          </text>
+        </>
+      )}
+    </g>
   );
 }
 
@@ -268,6 +297,50 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           ))}
         </ul>
       </div>
+    );
+  }
+
+  // Parts of a whole, as areas or as narrowing stages. Both are drawn from the
+  // same positive values, coloured by name like the donut so a category keeps
+  // its colour from one chart to the next.
+  if (viz === 'treemap' || viz === 'funnel') {
+    const yKey = c.ys[0];
+    const parts = data
+      .filter((d) => typeof d[yKey] === 'number' && d[yKey] > 0)
+      .map((d) => ({ name: String(d[c.x]), value: d[yKey] }))
+      .sort((a, b) => b.value - a.value);
+    const total = parts.reduce((t, d) => t + d.value, 0);
+    const order = parts.map((d) => d.name).filter((n) => n !== 'Other').sort((x, y) => x.localeCompare(y, undefined, { numeric: true }));
+    const partColor = (name) => (name === 'Other' ? ink.muted : color(order.indexOf(name)));
+    const dim = (name) => (selected?.length && !isSelected(name) ? 0.35 : 1);
+    const pick = click ? (name) => onSelect(tile.dim, name) : null;
+    const share = (v) => `${fmt(v)} · ${Math.round((v / total) * 100)}%`;
+
+    if (viz === 'treemap') {
+      return (
+        <ResponsiveContainer width="100%" height={height}>
+          <Treemap data={parts} dataKey="value" nameKey="name" aspectRatio={4 / 3} content={<TreemapBox partColor={partColor} dim={dim} pick={pick} fmt={fmt} ink={ink} />} {...anim(0, 900)}>
+            <Tooltip content={<TooltipBox ink={ink} fmtValue={(v) => share(v)} />} />
+          </Treemap>
+        </ResponsiveContainer>
+      );
+    }
+
+    // A funnel narrows from the largest stage, one hue fading as it goes.
+    const stages = parts.map((d, i) => ({ ...d, fill: color(0), fillOpacity: (1 - (i / Math.max(1, parts.length)) * 0.55) * dim(d.name) }));
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <FunnelChart margin={{ top: 8, right: 130, bottom: 8, left: 8 }}>
+          <Tooltip content={<TooltipBox ink={ink} fmtValue={(v) => share(v)} />} />
+          <Funnel data={stages} dataKey="value" nameKey="name" stroke={ink.surface} strokeWidth={2} onClick={pick ? (d) => pick(d.name) : undefined} cursor={pick ? 'pointer' : 'default'} {...anim(0, 900)}>
+            {stages.map((d) => (
+              <Cell key={d.name} fill={d.fill} fillOpacity={d.fillOpacity} />
+            ))}
+            <LabelList position="right" dataKey="name" fill={ink.text} stroke="none" fontSize={12} />
+            <LabelList position="center" dataKey="value" fill="#ffffff" stroke="none" fontSize={12} fontWeight={600} formatter={(v) => fmt(v)} />
+          </Funnel>
+        </FunnelChart>
+      </ResponsiveContainer>
     );
   }
 
