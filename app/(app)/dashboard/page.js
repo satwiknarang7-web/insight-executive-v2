@@ -108,7 +108,7 @@ function Findings({ board }) {
 export default function DashboardPage() {
   const { dataset, status: dataStatus } = useDataset();
   const dash = useDashboard();
-  const { board, status, stage, error, engine, filters, ai } = dash;
+  const { board, status, stage, error, engine, filters } = dash;
   const { serverModel } = usePlan();
   const ownKey = !!useSyncExternalStore(subscribeToKey, keySnapshot, serverKeySnapshot);
   const useModel = ownKey || !!serverModel;
@@ -207,7 +207,7 @@ export default function DashboardPage() {
         )}
         {board && (
           <div className="flex gap-5">
-            <div className="ld-rise min-w-0 flex-1 space-y-5" data-testid="dashboard">
+            <div className="ld-rise min-w-0 flex-1 space-y-5 pb-4" data-testid="dashboard">
               {status === 'building' && (
                 <div className="flex items-center gap-2 text-[12px] text-white/50">
                   <Loader2 size={13} className="animate-spin" /> {stage || 'Updating'}…
@@ -257,9 +257,6 @@ export default function DashboardPage() {
                   </div>
                 </section>
               ))}
-              <p className="pb-4 text-[11px] text-white/35">
-                {ai?.used ? 'A model helped read this table; every chart and number was computed from your rows.' : 'Built from your rows by the built-in analyst. No language model saw this data.'}
-              </p>
             </div>
             {panel && createPortal(
               // A full-height panel docked to the right edge, like an
