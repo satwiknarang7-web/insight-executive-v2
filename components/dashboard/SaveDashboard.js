@@ -12,6 +12,7 @@ import { Bookmark } from 'lucide-react';
 import SaveAnalysisDialog from '../panels/SaveAnalysisDialog';
 import { useDashboard } from '../../lib/store/DashboardProvider';
 import { useDataset } from '../../lib/store/DatasetProvider';
+import { ACTION_ICON, SECONDARY_ACTION } from './actionStyles';
 
 export default function SaveDashboard() {
   const { snapshotWithData } = useDashboard();
@@ -27,9 +28,9 @@ export default function SaveDashboard() {
           setSnap({ version: 2, dashboard: snapshotWithData() });
           setOpen(true);
         }}
-        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white"
+        className={SECONDARY_ACTION}
       >
-        <Bookmark size={14} /> {saved ? 'Saved' : 'Save'}
+        <Bookmark size={15} className={ACTION_ICON} fill={saved ? 'currentColor' : 'none'} /> {saved ? 'Saved' : 'Save'}
       </button>
       {open && (
         <SaveAnalysisDialog

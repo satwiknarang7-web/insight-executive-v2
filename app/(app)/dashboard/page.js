@@ -29,6 +29,7 @@ import DashboardFilters from '../../../components/dashboard/DashboardFilters';
 import TileEditor, { defaultSpec } from '../../../components/dashboard/TileEditor';
 import FieldsPanel from '../../../components/dashboard/FieldsPanel';
 import SaveDashboard from '../../../components/dashboard/SaveDashboard';
+import { ACTION_ICON, ACTIVE_ACTION, PRIMARY_ACTION, SECONDARY_ACTION } from '../../../components/dashboard/actionStyles';
 
 /**
  * While the dashboard is planned: the shape of what is coming (KPI cards and
@@ -166,18 +167,18 @@ export default function DashboardPage() {
           setEditing((e) => !e);
           if (editing) setPanel(null);
         }}
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12px] font-bold ${editing ? 'border-accent-500/50 bg-accent-500/10 text-accent-300' : 'border-white/10 text-white/65 hover:bg-white/5 hover:text-white'}`}
+        className={PRIMARY_ACTION}
         aria-pressed={editing}
       >
-        {editing ? <Check size={14} /> : <Pencil size={14} />} {editing ? 'Done' : 'Edit'}
+        {editing ? <Check size={15} /> : <Pencil size={15} />} {editing ? 'Done' : 'Edit'}
       </button>
       {editing && (
-        <button type="button" onClick={openAdd} className="anim-zoom flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white">
-          <Plus size={14} /> Add chart
+        <button type="button" onClick={openAdd} className={`anim-zoom ${SECONDARY_ACTION}`}>
+          <Plus size={15} className={ACTION_ICON} /> Add chart
         </button>
       )}
-      <button type="button" onClick={() => setPanel(panel?.type === 'fields' ? null : { type: 'fields' })} className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white">
-        <Columns3 size={14} /> Fields & measures
+      <button type="button" onClick={() => setPanel(panel?.type === 'fields' ? null : { type: 'fields' })} className={panel?.type === 'fields' ? ACTIVE_ACTION : SECONDARY_ACTION} aria-pressed={panel?.type === 'fields'}>
+        <Columns3 size={15} className={ACTION_ICON} /> Fields & measures
       </button>
       <SaveDashboard />
       <button
@@ -187,9 +188,9 @@ export default function DashboardPage() {
           setPanel(null);
           dash.build({ useModel });
         }}
-        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white"
+        className={`group ${SECONDARY_ACTION}`}
       >
-        <RefreshCw size={14} /> Rebuild
+        <RefreshCw size={15} className={`${ACTION_ICON} transition-transform duration-500 group-hover:rotate-180`} /> Rebuild
       </button>
     </div>
   );
