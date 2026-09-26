@@ -175,7 +175,7 @@ export default function DashboardPage() {
         {editing ? <Check size={15} /> : <Pencil size={15} />} {editing ? 'Done' : 'Edit'}
       </button>
       {editing && (
-        <button type="button" onClick={openAdd} className={`anim-zoom ${SECONDARY_ACTION}`}>
+        <button type="button" onClick={openAdd} aria-pressed={panel?.type === 'add'} className={`anim-zoom ${panel?.type === 'add' ? ACTIVE_ACTION : SECONDARY_ACTION}`}>
           <Plus size={15} className={ACTION_ICON} /> Add chart
         </button>
       )}
