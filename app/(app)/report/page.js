@@ -7,7 +7,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FileDown, FileText, Loader2, Presentation, Printer } from 'lucide-react';
+import Link from 'next/link';
+import { FileDown, FileText, Film, Loader2, Presentation, Printer } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
@@ -114,6 +115,10 @@ export default function ReportPage() {
                 {busy === f ? <Loader2 size={14} className="animate-spin" /> : <Icon size={14} />} {label}
               </button>
             ))}
+            {/* Made from the slideshow, where the slides and the voice live. */}
+            <Link href="/present?video=1" className={button}>
+              <Film size={14} /> Video
+            </Link>
           </div>
         }
       >

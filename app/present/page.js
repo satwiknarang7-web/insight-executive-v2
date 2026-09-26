@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Maximize2, Pause, Play, Users, Volume2, VolumeX, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Film, Maximize2, Pause, Play, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { useDataset } from '../../lib/store/DatasetProvider';
 import { useDashboard } from '../../lib/store/DashboardProvider';
 import { filteredReportBoard } from '../../lib/engine/reportScope';
@@ -22,8 +22,8 @@ import useNarration from '../../lib/useNarration';
 import { pickVoice, slideScript, summaryScript } from '../../lib/speech';
 import { dashboardToDeck } from '../../lib/engine/deck';
 import { ChartPalette } from '../../components/charts/palette';
-import TileChart from '../../components/dashboard/TileChart';
-import KpiStrip from '../../components/dashboard/KpiStrip';
+import SlideContent from '../../components/present/SlideContent';
+import VideoExport from '../../components/present/VideoExport';
 
 const SPEEDS = [
   { label: '1x', ms: 9000 },
@@ -52,6 +52,7 @@ export default function PresentPage() {
   const [speedIdx, setSpeedIdx] = useState(0);
   const [narrating, setNarrating] = useState(true);
   const [choosing, setChoosing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [height, setHeight] = useState(420);
   const rootRef = useRef(null);
   const { avatar, avatarId, chooseAvatar } = useAvatar();
@@ -89,12 +90,23 @@ export default function PresentPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [go, router]);
 
-  const script = useMemo(() => {
-    if (!deck) return '';
-    if (page === 0) return summaryScript(deck.slideZero, avatar, { fileName: dataset?.fileName, rowCount: dataset?.rowCount });
-    const entry = deck.storyboard[page - 1];
-    return entry ? slideScript({ ...entry, insight_anchor: entry.findings.headline }, avatar, { index: page - 1, total: tiles.length }) : '';
-  }, [deck, page, avatar, dataset, tiles.length]);
+  // Every slide's script, worked out once: the live slideshow speaks one at a
+  // time, and the video export narrates them all.
+  const scripts = useMemo(() => {
+    if (!deck) return [];
+    return Array.from({ length: total }, (_, p) => {
+      if (p === 0) return summaryScript(deck.slideZero, avatar, { fileName: dataset?.fileName, rowCount: dataset?.rowCount });
+      const entry = deck.storyboard[p - 1];
+      return entry ? slideScript({ ...entry, insight_anchor: entry.findings.headline }, avatar, { index: p - 1, total: tiles.length }) : '';
+    });
+  }, [deck, total, avatar, dataset, tiles.length]);
+  const script = scripts[page] || '';
+
+  // `/present?video=1` (from the Report page) opens straight on the export.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read once from the URL after mount
+    if (new URLSearchParams(window.location.search).get('video') === '1') setExporting(true);
+  }, []);
 
   const advance = useCallback(() => {
     setPlaying((isPlaying) => {
@@ -142,8 +154,6 @@ export default function PresentPage() {
     );
   }
 
-  const tile = page > 0 ? tiles[page - 1] : null;
-  const bullets = board.aiSummary?.length ? board.aiSummary : (board.findings || []).map((f) => f.text);
   // Which chapter a chart belongs to, for the header.
   const chapter = (() => {
     let n = 0;
@@ -185,6 +195,15 @@ export default function PresentPage() {
               </span>
               <Users size={13} className="text-white/40" />
             </button>
+            <IconButton
+              label="Download as a video"
+              onClick={() => {
+                setPlaying(false);
+                setExporting(true);
+              }}
+            >
+              <Film size={16} />
+            </IconButton>
             <IconButton label={narrating ? 'Mute the presenter' : 'Unmute the presenter'} onClick={() => setNarrating((n) => !n)}>
               {narrating ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </IconButton>
@@ -200,50 +219,7 @@ export default function PresentPage() {
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-10">
           <FitSlide key={page} direction={direction}>
-            {page === 0 ? (
-              <div className="mx-auto max-w-6xl space-y-7">
-                <div className="anim-rise">
-                  <span className="eyebrow">{bullets.length} key {bullets.length === 1 ? "finding" : "findings"} · {tiles.length} {tiles.length === 1 ? "chart" : "charts"}</span>
-                  <h1 className="display mt-4 max-w-4xl text-[30px] leading-[1.12] text-white/95 sm:text-[44px]">{board.headline || board.subject || 'What the data says'}</h1>
-                  {board.filterNote && (
-                    <p className="mt-4 inline-flex items-center gap-2 rounded-lg border border-accent-400/35 bg-accent-400/10 px-3 py-1.5 text-[13px] font-medium text-accent-300" data-testid="present-filter">
-                      Filtered to {board.filterNote}
-                    </p>
-                  )}
-                </div>
-                {bullets.length > 0 && (
-                  <ol className="stagger grid gap-3 md:grid-cols-2">
-                    {bullets.slice(0, 4).map((b, i) => (
-                      <li key={i} className="card flex gap-3 p-4">
-                        <span className="figure flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-400/30 bg-accent-400/10 text-[13px] font-semibold text-accent-300">{i + 1}</span>
-                        <span className="text-[15px] leading-relaxed text-white/85">{b}</span>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-                <KpiStrip kpis={board.kpis} />
-              </div>
-            ) : (
-              tile && (
-                <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-stretch">
-                  <div className="card flex min-h-0 flex-col p-5 sm:p-6">
-                    <div className="mb-3 flex items-baseline gap-3">
-                      <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.08em] text-white/40">Fig. {page}</span>
-                      <h2 className="text-[20px] font-semibold leading-snug text-white/95 sm:text-[26px]">{tile.title}</h2>
-                    </div>
-                    <div className="min-w-0">
-                      <TileChart tile={tile} measures={measures} fields={fields} height={height} />
-                    </div>
-                  </div>
-                  {tile.insight && (
-                    <div className="anim-slide-right flex items-start gap-3 rounded-2xl border border-accent-400/25 bg-accent-400/[0.06] p-4 sm:p-5 lg:flex-col lg:self-center" style={{ animationDelay: '220ms' }}>
-                      <AnalystAvatar avatar={avatar} size={32} />
-                      <p className="text-[15px] leading-relaxed text-white/85 sm:text-[17px]">{tile.insight}</p>
-                    </div>
-                  )}
-                </div>
-              )
-            )}
+            <SlideContent board={board} page={page} tiles={tiles} measures={measures} fields={fields} avatar={avatar} height={height} />
           </FitSlide>
         </main>
 
@@ -270,6 +246,19 @@ export default function PresentPage() {
             </div>
           </div>
         </footer>
+        {exporting && (
+          <VideoExport
+            board={board}
+            tiles={tiles}
+            measures={measures}
+            fields={fields}
+            avatar={avatar}
+            scripts={scripts}
+            fileName={dataset?.fileName || board.ds?.name}
+            narrateByDefault={narrating}
+            onClose={() => setExporting(false)}
+          />
+        )}
         {choosing && (
           <div className="anim-fade absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && setChoosing(false)}>
             <div className="panel anim-pop w-full max-w-xl p-5" role="dialog" aria-label="Choose your presenter">

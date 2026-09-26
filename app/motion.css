@@ -256,6 +256,18 @@
   }
 }
 
+/*
+ * A surface drawn to be copied — a video frame — has to be caught finished.
+ * Everything inside it is at its end state, whatever the motion setting.
+ */
+.motion-off,
+.motion-off *,
+.motion-off *::before,
+.motion-off *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* --- Reduced motion. ----------------------------------------------------- */
 /*
  * The durations are already cut to nothing in `globals.css`. These are the
