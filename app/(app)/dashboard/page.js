@@ -199,6 +199,9 @@ export default function DashboardPage() {
 
   return (
     <ChartPalette>
+      {/* The whole page makes room for the side panel — header and toolbar
+          included, so the buttons that opened it never slide underneath it. */}
+      <div className={`transition-[padding] duration-300 ${panel ? 'lg:pr-[400px]' : ''}`}>
       <PageFrame title={title} subtitle={subtitle} action={actions}>
         {status === 'building' && !board && <Building stage={stage} useModel={useModel} />}
         {status === 'error' && (
@@ -210,7 +213,7 @@ export default function DashboardPage() {
           </div>
         )}
         {board && (
-          <div className={`flex gap-5 ${panel ? 'lg:pr-[380px]' : ''}`}>
+          <div className="flex gap-5">
             <div className="ld-rise min-w-0 flex-1 space-y-5" data-testid="dashboard">
               {status === 'building' && (
                 <div className="flex items-center gap-2 text-[12px] text-white/50">
@@ -266,10 +269,14 @@ export default function DashboardPage() {
               </p>
             </div>
             {panel && createPortal(
-              <div className="anim-fade fixed inset-0 z-50 flex justify-end bg-black/40 p-2 lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[380px] lg:bg-transparent lg:p-4" onClick={(e) => e.target === e.currentTarget && setPanel(null)}>
+              // A full-height panel docked to the right edge, like an
+              // inspector: top to bottom of the window, flush to the side,
+              // with the board making room for it on a wide screen. It was a
+              // floating card that started a fifth of the way down.
+              <div className="anim-fade fixed inset-0 z-[65] flex justify-end bg-black/40 lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[400px] lg:bg-transparent" onClick={(e) => e.target === e.currentTarget && setPanel(null)}>
                 {/* Keyed on what it holds, so switching from one chart's editor
                     to another's slides the new one in rather than swapping. */}
-                <div key={panel.type === 'edit' ? panel.id : panel.type} className="anim-slide-right max-h-full w-full max-w-[380px] overflow-y-auto lg:mt-20 lg:max-h-[calc(100%-5rem)]">
+                <div key={panel.type === 'edit' ? panel.id : panel.type} className="anim-slide-right flex h-full w-full max-w-[400px] flex-col border-l border-white/10 bg-surface shadow-[-24px_0_48px_-24px_rgba(0,0,0,0.6)]">
                   {panel.type === 'fields' && <FieldsPanel onClose={() => setPanel(null)} />}
                   {panel.type === 'edit' && editTile && (
                     <TileEditor
@@ -302,6 +309,7 @@ export default function DashboardPage() {
           </div>
         )}
       </PageFrame>
+      </div>
     </ChartPalette>
   );
 }

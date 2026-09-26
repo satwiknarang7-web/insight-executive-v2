@@ -139,9 +139,9 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
   const measureOptions = measures.map((m) => ({ value: m.id, label: m.label }));
 
   return (
-    <aside className="card flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden" aria-label="Chart editor" data-testid="tile-editor">
-      <div className="flex items-center gap-2 border-b border-white/8 px-4 py-3">
-        <span className="text-[13px] font-bold text-white/90">{mode === 'add' ? 'Add a chart' : 'Edit chart'}</span>
+    <aside className="flex h-full min-h-0 w-full flex-col overflow-hidden" aria-label="Chart editor" data-testid="tile-editor">
+      <div className="flex shrink-0 items-center gap-2 border-b border-white/8 px-5 py-4">
+        <span className="text-[15px] font-semibold text-white/95">{mode === 'add' ? 'Add a chart' : 'Edit chart'}</span>
         <button type="button" onClick={onClose} aria-label="Close editor" className="ml-auto rounded-md p-1 text-white/40 hover:bg-white/5 hover:text-white">
           <X size={15} />
         </button>
