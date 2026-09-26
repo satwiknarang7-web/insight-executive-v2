@@ -70,7 +70,7 @@ export default function AppearancePanel() {
               >
                 <Icon size={14} />
                 {m.label}
-                {active && <Check size={13} className="text-accent-400" />}
+                {active && <Check size={13} className="anim-zoom text-accent-400" />}
               </button>
             );
           })}
@@ -84,7 +84,7 @@ export default function AppearancePanel() {
           surfaces holding them are built.
         </p>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="stagger grid gap-3 sm:grid-cols-3">
           {SURFACES.map((s) => {
             const active = ready && appearance.surface === s.id;
             return (
@@ -93,7 +93,7 @@ export default function AppearancePanel() {
                 type="button"
                 onClick={() => choose({ surface: s.id })}
                 aria-pressed={active}
-                className={`group rounded-2xl border p-3 text-left transition-colors ${
+                className={`lift group rounded-2xl border p-3 text-left ${
                   active
                     ? 'border-accent-500/45 bg-accent-500/[0.06]'
                     : 'border-white/10 hover:border-accent-500/25 hover:bg-white/[0.03]'
@@ -111,7 +111,7 @@ export default function AppearancePanel() {
                   <span className={`text-[13px] font-bold ${active ? 'text-accent-300' : 'text-white/85'}`}>
                     {s.label}
                   </span>
-                  {active && <Check size={13} className="text-accent-400" />}
+                  {active && <Check size={13} className="anim-zoom text-accent-400" />}
                 </span>
                 <span className="mt-1 block text-[11px] leading-relaxed text-white/40">{s.blurb}</span>
               </button>

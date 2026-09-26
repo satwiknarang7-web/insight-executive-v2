@@ -15,6 +15,7 @@ import { filteredReportBoard } from '../../../lib/engine/reportScope';
 import { ChartPalette } from '../../../components/charts/palette';
 import KpiStrip from '../../../components/dashboard/KpiStrip';
 import TileChart from '../../../components/dashboard/TileChart';
+import Reveal from '../../../components/motion/Reveal';
 
 export default function SummaryPage() {
   const { dataset } = useDataset();
@@ -68,7 +69,7 @@ export default function SummaryPage() {
             <div className="relative">
               <span className="eyebrow">Executive brief · {board.subject || dataset?.fileName || 'your data'}</span>
               <p className="display mt-5 max-w-3xl text-[26px] leading-[1.2] text-white/95 md:text-[32px]">{headline}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="stagger-fast mt-6 flex flex-wrap gap-2">
                 {facts.map(([Icon, text]) => (
                   <span key={text} className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-white/65">
                     <Icon size={13} className="text-accent-400" /> {text}
@@ -88,7 +89,7 @@ export default function SummaryPage() {
           {findings.length > 0 && (
             <section className="ld-rise" style={{ animationDelay: '160ms' }}>
               <h2 className="label mb-3">Key findings</h2>
-              <ol className="grid gap-4 md:grid-cols-2">
+              <ol className="stagger grid gap-4 md:grid-cols-2">
                 {findings.slice(0, 6).map((f, i) => {
                   const t = f.tileId ? byId.get(f.tileId) : null;
                   return (
@@ -115,38 +116,40 @@ export default function SummaryPage() {
               const items = s.tiles.filter((t) => t.insight);
               if (!items.length) return null;
               return (
-                <div key={s.id} className="card overflow-hidden p-0">
-                  <div className="flex items-center gap-3 border-b border-white/6 px-5 py-3.5">
-                    <span className="font-mono text-[12px] text-accent-400">{String(si + 1).padStart(2, '0')}</span>
-                    <h2 className="text-[14px] font-semibold text-white/90">{s.title || 'The main picture'}</h2>
-                  </div>
-                  <ul className="divide-y divide-white/6">
-                    {items.map((t) => (
-                      <li key={t.id} className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(0,1fr)_320px] md:items-center">
-                        <div className="min-w-0">
-                          <h3 className="text-[14px] font-semibold text-white/85">{t.title}</h3>
-                          <p className="mt-1 text-[13.5px] leading-relaxed text-white/60">{t.insight}</p>
-                        </div>
-                        {t.viz !== 'table' && t.viz !== 'heatmap' && (
-                          <div className="hidden md:block">
-                            <TileChart tile={t} measures={measures} fields={fields} height={120} />
+                <Reveal key={s.id}>
+                  <div className="card overflow-hidden p-0">
+                    <div className="flex items-center gap-3 border-b border-white/6 px-5 py-3.5">
+                      <span className="font-mono text-[12px] text-accent-400">{String(si + 1).padStart(2, '0')}</span>
+                      <h2 className="text-[14px] font-semibold text-white/90">{s.title || 'The main picture'}</h2>
+                    </div>
+                    <ul className="divide-y divide-white/6">
+                      {items.map((t) => (
+                        <li key={t.id} className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(0,1fr)_320px] md:items-center">
+                          <div className="min-w-0">
+                            <h3 className="text-[14px] font-semibold text-white/85">{t.title}</h3>
+                            <p className="mt-1 text-[13.5px] leading-relaxed text-white/60">{t.insight}</p>
                           </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                          {t.viz !== 'table' && t.viz !== 'heatmap' && (
+                            <div className="hidden md:block">
+                              <TileChart tile={t} measures={measures} fields={fields} height={120} />
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Reveal>
               );
             })}
           </section>
 
-          <Link href="/report" className="card group flex items-center gap-4 p-5 transition-colors hover:border-accent-400/40">
-            <FileText size={18} className="text-accent-400" />
+          <Link href="/report" className="card lift group flex items-center gap-4 p-5">
+            <FileText size={18} className="text-accent-400 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
             <span className="min-w-0 flex-1">
               <span className="block text-[14px] font-semibold text-white/90">Need to send this on?</span>
               <span className="block text-[12.5px] text-white/50">The report has every chart, ready to print or download as PDF, Word or PowerPoint.</span>
             </span>
-            <ArrowRight size={16} className="text-white/40 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight size={16} className="nudge text-white/40 group-hover:text-accent-400" />
           </Link>
         </div>
       </PageFrame>

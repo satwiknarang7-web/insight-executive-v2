@@ -59,6 +59,13 @@ export default async function ProfilePage() {
 
   return (
     <Shell>
+      {/* Every other page opens with its title in the display face; this one
+          opened straight into a form, with its only heading half way down. */}
+      <header>
+        <h1 className="display text-[27px] leading-[1.12] text-white/95 md:text-[34px]">Account</h1>
+        <p className="mt-1.5 text-[13px] text-white/45">Your profile, your saved connections and your sign-in.</p>
+      </header>
+
       <ProfilePanel email={user.email} />
 
       <Block
@@ -93,7 +100,7 @@ function Unconfigured({ detail = null }) {
     <Shell>
       <div className="card flex max-w-lg flex-col gap-3 p-8">
         <span className="label">Not configured</span>
-        <h1 className="text-lg font-black">Accounts are not set up on this deployment</h1>
+        <h1 className="display text-[22px] leading-tight text-white/95">Accounts are not set up on this deployment</h1>
         <p className="text-sm leading-relaxed text-white/50">
           There is no Supabase project configured, so there is nowhere to keep a profile, a saved analysis
           or a stored credential. Copy <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">.env.example</code>{' '}
@@ -135,7 +142,7 @@ function Shell({ children }) {
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 pb-20">{children}</div>
+      <div className="stagger relative z-10 mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 pb-20">{children}</div>
     </main>
   );
 }

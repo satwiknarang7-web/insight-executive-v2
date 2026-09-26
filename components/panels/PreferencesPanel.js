@@ -27,7 +27,7 @@ function usePreferences() {
 export function ColorThemes() {
   const { prefs, ready, choose } = usePreferences();
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3">
       {ACCENTS.map((a) => {
         const active = ready && prefs.accent === a.id;
         const [c1, c2] = a.swatch;
@@ -37,7 +37,7 @@ export function ColorThemes() {
             type="button"
             onClick={() => choose({ accent: a.id })}
             aria-pressed={active}
-            className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all ${
+            className={`lift group relative overflow-hidden rounded-2xl border p-3 text-left ${
               active ? 'border-accent-400/60 bg-accent-400/[0.06] shadow-[var(--glow)]' : 'border-white/10 hover:border-white/25 hover:bg-white/[0.03]'
             }`}
           >
@@ -58,7 +58,7 @@ export function ColorThemes() {
             <span className="mt-2.5 flex items-center gap-2">
               <span className="h-3 w-3 rounded-full" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }} />
               <span className="text-[13px] font-semibold text-white/90">{a.label}</span>
-              {active && <Check size={13} className="ml-auto text-accent-400" />}
+              {active && <Check size={13} className="anim-zoom ml-auto text-accent-400" />}
             </span>
             <span className="mt-0.5 block text-[11.5px] text-white/45">{a.blurb}</span>
           </button>

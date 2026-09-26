@@ -39,6 +39,15 @@ export default function PresentPage() {
   // Filters on: the slides are about the filtered rows, like the dashboard.
   const board = useMemo(() => filteredReportBoard(live, filters, engine?.ds?.fields || live?.ds?.fields || []), [live, filters, engine]);
   const [page, setPage] = useState(0);
+  // Which way the deck last moved, so a slide enters from the side it came
+  // from. Adjusted during render rather than in an effect, so the new slide's
+  // first frame already knows.
+  const [lastPage, setLastPage] = useState(0);
+  const [direction, setDirection] = useState(1);
+  if (page !== lastPage) {
+    setDirection(page > lastPage ? 1 : -1);
+    setLastPage(page);
+  }
   const [playing, setPlaying] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(0);
   const [narrating, setNarrating] = useState(true);
@@ -190,10 +199,10 @@ export default function PresentPage() {
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-10">
-          <FitSlide key={page}>
+          <FitSlide key={page} direction={direction}>
             {page === 0 ? (
               <div className="mx-auto max-w-6xl space-y-7">
-                <div>
+                <div className="anim-rise">
                   <span className="eyebrow">{bullets.length} key {bullets.length === 1 ? "finding" : "findings"} · {tiles.length} {tiles.length === 1 ? "chart" : "charts"}</span>
                   <h1 className="display mt-4 max-w-4xl text-[30px] leading-[1.12] text-white/95 sm:text-[44px]">{board.headline || board.subject || 'What the data says'}</h1>
                   {board.filterNote && (
@@ -203,7 +212,7 @@ export default function PresentPage() {
                   )}
                 </div>
                 {bullets.length > 0 && (
-                  <ol className="grid gap-3 md:grid-cols-2">
+                  <ol className="stagger grid gap-3 md:grid-cols-2">
                     {bullets.slice(0, 4).map((b, i) => (
                       <li key={i} className="card flex gap-3 p-4">
                         <span className="figure flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-400/30 bg-accent-400/10 text-[13px] font-semibold text-accent-300">{i + 1}</span>
@@ -227,7 +236,7 @@ export default function PresentPage() {
                     </div>
                   </div>
                   {tile.insight && (
-                    <div className="flex items-start gap-3 rounded-2xl border border-accent-400/25 bg-accent-400/[0.06] p-4 sm:p-5 lg:flex-col lg:self-center">
+                    <div className="anim-slide-right flex items-start gap-3 rounded-2xl border border-accent-400/25 bg-accent-400/[0.06] p-4 sm:p-5 lg:flex-col lg:self-center" style={{ animationDelay: '220ms' }}>
                       <AnalystAvatar avatar={avatar} size={32} />
                       <p className="text-[15px] leading-relaxed text-white/85 sm:text-[17px]">{tile.insight}</p>
                     </div>
@@ -243,8 +252,10 @@ export default function PresentPage() {
             <IconButton label="Previous" onClick={() => go(-1)} disabled={page === 0}>
               <ChevronLeft size={18} />
             </IconButton>
-            <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? 'Pause' : 'Play'} title={playing ? 'Pause' : 'Play'} className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-500 text-on-accent hover:bg-accent-400">
-              {playing ? <Pause size={18} /> : <Play size={18} />}
+            <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? 'Pause' : 'Play'} title={playing ? 'Pause' : 'Play'} className={`flex h-10 w-10 items-center justify-center rounded-xl bg-accent-500 text-on-accent hover:bg-accent-400 ${playing ? 'anim-halo' : ''}`}>
+              <span key={playing ? 'pause' : 'play'} className="anim-zoom flex">
+                {playing ? <Pause size={18} /> : <Play size={18} />}
+              </span>
             </button>
             <button onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)} className="h-10 rounded-xl px-3 font-mono text-[12px] font-semibold text-white/60 hover:bg-white/5" title="Autoplay speed">
               {SPEEDS[speedIdx].label}
@@ -260,8 +271,8 @@ export default function PresentPage() {
           </div>
         </footer>
         {choosing && (
-          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4" onClick={(e) => e.target === e.currentTarget && setChoosing(false)}>
-            <div className="card w-full max-w-xl p-5" role="dialog" aria-label="Choose your presenter">
+          <div className="anim-fade absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && setChoosing(false)}>
+            <div className="panel anim-pop w-full max-w-xl p-5" role="dialog" aria-label="Choose your presenter">
               <div className="mb-3 flex items-center">
                 <span className="text-[13px] font-bold text-white/85">Choose your presenter</span>
                 <button type="button" aria-label="Close" onClick={() => setChoosing(false)} className="ml-auto rounded p-1 text-white/40 hover:text-white">
@@ -296,7 +307,7 @@ function IconButton({ children, label, onClick, disabled }) {
  * a short or narrow window never cuts off its top. Below 60% it would be
  * unreadable, so from there it scrolls instead, starting from the top.
  */
-function FitSlide({ children }) {
+function FitSlide({ children, direction = 1 }) {
   const outer = useRef(null);
   const inner = useRef(null);
   const [fit, setFit] = useState({ scale: 1, height: 0 });
@@ -317,7 +328,7 @@ function FitSlide({ children }) {
     return () => ro.disconnect();
   }, []);
   return (
-    <div ref={outer} className="ld-rise mx-auto flex h-full max-w-[1500px] flex-col">
+    <div ref={outer} className={`${direction < 0 ? 'anim-slide-left' : 'anim-slide-right'} mx-auto flex h-full max-w-[1500px] flex-col`}>
       {/* my-auto centres when there is room and starts at the top when there is not. */}
       <div className="my-auto w-full" style={{ height: fit.scale < 1 ? fit.height * fit.scale : undefined }}>
         <div ref={inner} style={{ transform: fit.scale < 1 ? `scale(${fit.scale})` : undefined, transformOrigin: 'top center' }}>

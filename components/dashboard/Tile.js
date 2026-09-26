@@ -17,7 +17,7 @@ export default function Tile({ tile, measures, fields, editing, selectedIds = []
   const span = tile.w >= 12 ? 'lg:col-span-12' : 'lg:col-span-6';
   return (
     <article
-      className={`card col-span-12 flex min-w-0 flex-col p-4 sm:p-5 ${span} ${selectedIds.includes(tile.id) ? 'ring-2 ring-accent-500/50' : ''}`}
+      className={`card col-span-12 flex min-w-0 flex-col p-4 sm:p-5 ${span} ${selectedIds.includes(tile.id) ? 'card-selected' : ''}`}
       data-testid="tile"
       data-viz={tile.viz}
     >
@@ -27,7 +27,7 @@ export default function Tile({ tile, measures, fields, editing, selectedIds = []
           {tile.subtitle && <p className="mt-0.5 text-[12px] text-white/45">{tile.subtitle}</p>}
         </div>
         {editing && (
-          <div className="flex shrink-0 items-center gap-0.5">
+          <div className="stagger-fast flex shrink-0 items-center gap-0.5">
             <IconButton label="Edit chart" onClick={() => onEdit?.(tile.id)}>
               <Pencil size={14} />
             </IconButton>

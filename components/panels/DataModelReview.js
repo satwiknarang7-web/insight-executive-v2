@@ -534,7 +534,7 @@ function Relationship({ rel, matchRate, off, onToggle }) {
   return (
     <div
       className={`card flex flex-col gap-2 p-4 transition-opacity ${off ? 'opacity-40' : ''} ${
-        poor && !off ? 'border-amber-500/30' : ''
+        poor && !off ? 'card-warn' : ''
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">

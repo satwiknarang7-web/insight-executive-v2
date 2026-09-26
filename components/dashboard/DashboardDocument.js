@@ -86,7 +86,7 @@ export default function DashboardDocument({ board, measures = [], fields = [], f
       {(board.kpis || []).length > 0 && (
         <section className="break-inside-avoid">
           <h2 className="label mb-3">Headline numbers</h2>
-          <KpiStrip kpis={board.kpis} />
+          <KpiStrip kpis={board.kpis} animate={!printing} />
         </section>
       )}
 
@@ -105,7 +105,7 @@ export default function DashboardDocument({ board, measures = [], fields = [], f
                   <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.08em] text-white/40">Fig. {figure}</span>
                   <span className="text-[15px] font-semibold text-white/90">{t.title}</span>
                 </figcaption>
-                <TileChart tile={t} measures={measures} fields={fields} height={printing ? 260 : 300} />
+                <TileChart tile={t} measures={measures} fields={fields} height={printing ? 260 : 300} animate={!printing} />
                 {t.insight && <p className="mt-4 border-l-2 border-accent-400/60 pl-3 text-[13.5px] leading-relaxed text-white/75">{t.insight}</p>}
               </figure>
             );

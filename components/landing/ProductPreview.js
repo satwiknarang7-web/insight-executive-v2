@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { MessageCircle, Sparkles } from 'lucide-react';
+import { motionAllowed } from '../../lib/motion';
 
 const TREND = [32, 36, 34, 41, 39, 46, 44, 52, 49, 58, 61, 57, 66, 70, 68, 77];
 const BARS = [
@@ -29,7 +30,7 @@ const KPIS = [
 function useCount(to, ms = 1200) {
   const [v, setV] = useState(0);
   useEffect(() => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    if (!motionAllowed()) {
       setV(to);
       return undefined;
     }
@@ -83,7 +84,7 @@ export default function ProductPreview() {
         </div>
 
         <div className="space-y-3 p-4">
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="stagger grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {KPIS.map(([label, value, unit, delta]) => (
               <Kpi key={label} label={label} value={value} unit={unit} delta={delta} />
             ))}
@@ -129,8 +130,8 @@ export default function ProductPreview() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5 rounded-xl border border-accent-400/20 bg-accent-400/[0.06] p-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent-400/15 text-accent-300">
+          <div className="anim-rise flex items-start gap-2.5 rounded-xl border border-accent-400/20 bg-accent-400/[0.06] p-3" style={{ animationDelay: '700ms' }}>
+            <span className="anim-breathe flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent-400/15 text-accent-300">
               <Sparkles size={13} />
             </span>
             <p className="text-[11.5px] leading-relaxed text-white/75">
@@ -142,12 +143,14 @@ export default function ProductPreview() {
       </div>
 
       {/* The assistant, floating over the corner. */}
-      <div className="panel absolute -bottom-10 -left-6 hidden w-60 p-3 shadow-2xl md:block">
+      {/* It floats: an opaque panel with no blur behind it, so the loop costs
+          the compositor nothing — unlike floating the glass window itself. */}
+      <div className="panel anim-float absolute -bottom-10 -left-6 hidden w-60 p-3 shadow-2xl md:block">
         <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-white/60">
           <MessageCircle size={12} className="text-accent-400" /> Assistant
         </div>
-        <p className="mt-1.5 rounded-lg bg-white/[0.05] px-2.5 py-1.5 text-[11px] text-white/80">Filter to Email and add conversions by audience</p>
-        <div className="mt-1.5 flex gap-1.5">
+        <p className="anim-pop mt-1.5 rounded-lg bg-white/[0.05] px-2.5 py-1.5 text-[11px] text-white/80" style={{ animationDelay: '900ms' }}>Filter to Email and add conversions by audience</p>
+        <div className="anim-pop mt-1.5 flex gap-1.5" style={{ animationDelay: '1300ms' }}>
           <span className="rounded-md bg-accent-500 px-2 py-1 text-[10px] font-bold text-on-accent">Apply</span>
           <span className="rounded-md border border-white/10 px-2 py-1 text-[10px] text-white/55">Discard</span>
         </div>

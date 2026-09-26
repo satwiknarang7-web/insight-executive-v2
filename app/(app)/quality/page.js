@@ -3,6 +3,7 @@
 import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Database, HelpCircle, Hash, Calendar, Type, Fingerprint, Eraser, Scale, Rows3, Sigma } from 'lucide-react';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
+import CountUp from '../../../components/motion/CountUp';
 import DatasetNotices from '../../../components/panels/DatasetNotices';
 import { formatSql } from '../../../lib/sqlFormat';
 import { REASON_TEXT, summarizeConfidence } from '../../../lib/cellConfidence';
@@ -105,7 +106,7 @@ export default function QualityPage() {
         * translate that, and the thing they came to find out is whether their
         * file is all right.
         */}
-      <section className={`card mb-6 overflow-hidden p-6 md:p-7 ${good ? '' : 'border-amber-400/30'}`}>
+      <section className={`card mb-6 overflow-hidden p-6 md:p-7 ${good ? '' : 'card-warn'}`}>
         <div className="flex flex-col gap-6 md:flex-row md:items-center">
           <Gauge value={integrity} good={good} />
           <div className="min-w-0 flex-1">
@@ -127,7 +128,7 @@ export default function QualityPage() {
       </section>
 
       {/* Ingestion metrics */}
-      <section className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+      <section className="stagger mb-8 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {/*
           * Named for what happened, not for the operation that did it.
           *
@@ -147,7 +148,7 @@ export default function QualityPage() {
       {/* What was done */}
       <section className="card mb-8 p-6">
         <div className="label mb-4">What we changed on the way in</div>
-        <ul className="grid gap-3 md:grid-cols-2">
+        <ul className="stagger grid gap-3 md:grid-cols-2">
           <Bullet icon={EyeOff} title="Hid personal details" count={m.redactedPII}>
             Anything that looked like an email address, a phone number, a social security number or a
             card number was replaced with a placeholder before anything else happened, so none of it
@@ -252,7 +253,7 @@ export default function QualityPage() {
                       column was chosen rather than read. */}
                   <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/6">
                     <div
-                      className="h-full rounded-full bg-amber-400/60"
+                      className="anim-grow-x h-full rounded-full bg-amber-400/60"
                       style={{ width: `${Math.max(2, Math.min(100, entry.share * 100))}%` }}
                     />
                   </div>
@@ -289,7 +290,7 @@ export default function QualityPage() {
                 <th className="px-4 py-2.5 text-right">Hidden</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="stagger-fast">
               {columns.map((col) => {
                 const p = profile[col] || {};
                 const stat = m.columnStats?.[col] || {};
@@ -319,7 +320,7 @@ export default function QualityPage() {
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-2">
                         <span className="h-1.5 w-24 overflow-hidden rounded-full bg-white/8">
-                          <span className={`block h-full rounded-full ${nullPct > 10 ? 'bg-amber-400/80' : 'bg-emerald-400/80'}`} style={{ width: `${100 - nullPct}%` }} />
+                          <span className={`anim-grow-x block h-full rounded-full ${nullPct > 10 ? 'bg-amber-400/80' : 'bg-emerald-400/80'}`} style={{ width: `${100 - nullPct}%`, animationDelay: '250ms' }} />
                         </span>
                         <span className={`font-mono tabular-nums ${nullPct > 10 ? 'text-amber-400' : 'text-white/55'}`}>{(100 - nullPct).toFixed(nullPct > 0 && nullPct < 1 ? 1 : 0)}%</span>
                       </span>
@@ -350,13 +351,14 @@ function Metric({ icon: Icon, label, value, tone }) {
   // zeros are the good news.
   const n = value || 0;
   return (
-    <div className="card p-4">
-      <span className={`flex h-8 w-8 items-center justify-center rounded-lg border ${colors[tone] || 'border-white/10 bg-white/[0.04] text-white/50'}`}>
+    <div className="card group p-4">
+      <span className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110 ${colors[tone] || 'border-white/10 bg-white/[0.04] text-white/50'}`}>
         <Icon size={15} />
       </span>
-      <div className={`figure mt-3 ${n === 0 ? 'text-[18px] font-semibold text-white/50' : 'text-[24px] font-semibold text-white/95'}`}>
-        {n === 0 ? 'None' : n.toLocaleString()}
-      </div>
+      <CountUp
+        value={n === 0 ? 'None' : n.toLocaleString()}
+        className={`figure mt-3 block ${n === 0 ? 'text-[18px] font-semibold text-white/50' : 'text-[24px] font-semibold text-white/95'}`}
+      />
       <div className="mt-1 text-[11.5px] leading-tight text-white/55">{label}</div>
     </div>
   );
@@ -371,10 +373,10 @@ function Gauge({ value, good }) {
     <div className="relative h-36 w-36 shrink-0" role="img" aria-label={`${v.toFixed(1)}% of cells healthy`}>
       <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
         <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" className="text-white/10" />
-        <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} className={good ? 'text-emerald-400' : 'text-amber-400'} />
+        <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} style={{ '--ring-c': c }} className={`anim-ring ${good ? 'text-emerald-400' : 'text-amber-400'}`} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="figure text-[28px] font-semibold text-white/95">{v.toFixed(1)}<span className="text-[15px] text-white/50">%</span></span>
+        <span className="figure text-[28px] font-semibold text-white/95"><CountUp value={v.toFixed(1)} duration={1300} delay={150} /><span className="text-[15px] text-white/50">%</span></span>
         <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/45">healthy</span>
       </div>
     </div>
@@ -406,8 +408,8 @@ function Bullet({ icon: Icon = Wand2, title, count = null, unit = 'change', warn
   const n = count || 0;
   const tag = count === null ? null : n === 0 ? 'Nothing needed' : `${n.toLocaleString()} ${unit}${n === 1 ? '' : 's'}`;
   return (
-    <li className="flex gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4 transition-colors hover:border-accent-400/30">
-      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${warn && n ? 'border-amber-400/25 bg-amber-400/10 text-amber-400' : 'border-accent-400/25 bg-accent-400/10 text-accent-400'}`}>
+    <li className="group flex gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4 transition-colors hover:border-accent-400/30">
+      <span className={`flex h-8 w-8 shrink-0 transition-transform duration-200 group-hover:scale-110 items-center justify-center rounded-lg border ${warn && n ? 'border-amber-400/25 bg-amber-400/10 text-amber-400' : 'border-accent-400/25 bg-accent-400/10 text-accent-400'}`}>
         <Icon size={15} />
       </span>
       <div className="min-w-0">

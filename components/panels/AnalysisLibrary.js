@@ -144,14 +144,17 @@ function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove, o
         <Icon size={14} className="text-accent-400" />
         <h2 className="label">{title}</h2>
         <span className="text-[11px] text-white/25">{items.length}</span>
+        {/* The same ruled section head as the column profile and the
+            account page, so a section reads the same wherever it is. */}
+        <div className="anim-grow-x ml-1 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
       </div>
 
       {items.length === 0 ? (
         <p className="text-[13px] text-white/30">{empty}</p>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {items.map((a) => (
-            <div key={a.id} className="card flex flex-col gap-2 p-4">
+            <div key={a.id} className="card lift flex flex-col gap-2 p-4">
               <div className="min-w-0">
                 <div className="truncate text-sm font-black text-white/90" title={a.title}>
                   {a.title}
@@ -213,12 +216,12 @@ function Section({ title, icon: Icon, empty, items, opening, onOpen, onRemove, o
 function ShareDialog({ analysis, onClose }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
+      className="anim-fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="panel slide-in my-auto w-full max-w-lg p-6"
+        className="panel anim-pop my-auto w-full max-w-lg p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

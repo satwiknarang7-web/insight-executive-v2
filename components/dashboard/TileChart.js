@@ -8,6 +8,11 @@
  * swaps it for something else. Every chart fills its container, never scrolls
  * sideways, and keeps its labels inside the tile: long category names are cut
  * with an ellipsis and shown in full in the tooltip.
+ *
+ * Charts draw themselves in — bars grow, lines trace, donuts sweep — and move
+ * between states when a filter changes, as the Motion setting promises. Not
+ * under reduced motion, and never when `animate` is false: a printed or
+ * exported chart has to be caught finished, not half way up.
  */
 
 import { useId, useMemo } from 'react';
@@ -33,6 +38,8 @@ import {
   ZAxis,
 } from 'recharts';
 import { formatPeriod, formatTick, formatValue } from '../../lib/engine/format';
+import { useMotionAllowed } from '../../lib/motion';
+import CountUp from '../motion/CountUp';
 import { usePaletteMode, useSeriesColor } from '../charts/palette';
 import GeoMap from './GeoMap';
 
@@ -112,8 +119,13 @@ function TooltipBox({ active, payload, label, fmtLabel, fmtValue, ink }) {
   );
 }
 
-export default function TileChart({ tile, measures = [], fields = [], height = 280, onSelect = null, selected = [] }) {
+export default function TileChart({ tile, measures = [], fields = [], height = 280, onSelect = null, selected = [], animate = true }) {
   const mode = usePaletteMode();
+  const live = useMotionAllowed() && animate;
+  // One timing for every mark, so a board of mixed charts moves as one piece.
+  // Several series start one after another rather than all at once.
+  const anim = (i = 0, ms = 900) =>
+    live ? { isAnimationActive: true, animationBegin: 80 + i * 90, animationDuration: ms, animationEasing: 'ease-out' } : { isAnimationActive: false };
   const color = useSeriesColor();
   const ink = INK[mode] || INK.dark;
   const uid = useId().replace(/:/g, '');
@@ -135,7 +147,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
   if (viz === 'kpi') {
     return (
       <div className="flex flex-col items-start justify-center gap-1" style={{ minHeight: Math.min(height, 160) }}>
-        <span className="font-display text-[44px] font-semibold leading-none text-white/95">{c.formatted ?? fmt(c.value)}</span>
+        <CountUp value={c.formatted ?? fmt(c.value)} animate={live} className="font-display text-[44px] font-semibold leading-none text-white/95" />
         <span className="text-[12px] text-white/45">from {Number(c.support || 0).toLocaleString('en-US')} rows</span>
       </div>
     );
@@ -176,7 +188,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
             <Fade id={`${uid}-b`} color={color(0)} horizontal={horizontal} />
           </defs>
           <Tooltip cursor={{ fill: ink.cursor, radius: 6 }} content={<TooltipBox ink={ink} fmtValue={(v, k, p) => valueFmt(v, k, p)} />} />
-          <Bar dataKey={yKey} name={tile.kind === 'distribution' ? 'Rows' : 'Score'} fill={`url(#${uid}-b)`} stroke={color(0)} strokeOpacity={0.9} strokeWidth={0} radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey={yKey} name={tile.kind === 'distribution' ? 'Rows' : 'Score'} fill={`url(#${uid}-b)`} stroke={color(0)} strokeOpacity={0.9} strokeWidth={0} radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]} {...anim()} />
         </BarChart>
       </ResponsiveContainer>
     );
@@ -213,7 +225,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           />
           {series.length > 1 && <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} />} />}
           {series.map((s, i) => (
-            <Scatter key={s.name} name={s.name} data={s.data} fill={color(i)} fillOpacity={0.78} stroke={ink.surface} strokeWidth={1.5} isAnimationActive={false} />
+            <Scatter key={s.name} name={s.name} data={s.data} fill={color(i)} fillOpacity={0.78} stroke={ink.surface} strokeWidth={1.5} {...anim(i, 700)} />
           ))}
         </ScatterChart>
       </ResponsiveContainer>
@@ -232,11 +244,11 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
         <div className="relative h-[200px] w-full max-w-[220px] shrink-0">
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: ink.muted }}>Total</span>
-            <span className="figure text-[20px] font-semibold" style={{ color: ink.strong }}>{fmt(total)}</span>
+            <CountUp value={fmt(total)} animate={live} className="figure text-[20px] font-semibold" style={{ color: ink.strong }} />
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius="64%" outerRadius="94%" paddingAngle={2} cornerRadius={4} stroke={ink.surface} strokeWidth={2} isAnimationActive={false} onClick={click ? (d) => onSelect(tile.dim, d.name) : undefined}>
+              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius="64%" outerRadius="94%" paddingAngle={2} cornerRadius={4} stroke={ink.surface} strokeWidth={2} {...anim(0, 1000)} onClick={click ? (d) => onSelect(tile.dim, d.name) : undefined}>
                 {pieData.map((d, i) => (
                   <Cell key={d.name} fill={sliceColor(d.name)} opacity={selected?.length && !isSelected(d.name) ? 0.35 : 1} cursor={click ? 'pointer' : 'default'} />
                 ))}
@@ -292,9 +304,9 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           {legend}
           {series.map((k, i) =>
             viz === 'line' ? (
-              <Line key={k} type="monotone" dataKey={k} name={nameOf(k)} stroke={seriesColor(k, i)} strokeWidth={2} strokeLinecap="round" dot={data.length <= 16 && !multi ? { r: 3, strokeWidth: 2, stroke: ink.surface, fill: seriesColor(k, i) } : false} activeDot={{ r: 5, strokeWidth: 2, stroke: ink.surface }} connectNulls isAnimationActive={false} />
+              <Line key={k} type="monotone" dataKey={k} name={nameOf(k)} stroke={seriesColor(k, i)} strokeWidth={2} strokeLinecap="round" dot={data.length <= 16 && !multi ? { r: 3, strokeWidth: 2, stroke: ink.surface, fill: seriesColor(k, i) } : false} activeDot={{ r: 5, strokeWidth: 2, stroke: ink.surface }} connectNulls {...anim(i, 1200)} />
             ) : (
-              <Area key={k} type="monotone" dataKey={k} name={nameOf(k)} stroke={seriesColor(k, i)} strokeWidth={2} fill={`url(#${uid}-a${i})`} fillOpacity={1} stackId={viz === 'stackedArea' ? 's' : undefined} activeDot={{ r: 5, strokeWidth: 2, stroke: ink.surface }} connectNulls isAnimationActive={false} />
+              <Area key={k} type="monotone" dataKey={k} name={nameOf(k)} stroke={seriesColor(k, i)} strokeWidth={2} fill={`url(#${uid}-a${i})`} fillOpacity={1} stackId={viz === 'stackedArea' ? 's' : undefined} activeDot={{ r: 5, strokeWidth: 2, stroke: ink.surface }} connectNulls {...anim(i, 1100)} />
             )
           )}
         </Chart>
@@ -364,7 +376,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
             stroke={stacked ? ink.surface : undefined}
             strokeWidth={stacked ? 1.5 : 0}
             radius={stacked ? (i === series.length - 1 ? (horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]) : 0) : horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]}
-            isAnimationActive={false}
+            {...anim(stacked ? 0 : i)}
             onClick={click || undefined}
             cursor={click ? 'pointer' : 'default'}
           >
@@ -412,7 +424,7 @@ function DataTable({ tile, data, byId, field, height }) {
               {ms.map((m, j) => (
                 <td key={m.id} className="relative py-2 pl-3 text-right font-mono text-white/80">
                   {j === 0 && (
-                    <span className="absolute inset-y-1.5 right-0 rounded-md bg-gradient-to-l from-accent-400/25 to-accent-400/5" style={{ width: `${Math.round((Math.abs(r[m.id] || 0) / max) * 100)}%` }} />
+                    <span className="anim-grow-x absolute inset-y-1.5 right-0 origin-right rounded-md bg-gradient-to-l from-accent-400/25 to-accent-400/5" style={{ width: `${Math.round((Math.abs(r[m.id] || 0) / max) * 100)}%`, animationDelay: `${Math.min(i, 12) * 40}ms` }} />
                   )}
                   <span className="relative">{formatValue(r[m.id], m)}</span>
                 </td>

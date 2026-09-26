@@ -371,8 +371,10 @@ function SignInForm() {
           <ThemeToggle />
         </div>
 
-        <div className="panel relative z-10 w-full max-w-md p-7">
-          <h1 className="text-xl font-black tracking-tight">
+        <div className="panel anim-pop relative z-10 w-full max-w-md p-7">
+          {/* Keyed on the step, so moving from the password to the code (or
+              the plan) is seen as a new screen rather than a text swap. */}
+          <h1 key={`${step}-${mode}`} className="display anim-fade text-[24px] leading-tight text-white/95">
             {step === 'code'
               ? 'Check your email'
               : mode === 'recover'
@@ -740,7 +742,7 @@ function Pitch() {
      * the more sources the registry gained.
      */
     <div className="relative z-10 mt-10 flex flex-col lg:mt-14">
-      <h2 className="display max-w-[22ch] text-[2rem] leading-[1.06] text-white/90 lg:text-[2.6rem]">
+      <h2 className="display anim-rise max-w-[22ch] text-[2rem] leading-[1.06] text-white/90 lg:text-[2.6rem]">
         Every number on the dashboard traces back to a{' '}
         {/*
           * Weight, as on the landing page, rather than a rule under the words.
@@ -759,12 +761,12 @@ function Pitch() {
         .
       </h2>
 
-      <p className="mt-4 text-[15px] text-white/65">Analysis you can defend.</p>
+      <p className="anim-rise mt-4 text-[15px] text-white/65" style={{ animationDelay: '80ms' }}>Analysis you can defend.</p>
 
-      <div className="mt-8 flex max-w-lg flex-col gap-5">
+      <div className="stagger mt-8 flex max-w-lg flex-col gap-5">
         {HIGHLIGHTS.map((h) => (
-          <div key={h.title} className="flex gap-3.5">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-accent-400">
+          <div key={h.title} className="group flex gap-3.5">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-accent-400 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110">
               <h.icon size={14} />
             </div>
             <div className="min-w-0">
@@ -777,7 +779,7 @@ function Pitch() {
 
       <div className="mt-9 max-w-lg border-t border-white/6 pt-6">
         <span className="label">Supported integrations</span>
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <div className="stagger-fast mt-3 flex flex-wrap items-center gap-1.5">
           {shown.map((name) => (
             <span key={name} className="chip text-white/65">
               {name}
@@ -843,14 +845,14 @@ function GoogleMark() {
 function Feedback({ error, notice }) {
   if (error) {
     return (
-      <p className="rounded-lg border border-rose-500/25 bg-rose-500/8 px-3 py-2 text-[13px] text-rose-300">
+      <p className="anim-pop rounded-lg border border-rose-500/25 bg-rose-500/8 px-3 py-2 text-[13px] text-rose-300">
         {error}
       </p>
     );
   }
   if (notice) {
     return (
-      <p className="rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[13px] text-accent-200">
+      <p className="anim-pop rounded-lg border border-accent-500/25 bg-accent-500/8 px-3 py-2 text-[13px] text-accent-200">
         {notice}
       </p>
     );

@@ -46,12 +46,12 @@ export default function SaveAnalysisDialog({ snapshot, datasetName, rowCount, ex
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
+      className="anim-fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="panel slide-in my-auto w-full max-w-xl p-6"
+        className="panel anim-pop my-auto w-full max-w-xl p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

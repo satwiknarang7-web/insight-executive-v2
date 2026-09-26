@@ -37,9 +37,9 @@ const SHORTCUTS = [
 
 function Card({ id, icon: Icon, title, subtitle, children }) {
   return (
-    <section id={id} className="card scroll-mt-6 p-6 md:p-7">
+    <section id={id} className="card group scroll-mt-6 p-6 md:p-7">
       <div className="mb-5 flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-400/10 text-accent-300">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-400/25 bg-accent-400/10 text-accent-300 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
           <Icon size={16} />
         </span>
         <div>
@@ -78,18 +78,18 @@ export default function SettingsPage() {
     <PageFrame title="Settings" subtitle="How the app looks and behaves on this device.">
       <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
         <nav className="hidden lg:block" aria-label="Settings sections">
-          <ul className="sticky top-6 space-y-0.5">
+          <ul className="stagger-fast sticky top-6 space-y-0.5">
             {SECTIONS.map(([id, label, Icon]) => (
               <li key={id}>
-                <a href={`#${id}`} className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-white/55 transition-colors hover:bg-white/[0.04] hover:text-white/90">
-                  <Icon size={14} className="text-white/35" /> {label}
+                <a href={`#${id}`} className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-white/55 transition-colors hover:translate-x-0.5 hover:bg-white/[0.04] hover:text-white/90">
+                  <Icon size={14} className="text-white/35 transition-colors group-hover:text-accent-400" /> {label}
                 </a>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="min-w-0 space-y-5">
+        <div className="stagger min-w-0 space-y-5">
           <Card id="appearance" icon={Palette} title="Appearance" subtitle="Lighting and the material panels are made of.">
             <AppearancePanel />
           </Card>

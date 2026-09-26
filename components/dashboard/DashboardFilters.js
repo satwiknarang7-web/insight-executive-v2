@@ -37,10 +37,12 @@ function CategoryPicker({ field, label, active, onChange }) {
         aria-expanded={open}
       >
         <span className="truncate">{chosen.length ? `${label}: ${chosen.length === 1 ? chosen[0] : `${chosen.length} selected`}` : label}</span>
-        <ChevronDown size={13} className="shrink-0" />
+        <ChevronDown size={13} className={`shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="card absolute left-0 top-full z-40 mt-1 w-64 p-2 shadow-2xl">
+        // A solid panel, like every other menu in the app: `card` is a
+        // translucent tint, and the charts under an open list showed through it.
+        <div className="panel anim-drop absolute left-0 top-full z-40 mt-1 w-64 p-2 shadow-2xl">
           {(values?.length || 0) > 8 && (
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="mb-2 w-full rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[12px] text-white/85 focus:border-accent-500/50 focus:outline-none" />
           )}

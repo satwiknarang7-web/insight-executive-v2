@@ -65,7 +65,7 @@ export default function UpgradePage() {
             <ArrowLeft size={13} /> Back
           </button>
 
-          <h1 className="text-2xl font-black tracking-tight">Your plan</h1>
+          <h1 className="display anim-rise text-[27px] leading-[1.12] text-white/95 md:text-[34px]">Your plan</h1>
 
           {!enforced ? (
             <p className="mt-3 text-[13px] leading-relaxed text-white/45">

@@ -311,7 +311,7 @@ export default function ConnectSource({ source, organization, onNeedsAccount }) 
                 {showAdvanced ? 'Hide' : 'Show'} advanced options ({advanced.length})
               </button>
               {showAdvanced && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="anim-drop mt-3 grid gap-3 sm:grid-cols-2">
                   {advanced.map((field) => (
                     <Field key={field.name} field={field} value={config[field.name]} onChange={(v) => setConfig((c) => ({ ...c, [field.name]: v }))} />
                   ))}

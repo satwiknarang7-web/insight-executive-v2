@@ -197,7 +197,7 @@ export default function ShareControls({ analysisId, compact = false }) {
         </button>
 
         {showSuggestions && (suggestions.recent.length > 0 || suggestions.matches.length > 0) && (
-          <div className="absolute left-0 right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-surface shadow-2xl">
+          <div className="anim-drop absolute left-0 right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-surface shadow-2xl">
             <SuggestionGroup
               icon={Clock}
               label="Shared with before"

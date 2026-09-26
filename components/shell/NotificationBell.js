@@ -176,7 +176,7 @@ export default function NotificationBell({ onNavigate }) {
     <div
       ref={panelRef}
       style={place ? { left: place.left, bottom: place.bottom, width: place.width } : undefined}
-      className="panel fixed z-[70] flex max-h-[min(26rem,60vh)] flex-col overflow-hidden rounded-xl shadow-2xl"
+      className="panel anim-pop fixed z-[70] flex max-h-[min(26rem,60vh)] origin-bottom-left flex-col overflow-hidden rounded-xl shadow-2xl"
     >
       <div className="flex items-center gap-2 border-b border-white/8 px-4 py-3">
         <Bell size={12} className="text-accent-400" />
@@ -188,7 +188,7 @@ export default function NotificationBell({ onNavigate }) {
           Nothing yet. When somebody shares an analysis with you, it appears here.
         </p>
       ) : (
-        <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <ul className="stagger-fast flex min-h-0 flex-1 flex-col overflow-y-auto">
           {items.map((item) => (
             <li key={item.id}>
               {/* The Library is where a shared analysis is opened from, so that
@@ -231,15 +231,15 @@ export default function NotificationBell({ onNavigate }) {
         aria-haspopup="true"
         aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}
         title={unread > 0 ? `${unread} new` : 'Notifications'}
-        className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+        className={`group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${
           open || unread > 0
             ? 'border-accent-500/25 bg-accent-500/12 text-accent-300'
             : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
         }`}
       >
-        <Bell size={16} />
+        <Bell size={16} className="wiggle origin-top" />
         {badge && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-500 px-1 text-[9px] font-black text-on-accent">
+          <span key={badge} className="anim-halo absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-500 px-1 text-[9px] font-black text-on-accent">
             {badge}
           </span>
         )}

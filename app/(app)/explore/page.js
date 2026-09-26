@@ -20,6 +20,7 @@ import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import TransformPanel from '../../../components/panels/TransformPanel';
 import Collapse from '../../../components/shell/Collapse';
+import CountUp from '../../../components/motion/CountUp';
 import {
   REASON_TEXT,
   columnTally,
@@ -47,7 +48,7 @@ function Sketch({ s }) {
   if (s.bins) {
     const max = Math.max(...s.bins, 1);
     return (
-      <div className="flex h-12 items-end gap-[2px]" aria-hidden="true">
+      <div className="stagger-grow flex h-12 items-end gap-[2px]" aria-hidden="true">
         {s.bins.map((n, i) => (
           <span key={i} className="flex-1 rounded-t-[3px] bg-gradient-to-t from-accent-500/35 to-accent-400/80" style={{ height: `${Math.max(4, (n / max) * 100)}%`, opacity: n ? 1 : 0.25 }} />
         ))}
@@ -58,10 +59,10 @@ function Sketch({ s }) {
   const max = Math.max(...top.map((t) => t.n), 1);
   return (
     <ul className="h-12 space-y-1" aria-hidden="true">
-      {top.map((t) => (
+      {top.map((t, i) => (
         <li key={t.value} className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px]">
           <span className="relative h-3.5 overflow-hidden rounded-[4px] bg-white/[0.04]">
-            <span className="absolute inset-y-0 left-0 rounded-[4px] bg-accent-400/25" style={{ width: `${(t.n / max) * 100}%` }} />
+            <span className="anim-grow-x absolute inset-y-0 left-0 rounded-[4px] bg-accent-400/25" style={{ width: `${(t.n / max) * 100}%`, animationDelay: `${120 + i * 80}ms` }} />
             <span className="relative truncate px-1.5 leading-[14px] text-white/70">{t.value}</span>
           </span>
           <span className="font-mono tabular-nums text-white/40">{t.n.toLocaleString()}</span>
@@ -83,6 +84,9 @@ export default function ExplorePage() {
   const { fetchPage } = useActions();
 
   const [rows, setRows] = useState([]);
+  // Bumped with every fetch that lands, so the table body can replay its
+  // entrance for new rows — a new page, a sort, a search — and only then.
+  const [rowsKey, setRowsKey] = useState(0);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState(null);
@@ -147,6 +151,7 @@ export default function ExplorePage() {
       .then((res) => {
         if (cancelled) return;
         setRows(res.rows);
+        setRowsKey((k) => k + 1);
         setTotal(res.total);
       })
       .catch(() => {})
@@ -331,7 +336,7 @@ export default function ExplorePage() {
       )}
 
       {/* The table at a glance. */}
-      <section className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="stagger mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           ['Rows', (sourceTable ? sourceTable.rowCount : dataset.rowCount).toLocaleString()],
           ['Columns', columns.length.toLocaleString()],
@@ -340,7 +345,7 @@ export default function ExplorePage() {
         ].map(([k, v]) => (
           <div key={k} className="card px-4 py-3.5">
             <div className="label">{k}</div>
-            <div className="figure mt-1 text-[22px] font-semibold text-white/90">{v}</div>
+            <CountUp value={v} className="figure mt-1 block text-[22px] font-semibold text-white/90" />
           </div>
         ))}
       </section>
@@ -353,7 +358,7 @@ export default function ExplorePage() {
           <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
           <Collapse open={showColumns} onToggle={() => setShowColumns((v) => !v)} label="the column profile" />
         </div>
-        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${showColumns ? '' : 'hidden'}`}>
+        <div className={`stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${showColumns ? '' : 'hidden'}`}>
           {columns.map((col) => {
             const p = profile[col] || {};
             const sk = sketches?.[col];
@@ -361,7 +366,7 @@ export default function ExplorePage() {
             const Icon = ROLE_ICON[role] || Type;
             const fill = sk ? sk.fill : dataset.rowCount ? 1 - (p.nullCount || 0) / dataset.rowCount : 1;
             return (
-              <div key={col} className="card group p-4 transition-colors hover:border-accent-400/35">
+              <div key={col} className="card group p-4">
                 <div className="flex items-center gap-2">
                   <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${ROLE_STYLE[role] || ROLE_STYLE.dimension}`}>
                     <Icon size={12} />
@@ -387,7 +392,7 @@ export default function ExplorePage() {
                   <span className="ml-auto tabular-nums">{Math.round(fill * 100)}% filled</span>
                 </div>
                 <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/6">
-                  <span className={`block h-full rounded-full ${fill < 0.9 ? 'bg-amber-400/70' : 'bg-emerald-400/70'}`} style={{ width: `${fill * 100}%` }} />
+                  <span className={`anim-grow-x block h-full rounded-full ${fill < 0.9 ? 'bg-amber-400/70' : 'bg-emerald-400/70'}`} style={{ width: `${fill * 100}%`, animationDelay: '300ms' }} />
                 </div>
               </div>
             );
@@ -457,7 +462,8 @@ export default function ExplorePage() {
                 })}
               </tr>
             </thead>
-            <tbody>
+            {/* Keyed on each fetch that lands, so fresh rows are seen to arrive. */}
+            <tbody key={rowsKey} className="stagger-fast">
               {rows.map((row, i) => (
                 <tr
                   key={offset + i}

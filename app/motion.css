@@ -1,0 +1,280 @@
+/* ---------------------------------------------------------------------------
+ * Motion.
+ *
+ * `globals.css` owns the palette and `appearance.css` owns the material; this
+ * file owns how things arrive, respond and leave. One vocabulary, used
+ * everywhere, so a dialog opens the way a dropdown opens and a page arrives the
+ * way a card does — rather than each component inventing its own timing.
+ *
+ * Three rules hold throughout:
+ *
+ *  - Entrances animate FROM a state and never TO one. Every keyframe below
+ *    names only its `from`, and every utility fills `backwards`. The element's
+ *    own styles are the end state, so an entrance can never pin `opacity: 1`
+ *    over a disabled control's `opacity-40`, or `transform: none` over a
+ *    hover lift, after it has finished.
+ *  - Hover movement uses the individual `translate` and `scale` properties,
+ *    not `transform`. Tailwind v4 compiles its translate and scale utilities to
+ *    those same properties, so the two compose instead of fighting.
+ *  - Everything here stops under reduced motion — the operating system's
+ *    setting or the app's own (Settings → Display → Motion). See the bottom of
+ *    this file and `globals.css`.
+ * --------------------------------------------------------------------------- */
+
+:root {
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur-med: 260ms;
+  --dur-slow: 480ms;
+}
+
+/* --- Keyframes: each names only where it starts. ------------------------- */
+@keyframes m-rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes m-fade { from { opacity: 0; } }
+@keyframes m-pop { from { opacity: 0; transform: translateY(8px) scale(0.96); } }
+@keyframes m-drop { from { opacity: 0; transform: translateY(-6px) scale(0.98); } }
+@keyframes m-slide-right { from { opacity: 0; transform: translateX(28px); } }
+@keyframes m-slide-left { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes m-slide-up { from { opacity: 0; transform: translateY(24px) scale(0.98); } }
+@keyframes m-grow-x { from { transform: scaleX(0); } }
+@keyframes m-grow-y { from { transform: scaleY(0); } }
+@keyframes m-zoom { from { opacity: 0; transform: scale(0.6); } }
+/* A ring gauge filling to its value. The circumference comes from the element
+   (`--ring-c`), so one keyframe serves any size of ring. */
+@keyframes m-ring { from { stroke-dasharray: 0 var(--ring-c, 1000); } }
+
+/* Looping ones need both ends, and none of them touch layout. */
+@keyframes m-shimmer {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+@keyframes m-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+@keyframes m-breathe {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent-400) 25%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-accent-400) 8%, transparent); }
+}
+@keyframes m-halo {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent-400) 45%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 14px color-mix(in oklab, var(--color-accent-400) 0%, transparent); }
+}
+@keyframes m-nudge {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 3px 0; }
+}
+@keyframes m-wiggle {
+  0%, 100% { rotate: 0deg; }
+  25% { rotate: -12deg; }
+  75% { rotate: 10deg; }
+}
+
+/* --- Entrances. ---------------------------------------------------------- */
+/*
+ * In `components`, so a utility on the same element — `animate-spin`,
+ * `animate-pulse` — still wins. An entrance is the lesser claim.
+ */
+@layer components {
+  .anim-rise { animation: m-rise var(--dur-slow) var(--ease-out) backwards; }
+  .anim-fade { animation: m-fade var(--dur-med) ease-out backwards; }
+  .anim-pop { animation: m-pop var(--dur-med) var(--ease-out) backwards; }
+  .anim-drop { animation: m-drop 180ms var(--ease-out) backwards; transform-origin: top center; }
+  .anim-slide-right { animation: m-slide-right var(--dur-med) var(--ease-out) backwards; }
+  .anim-slide-left { animation: m-slide-left var(--dur-med) var(--ease-out) backwards; }
+  .anim-slide-up { animation: m-slide-up 320ms var(--ease-out) backwards; transform-origin: bottom right; }
+  .anim-zoom { animation: m-zoom 420ms var(--ease-spring) backwards; }
+  .anim-grow-x { transform-origin: left center; animation: m-grow-x 800ms var(--ease-out) backwards; }
+  .anim-grow-y { transform-origin: bottom center; animation: m-grow-y 620ms var(--ease-out) backwards; }
+  .anim-ring { animation: m-ring 1300ms var(--ease-out) 150ms backwards; }
+
+  /*
+   * A list whose items arrive one after another.
+   *
+   * Counted with `:nth-child` rather than an index threaded through every
+   * component, so any grid or list becomes a stagger by adding one class. Past
+   * the twelfth item the rest arrive together: a reader waiting on a slow
+   * cascade down a long table is waiting on decoration.
+   */
+  .stagger > * { animation: m-rise var(--dur-slow) var(--ease-out) backwards; }
+  .stagger-fast > * { animation: m-rise 360ms var(--ease-out) backwards; }
+  .stagger > :nth-child(2), .stagger-fast > :nth-child(2) { animation-delay: 50ms; }
+  .stagger > :nth-child(3), .stagger-fast > :nth-child(3) { animation-delay: 100ms; }
+  .stagger > :nth-child(4), .stagger-fast > :nth-child(4) { animation-delay: 150ms; }
+  .stagger > :nth-child(5), .stagger-fast > :nth-child(5) { animation-delay: 200ms; }
+  .stagger > :nth-child(6), .stagger-fast > :nth-child(6) { animation-delay: 250ms; }
+  .stagger > :nth-child(7), .stagger-fast > :nth-child(7) { animation-delay: 300ms; }
+  .stagger > :nth-child(8), .stagger-fast > :nth-child(8) { animation-delay: 350ms; }
+  .stagger > :nth-child(9), .stagger-fast > :nth-child(9) { animation-delay: 400ms; }
+  .stagger > :nth-child(10), .stagger-fast > :nth-child(10) { animation-delay: 450ms; }
+  .stagger > :nth-child(11), .stagger-fast > :nth-child(11) { animation-delay: 500ms; }
+  .stagger > :nth-child(n + 12), .stagger-fast > :nth-child(n + 12) { animation-delay: 550ms; }
+
+  /* The same cascade for bars inside a mini chart, which grow rather than rise. */
+  .stagger-grow > * { transform-origin: bottom center; animation: m-grow-y 620ms var(--ease-out) backwards; }
+  .stagger-grow > :nth-child(2) { animation-delay: 30ms; }
+  .stagger-grow > :nth-child(3) { animation-delay: 60ms; }
+  .stagger-grow > :nth-child(4) { animation-delay: 90ms; }
+  .stagger-grow > :nth-child(5) { animation-delay: 120ms; }
+  .stagger-grow > :nth-child(6) { animation-delay: 150ms; }
+  .stagger-grow > :nth-child(7) { animation-delay: 180ms; }
+  .stagger-grow > :nth-child(8) { animation-delay: 210ms; }
+  .stagger-grow > :nth-child(9) { animation-delay: 240ms; }
+  .stagger-grow > :nth-child(10) { animation-delay: 270ms; }
+  .stagger-grow > :nth-child(11) { animation-delay: 300ms; }
+  .stagger-grow > :nth-child(n + 12) { animation-delay: 330ms; }
+}
+
+/* --- Scroll reveal: armed by `useReveal`, shown as it enters the viewport. */
+.reveal {
+  transition: opacity 700ms var(--ease-out), translate 700ms var(--ease-out);
+}
+.reveal[data-reveal='hidden'] {
+  opacity: 0;
+  translate: 0 24px;
+}
+
+/* --- Ambient loops. ------------------------------------------------------ */
+.anim-float { animation: m-float 7s var(--ease-in-out) infinite; }
+.anim-breathe { animation: m-breathe 2.4s ease-in-out infinite; }
+.anim-halo { animation: m-halo 2.6s var(--ease-out) infinite; }
+
+/* The accent headline drifts its gradient across the letters. */
+.text-gradient.anim-shimmer {
+  background-size: 200% auto;
+  background-image: linear-gradient(100deg, var(--color-accent-300) 0%, var(--accent-2) 35%, var(--color-accent-300) 70%, var(--accent-2) 100%);
+  animation: m-shimmer 8s linear infinite;
+}
+:root[data-theme='light'] .text-gradient.anim-shimmer {
+  /* Restated: the light theme's `.text-gradient` uses the `background`
+     shorthand, which resets the size back to auto and would pin the drift. */
+  background-size: 200% auto;
+  background-image: linear-gradient(100deg, var(--color-accent-400) 0%, var(--accent-2) 35%, var(--color-accent-400) 70%, var(--accent-2) 100%);
+}
+
+/* The eyebrow's live dot breathes. */
+.eyebrow::before { animation: m-breathe 2.4s ease-in-out infinite; }
+
+/* --- Hover. -------------------------------------------------------------- */
+/*
+ * A surface you can click lifts toward you.
+ *
+ * `translate`, not `transform`, so a finished entrance on the same element
+ * cannot pin it back down. Hover-capable pointers only: on a phone a lift is a
+ * state that sticks after the tap.
+ */
+.lift {
+  transition-property: translate, box-shadow, border-color, background-color, color;
+  transition-duration: 220ms;
+  transition-timing-function: var(--ease-out);
+}
+@media (hover: hover) {
+  .lift:hover {
+    translate: 0 -3px;
+    box-shadow: var(--glow), var(--lift-panel);
+  }
+  /* An arrow beside a label slides toward where it goes. */
+  .group:hover .nudge { animation: m-nudge 900ms var(--ease-in-out) infinite; }
+  .group:hover .wiggle { animation: m-wiggle 500ms var(--ease-out); }
+}
+
+/*
+ * Every card answers the pointer with its edge, on the materials that have one.
+ *
+ * The transition is layered, so a card that names its own (`transition-opacity`)
+ * keeps it. The hover colour cannot be: `.card` sets its border unlayered in
+ * `globals.css`, which outranks every layered rule — the reason the
+ * `hover:border-accent-400/40` written on the clickable cards never showed.
+ */
+@layer components {
+  .card {
+    transition: border-color 260ms var(--ease-out), box-shadow 260ms var(--ease-out), translate 220ms var(--ease-out);
+  }
+}
+@media (hover: hover) {
+  :root:not([data-surface='neu']) .card:hover {
+    border-color: color-mix(in oklab, var(--color-accent-400) 18%, var(--card-border));
+  }
+  :root:not([data-surface='neu']) .card.lift:hover {
+    border-color: color-mix(in oklab, var(--color-accent-400) 40%, var(--card-border));
+  }
+}
+
+/* --- The active nav item's marker, drawn in from its middle. ------------- */
+.nav-marker {
+  position: absolute;
+  left: -1px;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--color-accent-300), var(--accent-2));
+  box-shadow: 0 0 12px color-mix(in oklab, var(--color-accent-400) 60%, transparent);
+  animation: m-grow-y 340ms var(--ease-spring) backwards;
+  transform-origin: center;
+}
+
+/* --- Press. -------------------------------------------------------------- */
+/*
+ * Everything you can press gives under the finger.
+ *
+ * In `base`, so any utility — `active:scale-[0.99]` on the big buttons — still
+ * decides for itself. `.press-none` opts a surface out: a drop zone the width
+ * of the page shrinking by 3% is a lurch, not feedback. A disclosure
+ * (`summary`) eases its colours but does not move: it is usually a whole row.
+ */
+@layer base {
+  :where(button, [role='button'], a[href], summary) {
+    transition-property: color, background-color, border-color, box-shadow, opacity, scale, translate;
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-out);
+  }
+  :where(button, [role='button'], a[href]):not(:disabled):not(.press-none):not(.w-full):active {
+    scale: 0.97;
+  }
+  /* A full-width control pressed in by 3% moves its edges a whole icon's
+     width. It sinks a pixel instead, which reads as the same press. */
+  :where(button, [role='button'], a[href]).w-full:not(:disabled):not(.press-none):active {
+    translate: 0 1px;
+  }
+}
+
+/*
+ * Tailwind's `transition-colors` and `transition-opacity` name their properties
+ * outright, which would make the press above snap instead of ease on every
+ * control that carries one. Same weight as the utility and later in the layer,
+ * so these win on source order and nothing else.
+ */
+@layer utilities {
+  :where(button, [role='button'], a[href], summary).transition-colors {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, box-shadow, scale, translate;
+  }
+  :where(button, [role='button'], a[href], summary).transition-opacity {
+    transition-property: opacity, scale, translate;
+  }
+}
+
+/* --- Reduced motion. ----------------------------------------------------- */
+/*
+ * The durations are already cut to nothing in `globals.css`. These are the
+ * things a short duration does not undo: a looping ambient animation, a hidden
+ * reveal waiting for a scroll, a press that still moves the control.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .anim-float, .anim-breathe, .anim-halo, .text-gradient.anim-shimmer, .eyebrow::before { animation: none; }
+  .reveal[data-reveal='hidden'] { opacity: 1; translate: none; }
+  :where(button, [role='button'], a[href]):active { scale: none !important; translate: none !important; }
+}
+:root[data-motion='reduced'] :is(.anim-float, .anim-breathe, .anim-halo, .text-gradient.anim-shimmer),
+:root[data-motion='reduced'] .eyebrow::before { animation: none; }
+:root[data-motion='reduced'] .reveal[data-reveal='hidden'] { opacity: 1; translate: none; }
+:root[data-motion='reduced'] :where(button, [role='button'], a[href]):active { scale: none !important; translate: none !important; }
+
+/* Paper does not move. Whatever was mid-entrance when Print was pressed is
+   printed where it ends, not half faded in. */
+@media print {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal[data-reveal='hidden'] { opacity: 1; translate: none; }
+}

@@ -33,6 +33,7 @@ import SourcePicker from '../../../components/panels/SourcePicker';
 import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
+import CountUp from '../../../components/motion/CountUp';
 import { keySnapshot, serverKeySnapshot, subscribeToKey } from '../../../lib/geminiKey';
 
 
@@ -252,7 +253,7 @@ export default function LandingPage() {
             * the track shrink below min-content is what lets `truncate` do the
             * job it was already asked to do.
             */}
-          <div className="flex min-w-0 flex-col gap-4">
+          <div className="stagger flex min-w-0 flex-col gap-4">
             {busy && <ProgressPanel />}
 
             {!busy && dataset && (
@@ -288,7 +289,7 @@ export default function LandingPage() {
                 </div>
 
                 {confirmRemove && (
-                  <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.06] p-3">
+                  <div className="anim-drop mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.06] p-3">
                     <div className="min-w-0 flex-1 text-[12px] leading-relaxed text-white/60">
                       Remove {dataset.fileName}? The cleaned rows and any analysis of them are discarded.
                     </div>
@@ -309,7 +310,7 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                <div className="mt-5 grid grid-cols-2 gap-2">
+                <div className="stagger mt-5 grid grid-cols-2 gap-2">
                   <Stat label="Redacted PII" value={dataset.metrics.redactedPII} tone="accent" />
                   <Stat label="Blanks found" value={dataset.metrics.nullsFound} tone="amber" />
                   <Stat label="Types coerced" value={dataset.metrics.typesCoerced} tone="plain" />
@@ -498,7 +499,7 @@ export default function LandingPage() {
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-                  className={`group relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-dashed px-6 py-12 text-center transition-all duration-300 ${
+                  className={`press-none group relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-dashed px-6 py-12 text-center transition-all duration-300 ${
                     dragging
                       ? 'border-accent-400 bg-accent-400/8 shadow-[var(--glow)]'
                       : 'border-white/15 bg-white/[0.02] hover:border-accent-400/50 hover:bg-accent-400/[0.04] hover:shadow-[var(--glow)]'
@@ -506,7 +507,7 @@ export default function LandingPage() {
                 >
                   <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(40%_60%_at_50%_0%,var(--wash-a),transparent_70%)] opacity-70" />
                   <span className={`relative mb-2 flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-300 ${dragging ? 'border-accent-400 bg-accent-400/15 text-accent-300' : 'border-accent-400/25 bg-accent-400/10 text-accent-300 group-hover:-translate-y-0.5 group-hover:shadow-[var(--glow)]'}`}>
-                    <UploadCloud size={24} />
+                    <UploadCloud size={24} className={dragging ? 'animate-bounce' : 'anim-float'} />
                   </span>
                   <div className="relative text-[15px] font-semibold text-white/90">
                     {chosen.id === 'file' ? 'Drop a file, or several' : `Drop a ${chosen.label.replace(/ workbook| database| page/, '').toLowerCase()} file`}
@@ -584,18 +585,18 @@ export default function LandingPage() {
 
                 <div className="card p-4">
                   <div className="label mb-2.5">Or try a sample</div>
-                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="stagger grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                     {SAMPLES.map((s) => (
                       <button
                         key={s.key}
                         onClick={() => loadSample(s)}
-                        className="group flex items-start justify-between gap-2 rounded-xl border border-white/7 bg-white/[0.02] px-3.5 py-3 text-left transition-colors hover:border-accent-500/30 hover:bg-white/[0.05]"
+                        className="lift group flex items-start justify-between gap-2 rounded-xl border border-white/7 bg-white/[0.02] px-3.5 py-3 text-left hover:border-accent-500/30 hover:bg-white/[0.05]"
                       >
                         <div className="min-w-0">
                           <div className="text-[13px] font-bold text-white/85 group-hover:text-accent-300">{s.title}</div>
                           <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/35">{s.description}</div>
                         </div>
-                        <ArrowRight size={14} className="mt-0.5 shrink-0 text-white/20 group-hover:text-accent-400" />
+                        <ArrowRight size={14} className="nudge mt-0.5 shrink-0 text-white/20 group-hover:text-accent-400" />
                       </button>
                     ))}
                   </div>
@@ -622,7 +623,7 @@ export default function LandingPage() {
             )}
 
             {error && (
-              <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 p-4">
+              <div className="anim-pop flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 p-4">
                 <AlertTriangle size={16} className="mt-0.5 shrink-0 text-rose-400" />
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-bold uppercase tracking-[0.2em] text-rose-300">Could not load that</div>
@@ -645,7 +646,9 @@ function Stat({ label, value, tone }) {
   const color = tone === 'accent' ? 'text-accent-400' : tone === 'amber' ? 'text-amber-400' : 'text-white/80';
   return (
     <div className="rounded-xl border border-white/6 bg-white/[0.02] px-3 py-3">
-      <div className={`text-2xl font-black tracking-tight ${color}`}>{(value || 0).toLocaleString()}</div>
+      {/* Set as a figure, like every other headline number in the app — it
+          was the one count still in heavy system sans. */}
+      <CountUp value={(value || 0).toLocaleString()} className={`figure block text-2xl font-semibold ${color}`} />
       <div className="mt-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/30">{label}</div>
     </div>
   );

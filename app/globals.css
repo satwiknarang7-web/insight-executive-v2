@@ -3,6 +3,8 @@
    than written below so the material sits in one file of its own; the palette
    and the typography stay in this one. */
 @import "./appearance.css";
+/* How things arrive, respond and leave — one vocabulary for the whole app. */
+@import "./motion.css";
 
 /* Brand accent — single source of truth. Swap these to re-theme the whole app. */
 /*
@@ -287,6 +289,8 @@
 
   /* A placeholder and a disabled control are meant to read as inactive, so both
      take the faintest step rather than the one their alpha would map to. */
+  :where(:root[data-theme='light']) .placeholder\:text-white\/35::placeholder,
+  :where(:root[data-theme='light']) .placeholder\:text-white\/30::placeholder,
   :where(:root[data-theme='light']) .placeholder\:text-white\/25::placeholder,
   :where(:root[data-theme='light']) .placeholder\:text-white\/20::placeholder { color: var(--ink-6); }
   :where(:root[data-theme='light']) .disabled\:text-white\/30:disabled,
@@ -463,6 +467,7 @@ body {
    * replaces — a `md:` or `hover:` variant still wins.
    */
   :where(html) .tracking-\[0\.12em\] { letter-spacing: 0.055em; }
+  :where(html) .tracking-\[0\.14em\],
   :where(html) .tracking-\[0\.15em\],
   :where(html) .tracking-\[0\.16em\] { letter-spacing: 0.07em; }
   :where(html) .tracking-\[0\.18em\],
@@ -624,6 +629,22 @@ body {
   box-shadow: var(--glow), var(--lift-panel);
   border-color: color-mix(in oklab, var(--color-accent-400) 35%, var(--card-border));
 }
+/*
+ * A card's own states, written here rather than as utilities on the card.
+ *
+ * `.card` sets its border and shadow unlayered, and an unlayered rule outranks
+ * every Tailwind utility whatever its specificity. So `border-amber-400/30` on
+ * a card that needed a warning edge, and `ring-2` on the chart being edited,
+ * were both silently discarded. These sit beside `.card-glow`, on the same
+ * footing as `.card`, and win on source order the way it does.
+ */
+.card-warn {
+  border-color: color-mix(in oklab, var(--color-amber-400) 32%, var(--card-border));
+}
+.card-selected {
+  border-color: color-mix(in oklab, var(--color-accent-400) 55%, var(--card-border));
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-accent-500) 45%, transparent), var(--lift-panel);
+}
 /* A small uppercase tag with a live dot. */
 .eyebrow {
   display: inline-flex;
@@ -676,7 +697,12 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /* A staggered entrance waits out its delay before its 0.01ms runs, and
+       fills backwards meanwhile — so without this, a list under reduced
+       motion appears one item at a time while each sits invisible. */
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
   .scroll-reveal.reveal-armed { opacity: 1; transform: none; transition: none; }
 }
@@ -963,6 +989,8 @@ body {
 :root[data-motion='reduced'] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
+  animation-delay: 0ms !important;
   transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
   scroll-behavior: auto !important;
 }

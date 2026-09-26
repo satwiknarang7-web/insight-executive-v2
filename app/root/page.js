@@ -139,7 +139,7 @@ function Absent() {
   return (
     <div className="card mt-6 flex max-w-lg flex-col gap-3 p-8">
       <span className="label">Not configured</span>
-      <h1 className="text-lg font-black">There is no root portal on this deployment</h1>
+      <h1 className="display text-[22px] leading-tight text-white/95">There is no root portal on this deployment</h1>
       <p className="text-sm leading-relaxed text-white/50">
         Set <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">ROOT_EMAIL</code> and{' '}
         <code className="rounded bg-white/5 px-1.5 py-0.5 text-[12px]">ROOT_PASSWORD</code> in{' '}
@@ -158,7 +158,7 @@ function SignIn({ email, password, busy, error, onEmail, onPassword, onSubmit })
     <form onSubmit={onSubmit} className="card mt-6 flex max-w-md flex-col gap-4 p-6">
       <div className="flex items-center gap-2">
         <ShieldCheck size={15} className="text-amber-400" />
-        <h1 className="text-base font-black">Operator sign-in</h1>
+        <h1 className="display text-[18px] leading-tight text-white/95">Operator sign-in</h1>
       </div>
       <p className="text-[12px] leading-relaxed text-white/40">
         This is not a product account. It shows deployment totals and gives no access to anyone&rsquo;s data.
@@ -243,7 +243,7 @@ function Stats({ stats, error, onRefresh }) {
   return (
     <div className="mt-6 flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-black tracking-tight">Deployment</h1>
+        <h1 className="display text-[27px] leading-[1.12] text-white/95 md:text-[34px]">Deployment</h1>
         <button
           type="button"
           onClick={refresh}

@@ -117,7 +117,7 @@ export default function ReportPage() {
           </div>
         }
       >
-        {error && <p className="mb-4 rounded-lg border border-rose-500/25 bg-rose-500/5 p-3 text-[13px] text-rose-300 print:hidden">{error}</p>}
+        {error && <p className="anim-pop mb-4 rounded-lg border border-rose-500/25 bg-rose-500/5 p-3 text-[13px] text-rose-300 print:hidden">{error}</p>}
         {filtered && (
           <div className="mx-auto mb-5 flex max-w-4xl flex-wrap items-center gap-3 print:hidden" role="radiogroup" aria-label="What the report covers">
             <span className="text-[12.5px] text-white/55">The dashboard has filters on. Report on:</span>

@@ -148,7 +148,7 @@ export default function GeminiKeyPanel() {
       </button>
 
       {open && (
-        <div className="border-t border-white/6 p-4">
+        <div className="anim-drop border-t border-white/6 p-4">
 
         {saved ? (
           <div className="flex flex-wrap items-center gap-3">

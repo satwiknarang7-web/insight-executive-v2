@@ -20,10 +20,16 @@ export default function PrintReport() {
   useEffect(() => {
     const root = document.documentElement;
     const previous = root.getAttribute('data-theme');
+    const previousMotion = root.getAttribute('data-motion');
     root.setAttribute('data-theme', 'light');
+    // A document is printed finished: nothing counts up, draws in or rises
+    // while the renderer is deciding the page is ready to capture.
+    root.setAttribute('data-motion', 'reduced');
     return () => {
       if (previous) root.setAttribute('data-theme', previous);
       else root.removeAttribute('data-theme');
+      if (previousMotion) root.setAttribute('data-motion', previousMotion);
+      else root.removeAttribute('data-motion');
     };
   }, []);
 

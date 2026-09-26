@@ -97,7 +97,7 @@ function Findings({ board, ai }) {
         )}
       </div>
       {board.headline && <p className="mb-2 text-[16px] font-semibold leading-snug text-white/90">{board.headline}</p>}
-      <ul className="space-y-1.5">
+      <ul className="stagger space-y-1.5">
         {bullets.slice(0, 5).map((b, i) => (
           <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-white/75">
             <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent-400" aria-hidden="true" />
@@ -141,7 +141,7 @@ export default function DashboardPage() {
     return (
       <PageFrame title="Dashboard" subtitle="Upload a table and the dashboard builds itself.">
         <div className="card flex flex-col items-center gap-3 p-10 text-center">
-          <UploadCloud size={28} className="text-accent-400" />
+          <UploadCloud size={28} className="anim-float text-accent-400" />
           <p className="text-[14px] text-white/70">No data loaded yet.</p>
           <Link href="/home" className="rounded-lg bg-accent-500 px-4 py-2 text-[12px] font-black uppercase tracking-[0.12em] text-on-accent hover:bg-accent-400">
             Get data
@@ -172,7 +172,7 @@ export default function DashboardPage() {
         {editing ? <Check size={14} /> : <Pencil size={14} />} {editing ? 'Done' : 'Edit'}
       </button>
       {editing && (
-        <button type="button" onClick={openAdd} className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white">
+        <button type="button" onClick={openAdd} className="anim-zoom flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] font-bold text-white/65 hover:bg-white/5 hover:text-white">
           <Plus size={14} /> Add chart
         </button>
       )}
@@ -227,8 +227,13 @@ export default function DashboardPage() {
               )}
               {board.sections.map((s, si) => (
                 <section key={s.id} aria-label={s.title || 'Main chart'} className="ld-rise" style={{ animationDelay: `${120 + si * 90}ms` }}>
-                  {s.title && <h2 className="mb-2.5 mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">{s.title}</h2>}
-                  <div className="grid grid-cols-12 gap-4">
+                  {s.title && (
+                    <h2 className="mb-2.5 mt-1 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">
+                      {s.title}
+                      <span aria-hidden="true" className="anim-grow-x h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" style={{ animationDelay: `${240 + si * 90}ms` }} />
+                    </h2>
+                  )}
+                  <div className="stagger grid grid-cols-12 gap-4">
                     {s.tiles.map((t, i) => (
                       <Tile
                         key={t.id}
@@ -258,8 +263,10 @@ export default function DashboardPage() {
               </p>
             </div>
             {panel && createPortal(
-              <div className="fixed inset-0 z-50 flex justify-end bg-black/40 p-2 lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[380px] lg:bg-transparent lg:p-4" onClick={(e) => e.target === e.currentTarget && setPanel(null)}>
-                <div className="max-h-full w-full max-w-[380px] overflow-y-auto lg:mt-20 lg:max-h-[calc(100%-5rem)]">
+              <div className="anim-fade fixed inset-0 z-50 flex justify-end bg-black/40 p-2 lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[380px] lg:bg-transparent lg:p-4" onClick={(e) => e.target === e.currentTarget && setPanel(null)}>
+                {/* Keyed on what it holds, so switching from one chart's editor
+                    to another's slides the new one in rather than swapping. */}
+                <div key={panel.type === 'edit' ? panel.id : panel.type} className="anim-slide-right max-h-full w-full max-w-[380px] overflow-y-auto lg:mt-20 lg:max-h-[calc(100%-5rem)]">
                   {panel.type === 'fields' && <FieldsPanel onClose={() => setPanel(null)} />}
                   {panel.type === 'edit' && editTile && (
                     <TileEditor

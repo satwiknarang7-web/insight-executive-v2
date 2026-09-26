@@ -101,7 +101,7 @@ export default function ProgressPanel({ title }) {
 function Marker({ done, active }) {
   if (done) {
     return (
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-accent-400">
+      <span className="anim-zoom flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-accent-400">
         <Check size={10} strokeWidth={3.5} />
       </span>
     );

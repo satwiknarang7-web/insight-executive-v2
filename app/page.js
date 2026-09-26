@@ -5,6 +5,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import Logo from '../components/shell/Logo';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import ProductPreview from '../components/landing/ProductPreview';
+import Reveal from '../components/motion/Reveal';
 import { availableConnectors } from '../lib/connectors/registry';
 
 /**
@@ -69,8 +70,8 @@ export default function LandingPage() {
               <Link href="/sign-in" className="hidden rounded-lg px-3 py-2 text-[13.5px] font-medium text-white/65 transition-colors hover:text-white/90 sm:block">
                 Sign in
               </Link>
-              <Link href="/home" className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3.5 py-2 text-[13px] font-semibold text-on-accent transition hover:bg-accent-400">
-                Open the app <ArrowRight size={14} />
+              <Link href="/home" className="group inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3.5 py-2 text-[13px] font-semibold text-on-accent transition hover:bg-accent-400">
+                Open the app <ArrowRight size={14} className="nudge" />
               </Link>
               <ThemeToggle compact />
             </div>
@@ -78,24 +79,26 @@ export default function LandingPage() {
         </header>
 
         <section className="mx-auto grid w-full max-w-6xl items-center gap-14 px-5 pb-20 pt-14 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:pt-20">
-          <div className="ld-rise">
-            <span className="eyebrow">For analysts and the teams they work with</span>
+          <div className="stagger">
+            <div>
+              <span className="eyebrow">For analysts and the teams they work with</span>
+            </div>
             <h1 className="display mt-6 text-balance text-[40px] leading-[1.04] text-white/95 md:text-[52px]">
-              Skip the busywork. <span className="text-gradient">Keep the judgement.</span>
+              Skip the busywork. <span className="text-gradient anim-shimmer">Keep the judgement.</span>
             </h1>
             <p className="mt-6 max-w-[52ch] text-[17px] leading-relaxed text-white/60">
               Insight cleans the file, drafts the dashboard and writes the first read of it. You decide what matters,
               change what doesn&apos;t fit, and take it to the people who need it.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/home" className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-[15px] font-semibold text-on-accent shadow-[var(--glow)] transition hover:bg-accent-400">
-                Start with your data <ArrowRight size={16} />
+              <Link href="/home" className="group inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-[15px] font-semibold text-on-accent shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-accent-400">
+                Start with your data <ArrowRight size={16} className="nudge" />
               </Link>
-              <Link href="/home" className="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.03] px-5 py-3.5 text-[15px] font-medium text-white/80 transition hover:bg-white/[0.07]">
-                <Sparkles size={15} className="text-accent-400" /> Try a sample
+              <Link href="/home" className="group inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.03] px-5 py-3.5 text-[15px] font-medium text-white/80 transition hover:-translate-y-0.5 hover:bg-white/[0.07]">
+                <Sparkles size={15} className="wiggle text-accent-400" /> Try a sample
               </Link>
             </div>
-            <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/8 pt-6">
+            <dl className="stagger mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/8 pt-6">
               {FACTS.map(([k, v]) => (
                 <div key={k}>
                   <dt className="figure text-[20px] font-semibold text-white/90">{k}</dt>
@@ -111,41 +114,41 @@ export default function LandingPage() {
 
         <section id="hours" className="scroll-mt-20 border-t border-white/6">
           <div className="mx-auto w-full max-w-6xl px-5 py-20 md:px-8">
-            <div className="max-w-2xl">
+            <Reveal className="max-w-2xl">
               <div className="label">Where the hours go</div>
               <h2 className="display mt-3 text-[32px] leading-tight text-white/95 md:text-[40px]">Most analysis time isn&apos;t analysis.</h2>
               <p className="mt-3 text-[16px] leading-relaxed text-white/55">
                 It goes on cleaning files, rebuilding the same charts and answering one-off requests. Insight does that part, so the people
                 who know the business can think about it.
               </p>
-            </div>
-            <div className="mt-10 border-t border-white/10">
+            </Reveal>
+            <Reveal className="mt-10 border-t border-white/10" delay={80}>
               <div className="hidden grid-cols-2 gap-8 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/35 md:grid">
                 <span>The work</span>
                 <span>With Insight</span>
               </div>
               {HOURS.map(([task, now]) => (
-                <div key={task} className="grid gap-1 border-t border-white/8 py-5 md:grid-cols-2 md:gap-8">
-                  <span className="text-[15px] text-white/55">{task}</span>
-                  <span className="text-[15px] font-medium text-white/90">{now}</span>
+                <div key={task} className="group grid gap-1 border-t border-white/8 py-5 transition-colors hover:bg-white/[0.02] md:grid-cols-2 md:gap-8">
+                  <span className="text-[15px] text-white/55 transition-colors group-hover:text-white/70">{task}</span>
+                  <span className="text-[15px] font-medium text-white/90 transition-transform duration-300 group-hover:translate-x-1">{now}</span>
                 </div>
               ))}
-            </div>
+            </Reveal>
           </div>
         </section>
 
         <section id="control" className="scroll-mt-20 border-t border-white/6">
           <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-20 md:px-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
-            <div>
+            <Reveal>
               <div className="label">You stay in charge</div>
               <h2 className="display mt-3 text-[32px] leading-tight text-white/95">A first draft, not a final answer.</h2>
-            </div>
+            </Reveal>
             <dl className="grid gap-8 sm:grid-cols-3">
-              {CONTROL.map(([k, v]) => (
-                <div key={k} className="border-l-2 border-accent-400/60 pl-4">
+              {CONTROL.map(([k, v], i) => (
+                <Reveal key={k} delay={i * 120} className="border-l-2 border-accent-400/60 pl-4 transition-colors hover:border-accent-400">
                   <dt className="text-[15px] font-semibold text-white/90">{k}</dt>
                   <dd className="mt-2 text-[14px] leading-relaxed text-white/55">{v}</dd>
-                </div>
+                </Reveal>
               ))}
             </dl>
           </div>
@@ -153,13 +156,13 @@ export default function LandingPage() {
 
         <section id="teams" className="scroll-mt-20 border-t border-white/6">
           <div className="mx-auto w-full max-w-6xl px-5 py-20 md:px-8">
-            <div className="label">Who uses it</div>
+            <Reveal className="label">Who uses it</Reveal>
             <div className="mt-8 grid gap-10 md:grid-cols-3">
-              {TEAMS.map(([who, why]) => (
-                <div key={who}>
+              {TEAMS.map(([who, why], i) => (
+                <Reveal key={who} delay={i * 120}>
                   <h3 className="display text-[22px] text-white/95">{who}</h3>
                   <p className="mt-2 text-[14.5px] leading-relaxed text-white/55">{why}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
             <p className="mt-12 text-[13px] text-white/40">
@@ -169,15 +172,15 @@ export default function LandingPage() {
         </section>
 
         <section className="border-t border-white/6">
-          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-6 px-5 py-16 md:px-8">
+          <Reveal className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-6 px-5 py-16 md:px-8">
             <div className="mr-auto">
               <h2 className="display text-[26px] leading-tight text-white/95 md:text-[30px]">Try it on last month&apos;s export.</h2>
               <p className="mt-2 text-[15px] text-white/55">Or start from a sample dataset.</p>
             </div>
-            <Link href="/home" className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-[15px] font-semibold text-on-accent transition hover:bg-accent-400">
-              Open the app <ArrowRight size={16} />
+            <Link href="/home" className="group inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-[15px] font-semibold text-on-accent shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-accent-400">
+              Open the app <ArrowRight size={16} className="nudge" />
             </Link>
-          </div>
+          </Reveal>
         </section>
 
         <footer className="mt-auto border-t border-white/6">

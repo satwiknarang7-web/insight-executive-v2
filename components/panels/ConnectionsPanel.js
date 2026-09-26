@@ -85,7 +85,9 @@ export default function ConnectionsPanel({ organization }) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">Connections</h1>
+          {/* A section of the account page, not a page of its own: the page
+              title is "Account", so this is a heading under it. */}
+          <h2 className="text-[16px] font-semibold text-white/90">Connections</h2>
           <p className="mt-1 text-sm text-white/45">
             {organization.name} · credentials are encrypted before they are stored
           </p>
@@ -185,12 +187,12 @@ export default function ConnectionsPanel({ organization }) {
 
       {targeting && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
+          className="anim-fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
           onClick={() => setTargeting(null)}
           role="presentation"
         >
           <div
-            className="panel slide-in my-auto w-full max-w-xl p-6"
+            className="panel anim-pop my-auto w-full max-w-xl p-6"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -391,12 +393,12 @@ function AddConnection({ organization, onClose, onSaved }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
+      className="anim-fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="panel slide-in my-auto w-full max-w-2xl p-6"
+        className="panel anim-pop my-auto w-full max-w-2xl p-6"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

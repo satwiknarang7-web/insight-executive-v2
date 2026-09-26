@@ -137,7 +137,7 @@ export default function SourcePicker({ value, onChange, allowsModel = true }) {
       </button>
 
       {open && (
-        <div className="panel absolute z-30 mt-2 w-full overflow-hidden">
+        <div className="panel anim-drop absolute z-30 mt-2 w-full overflow-hidden">
           <div className="relative border-b border-white/8">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
             <input

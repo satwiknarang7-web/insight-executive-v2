@@ -26,6 +26,7 @@ import { useActions, useDataset } from '../../lib/store/DatasetProvider';
 import { useDashboard } from '../../lib/store/DashboardProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
 import Logo, { PRODUCT_NAME } from './Logo';
+import ChartPulse from '../loading/ChartPulse';
 import NotificationBell from './NotificationBell';
 
 const NAV = [
@@ -127,7 +128,7 @@ function NavLink({ item, active, onNavigate, collapsed = false }) {
       // row of unlabelled icons.
       title={collapsed ? `${item.label} — ${item.hint}` : item.hint}
       aria-label={item.label}
-      className={`group flex items-center rounded-xl text-sm font-semibold transition-colors ${
+      className={`group relative flex items-center rounded-xl text-sm font-semibold transition-colors ${
         collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'
       } ${
         active
@@ -135,11 +136,16 @@ function NavLink({ item, active, onNavigate, collapsed = false }) {
           : 'text-white/55 hover:bg-white/5 hover:text-white'
       }`}
     >
+      {/* Mounted with the active item, so it draws itself in on every
+          navigation rather than jumping. */}
+      {active && <span className="nav-marker" aria-hidden="true" />}
       <Icon
         size={17}
-        className={`shrink-0 ${active ? 'text-accent-400' : 'text-white/35 group-hover:text-white/70'}`}
+        className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+          active ? 'text-accent-400' : 'text-white/35 group-hover:text-white/70'
+        } ${collapsed ? '' : 'group-hover:translate-x-0.5'}`}
       />
-      {!collapsed && item.label}
+      {!collapsed && <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">{item.label}</span>}
     </Link>
   );
 }
@@ -159,7 +165,7 @@ const COLLAPSE_KEY = 'insight.sidebar.collapsed';
  * places for the two to drift apart.
  */
 const actionClass = (rail) =>
-  `flex items-center rounded-lg border text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+  `group flex items-center rounded-lg border text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
     rail ? 'justify-center px-0 py-2.5' : 'gap-2 px-3 py-2'
   }`;
 
@@ -218,7 +224,8 @@ export default function AppShell({ children }) {
 
   if (needsData && !dataset) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-white/30">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-white/30">
+        <ChartPulse size={56} />
         <div className="animate-pulse text-xs font-bold uppercase tracking-[0.35em]">Loading session…</div>
       </div>
     );
@@ -267,7 +274,8 @@ export default function AppShell({ children }) {
       ) : (
         <div className="rounded-xl border border-white/7 bg-white/[0.02] p-3">
           <div className="label mb-1">Dataset</div>
-          <div className="truncate text-sm font-bold text-white/85" title={dataset?.fileName || ''}>
+          {/* Keyed on the file, so a new dataset arriving is seen to arrive. */}
+          <div key={dataset?.fileName || 'none'} className="anim-fade truncate text-sm font-bold text-white/85" title={dataset?.fileName || ''}>
             {dataset ? dataset.fileName : 'Nothing loaded'}
           </div>
           <div className="mt-1 text-[11px] text-white/40">
@@ -328,7 +336,7 @@ export default function AppShell({ children }) {
             title="Report"
             className={`${actionClass(rail)} border-accent-500/25 bg-accent-500/8 text-accent-300 hover:bg-accent-500/15`}
           >
-            <FileText size={14} /> {!rail && 'Report'}
+            <FileText size={14} className="transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" /> {!rail && 'Report'}
           </Link>
         )}
         <button
@@ -336,7 +344,7 @@ export default function AppShell({ children }) {
           title="Download the cleaned CSV"
           className={`${actionClass(rail)} border-white/10 bg-white/[0.03] text-white/50 hover:bg-white/8 hover:text-white`}
         >
-          <Download size={14} /> {!rail && 'Cleaned CSV'}
+          <Download size={14} className="transition-transform duration-200 group-hover:translate-y-0.5" /> {!rail && 'Cleaned CSV'}
         </button>
 
         {/* The bell, the account and appearance: an icon each, under a rule,
@@ -358,13 +366,13 @@ export default function AppShell({ children }) {
                 onClick={() => setMenuOpen(false)}
                 title={`${item.label} — ${item.hint}`}
                 aria-label={item.label}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+                className={`group flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${
                   active
                     ? 'border-accent-500/25 bg-accent-500/12 text-accent-300'
                     : 'border-white/10 text-white/45 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                <Icon size={16} />
+                <Icon size={16} className={item.href === '/settings' ? 'transition-transform duration-500 group-hover:rotate-90' : 'transition-transform duration-200 group-hover:scale-110'} />
               </Link>
             );
           })}
@@ -390,12 +398,14 @@ export default function AppShell({ children }) {
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/60"
         >
-          {menuOpen ? <X size={18} /> : <Menu size={18} />}
+          <span key={menuOpen ? 'close' : 'open'} className="anim-zoom flex">
+            {menuOpen ? <X size={18} /> : <Menu size={18} />}
+          </span>
         </button>
       </div>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-canvas-raised md:hidden">
+        <div className="anim-fade fixed inset-0 z-50 bg-canvas-raised md:hidden">
           <div className="flex justify-end p-3">
             <button
               onClick={() => setMenuOpen(false)}
@@ -405,7 +415,7 @@ export default function AppShell({ children }) {
               <X size={18} />
             </button>
           </div>
-          <div className="h-[calc(100vh-56px)]">{renderSidebar(false)}</div>
+          <div className="anim-slide-left h-[calc(100vh-56px)]">{renderSidebar(false)}</div>
         </div>
       )}
 

@@ -128,7 +128,7 @@ export default function AskPage() {
             </button>
           </form>
           {examples.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="stagger-fast flex flex-wrap gap-2">
               {examples.map((e) => (
                 <button key={e} type="button" onClick={() => ask(e)} className="rounded-full border border-white/10 bg-white/[0.02] px-3.5 py-1.5 text-[12.5px] text-white/65 transition-colors hover:border-accent-400/40 hover:text-white">
                   {e}
@@ -140,11 +140,11 @@ export default function AskPage() {
           {answers.length === 0 && kinds.length > 0 && (
             <section>
               <h2 className="label mb-3">What you can ask</h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {kinds.map(({ q, icon: Icon, label }) => (
-                  <button key={label} type="button" onClick={() => ask(q)} className="card group p-4 text-left transition-colors hover:border-accent-400/40">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent-400/25 bg-accent-400/10 text-accent-300 transition group-hover:shadow-[var(--glow)]">
-                      <Icon size={15} />
+                  <button key={label} type="button" onClick={() => ask(q)} className="card lift group p-4 text-left">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent-400/25 bg-accent-400/10 text-accent-300 transition group-hover:scale-110 group-hover:shadow-[var(--glow)]">
+                      <Icon size={15} className="wiggle" />
                     </span>
                     <span className="mt-3 block text-[13.5px] font-semibold text-white/90">{label}</span>
                     <span className="mt-1 block text-[12.5px] text-white/50">&ldquo;{q}&rdquo;</span>
@@ -157,13 +157,13 @@ export default function AskPage() {
           {answers.map((a) => (
             <section key={a.id} className="ld-rise space-y-3" data-testid="answer">
               <div className="flex items-center gap-2">
-                <span className="max-w-[85%] rounded-2xl rounded-bl-md bg-accent-400/12 px-4 py-2 text-[14px] text-white/90">{a.question}</span>
+                <span className="anim-pop max-w-[85%] origin-bottom-left rounded-2xl rounded-bl-md bg-accent-400/12 px-4 py-2 text-[14px] text-white/90">{a.question}</span>
                 <button type="button" aria-label="Remove answer" onClick={() => setAnswers((x) => x.filter((y) => y.id !== a.id))} className="ml-auto rounded p-1 text-white/30 hover:text-white">
                   <X size={14} />
                 </button>
               </div>
               {a.error ? (
-                <p className="card border-amber-400/30 p-4 text-[13px] text-amber-300/90">{a.error}</p>
+                <p className="card card-warn anim-pop p-4 text-[13px] text-amber-300/90">{a.error}</p>
               ) : (
                 <>
                   <div className="grid grid-cols-12">
@@ -199,12 +199,16 @@ function SqlConsole() {
   const [result, setResult] = useState(null);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
+  // Counts the runs that returned, so the result rows replay their entrance
+  // for each new answer rather than on every keystroke in the query.
+  const [runs, setRuns] = useState(0);
 
   const run = async () => {
     setBusy(true);
     setErr(null);
     try {
       setResult(await runSql(query));
+      setRuns((n) => n + 1);
     } catch (e) {
       setErr(e.message);
       setResult(null);
@@ -221,54 +225,58 @@ function SqlConsole() {
         <ChevronRight size={13} className="ml-auto text-white/25 transition-transform group-open:rotate-90" />
       </summary>
 
-      <textarea
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        rows={4}
-        spellCheck={false}
-        className="mt-3 w-full resize-y rounded-lg border border-white/10 code-surface p-3 font-mono text-[11px] leading-relaxed outline-none focus:border-accent-500/50"
-      />
-      <button
-        onClick={run}
-        disabled={busy}
-        className="mt-2 w-full rounded-lg bg-white/8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 transition-colors enabled:hover:bg-white/12 disabled:opacity-40"
-      >
-        {busy ? 'Running…' : 'Run'}
-      </button>
+      {/* Replayed each time the console opens: a closed <details> does not
+          render its body, so the entrance restarts with it. */}
+      <div className="anim-drop">
+        <textarea
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          rows={4}
+          spellCheck={false}
+          className="mt-3 w-full resize-y rounded-lg border border-white/10 code-surface p-3 font-mono text-[11px] leading-relaxed outline-none focus:border-accent-500/50"
+        />
+        <button
+          onClick={run}
+          disabled={busy}
+          className="mt-2 w-full rounded-lg bg-white/8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 transition-colors enabled:hover:bg-white/12 disabled:opacity-40"
+        >
+          {busy ? 'Running…' : 'Run'}
+        </button>
 
-      {err && <p className="mt-2 break-words text-[11px] text-rose-300/80">{err}</p>}
+        {err && <p className="mt-2 break-words text-[11px] text-rose-300/80">{err}</p>}
 
-      {result && (
-        <div className="mt-3">
-          <div className="mb-1.5 text-[10px] text-white/30">
-            {result.total.toLocaleString()} rows{result.truncated && ' (showing first 500)'}
-          </div>
-          <div className="max-h-64 overflow-auto rounded-lg border border-white/7">
-            <table className="w-full text-left text-[10px]">
-              <thead className="sticky top-0 bg-canvas-raised">
-                <tr>
-                  {Object.keys(result.rows[0] || {}).map((k) => (
-                    <th key={k} className="whitespace-nowrap border-b border-white/7 px-2 py-1.5 font-black uppercase tracking-wider text-white/40">
-                      {k}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result.rows.slice(0, 100).map((row, i) => (
-                  <tr key={i} className="border-b border-white/4">
-                    {Object.values(row).map((v, j) => (
-                      <td key={j} className="max-w-[140px] truncate px-2 py-1 text-white/60">
-                        {typeof v === 'number' ? formatNumber(v) : String(v ?? '—')}
-                      </td>
+        {result && (
+          <div className="mt-3">
+            <div className="mb-1.5 text-[10px] text-white/30">
+              {result.total.toLocaleString()} rows{result.truncated && ' (showing first 500)'}
+            </div>
+            <div className="max-h-64 overflow-auto rounded-lg border border-white/7">
+              <table className="w-full text-left text-[10px]">
+                <thead className="sticky top-0 bg-canvas-raised">
+                  <tr>
+                    {Object.keys(result.rows[0] || {}).map((k) => (
+                      <th key={k} className="whitespace-nowrap border-b border-white/7 px-2 py-1.5 font-black uppercase tracking-wider text-white/40">
+                        {k}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody key={runs} className="stagger-fast">
+                  {result.rows.slice(0, 100).map((row, i) => (
+                    <tr key={i} className="border-b border-white/4">
+                      {Object.values(row).map((v, j) => (
+                        <td key={j} className="max-w-[140px] truncate px-2 py-1 text-white/60">
+                          {typeof v === 'number' ? formatNumber(v) : String(v ?? '—')}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </details>
   );
 }

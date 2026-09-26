@@ -333,13 +333,13 @@ export default function Assistant() {
           onClick={() => setOpen(true)}
           aria-label="Open assistant"
           title="Assistant (Ctrl+J)"
-          className="fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full bg-accent-500 px-4 py-3 text-[13px] font-bold text-on-accent shadow-lg shadow-black/30 hover:bg-accent-400"
+          className="anim-zoom group fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full bg-accent-500 px-4 py-3 text-[13px] font-bold text-on-accent shadow-lg shadow-black/30 transition hover:-translate-y-0.5 hover:bg-accent-400 hover:shadow-[var(--glow)]"
         >
-          <MessageCircle size={16} /> <span className="hidden sm:inline">Assistant</span>
+          <MessageCircle size={16} className="wiggle" /> <span className="hidden sm:inline">Assistant</span>
         </button>
       )}
       {open && (
-        <div role="dialog" aria-label="Assistant" className="fixed inset-x-2 bottom-2 top-16 z-[60] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-canvas-raised shadow-2xl shadow-black/40 sm:inset-x-auto sm:right-4 sm:top-auto sm:h-[min(640px,calc(100vh-2rem))] sm:w-[400px]">
+        <div role="dialog" aria-label="Assistant" className="anim-slide-up fixed inset-x-2 bottom-2 top-16 z-[60] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-canvas-raised shadow-2xl shadow-black/40 sm:inset-x-auto sm:right-4 sm:top-auto sm:h-[min(640px,calc(100vh-2rem))] sm:w-[400px]">
           <div className="flex items-center gap-2 border-b border-white/7 px-4 py-3">
             <Sparkles size={15} className="text-accent-400" />
             <div className="min-w-0 flex-1">
@@ -362,7 +362,7 @@ export default function Assistant() {
                 <p className="text-[13px] leading-relaxed text-white/60">
                   Ask about the app or your data, or tell me what to change — charts, filters, KPIs, columns or the data itself. I&apos;ll show each change before it happens.
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="stagger-fast flex flex-wrap gap-2">
                   {starters(dash.board, dataset).map((s) => (
                     <button key={s} type="button" onClick={() => send(s)} className="rounded-full border border-white/10 px-3 py-1.5 text-left text-[12px] text-white/65 hover:bg-white/5 hover:text-white">
                       {s}
@@ -372,7 +372,7 @@ export default function Assistant() {
               </div>
             )}
             {messages.map((m) => (
-              <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : ''}>
+              <div key={m.id} className={m.role === 'user' ? 'ld-feed flex justify-end' : 'ld-feed'}>
                 <div className={m.role === 'user' ? 'max-w-[85%] rounded-2xl rounded-br-md bg-accent-500/15 px-3 py-2 text-[13px] text-white/90' : 'max-w-full text-[13px] leading-relaxed text-white/80'}>
                   {m.text && <p className="whitespace-pre-wrap break-words">{m.text}</p>}
                   {!!m.proposals?.length && (
