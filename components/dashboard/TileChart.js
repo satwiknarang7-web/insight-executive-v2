@@ -156,7 +156,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
   const click = onSelect && tile.dim && tile.kind === 'breakdown' ? (d) => d && onSelect(tile.dim, d[tile.dim]) : null;
 
   /* KPI-like single value is handled by KpiCard; tables are HTML. */
-  if (viz === 'table') return <DataTable tile={tile} data={data} byId={byId} field={field} height={height} />;
+  if (viz === 'table') return <DataTable tile={tile} data={data} byId={byId} field={field} height={height} color={color(0)} />;
   if (viz === 'map' && field(tile.dim)?.map?.code) {
     return <GeoMap tile={tile} code={field(tile.dim).map.code} data={data} m={m} height={height} mode={mode} ink={ink} onSelect={onSelect && tile.dim ? onSelect : null} selected={selected} />;
   }
@@ -400,7 +400,7 @@ function Empty({ children, height }) {
 }
 
 /** A ranking as a table: the dimension, then each measure, with bars on the first. */
-function DataTable({ tile, data, byId, field, height }) {
+function DataTable({ tile, data, byId, field, height, color }) {
   const ms = (tile.measures || []).map((id) => byId.get(id)).filter(Boolean);
   const first = ms[0];
   const max = Math.max(...data.map((r) => Math.abs(r[first?.id] || 0)), 0) || 1;
@@ -424,7 +424,18 @@ function DataTable({ tile, data, byId, field, height }) {
               {ms.map((m, j) => (
                 <td key={m.id} className="relative py-2 pl-3 text-right font-mono text-white/80">
                   {j === 0 && (
-                    <span className="anim-grow-x absolute inset-y-1.5 right-0 origin-right rounded-md bg-gradient-to-l from-accent-400/25 to-accent-400/5" style={{ width: `${Math.round((Math.abs(r[m.id] || 0) / max) * 100)}%`, animationDelay: `${Math.min(i, 12) * 40}ms` }} />
+                    // The chart palette's colour, not the accent: a ranking is a
+                    // chart drawn as a table, and it has to match the bars beside
+                    // it whichever colour theme is on (Solar made it amber-brown
+                    // next to green charts).
+                    <span
+                      className="anim-grow-x absolute inset-y-1.5 right-0 origin-right rounded-md"
+                      style={{
+                        width: `${Math.round((Math.abs(r[m.id] || 0) / max) * 100)}%`,
+                        background: `linear-gradient(to left, ${color}4d, ${color}0f)`,
+                        animationDelay: `${Math.min(i, 12) * 40}ms`,
+                      }}
+                    />
                   )}
                   <span className="relative">{formatValue(r[m.id], m)}</span>
                 </td>

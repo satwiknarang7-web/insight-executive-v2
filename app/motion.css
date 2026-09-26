@@ -175,13 +175,21 @@
     translate: 0 -3px;
     box-shadow: var(--glow), var(--lift-panel);
   }
+  /* The glow carries a 1px accent ring, which is an edge. Clay and neumorphic
+     surfaces lift on their own shadow instead. */
+  :root[data-surface] .lift:hover {
+    box-shadow: var(--lift-panel);
+  }
   /* An arrow beside a label slides toward where it goes. */
   .group:hover .nudge { animation: m-nudge 900ms var(--ease-in-out) infinite; }
   .group:hover .wiggle { animation: m-wiggle 500ms var(--ease-out); }
 }
 
 /*
- * Every card answers the pointer with its edge, on the materials that have one.
+ * Every card answers the pointer with its edge — on glass only, the one
+ * material that has an edge. Clay and neumorphic panels are drawn without a
+ * border on purpose; lighting one up on hover put back exactly the outline
+ * those materials exist to remove (it showed as a beige frame on Clay).
  *
  * The transition is layered, so a card that names its own (`transition-opacity`)
  * keeps it. The hover colour cannot be: `.card` sets its border unlayered in
@@ -194,10 +202,10 @@
   }
 }
 @media (hover: hover) {
-  :root:not([data-surface='neu']) .card:hover {
+  :root:not([data-surface]) .card:hover {
     border-color: color-mix(in oklab, var(--color-accent-400) 18%, var(--card-border));
   }
-  :root:not([data-surface='neu']) .card.lift:hover {
+  :root:not([data-surface]) .card.lift:hover {
     border-color: color-mix(in oklab, var(--color-accent-400) 40%, var(--card-border));
   }
 }

@@ -90,8 +90,8 @@ export default function PresentPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [go, router]);
 
-  // Every slide's script, worked out once: the live slideshow speaks one at a
-  // time, and the video export narrates them all.
+  // Every slide's script, worked out once; the live slideshow speaks the
+  // current one.
   const scripts = useMemo(() => {
     if (!deck) return [];
     return Array.from({ length: total }, (_, p) => {
@@ -253,9 +253,7 @@ export default function PresentPage() {
             measures={measures}
             fields={fields}
             avatar={avatar}
-            scripts={scripts}
             fileName={dataset?.fileName || board.ds?.name}
-            narrateByDefault={narrating}
             onClose={() => setExporting(false)}
           />
         )}

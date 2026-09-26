@@ -1,25 +1,23 @@
 'use client';
 
 /**
- * Download the slideshow as a video, with or without the presenter's voice.
+ * Download the slideshow as a video.
  *
- * Three steps, all in the browser:
+ * Two steps, both in the browser:
  *
- *  1. The voice. With narration on, each slide's script — the same words the
- *     live slideshow speaks — is synthesised by `/api/speech` and decoded.
- *     Only the server voice can go into a file: the browser's own speech
- *     comes out of the speakers and no page can record it. So narration is
- *     offered only where the server voice is set up, and the dialog says why
- *     when it is not.
- *  2. The pictures. Each slide is drawn off screen at a fixed 16:9 size with
+ *  1. The pictures. Each slide is drawn off screen at a fixed 16:9 size with
  *     every animation finished, and copied to an image.
- *  3. The film. lib/videoExport.js plays the images and the voice into a
- *     recorder, in real time.
+ *  2. The film. lib/videoExport.js plays the images into a recorder, in real
+ *     time, each slide held for the length the viewer chose.
+ *
+ * The video is silent. Narration was offered for a while, but only a server
+ * voice can go into a file — the browser's own speech comes out of the
+ * speakers and no page can record it — and this product does not run one.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { Check, Download, Film, Loader2, Mic, MicOff, X } from 'lucide-react';
+import { Check, Download, Film, Loader2, X } from 'lucide-react';
 import { getFontEmbedCSS, toCanvas } from 'html-to-image';
 import SlideContent from './SlideContent';
 import { extensionFor, pickVideoType, recordSlides, videoSupport } from '../../lib/videoExport';
@@ -49,12 +47,10 @@ function chapterLabel(board, page) {
   return 'Chart';
 }
 
-export default function VideoExport({ board, tiles, measures, fields, avatar, scripts, fileName, narrateByDefault = true, onClose }) {
+export default function VideoExport({ board, tiles, measures, fields, avatar, fileName, onClose }) {
   const total = tiles.length + 1;
-  const [voice, setVoice] = useState(null); // null checking · true · false
-  const [narrate, setNarrate] = useState(narrateByDefault);
   const [seconds, setSeconds] = useState(6);
-  const [phase, setPhase] = useState('setup'); // setup · voice · slides · recording · done · error
+  const [phase, setPhase] = useState('setup'); // setup · slides · recording · done · error
   const [step, setStep] = useState({ at: 0, of: total });
   const [time, setTime] = useState({ at: 0, of: 0 });
   const [error, setError] = useState(null);
@@ -66,17 +62,6 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
   const [support] = useState(() => videoSupport());
   const [type] = useState(() => pickVideoType());
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/speech')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => !cancelled && setVoice(!!d?.available))
-      .catch(() => !cancelled && setVoice(false));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // Stop everything, and free the file, when the dialog goes away.
   useEffect(
     () => () => {
@@ -86,8 +71,7 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
   );
   useEffect(() => () => result && URL.revokeObjectURL(result.url), [result]);
 
-  const withVoice = narrate && voice === true;
-  const busy = phase === 'voice' || phase === 'slides' || phase === 'recording';
+  const busy = phase === 'slides' || phase === 'recording';
 
   const save = useCallback((res) => {
     const a = document.createElement('a');
@@ -101,39 +85,12 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
   const start = useCallback(async () => {
     setError(null);
     setResult(null);
-    // Made inside the click, so the browser lets it play into the recorder.
-    const audioCtx = withVoice ? new (window.AudioContext || window.webkitAudioContext)() : null;
     const abort = new AbortController();
     abortRef.current = abort;
     const stopped = () => abort.signal.aborted;
 
     try {
-      // 1. The voice.
-      const audio = new Array(total).fill(null);
-      if (withVoice) {
-        setPhase('voice');
-        for (let i = 0; i < total; i += 1) {
-          if (stopped()) return;
-          setStep({ at: i + 1, of: total });
-          if (!scripts[i]) continue;
-          const res = await fetch('/api/speech', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ text: scripts[i] }),
-            signal: abort.signal,
-          });
-          if (!res.ok) {
-            throw new Error(
-              res.status === 429
-                ? 'The voice service is busy — too many requests in the last few minutes. Wait a little, or make the video without narration.'
-                : 'The voice service did not answer, so the narration could not be made. Make the video without narration, or try again later.'
-            );
-          }
-          audio[i] = await audioCtx.decodeAudioData(await res.arrayBuffer());
-        }
-      }
-
-      // 2. The pictures.
+      // 1. The pictures.
       setPhase('slides');
       const images = [];
       let fontEmbedCSS;
@@ -159,17 +116,12 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
       }
       flushSync(() => setCapture(null));
 
-      // 3. The film.
+      // 2. The film.
       setPhase('recording');
-      const slides = images.map((image, i) => ({
-        image,
-        audio: audio[i],
-        ms: audio[i] ? Math.max(4000, audio[i].duration * 1000 + 1500) : seconds * 1000,
-      }));
+      const slides = images.map((image) => ({ image, ms: seconds * 1000 }));
       const root = getComputedStyle(document.documentElement);
       const blob = await recordSlides({
         slides,
-        audioCtx,
         width: Math.round(STAGE_W * SCALE),
         height: Math.round(STAGE_H * SCALE),
         background: getComputedStyle(document.body).backgroundColor,
@@ -188,17 +140,16 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
       setPhase('error');
     } finally {
       flushSync(() => setCapture(null));
-      audioCtx?.close().catch(() => {});
       if (abort.signal.aborted) setPhase('setup');
     }
-  }, [withVoice, total, scripts, seconds, fileName, save]);
+  }, [total, seconds, fileName, save]);
 
   const cancel = () => {
     abortRef.current?.abort();
     setPhase('setup');
   };
 
-  const estimate = withVoice ? null : total * seconds * 1000;
+  const estimate = total * seconds * 1000;
 
   return (
     <div className="anim-fade absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && !busy && onClose()}>
@@ -222,67 +173,27 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
           <p className="rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4 text-[13px] leading-relaxed text-amber-300">{support.reason}</p>
         ) : phase === 'setup' || phase === 'error' ? (
           <>
-            {/* Narration on or off. */}
-            <div className="rounded-xl border border-white/8 bg-white/[0.02] p-4">
-              <div className="flex items-center gap-3">
-                {withVoice ? <Mic size={16} className="shrink-0 text-accent-400" /> : <MicOff size={16} className="shrink-0 text-white/35" />}
-                <div className="min-w-0 flex-1">
-                  <div className="text-[14px] font-semibold text-white/90">Narration</div>
-                  <p className="mt-0.5 text-[12px] leading-relaxed text-white/50">
-                    {voice === null
-                      ? 'Checking whether a voice is available…'
-                      : voice
-                        ? `${avatar.name} reads each slide, and every slide stays up until the sentence ends.`
-                        : 'Not available here: a video can only carry the server voice (ElevenLabs), which this deployment has not set up. The in-browser voice plays through your speakers and cannot be recorded into a file.'}
-                  </p>
-                </div>
-                <div className="inline-flex shrink-0 rounded-xl border border-white/10 bg-white/[0.02] p-1" role="radiogroup" aria-label="Narration">
-                  {[
-                    [true, 'On'],
-                    [false, 'Off'],
-                  ].map(([v, label]) => {
-                    const active = voice === true ? narrate === v : v === false;
-                    return (
-                      <button
-                        key={label}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        disabled={voice !== true}
-                        onClick={() => setNarrate(v)}
-                        className={`rounded-lg px-3 py-1 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed ${active ? 'bg-accent-500 text-on-accent' : 'text-white/55 hover:text-white/85 disabled:opacity-40'}`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* The viewer sets the pace. */}
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4">
+              <div className="min-w-0 flex-1">
+                <div className="text-[14px] font-semibold text-white/90">Each slide stays up for</div>
+                <p className="mt-0.5 text-[12px] text-white/50">About {clock(estimate)} in total.</p>
+              </div>
+              <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.02] p-1" role="radiogroup" aria-label="Seconds per slide">
+                {LENGTHS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    role="radio"
+                    aria-checked={seconds === s}
+                    onClick={() => setSeconds(s)}
+                    className={`rounded-lg px-3 py-1 text-[12px] font-semibold transition-colors ${seconds === s ? 'bg-accent-500 text-on-accent' : 'text-white/55 hover:text-white/85'}`}
+                  >
+                    {s}s
+                  </button>
+                ))}
               </div>
             </div>
-
-            {/* Without a voice, the viewer sets the pace. */}
-            {!withVoice && (
-              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4">
-                <div className="min-w-0 flex-1">
-                  <div className="text-[14px] font-semibold text-white/90">Each slide stays up for</div>
-                  <p className="mt-0.5 text-[12px] text-white/50">About {clock(estimate)} in total.</p>
-                </div>
-                <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.02] p-1" role="radiogroup" aria-label="Seconds per slide">
-                  {LENGTHS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      role="radio"
-                      aria-checked={seconds === s}
-                      onClick={() => setSeconds(s)}
-                      className={`rounded-lg px-3 py-1 text-[12px] font-semibold transition-colors ${seconds === s ? 'bg-accent-500 text-on-accent' : 'text-white/55 hover:text-white/85'}`}
-                    >
-                      {s}s
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {error && <p className="anim-pop mt-3 rounded-lg border border-rose-500/25 bg-rose-500/5 p-3 text-[12.5px] leading-relaxed text-rose-300">{error}</p>}
 
@@ -293,7 +204,7 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
               <button type="button" onClick={onClose} className="rounded-lg border border-white/10 px-4 py-2 text-[12.5px] font-semibold text-white/65 transition-colors hover:bg-white/5 hover:text-white">
                 Cancel
               </button>
-              <button type="button" onClick={start} disabled={voice === null && narrate} className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[12.5px] font-semibold text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-50">
+              <button type="button" onClick={start} className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-[12.5px] font-semibold text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-50">
                 <Film size={14} /> Make the video
               </button>
             </div>
@@ -307,7 +218,7 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[14px] font-semibold text-white/90">{result.name}</div>
                 <div className="text-[12px] text-white/50">
-                  {clock(time.of)} · {(result.size / 1048576).toFixed(1)} MB · {withVoice ? 'with narration' : 'no narration'}
+                  {clock(time.of)} · {(result.size / 1048576).toFixed(1)} MB
                 </div>
               </div>
             </div>
@@ -324,7 +235,6 @@ export default function VideoExport({ board, tiles, measures, fields, avatar, sc
           <div aria-live="polite">
             <ol className="space-y-2">
               {[
-                ...(withVoice ? [['voice', 'Recording the narration']] : []),
                 ['slides', 'Drawing the slides'],
                 ['recording', 'Recording the video'],
               ].map(([id, label], k, all) => {
