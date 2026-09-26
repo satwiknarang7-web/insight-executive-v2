@@ -10,7 +10,7 @@
  */
 import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
-import { Info, Keyboard, Monitor, Palette, ShieldCheck, Sparkles, SwatchBook, Trash2, UserRound } from 'lucide-react';
+import { Bot, Info, Keyboard, Monitor, Palette, ShieldCheck, SwatchBook, Trash2, UserRound } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import AppearancePanel from '../../../components/panels/AppearancePanel';
 import { ColorThemes, DisplayPrefs } from '../../../components/panels/PreferencesPanel';
@@ -21,7 +21,7 @@ const SECTIONS = [
   ['appearance', 'Appearance', Palette],
   ['theme', 'Colour theme', SwatchBook],
   ['display', 'Display', Monitor],
-  ['ai', 'AI & assistant', Sparkles],
+  ['ai', 'AI & assistant', Bot],
   ['data', 'Data on this device', ShieldCheck],
   ['shortcuts', 'Keyboard shortcuts', Keyboard],
   ['about', 'About', Info],
@@ -102,7 +102,7 @@ export default function SettingsPage() {
             <DisplayPrefs />
           </Card>
 
-          <Card id="ai" icon={Sparkles} title="AI & assistant" subtitle="Every number is computed from your rows either way. A model only helps read columns and write words.">
+          <Card id="ai" icon={Bot} title="AI & assistant" subtitle="Every number is computed from your rows either way. A model only helps read columns and write words.">
             <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4">
               <span className={`h-2 w-2 rounded-full ${ownKey || serverModel ? 'bg-emerald-400' : 'bg-white/30'}`} />
               <p className="min-w-0 flex-1 text-[13px] text-white/70">

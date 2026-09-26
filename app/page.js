@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, FileSpreadsheet } from 'lucide-react';
 import Logo from '../components/shell/Logo';
 import ThemeToggle from '../components/shell/ThemeToggle';
 import ProductPreview from '../components/landing/ProductPreview';
@@ -95,7 +95,7 @@ export default function LandingPage() {
                 Start with your data <ArrowRight size={16} className="nudge" />
               </Link>
               <Link href="/home" className="group inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.03] px-5 py-3.5 text-[15px] font-medium text-white/80 transition hover:-translate-y-0.5 hover:bg-white/[0.07]">
-                <Sparkles size={15} className="wiggle text-accent-400" /> Try a sample
+                <FileSpreadsheet size={15} className="text-accent-400" /> Try a sample
               </Link>
             </div>
             <dl className="stagger mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/8 pt-6">

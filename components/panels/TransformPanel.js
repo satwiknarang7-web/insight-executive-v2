@@ -1,20 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  Check,
-  Code2,
-  Loader2,
-  Pencil,
-  Plus,
-  Sparkles,
-  Trash2,
-  Wand2,
-  X,
-} from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, Check, Code2, ListChecks, Loader2, Pencil, Plus, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { useActions, useDataset } from '../../lib/store/DatasetProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
 import {
@@ -368,7 +355,7 @@ export default function TransformPanel() {
   return (
     <div className="card p-4">
       <div className="mb-1 flex flex-wrap items-center gap-2">
-        <Wand2 size={14} className="text-accent-400" />
+        <SlidersHorizontal size={14} className="text-accent-400" />
         <span className="label">Transform data</span>
         <div className="ml-auto flex items-center gap-3">
           {can('model') && (
@@ -378,7 +365,7 @@ export default function TransformPanel() {
               className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.15em] text-accent-400/80 transition-colors hover:text-accent-300 disabled:opacity-50"
               title="Ask the analyst what it would do to this table before charting it"
             >
-              {suggesting ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />} Suggest steps
+              {suggesting ? <Loader2 size={11} className="animate-spin" /> : <ListChecks size={11} />} Suggest steps
             </button>
           )}
           {plan.steps.length > 0 && (
@@ -400,7 +387,7 @@ export default function TransformPanel() {
       {(summary || suggestedSteps.length > 0 || 0 > 0 || preparation?.applied?.length > 0) && (
         <div className="mb-3 rounded-lg border border-accent-500/20 bg-accent-500/[0.04] p-3">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-accent-300/80">
-            <Sparkles size={11} /> The analyst
+            <ListChecks size={11} /> The analyst
           </div>
           {summary && <p className="mt-1 text-[12px] leading-relaxed text-white/60">{summary}</p>}
           {preparation?.applied?.length > 0 && !proposal && (
@@ -554,7 +541,7 @@ export default function TransformPanel() {
               disabled={reading || !phrase.trim()}
               className="flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-40"
             >
-              {reading ? <Loader2 size={11} className="animate-spin" /> : <Wand2 size={11} />} Add
+              {reading ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />} Add
             </button>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">

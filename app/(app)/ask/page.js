@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
-import { BarChart3, ChevronRight, Cpu, LayoutGrid, ListOrdered, Loader2, Map as MapIcon, Plus, ScatterChart as ScatterIcon, Send, Sparkles, Terminal, TrendingUp, X } from 'lucide-react';
+import { BarChart3, ChevronRight, Cpu, LayoutGrid, ListOrdered, Loader2, Map as MapIcon, PenLine, Plus, ScatterChart as ScatterIcon, Search, Send, Terminal, TrendingUp, X } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
@@ -115,7 +115,7 @@ export default function AskPage() {
             }}
             className="card card-glow relative flex items-center gap-3 overflow-hidden p-2.5 pl-4"
           >
-            <Sparkles size={18} className="shrink-0 text-accent-400" />
+            <Search size={18} className="shrink-0 text-accent-400" />
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -171,7 +171,7 @@ export default function AskPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-white/50">
-                      {a.via === 'model' ? <Sparkles size={11} className="text-accent-400" /> : <Cpu size={11} className="text-accent-400" />}
+                      {a.via === 'model' ? <PenLine size={11} className="text-accent-400" /> : <Cpu size={11} className="text-accent-400" />}
                       {a.via === 'model' ? 'Read by the model, checked against the table' : 'Read by the built-in engine'}
                     </span>
                     {board && (

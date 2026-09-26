@@ -1,21 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  ArrowUp,
-  ArrowDown,
-  AlertTriangle,
-  Loader2,
-  Hash,
-  Type,
-  Calendar,
-  Fingerprint,
-  Wand2,
-  ChevronDown,
-} from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Fingerprint, Hash, Loader2, Search, SlidersHorizontal, Type } from 'lucide-react';
 import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import TransformPanel from '../../../components/panels/TransformPanel';
@@ -317,7 +303,7 @@ export default function ExplorePage() {
         <section className="mb-5">
           <div className="flex flex-wrap items-center gap-2">
             <ToolChip
-              icon={Wand2}
+              icon={SlidersHorizontal}
               label="Transform data"
               count={appliedSteps}
               open={tool === 'shape'}

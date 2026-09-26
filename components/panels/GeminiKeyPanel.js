@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ArrowUpRight, Check, ChevronDown, Eye, EyeOff, KeyRound, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowUpRight, Check, ChevronDown, Eye, EyeOff, KeyRound, Loader2, Trash2 } from 'lucide-react';
 
 import {
   clearKey,
@@ -120,7 +120,7 @@ export default function GeminiKeyPanel() {
         className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-white/[0.02]"
       >
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-accent-500/25 bg-accent-500/10 text-accent-400">
-          <Sparkles size={15} />
+          <KeyRound size={15} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">

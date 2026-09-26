@@ -6,7 +6,7 @@
  * small toolbar; the full editor opens in a side panel.
  */
 
-import { ArrowDown, ArrowUp, Columns2, Maximize2, Pencil, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Columns2, Maximize2, PenLine, Pencil, Trash2 } from 'lucide-react';
 import TileChart from './TileChart';
 
 const HEIGHTS = { 3: 220, 4: 280, 5: 340, 6: 420 };
@@ -51,7 +51,7 @@ export default function Tile({ tile, measures, fields, editing, selectedIds = []
       </div>
       {tile.insight && (
         <p className="mt-3 border-t border-white/6 pt-3 text-[13px] leading-relaxed text-white/70">
-          {tile.aiCaption && <Sparkles size={12} className="mr-1 inline -translate-y-px text-accent-400" aria-label="Written by the model" />}
+          {tile.aiCaption && <PenLine size={12} strokeWidth={1.75} className="mr-1.5 inline -translate-y-px text-white/40" aria-label="Written by the model" />}
           {tile.insight}
         </p>
       )}

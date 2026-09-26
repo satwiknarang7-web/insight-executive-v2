@@ -15,7 +15,7 @@
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { Check, Columns3, Loader2, Pencil, Plus, RefreshCw, Sparkles, UploadCloud } from 'lucide-react';
+import { Check, Columns3, Loader2, Pencil, Plus, RefreshCw, ShieldCheck, UploadCloud } from 'lucide-react';
 import PageFrame from '../../../components/shell/PageFrame';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
@@ -92,8 +92,10 @@ function Findings({ board, ai }) {
       <div className="mb-2 flex items-center gap-2">
         <h2 id="key-findings" className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Key findings</h2>
         {ai?.written && (
-          <span className="flex items-center gap-1 rounded-full border border-accent-500/30 bg-accent-500/10 px-2 py-0.5 text-[10px] font-bold text-accent-300">
-            <Sparkles size={10} /> Written by a model, numbers checked
+          // A quiet provenance note, not a sticker: the claim is that the
+          // numbers were checked, so that is what the mark shows.
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-white/12 px-2 py-0.5 text-[11px] font-medium text-white/55">
+            <ShieldCheck size={12} strokeWidth={1.75} className="text-accent-400" /> Model-written · numbers verified
           </span>
         )}
       </div>

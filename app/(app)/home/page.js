@@ -3,23 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  UploadCloud,
-  FileSpreadsheet,
-  FileImage,
-  ChevronDown,
-  ShieldCheck,
-  ArrowRight,
-  AlertTriangle,
-  Table2,
-  Trash2,
-  X,
-  LayoutDashboard,
-  Sparkles,
-  PencilRuler,
-  Lock,
-  Wand2,
-} from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronDown, FileImage, FileSpreadsheet, LayoutDashboard, Lock, PencilRuler, ShieldCheck, Table2, Trash2, UploadCloud, X } from 'lucide-react';
 import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
 import { usePlan } from '../../../lib/store/PlanProvider';
@@ -68,7 +52,7 @@ export default function LandingPage() {
   // The button opens the question card either way; with a model it also reads
   // the table and writes the summary, and only then does the button say so.
   const autoLabel = hasModelKey ? 'Open the dashboard · AI-assisted' : 'Open the dashboard';
-  const AutoIcon = hasModelKey ? Sparkles : Wand2;
+  const AutoIcon = LayoutDashboard;
   const revealRefs = useRef([]);
 
   /**

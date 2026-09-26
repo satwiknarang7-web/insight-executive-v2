@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle, TrendingUp } from 'lucide-react';
 import { motionAllowed } from '../../lib/motion';
 
 const TREND = [32, 36, 34, 41, 39, 46, 44, 52, 49, 58, 61, 57, 66, 70, 68, 77];
@@ -131,8 +131,8 @@ export default function ProductPreview() {
           </div>
 
           <div className="anim-rise flex items-start gap-2.5 rounded-xl border border-accent-400/20 bg-accent-400/[0.06] p-3" style={{ animationDelay: '700ms' }}>
-            <span className="anim-breathe flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent-400/15 text-accent-300">
-              <Sparkles size={13} />
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent-400/15 text-accent-300">
+              <TrendingUp size={13} />
             </span>
             <p className="text-[11.5px] leading-relaxed text-white/75">
               <span className="font-semibold text-white/90">Key finding · </span>

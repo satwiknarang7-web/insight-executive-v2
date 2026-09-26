@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
-import { Check, Loader2, MessageCircle, RotateCcw, Send, Sparkles, X } from 'lucide-react';
+import { Check, Loader2, MessageCircle, RotateCcw, Send, X } from 'lucide-react';
 import { useActions, useDataset } from '../../lib/store/DatasetProvider';
 import { useDashboard } from '../../lib/store/DashboardProvider';
 import { usePlan } from '../../lib/store/PlanProvider';
@@ -341,7 +341,7 @@ export default function Assistant() {
       {open && (
         <div role="dialog" aria-label="Assistant" className="anim-slide-up fixed inset-x-2 bottom-2 top-16 z-[60] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-canvas-raised shadow-2xl shadow-black/40 sm:inset-x-auto sm:right-4 sm:top-auto sm:h-[min(640px,calc(100vh-2rem))] sm:w-[400px]">
           <div className="flex items-center gap-2 border-b border-white/7 px-4 py-3">
-            <Sparkles size={15} className="text-accent-400" />
+            <MessageCircle size={15} className="text-accent-400" />
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-bold text-white/90">Assistant</div>
               <div className="truncate text-[11px] text-white/40">{useModel ? 'AI answers from your data and the app help' : 'Built-in mode — add an AI key for free-form answers'}</div>

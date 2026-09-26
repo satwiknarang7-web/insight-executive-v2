@@ -1,6 +1,6 @@
 'use client';
 
-import { ShieldCheck, EyeOff, AlertTriangle, Wand2, Trash2, Database, HelpCircle, Hash, Calendar, Type, Fingerprint, Eraser, Scale, Rows3, Sigma } from 'lucide-react';
+import { AlertTriangle, Calendar, CheckCircle2, Database, Eraser, EyeOff, Fingerprint, Hash, HelpCircle, Rows3, Scale, ShieldCheck, Sigma, Trash2, Type } from 'lucide-react';
 import { useDataset } from '../../../lib/store/DatasetProvider';
 import PageFrame from '../../../components/shell/PageFrame';
 import CountUp from '../../../components/motion/CountUp';
@@ -140,7 +140,7 @@ export default function QualityPage() {
         <Metric icon={Database} label="Rows in your file" value={m.totalRows} />
         <Metric icon={ShieldCheck} label="Rows we could use" value={m.cleanRows ?? dataset.rowCount} tone="emerald" />
         <Metric icon={EyeOff} label="Personal details hidden" value={m.redactedPII} tone="accent" />
-        <Metric icon={Wand2} label="Numbers and dates recognised" value={m.typesCoerced} />
+        <Metric icon={Hash} label="Numbers and dates recognised" value={m.typesCoerced} />
         <Metric icon={AlertTriangle} label="Cells left empty" value={m.nullsFound} tone="amber" />
         <Metric icon={Trash2} label="Blank rows removed" value={m.droppedRows} tone="rose" />
       </section>
@@ -404,7 +404,7 @@ function describeMalformed(samples, multiTable) {
   return shown.join('; ') + rest;
 }
 
-function Bullet({ icon: Icon = Wand2, title, count = null, unit = 'change', warn = false, children }) {
+function Bullet({ icon: Icon = CheckCircle2, title, count = null, unit = 'change', warn = false, children }) {
   const n = count || 0;
   const tag = count === null ? null : n === 0 ? 'Nothing needed' : `${n.toLocaleString()} ${unit}${n === 1 ? '' : 's'}`;
   return (
