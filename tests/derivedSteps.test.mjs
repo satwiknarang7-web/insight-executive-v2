@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveSteps, MAX_DERIVED } from '../lib/derivedSteps.js';
+import { deriveSteps, MAX_DERIVED, partNames } from '../lib/derivedSteps.js';
 import { preparationFor } from '../lib/preparation.js';
 
 /* The shaping a report gets with no model behind it.
@@ -243,4 +243,52 @@ test('a joined multi-file view gets steps too', () => {
   const band = steps.find((s) => s.kind === 'bucket');
   assert.ok(band, 'and one number is banded');
   assert.ok(!['Order_ID', 'Customer_ID', 'Product_ID'].includes(band.column), 'never an identifier');
+});
+
+/* What a split's parts are called. "Location 2" tells a reader nothing. */
+
+const counted = (values) => values.map((v) => [v, 10]);
+
+test('a city and a state code split into City and State', () => {
+  assert.deepEqual(partNames('location', counted(['Austin, TX', 'Dallas, TX', 'Denver, CO', 'Boston, MA', 'Miami, FL']), ', ', 2), ['City', 'State']);
+});
+
+test('a city, a state or province, and a country are each named', () => {
+  const values = ['Austin, TX, USA', 'Toronto, ON, Canada', 'Denver, CO, USA', 'Boston, MA, USA', 'Vancouver, BC, Canada'];
+  assert.deepEqual(partNames('place', counted(values), ', ', 3), ['City', 'State', 'Country']);
+});
+
+test('a city beside a country is a City only when the column holds places', () => {
+  const values = ['Berlin, Germany', 'Paris, France', 'Tokyo, Japan', 'Lima, Peru'];
+  assert.deepEqual(partNames('office', counted(values), ', ', 2), ['City', 'Country']);
+  assert.deepEqual(partNames('product', counted(['Widget, Germany', 'Gadget, France', 'Thing, Japan', 'Box, Peru']), ', ', 2), ['Product 1', 'Country']);
+});
+
+test('a column name that spells its parts names them', () => {
+  assert.deepEqual(partNames('city_state', counted(['Foo, Bar', 'Baz, Qux', 'A, B', 'C, D']), ', ', 2), ['City', 'State']);
+});
+
+test('parts that are not places keep the numbered names', () => {
+  assert.deepEqual(partNames('customer', counted(['Smith, Jordan', 'Doe, Chad', 'Lee, Ann', 'Kim, Bo', 'Brown, Tom']), ', ', 2), ['Customer 1', 'Customer 2']);
+  assert.deepEqual(partNames('item', counted(['Red - Large', 'Blue - Small', 'Green - Medium', 'Black - Large']), ' - ', 2), ['Item 1', 'Item 2']);
+});
+
+test('a part name that is already a column is prefixed, not dropped', () => {
+  const values = counted(['Austin, TX', 'Dallas, TX', 'Denver, CO', 'Boston, MA']);
+  assert.deepEqual(partNames('location', values, ', ', 2, new Set(['state'])), ['City', 'Location State']);
+});
+
+test('the split step deriveSteps proposes carries the names', () => {
+  const values = ['Austin, TX', 'Dallas, TX', 'Denver, CO', 'Boston, MA', 'Miami, FL'];
+  const steps = deriveSteps(
+    context({
+      columns: ['location', 'units'],
+      dimensions: ['location'],
+      measures: ['units'],
+      temporal: [],
+      cardinality: { location: 5 },
+      vocabulary: { dimensions: { location: values.map((value) => ({ value, count: 20 })) }, measures: {}, sample: [] },
+    })
+  );
+  assert.deepEqual(steps.find((s) => s.kind === 'split')?.into, ['City', 'State']);
 });
