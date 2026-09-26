@@ -18,48 +18,72 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Bubbles,
   ChartArea,
   ChartBar,
   ChartBarStacked,
   ChartColumn,
   ChartColumnBig,
   ChartColumnStacked,
+  ChartGantt,
   ChartLine,
   ChartNoAxesColumn,
+  ChartNoAxesCombined,
   ChartPie,
   ChartScatter,
+  ChartSpline,
   Check,
+  Donut,
   Funnel,
+  Gauge,
   Grid3x3,
   Hash,
+  LandPlot,
   LayoutGrid,
   Loader2,
   Map as MapIcon,
+  MapPin,
+  Radar,
+  SquareStack,
   Table2,
+  Target,
   X,
 } from 'lucide-react';
-import { allowedViz, grainsFor, VIZ } from '../../lib/engine/tiles';
+import { allowedViz, grainsFor, MAP_VIZ, VIZ } from '../../lib/engine/tiles';
 
 /**
  * Every chart a tile can be, in the order a person reaches for them. `kind` is
- * what the engine computes; `split` means the type needs a second category.
+ * what the engine computes (`kinds` when a type can be drawn from either, date
+ * first); `split` means the type needs a second category, `pair` two measures,
+ * `size` a third number column.
  */
 const TYPES = [
   { viz: 'hbar', kind: 'breakdown', label: 'Bar', icon: ChartBar, needs: 'a column of categories' },
   { viz: 'column', kind: 'breakdown', label: 'Column', icon: ChartColumn, needs: 'a column of categories' },
   { viz: 'line', kind: 'trend', label: 'Line', icon: ChartLine, needs: 'a date column' },
   { viz: 'area', kind: 'trend', label: 'Area', icon: ChartArea, needs: 'a date column and a measure that adds up (a total, not an average)' },
-  { viz: 'donut', kind: 'breakdown', label: 'Donut', icon: ChartPie, needs: 'a total that cannot be negative, split across 2 to 6 categories' },
+  { viz: 'donut', kind: 'breakdown', label: 'Donut', icon: Donut, needs: 'a total that cannot be negative, split across 2 to 6 categories' },
+  { viz: 'pie', kind: 'breakdown', label: 'Pie', icon: ChartPie, needs: 'a total that cannot be negative, split across 2 to 6 categories' },
   { viz: 'treemap', kind: 'breakdown', label: 'Treemap', icon: LayoutGrid, needs: 'a total that cannot be negative, split across categories' },
   { viz: 'funnel', kind: 'breakdown', label: 'Funnel', icon: Funnel, needs: 'a total that cannot be negative, split across 2 to 8 stages' },
+  { viz: 'waterfall', kinds: ['trend', 'breakdown'], label: 'Waterfall', icon: ChartGantt, needs: 'a measure that adds up, over time or across up to 12 categories' },
+  { viz: 'radial', kind: 'breakdown', label: 'Radial bars', icon: Target, needs: 'a measure that cannot be negative, across 2 to 8 categories' },
+  { viz: 'gauge', kind: 'breakdown', label: 'Gauge', icon: Gauge, needs: 'a total that cannot be negative, split across categories' },
+  { viz: 'cards', kind: 'breakdown', label: 'Number cards', icon: SquareStack, needs: 'a column with up to 12 categories' },
   { viz: 'map', kind: 'breakdown', label: 'Map', icon: MapIcon, needs: 'a column of countries or regions' },
+  { viz: 'bubbleMap', kind: 'breakdown', label: 'Bubble map', icon: MapPin, needs: 'a column of countries or regions, and a measure that cannot be negative' },
+  { viz: 'shapeMap', kind: 'breakdown', label: 'Shape map', icon: LandPlot, needs: 'a column of countries or regions' },
   { viz: 'stackedColumn', kind: 'breakdown', split: true, label: 'Stacked column', icon: ChartColumnStacked, needs: 'a measure that adds up and two category columns' },
   { viz: 'stackedBar', kind: 'breakdown', split: true, label: 'Stacked bar', icon: ChartBarStacked, needs: 'a measure that adds up and two category columns' },
   { viz: 'groupedColumn', kind: 'breakdown', split: true, label: 'Grouped column', icon: ChartColumnBig, needs: 'two category columns' },
   { viz: 'stackedArea', kind: 'trend', split: true, label: 'Stacked area', icon: ChartArea, needs: 'a date column, a measure that adds up and a category to split by' },
+  { viz: 'ribbon', kind: 'trend', split: true, label: 'Ribbon', icon: ChartSpline, needs: 'a date column and a category to rank in each period' },
+  { viz: 'combo', kinds: ['trend', 'breakdown'], pair: true, label: 'Combo', icon: ChartNoAxesCombined, needs: 'two measures, over time or across categories' },
   { viz: 'heatmap', kind: 'breakdown', split: true, label: 'Heatmap', icon: Grid3x3, needs: 'two category columns' },
+  { viz: 'radar', kind: 'breakdown', label: 'Radar', icon: Radar, needs: 'a measure that cannot be negative, across 3 to 10 categories' },
   { viz: 'histogram', kind: 'distribution', label: 'Histogram', icon: ChartNoAxesColumn, needs: 'a number column' },
   { viz: 'scatter', kind: 'relationship', label: 'Scatter', icon: ChartScatter, needs: 'two number columns' },
+  { viz: 'bubble', kind: 'relationship', size: true, label: 'Bubble', icon: Bubbles, needs: 'three number columns' },
   { viz: 'table', kind: 'table', label: 'Ranking table', icon: Table2, needs: 'a column to rank' },
   { viz: 'kpi', kind: 'kpi', label: 'Single number', icon: Hash, needs: 'a measure' },
 ];
@@ -149,10 +173,12 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
   const type = TYPES.find((t) => t.viz === draft.viz) || null;
 
   const autoTitle = (next) => {
-    const m = mLabel(next.measures?.[0]);
+    const m = next.measures?.length === 2 ? `${mLabel(next.measures[0])} and ${mLabel(next.measures[1])?.toLowerCase()}` : mLabel(next.measures?.[0]);
     if (next.kind === 'breakdown') return `${m} by ${label(next.dim)?.toLowerCase()}${next.series ? ` and ${label(next.series)?.toLowerCase()}` : ''}`;
+    if (next.kind === 'trend' && next.viz === 'ribbon') return `Which ${label(next.series)?.toLowerCase()} leads on ${m?.toLowerCase()}, over time`;
     if (next.kind === 'trend') return `${m}${next.series ? ` by ${label(next.series)?.toLowerCase()}` : ''} over time`;
     if (next.kind === 'distribution') return `Distribution of ${label(next.field)?.toLowerCase()}`;
+    if (next.kind === 'relationship' && next.viz === 'bubble' && next.size) return `${label(next.y)} vs ${label(next.x)?.toLowerCase()}, sized by ${label(next.size)?.toLowerCase()}`;
     if (next.kind === 'relationship') return `${label(next.y)} vs ${label(next.x)?.toLowerCase()}`;
     if (next.kind === 'table') return `Top ${label(next.dim)?.toLowerCase()} by ${m?.toLowerCase()}`;
     if (next.kind === 'kpi') return m;
@@ -164,15 +190,22 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
    * current choices are tried first, so switching a revenue-by-region bar to
    * a donut keeps revenue and region if a donut can show them.
    */
-  const specFor = (t, prefer = draft) => {
-    if (!ds) return null;
-    const base = { ...defaultSpec(t.kind, prefer, { measures, fields }), filters: prefer?.filters || [], viz: t.viz, series: null, edges: undefined, labels: undefined };
+  const specForKind = (t, kind, prefer) => {
+    const base = { ...defaultSpec(kind, prefer, { measures, fields }), filters: prefer?.filters || [], viz: t.viz, series: null, edges: undefined, labels: undefined, size: undefined };
     const ms = uniq([prefer?.measures?.[0], base.measures?.[0], ...measures.map((m) => m.id)]).slice(0, 16);
-    if (t.kind === 'breakdown') {
+    // The measures to try: one at a time, or two different ones for a combo,
+    // the pair already on the chart first.
+    const sets = t.pair
+      ? [
+          ...(prefer?.measures?.length === 2 ? [prefer.measures] : []),
+          ...ms.flatMap((a) => ms.filter((b) => b !== a).map((b) => [a, b])),
+        ]
+      : ms.map((m) => [m]);
+    if (kind === 'breakdown') {
       const ds_ = uniq([prefer?.dim, base.dim, ...[...splitDims, ...ordinalNums, ...dims.filter((f) => f.map)].map((f) => f.name)]).slice(0, 16);
-      for (const m of ms) {
+      for (const set of sets) {
         for (const d of ds_) {
-          const cand = { ...base, measures: [m], dim: d };
+          const cand = { ...base, kind, measures: set, dim: d };
           if (t.split) {
             for (const sd of uniq([prefer?.series, ...seriesDims.map((f) => f.name)]).filter((x) => x !== d)) {
               if (ok({ ...cand, series: sd })) return { ...cand, series: sd };
@@ -182,9 +215,9 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
       }
       return null;
     }
-    if (t.kind === 'trend') {
-      for (const m of ms) {
-        const cand = { ...base, measures: [m] };
+    if (kind === 'trend') {
+      for (const set of sets) {
+        const cand = { ...base, kind, measures: set };
         if (t.split) {
           for (const sd of uniq([prefer?.series, ...seriesDims.map((f) => f.name)])) {
             if (ok({ ...cand, series: sd })) return { ...cand, series: sd };
@@ -193,8 +226,24 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
       }
       return null;
     }
-    if (t.kind === 'kpi') return measures.length ? { ...base, measures: [ms[0]] } : null;
+    if (kind === 'relationship' && t.size) {
+      // A third number, other than the two on the axes, sets each bubble's size.
+      for (const s of uniq([prefer?.size, ...nums.map((f) => f.name)]).filter((n) => n !== base.x && n !== base.y)) {
+        if (ok({ ...base, size: s })) return { ...base, size: s };
+      }
+      return null;
+    }
+    if (kind === 'kpi') return measures.length ? { ...base, measures: [ms[0]] } : null;
     return ok(base) ? base : null;
+  };
+  // A type drawable from a date or from categories tries the date first.
+  const specFor = (t, prefer = draft) => {
+    if (!ds) return null;
+    for (const kind of t.kinds || [t.kind]) {
+      const spec = specForKind(t, kind, prefer);
+      if (spec) return spec;
+    }
+    return null;
   };
 
   // Which types this table can draw at all. Independent of the current
@@ -240,9 +289,15 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
     }
   };
 
-  const measureOptions = measures.filter((m) => fits({ measures: [m.id] })).map((m) => ({ value: m.id, label: m.label }));
+  // A combo keeps its second measure while the first changes, and the other way round.
+  const pair = draft.viz === 'combo' && draft.measures?.length === 2;
+  const measureOptions = measures
+    .filter((m) => (pair ? m.id !== draft.measures[1] && fits({ measures: [m.id, draft.measures[1]] }) : fits({ measures: [m.id] })))
+    .map((m) => ({ value: m.id, label: m.label }));
+  const lineOptions = pair ? measures.filter((m) => m.id !== draft.measures[0] && fits({ measures: [draft.measures[0], m.id] })).map((m) => ({ value: m.id, label: m.label })) : [];
   const someOff = TYPES.some((t) => !possible[t.viz]);
-  const partsOfWhole = ['donut', 'treemap', 'funnel', 'map'].includes(draft.viz);
+  const onMap = MAP_VIZ.includes(draft.viz);
+  const partsOfWhole = ['donut', 'pie', 'treemap', 'funnel', 'gauge', 'radial', 'waterfall', ...MAP_VIZ].includes(draft.viz);
   const date = fields.find((f) => f.name === draft.dim);
 
   return (
@@ -295,13 +350,19 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
         {picked && type && (
           <div key={draft.viz} className="anim-rise space-y-4">
             {['breakdown', 'trend', 'kpi'].includes(draft.kind) && (
-              <Select label="Measure" value={draft.measures?.[0]} onChange={(v) => v && change({ measures: [v] })} options={measureOptions} />
+              <Select
+                label={pair ? 'Columns' : 'Measure'}
+                value={draft.measures?.[0]}
+                onChange={(v) => v && change({ measures: pair ? [v, draft.measures[1]] : [v] })}
+                options={measureOptions}
+              />
             )}
+            {pair && <Select label="Line" value={draft.measures[1]} onChange={(v) => v && change({ measures: [draft.measures[0], v] })} options={lineOptions} />}
 
             {draft.kind === 'breakdown' && (
               <>
                 <Select
-                  label={draft.viz === 'map' ? 'Place' : draft.viz === 'funnel' ? 'Stages' : 'By'}
+                  label={onMap ? 'Place' : draft.viz === 'funnel' ? 'Stages' : draft.viz === 'radar' ? 'Around' : 'By'}
                   value={draft.dim}
                   onChange={(v) => v && change({ dim: v, edges: undefined, labels: undefined, series: draft.series === v ? null : draft.series })}
                   options={uniq([...splitDims, ...ordinalNums, ...dims.filter((f) => f.map)].map((f) => f.name))
@@ -317,7 +378,7 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
                     options={seriesDims.filter((f) => f.name !== draft.dim && fits({ series: f.name })).map((f) => ({ value: f.name, label: f.label }))}
                   />
                 )}
-                {draft.viz !== 'map' && (
+                {!onMap && (
                   <Select label="Show" value={String(draft.limit || 12)} onChange={(v) => change({ limit: Number(v) })} options={[5, 8, 12, 20].map((n) => ({ value: String(n), label: `Top ${n}` }))} />
                 )}
                 {!partsOfWhole && (
@@ -355,6 +416,14 @@ export default function TileEditor({ tile, engine, onApply, onClose, mode = 'edi
               <>
                 <Select label="Across (x)" value={draft.x} onChange={(v) => v && change({ x: v })} options={nums.filter((f) => f.name !== draft.y).map((f) => ({ value: f.name, label: f.label }))} />
                 <Select label="Up (y)" value={draft.y} onChange={(v) => v && change({ y: v })} options={nums.filter((f) => f.name !== draft.x).map((f) => ({ value: f.name, label: f.label }))} />
+                {draft.viz === 'bubble' && (
+                  <Select
+                    label="Size"
+                    value={draft.size}
+                    onChange={(v) => v && change({ size: v })}
+                    options={nums.filter((f) => f.name !== draft.x && f.name !== draft.y).map((f) => ({ value: f.name, label: f.label }))}
+                  />
+                )}
                 <Select label="Colour by" value={draft.color} allowNone onChange={(v) => change({ color: v })} options={dims.filter((f) => f.distinct <= 3).map((f) => ({ value: f.name, label: f.label }))} />
               </>
             )}

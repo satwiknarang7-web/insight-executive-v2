@@ -8,11 +8,20 @@
  *
  * Shapes load on demand (lib/geo/maps/<code>.json); names are matched with
  * lib/geo/match.js, the same matcher that decided the column was a map.
+ *
+ * Three ways to draw the same places (`variant`):
+ *   filled  each region shaded by its value
+ *   bubble  every region drawn plain, a circle on each one in the table, its
+ *           area proportional to the value — reads totals without a big,
+ *           empty region looking important
+ *   shape   only the regions in the table, zoomed to fill the frame: a
+ *           comparison among them rather than a map of the whole country
  */
 
 import { useEffect, useMemo, useState } from 'react';
 import { formatValue } from '../../lib/engine/format';
 import { regionIds } from '../../lib/geo/match';
+import { fitBox, pathGeometry } from '../../lib/geo/shape';
 
 const STEPS = 5;
 // One hue (the palette's aqua), stepped for each surface.
@@ -28,7 +37,7 @@ function loadMap(code) {
   return cache.get(code);
 }
 
-export default function GeoMap({ tile, code, data, m, height, mode, ink, onSelect, selected = [] }) {
+export default function GeoMap({ tile, code, data, m, height, mode, ink, onSelect, selected = [], variant = 'filled' }) {
   const [shape, setShape] = useState(null);
   const [hover, setHover] = useState(null);
 
@@ -65,10 +74,37 @@ export default function GeoMap({ tile, code, data, m, height, mode, ink, onSelec
     return { byRegion, unmatched, ranked, edges, total };
   }, [data, yKey, code, tile.dim, m, tile.computed]);
 
+  // Where each region is: its box (to zoom a shape map) and a point inside
+  // its largest landmass (to place a bubble).
+  const geometry = useMemo(() => {
+    const out = new Map();
+    if (shape) for (const l of shape.locations) out.set(l.id, pathGeometry(l.path));
+    return out;
+  }, [shape]);
+  const locations = useMemo(() => {
+    if (!shape) return [];
+    return variant === 'shape' ? shape.locations.filter((l) => byRegion.has(l.id)) : shape.locations;
+  }, [shape, variant, byRegion]);
+  const viewBox = useMemo(() => {
+    if (!shape) return null;
+    if (variant !== 'shape') return shape.viewBox;
+    return fitBox(locations.map((l) => geometry.get(l.id)?.box)) || shape.viewBox;
+  }, [shape, variant, locations, geometry]);
+  // The largest circle is a fixed share of the frame; the rest scale by area.
+  const bubbleMax = useMemo(() => {
+    if (!viewBox) return 0;
+    const [, , w, h] = viewBox.split(/\s+/).map(Number);
+    return Math.min(w, h) * 0.075;
+  }, [viewBox]);
+  const peak = useMemo(() => Math.max(0, ...[...byRegion.values()].map((x) => x.value)), [byRegion]);
+  const radiusOf = (v) => (peak > 0 && v > 0 ? bubbleMax * Math.sqrt(v / peak) : 0);
+
   const ramp = RAMP[mode] || RAMP.dark;
   const stepOf = (v) => edges.filter((e) => v > e).length;
   const fillOf = (id) => {
     const r = byRegion.get(id);
+    // Under bubbles the regions are only the ground the circles stand on.
+    if (variant === 'bubble') return r ? (mode === 'light' ? 'rgba(28,25,23,0.12)' : 'rgba(255,255,255,0.12)') : NO_DATA[mode] || NO_DATA.dark;
     return r ? ramp[stepOf(r.value)] : NO_DATA[mode] || NO_DATA.dark;
   };
   const fmt = (v) => formatValue(v, m || {});
@@ -81,8 +117,8 @@ export default function GeoMap({ tile, code, data, m, height, mode, ink, onSelec
         {shape === null && <div className="ld-skeleton h-full min-h-[260px] w-full rounded-xl" />}
         {shape === false && <p className="text-[13px] text-white/40">The map could not be loaded.</p>}
         {shape && (
-          <svg viewBox={shape.viewBox} className="h-auto max-h-[460px] w-full" role="img" aria-label={`${tile.title}, shaded by value`}>
-            {shape.locations.map((l) => {
+          <svg viewBox={viewBox} className="h-auto max-h-[460px] w-full" role="img" aria-label={`${tile.title}, ${variant === 'bubble' ? 'a circle sized by value on each place' : 'shaded by value'}`}>
+            {locations.map((l) => {
               const r = byRegion.get(l.id);
               const dim = selected?.length && r && !isSel(r.label);
               return (
@@ -102,6 +138,34 @@ export default function GeoMap({ tile, code, data, m, height, mode, ink, onSelec
                 />
               );
             })}
+            {variant === 'bubble' &&
+              // Largest first, so a small circle is never hidden under a big one.
+              [...byRegion.entries()]
+                .sort((a, b) => b[1].value - a[1].value)
+                .map(([id, r]) => {
+                  const g = geometry.get(id);
+                  const radius = radiusOf(r.value);
+                  if (!g || !radius) return null;
+                  const name = shape.locations.find((l) => l.id === id)?.name || r.label;
+                  return (
+                    <circle
+                      key={`b-${id}`}
+                      cx={g.centre[0]}
+                      cy={g.centre[1]}
+                      r={radius}
+                      fill={ramp[3]}
+                      fillOpacity={selected?.length && !isSel(r.label) ? 0.25 : 0.7}
+                      stroke={hover?.id === id ? ink.strong : ramp[4]}
+                      strokeWidth={hover?.id === id ? 1.6 : 1}
+                      vectorEffect="non-scaling-stroke"
+                      style={{ cursor: onSelect ? 'pointer' : 'default' }}
+                      onMouseEnter={(e) => setHover({ id, name, x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })}
+                      onMouseMove={(e) => setHover((h) => h && { ...h, x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })}
+                      onMouseLeave={() => setHover(null)}
+                      onClick={() => onSelect && onSelect(tile.dim, r.label.split(' + ')[0])}
+                    />
+                  );
+                })}
           </svg>
         )}
         {hover && (
@@ -125,11 +189,17 @@ export default function GeoMap({ tile, code, data, m, height, mode, ink, onSelec
         {/* Legend: the five steps with their ranges. */}
         {shape && byRegion.size > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px]" style={{ color: ink.muted }}>
-            <span className="flex overflow-hidden rounded-md">
-              {ramp.map((c) => (
-                <span key={c} className="h-2.5 w-7" style={{ background: c }} />
-              ))}
-            </span>
+            {variant === 'bubble' ? (
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-3 w-3 rounded-full" style={{ background: ramp[3], opacity: 0.7 }} /> area shows the value
+              </span>
+            ) : (
+              <span className="flex overflow-hidden rounded-md">
+                {ramp.map((c) => (
+                  <span key={c} className="h-2.5 w-7" style={{ background: c }} />
+                ))}
+              </span>
+            )}
             <span className="font-mono tabular-nums">
               {fmt(Math.min(...[...byRegion.values()].map((x) => x.value)))} – {fmt(Math.max(...[...byRegion.values()].map((x) => x.value)))}
             </span>

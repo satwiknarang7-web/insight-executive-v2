@@ -23,6 +23,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Funnel,
   FunnelChart,
   LabelList,
@@ -31,6 +32,13 @@ import {
   LineChart,
   Pie,
   PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  RadialBar,
+  RadialBarChart,
   ReferenceLine,
   ResponsiveContainer,
   Scatter,
@@ -42,6 +50,7 @@ import {
   ZAxis,
 } from 'recharts';
 import { formatPeriod, formatTick, formatValue } from '../../lib/engine/format';
+import { MAP_VIZ } from '../../lib/engine/tiles';
 import { useMotionAllowed } from '../../lib/motion';
 import CountUp from '../motion/CountUp';
 import { usePaletteMode, useSeriesColor } from '../charts/palette';
@@ -186,10 +195,32 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
 
   /* KPI-like single value is handled by KpiCard; tables are HTML. */
   if (viz === 'table') return <DataTable tile={tile} data={data} byId={byId} field={field} height={height} color={color(0)} />;
-  if (viz === 'map' && field(tile.dim)?.map?.code) {
-    return <GeoMap tile={tile} code={field(tile.dim).map.code} data={data} m={m} height={height} mode={mode} ink={ink} onSelect={onSelect && tile.dim ? onSelect : null} selected={selected} />;
+  if (MAP_VIZ.includes(viz) && field(tile.dim)?.map?.code) {
+    const variant = viz === 'bubbleMap' ? 'bubble' : viz === 'shapeMap' ? 'shape' : 'filled';
+    return <GeoMap tile={tile} code={field(tile.dim).map.code} data={data} m={m} height={height} mode={mode} ink={ink} onSelect={onSelect && tile.dim ? onSelect : null} selected={selected} variant={variant} />;
   }
   if (viz === 'heatmap') return <Heatmap tile={tile} data={data} byId={byId} field={field} height={height} mode={mode} ink={ink} />;
+  if (viz === 'cards') return <NumberCards tile={tile} data={data} m={m} fmt={fmt} ink={ink} onSelect={click ? (name) => onSelect(tile.dim, name) : null} isSelected={isSelected} anySelected={!!selected?.length} />;
+
+  // A profile: scores around a circle. Several measures of one survey, or one
+  // measure across a handful of categories.
+  if (viz === 'radar') {
+    const points =
+      tile.kind === 'compare'
+        ? data.map((d) => ({ axis: d.measure, value: d.value, id: d.id }))
+        : data.filter((d) => d[c.x] !== 'Other').map((d) => ({ axis: String(d[c.x]), value: d[c.ys[0]] }));
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <RadarChart data={points} outerRadius="72%" margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
+          <PolarGrid stroke={ink.grid} />
+          <PolarAngleAxis dataKey="axis" tick={{ fill: ink.muted, fontSize: 11 }} tickFormatter={(v) => clip(v, 16)} />
+          <PolarRadiusAxis tick={false} axisLine={false} domain={[0, 'auto']} />
+          <Tooltip content={<TooltipBox ink={ink} fmtValue={(v, _k, p) => fmt(v, byId.get(p?.payload?.id) || m)} />} />
+          <Radar dataKey="value" name={m?.label || 'Value'} stroke={color(0)} strokeWidth={2} fill={color(0)} fillOpacity={0.28} dot={{ r: 3, fill: color(0), stroke: ink.surface, strokeWidth: 1.5 }} {...anim(0, 900)} />
+        </RadarChart>
+      </ResponsiveContainer>
+    );
+  }
 
   // Several measures side by side (survey items), or a histogram: one series of bars.
   if (tile.kind === 'compare' || tile.kind === 'distribution') {
@@ -223,9 +254,13 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
     );
   }
 
-  if (viz === 'scatter') {
+  if (viz === 'scatter' || viz === 'bubble') {
     const fx = field(tile.x);
     const fy = field(tile.y);
+    // A bubble's third number is its area, not its radius, so a value twice
+    // as large looks twice as large.
+    const fs = viz === 'bubble' && tile.size ? field(tile.size) : null;
+    const ms_ = fs ? { format: fs.format, scale: fs.scale } : null;
     const mx = { format: fx?.format, scale: fx?.scale };
     const my = { format: fy?.format, scale: fy?.scale };
     const groups = tile.color ? [...new Set(data.map((d) => String(d[tile.color] ?? '')))].sort().slice(0, 3) : null;
@@ -236,7 +271,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           <CartesianGrid stroke={ink.grid} strokeDasharray="3 4" />
           <XAxis type="number" dataKey={tile.x} name={fx?.label} {...axis} tickFormatter={(v) => formatValue(v, mx)} label={{ value: fx?.label, position: 'insideBottom', offset: -10, fill: ink.muted, fontSize: 11 }} domain={['auto', 'auto']} />
           <YAxis type="number" dataKey={tile.y} name={fy?.label} {...axis} width={56} tickFormatter={(v) => formatValue(v, my)} domain={['auto', 'auto']} />
-          <ZAxis range={[46, 46]} />
+          {fs ? <ZAxis type="number" dataKey={tile.size} name={fs.label} range={[24, 900]} /> : <ZAxis range={[46, 46]} />}
           <Tooltip
             cursor={{ strokeDasharray: '3 3', stroke: ink.muted }}
             content={({ active, payload }) => {
@@ -247,6 +282,7 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
                   {tile.label && p[tile.label] !== undefined && <div className="mb-1 font-bold">{String(p[tile.label])}</div>}
                   <div>{fx?.label}: <b>{formatValue(p[tile.x], mx)}</b></div>
                   <div>{fy?.label}: <b>{formatValue(p[tile.y], my)}</b></div>
+                  {fs && <div>{fs.label}: <b>{formatValue(p[tile.size], ms_)}</b></div>}
                   {tile.color && <div>{field(tile.color)?.label}: {String(p[tile.color])}</div>}
                 </div>
               );
@@ -254,14 +290,15 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           />
           {series.length > 1 && <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} />} />}
           {series.map((s, i) => (
-            <Scatter key={s.name} name={s.name} data={s.data} fill={color(i)} fillOpacity={0.78} stroke={ink.surface} strokeWidth={1.5} {...anim(i, 700)} />
+            <Scatter key={s.name} name={s.name} data={s.data} fill={color(i)} fillOpacity={fs ? 0.5 : 0.78} stroke={ink.surface} strokeWidth={1.5} {...anim(i, 700)} />
           ))}
         </ScatterChart>
       </ResponsiveContainer>
     );
   }
 
-  if (viz === 'donut') {
+  if (viz === 'donut' || viz === 'pie') {
+    const hole = viz === 'donut';
     const yKey = c.ys[0];
     const pieData = data.filter((d) => typeof d[yKey] === 'number' && d[yKey] > 0).map((d) => ({ name: String(d[c.x]), value: d[yKey] }));
     const total = pieData.reduce((s, d) => s + d.value, 0);
@@ -271,13 +308,15 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
     return (
       <div className="flex h-full w-full flex-col items-center gap-3 sm:flex-row" style={{ minHeight: height }}>
         <div className="relative h-[200px] w-full max-w-[220px] shrink-0">
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: ink.muted }}>Total</span>
-            <CountUp value={fmt(total)} animate={live} className="figure text-[20px] font-semibold" style={{ color: ink.strong }} />
-          </div>
+          {hole && (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: ink.muted }}>Total</span>
+              <CountUp value={fmt(total)} animate={live} className="figure text-[20px] font-semibold" style={{ color: ink.strong }} />
+            </div>
+          )}
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius="64%" outerRadius="94%" paddingAngle={2} cornerRadius={4} stroke={ink.surface} strokeWidth={2} {...anim(0, 1000)} onClick={click ? (d) => onSelect(tile.dim, d.name) : undefined}>
+              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={hole ? '64%' : 0} outerRadius="94%" paddingAngle={hole ? 2 : 1} cornerRadius={hole ? 4 : 2} stroke={ink.surface} strokeWidth={2} {...anim(0, 1000)} onClick={click ? (d) => onSelect(tile.dim, d.name) : undefined}>
                 {pieData.map((d, i) => (
                   <Cell key={d.name} fill={sliceColor(d.name)} opacity={selected?.length && !isSelected(d.name) ? 0.35 : 1} cursor={click ? 'pointer' : 'default'} />
                 ))}
@@ -297,6 +336,179 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
           ))}
         </ul>
       </div>
+    );
+  }
+
+  // A few categories as arcs, longest outside, coloured by name like the donut.
+  if (viz === 'radial') {
+    const yKey = c.ys[0];
+    const bars = data
+      .filter((d) => typeof d[yKey] === 'number' && d[yKey] >= 0)
+      .map((d) => ({ name: String(d[c.x]), value: d[yKey] }))
+      .sort((a, b) => a.value - b.value);
+    const order = bars.map((d) => d.name).filter((n) => n !== 'Other').sort((x, y) => x.localeCompare(y, undefined, { numeric: true }));
+    const barColor = (name) => (name === 'Other' ? ink.muted : color(order.indexOf(name)));
+    const ranked = [...bars].reverse();
+    return (
+      <div className="flex h-full w-full flex-col items-center gap-3 sm:flex-row" style={{ minHeight: height }}>
+        <div className="h-[220px] w-full max-w-[240px] shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadialBarChart data={bars.map((d) => ({ ...d, fill: barColor(d.name) }))} innerRadius="22%" outerRadius="100%" startAngle={90} endAngle={-270} barCategoryGap="18%">
+              <PolarAngleAxis type="number" domain={[0, Math.max(...bars.map((d) => d.value), 0) || 1]} tick={false} />
+              <RadialBar dataKey="value" background={{ fill: ink.grid }} cornerRadius={6} onClick={click ? (d) => onSelect(tile.dim, d.name) : undefined} cursor={click ? 'pointer' : 'default'} {...anim(0, 1000)}>
+                {bars.map((d) => (
+                  <Cell key={d.name} fill={barColor(d.name)} opacity={selected?.length && !isSelected(d.name) ? 0.35 : 1} />
+                ))}
+              </RadialBar>
+              <Tooltip content={<TooltipBox ink={ink} fmtValue={(v) => fmt(v)} />} />
+            </RadialBarChart>
+          </ResponsiveContainer>
+        </div>
+        <ul className="w-full min-w-0 flex-1 space-y-1.5">
+          {ranked.map((d) => (
+            <li key={d.name} className="flex items-center gap-2 text-[12px]">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: barColor(d.name) }} />
+              <span className="min-w-0 flex-1 truncate" style={{ color: ink.text }} title={d.name}>{d.name}</span>
+              <span className="w-20 shrink-0 text-right font-mono" style={{ color: ink.strong }}>{fmt(d.value)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  // The leading part against the whole: a half dial filled to its share.
+  if (viz === 'gauge') {
+    const yKey = c.ys[0];
+    const parts = data.filter((d) => typeof d[yKey] === 'number' && d[yKey] > 0);
+    const total = parts.reduce((s, d) => s + d[yKey], 0);
+    const lead = parts.filter((d) => d[c.x] !== 'Other').sort((a, b) => b[yKey] - a[yKey])[0];
+    if (!lead || !total) return <Empty height={height}>Nothing to measure against.</Empty>;
+    const share = lead[yKey] / total;
+    const dial = [
+      { name: String(lead[c.x]), value: lead[yKey] },
+      { name: 'The rest', value: total - lead[yKey] },
+    ];
+    return (
+      <div className="flex w-full flex-col items-center" style={{ minHeight: Math.min(height, 240) }}>
+        <div className="relative h-[170px] w-full max-w-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={dial} dataKey="value" nameKey="name" cx="50%" cy="88%" startAngle={180} endAngle={0} innerRadius="120%" outerRadius="165%" stroke="none" {...anim(0, 1100)}>
+                <Cell fill={color(0)} />
+                <Cell fill={ink.grid} />
+              </Pie>
+              <Tooltip content={<TooltipBox ink={ink} fmtValue={(v) => `${fmt(v)} · ${Math.round((v / total) * 100)}%`} />} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="pointer-events-none absolute inset-x-0 bottom-1 flex flex-col items-center">
+            <span className="figure text-[30px] font-semibold leading-none" style={{ color: ink.strong }}>{Math.round(share * 100)}%</span>
+          </div>
+        </div>
+        <p className="mt-2 max-w-[320px] text-center text-[12px]" style={{ color: ink.text }}>
+          <b style={{ color: ink.strong }}>{String(lead[c.x])}</b> is {fmt(lead[yKey])} of {fmt(total)}
+        </p>
+      </div>
+    );
+  }
+
+  // How a total is built: each part (or period) steps up from where the last
+  // one ended, then a final column shows the total itself.
+  if (viz === 'waterfall') {
+    const yKey = c.ys[0];
+    let running = 0;
+    const steps = data
+      .filter((d) => typeof d[yKey] === 'number')
+      .map((d) => {
+        const v = d[yKey];
+        const from = running;
+        running += v;
+        return { label: d[c.x], base: Math.min(from, running), size: Math.abs(v), value: v, end: running, up: v >= 0 };
+      });
+    steps.push({ label: 'Total', base: Math.min(0, running), size: Math.abs(running), value: running, end: running, up: running >= 0, total: true });
+    const tick = (v) => (v === 'Total' ? v : clip(grain ? formatTick(v, grain) : v, 12));
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={steps} margin={{ top: 8, right: 16, bottom: 4, left: 4 }} barCategoryGap="18%">
+          <CartesianGrid stroke={ink.grid} strokeDasharray="3 4" vertical={false} />
+          <XAxis dataKey="label" {...axis} tickFormatter={tick} interval={steps.length > 14 ? 'preserveStartEnd' : 0} minTickGap={4} />
+          <YAxis {...axis} width={56} tickFormatter={(v) => fmt(v)} />
+          <Tooltip
+            cursor={{ fill: ink.cursor, radius: 6 }}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const p = payload[0].payload;
+              return (
+                <div className="rounded-xl px-3 py-2.5 text-[12px] shadow-2xl backdrop-blur-md" style={{ background: ink.glass, color: ink.text, border: `1px solid ${ink.border}` }}>
+                  <div className="mb-1 font-semibold" style={{ color: ink.strong }}>{p.total ? 'Total' : labelX(p.label)}</div>
+                  {!p.total && <div>{p.value >= 0 ? 'Adds' : 'Takes away'} <b>{fmt(Math.abs(p.value))}</b></div>}
+                  <div>{p.total ? '' : 'Running total '}<b>{fmt(p.end)}</b></div>
+                </div>
+              );
+            }}
+          />
+          <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
+          <Bar dataKey="size" stackId="w" radius={[4, 4, 4, 4]} {...anim(0, 900)}>
+            {steps.map((s, i) => (
+              <Cell key={`${s.label}-${i}`} fill={s.total ? ink.muted : s.up ? color(0) : '#e0605e'} fillOpacity={s.total ? 0.8 : 0.9} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Which series leads in each period: every series' rank over time, first at
+  // the top, so a crossing line is the lead changing hands.
+  if (viz === 'ribbon' && c.series) {
+    const keys = c.series.filter((k) => k !== 'Other');
+    const ranked = data.map((d) => {
+      const order = keys.filter((k) => typeof d[k] === 'number').sort((a, b) => d[b] - d[a]);
+      const row = { [c.x]: d[c.x], __values: d };
+      order.forEach((k, i) => (row[k] = i + 1));
+      return row;
+    });
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <LineChart data={ranked} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
+          <CartesianGrid stroke={ink.grid} strokeDasharray="3 4" vertical={false} />
+          <XAxis dataKey={c.x} {...axis} tickFormatter={tickX} minTickGap={16} interval="preserveStartEnd" />
+          <YAxis {...axis} width={36} reversed domain={[1, Math.max(1, keys.length)]} allowDecimals={false} ticks={keys.map((_, i) => i + 1)} tickFormatter={(v) => `#${v}`} />
+          <Tooltip
+            cursor={{ stroke: ink.muted, strokeDasharray: '4 4', strokeWidth: 1 }}
+            content={<TooltipBox ink={ink} fmtLabel={labelX} fmtValue={(v, k, p) => `#${v} · ${fmt(p?.payload?.__values?.[k], m)}`} />}
+          />
+          <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} />} />
+          {keys.map((k, i) => (
+            <Line key={k} type="monotone" dataKey={k} name={k} stroke={color(i)} strokeWidth={3} dot={{ r: 3.5, strokeWidth: 2, stroke: ink.surface, fill: color(i) }} activeDot={{ r: 5 }} connectNulls {...anim(i, 1100)} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Two measures on one axis: columns for the first, a line for the second,
+  // each on its own scale (left and right) since they are rarely in one unit.
+  if (viz === 'combo' && c.ys.length === 2) {
+    const [a, b] = c.ys;
+    const ma = byId.get(a);
+    const mb = byId.get(b);
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 4 }}>
+          <defs>
+            <Fade id={`${uid}-c`} color={color(0)} from={1} to={0.62} />
+          </defs>
+          <CartesianGrid stroke={ink.grid} strokeDasharray="3 4" vertical={false} />
+          <XAxis dataKey={c.x} {...axis} tickFormatter={(v) => (grain ? tickX(v) : clip(v, 12))} interval={data.length > 14 ? 'preserveStartEnd' : 0} minTickGap={4} />
+          <YAxis yAxisId="a" {...axis} width={56} tickFormatter={(v) => fmt(v, ma)} />
+          <YAxis yAxisId="b" orientation="right" {...axis} width={56} tickFormatter={(v) => fmt(v, mb)} />
+          <Tooltip cursor={{ fill: ink.cursor, radius: 6 }} content={<TooltipBox ink={ink} fmtLabel={labelX} fmtValue={(v, k) => fmt(v, byId.get(k))} />} />
+          <Legend verticalAlign="top" align="left" content={<PillLegend ink={ink} />} />
+          <Bar yAxisId="a" dataKey={a} name={ma?.label || a} fill={`url(#${uid}-c)`} radius={[4, 4, 0, 0]} {...anim(0)} onClick={click || undefined} cursor={click ? 'pointer' : 'default'} />
+          <Line yAxisId="b" type="monotone" dataKey={b} name={mb?.label || b} stroke={color(1)} strokeWidth={2.5} dot={{ r: 3, strokeWidth: 2, stroke: ink.surface, fill: color(1) }} connectNulls {...anim(1, 1100)} />
+        </ComposedChart>
+      </ResponsiveContainer>
     );
   }
 
@@ -517,6 +729,37 @@ function DataTable({ tile, data, byId, field, height, color }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/**
+ * A short list of values as numbers: one card per category, largest first,
+ * with its share of the total where the measure adds up.
+ */
+function NumberCards({ tile, data, m, fmt, ink, onSelect, isSelected, anySelected }) {
+  const c = tile.computed;
+  const yKey = c.ys[0];
+  const cards = data.filter((d) => typeof d[yKey] === 'number');
+  const total = m?.additive ? cards.reduce((s, d) => s + d[yKey], 0) : null;
+  return (
+    <div className="grid w-full gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+      {cards.map((d) => {
+        const name = String(d[c.x]);
+        return (
+          <button
+            key={name}
+            type="button"
+            onClick={onSelect ? () => onSelect(name) : undefined}
+            className="rounded-xl border px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
+            style={{ borderColor: ink.border, opacity: anySelected && !isSelected(name) ? 0.45 : 1, cursor: onSelect ? 'pointer' : 'default' }}
+          >
+            <div className="truncate text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: ink.muted }} title={name}>{name}</div>
+            <div className="figure mt-1 text-[20px] font-semibold leading-tight" style={{ color: ink.strong }}>{fmt(d[yKey])}</div>
+            {total ? <div className="mt-0.5 text-[11px]" style={{ color: ink.muted }}>{Math.round((d[yKey] / total) * 100)}% of the total</div> : null}
+          </button>
+        );
+      })}
     </div>
   );
 }
