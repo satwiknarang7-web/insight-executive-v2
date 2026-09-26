@@ -3,18 +3,17 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowRight, ChevronDown, FileImage, FileSpreadsheet, LayoutDashboard, Lock, PencilRuler, ShieldCheck, Table2, Trash2, UploadCloud, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, FileSpreadsheet, LayoutDashboard, Lock, PencilRuler, ShieldCheck, Table2, Trash2, UploadCloud, X } from 'lucide-react';
 import { useActions, useDataset } from '../../../lib/store/DatasetProvider';
 import { useDashboard } from '../../../lib/store/DashboardProvider';
 import { usePlan } from '../../../lib/store/PlanProvider';
-import { isExtractable } from '../../../lib/documentExtraction';
+import { formatOf } from '../../../lib/ingest/formats';
 import ProgressPanel from '../../../components/panels/ProgressPanel';
 import PageFrame from '../../../components/shell/PageFrame';
 import { SAMPLES } from '../../../lib/samples';
 import { acceptFor, sourceById } from '../../../lib/sources';
 import ConnectSource from '../../../components/panels/ConnectSource';
 import SourcePicker from '../../../components/panels/SourcePicker';
-import DocumentImport from '../../../components/panels/DocumentImport';
 import WebSource from '../../../components/panels/WebSource';
 import GeminiKeyPanel from '../../../components/panels/GeminiKeyPanel';
 import CountUp from '../../../components/motion/CountUp';
@@ -38,8 +37,6 @@ export default function LandingPage() {
   const [source, setSource] = useState('file');
   const chosen = sourceById(source) || sourceById('file');
   const [pasted, setPasted] = useState('');
-  // Whether the document reader is open. Its own feature, its own screen.
-  const [documents, setDocuments] = useState(false);
   const [organization, setOrganization] = useState(null);
   const inputRef = useRef(null);
   const { can: planAllows, loading: planLoading, serverModel } = usePlan();
@@ -129,19 +126,10 @@ export default function LandingPage() {
   const handleFiles = useCallback(
     async (files) => {
       const list = Array.from(files || []);
-      /**
-       * A photograph is not a spreadsheet, and the difference decides the path.
-       *
-       * Documents go one at a time through extraction: each is a separate
-       * vision call on the reader's own key, and batching them would spend
-       * several before anyone has seen whether the first came back sensibly.
-       */
-      // A photograph dropped on the file zone is almost always a mistake — the
-      // reading of it needs checking, and this path loads straight through. It
-      // is sent to the screen that can check it rather than quietly refused.
-      if (list.some(isExtractable)) {
-        setDocuments(true);
-        setError('A photograph or a PDF is read below, where you can check what it says before it is loaded.');
+      // A photograph or a PDF is not a table the app can read. Said plainly,
+      // rather than parsed as text and turned into a page of nonsense rows.
+      if (list.some((f) => formatOf(f.name, f.type) === 'document')) {
+        setError('Photographs and PDFs cannot be read. Export the table as CSV or Excel and drop that instead.');
         return;
       }
       try {
@@ -497,9 +485,7 @@ export default function LandingPage() {
                     {chosen.id === 'file' ? 'Drop a file, or several' : `Drop a ${chosen.label.replace(/ workbook| database| page/, '').toLowerCase()} file`}
                   </div>
                   <div className="relative text-[12.5px] text-white/45">
-                    {chosen.id === 'document'
-                      ? 'A PDF or a photograph, read by a model on your own key'
-                      : 'CSV, Excel, JSON, XML, Parquet, SQLite — read in your browser'}
+                    CSV, Excel, JSON, XML, Parquet, SQLite — read in your browser
                   </div>
                   <input
                     ref={inputRef}
@@ -518,55 +504,6 @@ export default function LandingPage() {
 
             {!busy && !dataset && (
               <>
-                {/*
-                  * Reading a table out of a photograph, on its own.
-                  *
-                  * It was one tile among nine in the source catalogue, which
-                  * put it beside CSV as though the two were the same kind of
-                  * act. They are not: one is parsed and the other is read by a
-                  * model that is right most of the time, and the difference is
-                  * a screen where you check it. Several pages at once, every
-                  * cell editable.
-                  */}
-                <div className="card p-4">
-                  <button
-                    type="button"
-                    onClick={() => setDocuments((v) => !v)}
-                    aria-expanded={documents}
-                    className="flex w-full items-center gap-2.5 text-left"
-                  >
-                    <FileImage size={15} className="shrink-0 text-accent-400" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[13px] font-semibold text-white/85">
-                        Photograph or PDF of a table
-                      </span>
-                      <span className="mt-0.5 block text-[11px] text-white/35">
-                        Several pages at once, read by a model and checked by you before anything loads.
-                      </span>
-                    </span>
-                    {!planAllows('model') && (
-                      <span className="shrink-0 rounded-full border border-accent-500/30 bg-accent-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-accent-400">
-                        Pro
-                      </span>
-                    )}
-                    <ChevronDown
-                      size={15}
-                      className={`shrink-0 text-white/30 transition-transform ${documents ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {documents &&
-                    (planAllows('model') ? (
-                      <div className="mt-4 border-t border-white/6 pt-4">
-                        <DocumentImport onLoaded={() => setDocuments(false)} />
-                      </div>
-                    ) : (
-                      <p className="mt-4 border-t border-white/6 pt-4 text-[12px] leading-relaxed text-white/40">
-                        Reading a document needs a model, which is on the Pro plan — every other source
-                        here works without one.
-                      </p>
-                    ))}
-                </div>
-
                 <div className="card p-4">
                   <div className="label mb-2.5">Or try a sample</div>
                   <div className="stagger grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
