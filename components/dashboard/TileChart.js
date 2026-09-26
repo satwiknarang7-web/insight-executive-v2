@@ -423,15 +423,16 @@ export default function TileChart({ tile, measures = [], fields = [], height = 2
   // one ended, then a final column shows the total itself.
   if (viz === 'waterfall') {
     const yKey = c.ys[0];
-    let running = 0;
     const steps = data
       .filter((d) => typeof d[yKey] === 'number')
-      .map((d) => {
+      .reduce((acc, d) => {
         const v = d[yKey];
-        const from = running;
-        running += v;
-        return { label: d[c.x], base: Math.min(from, running), size: Math.abs(v), value: v, end: running, up: v >= 0 };
-      });
+        const from = acc.length ? acc[acc.length - 1].end : 0;
+        const end = from + v;
+        acc.push({ label: d[c.x], base: Math.min(from, end), size: Math.abs(v), value: v, end, up: v >= 0 });
+        return acc;
+      }, []);
+    const running = steps.length ? steps[steps.length - 1].end : 0;
     steps.push({ label: 'Total', base: Math.min(0, running), size: Math.abs(running), value: running, end: running, up: running >= 0, total: true });
     const tick = (v) => (v === 'Total' ? v : clip(grain ? formatTick(v, grain) : v, 12));
     return (
